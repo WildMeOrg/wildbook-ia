@@ -79,8 +79,7 @@
         <span class="k">return</span> <span class="n">refresh</span><span class="o">.</span><span class="n">prob_any_remain</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">refresh</span><span class="o">.</span><span class="n">_prob_any_remain_thresh</span></div>
 
 <div class="viewcode-block" id="RefreshCriteria.prob_any_remain"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.refresh.RefreshCriteria.prob_any_remain">[docs]</a>    <span class="k">def</span> <span class="nf">prob_any_remain</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">n_remain_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
         <span class="n">prob_no_event_in_range</span> <span class="o">=</span> <span class="n">refresh</span><span class="o">.</span><span class="n">_prob_none_remain</span><span class="p">(</span><span class="n">n_remain_edges</span><span class="p">)</span>
         <span class="n">prob_event_in_range</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">prob_no_event_in_range</span>
         <span class="k">return</span> <span class="n">prob_event_in_range</span></div>

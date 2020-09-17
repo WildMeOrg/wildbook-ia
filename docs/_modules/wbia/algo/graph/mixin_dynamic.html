@@ -1180,7 +1180,8 @@
             <span class="n">infr</span><span class="o">.</span><span class="n">remove_internal_priority</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;inference.update_attrs&#39;</span><span class="p">]:</span>
                 <span class="n">infr</span><span class="o">.</span><span class="n">set_edge_attrs</span><span class="p">(</span>
-                    <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">),</span> <span class="p">[</span><span class="s1">&#39;same&#39;</span><span class="p">]),</span>
+                    <span class="s1">&#39;inferred_state&#39;</span><span class="p">,</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">edges_inside</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">cc</span><span class="p">),</span> <span class="p">[</span><span class="s1">&#39;same&#39;</span><span class="p">]),</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">was_pos_redun</span><span class="p">:</span>
@@ -1525,7 +1526,12 @@
         <span class="c1"># Find edges internal to inconsistent PCCs</span>
         <span class="n">incon_internal</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">nid</span><span class="p">:</span> <span class="n">union</span><span class="p">(</span>
-                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,)</span> <span class="o">+</span> <span class="n">UNINFERABLE</span>
+                <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">key</span><span class="p">][(</span><span class="n">nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)]</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="n">POSTV</span><span class="p">,</span>
+                    <span class="n">NEGTV</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="n">UNINFERABLE</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">incon_internal_nids</span>
         <span class="p">}</span>

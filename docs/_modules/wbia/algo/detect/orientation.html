@@ -96,7 +96,9 @@
                 <span class="n">sequence</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="n">iaa</span><span class="o">.</span><span class="n">PiecewiseAffine</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0005</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)),</span>
                     <span class="n">iaa</span><span class="o">.</span><span class="n">Affine</span><span class="p">(</span>
-                        <span class="n">rotate</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">rotate</span><span class="p">,</span> <span class="n">rotate</span><span class="p">),</span> <span class="n">shear</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">shear</span><span class="p">,</span> <span class="n">shear</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
+                        <span class="n">rotate</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">rotate</span><span class="p">,</span> <span class="n">rotate</span><span class="p">),</span>
+                        <span class="n">shear</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">shear</span><span class="p">,</span> <span class="n">shear</span><span class="p">),</span>
+                        <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
                     <span class="p">),</span>
                     <span class="n">iaa</span><span class="o">.</span><span class="n">Grayscale</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)),</span>
                 <span class="p">]</span>
@@ -155,7 +157,14 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">targets</span><span class="p">,)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="k">else</span> <span class="p">(</span><span class="n">filepaths</span><span class="p">,)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">filepaths</span><span class="p">,</span>
+                <span class="n">targets</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span>
+            <span class="k">else</span> <span class="p">(</span><span class="n">filepaths</span><span class="p">,)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">:</span>
@@ -191,7 +200,14 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_transform</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
 
-        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">target</span><span class="p">,)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="k">else</span> <span class="p">(</span><span class="n">sample</span><span class="p">,)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">sample</span><span class="p">,</span>
+                <span class="n">target</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span>
+            <span class="k">else</span> <span class="p">(</span><span class="n">sample</span><span class="p">,)</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span>
 
@@ -378,7 +394,13 @@
 
     <span class="n">samples</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">samples</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dataset </span><span class="si">%r</span><span class="s1"> has </span><span class="si">%d</span><span class="s1"> samples&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Dataset </span><span class="si">%r</span><span class="s1"> has </span><span class="si">%d</span><span class="s1"> samples&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">tag</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">flags</span><span class="p">):</span>
@@ -756,7 +778,10 @@
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Using weights in the ensemble, index </span><span class="si">%r</span><span class="s1">: </span><span class="si">%s</span><span class="s1"> &#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">ensemble_index</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">),)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ensemble_index</span><span class="p">,</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">result_list</span> <span class="o">=</span> <span class="n">test_ensemble</span><span class="p">(</span>
         <span class="n">gpath_list</span><span class="p">,</span>

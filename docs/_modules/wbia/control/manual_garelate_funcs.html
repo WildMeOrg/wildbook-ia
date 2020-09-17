@@ -80,7 +80,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="c1"># @register_api(&#39;/api/gar/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">_get_all_gar_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; all_gar_rowids &lt;- gar.get_all_rowids()</span>
+    <span class="sd">&quot;&quot;&quot;all_gar_rowids &lt;- gar.get_all_rowids()</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): unfiltered gar_rowids</span>
@@ -118,8 +118,14 @@
     <span class="c1"># if aid_list is None:</span>
     <span class="c1">#    aid_list = [None] * len(annotgroup_rowid_list)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="n">annotgroup_rowid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,)</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">annotgroup_rowid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+        <span class="p">(</span>
+            <span class="n">annotgroup_rowid</span><span class="p">,</span>
+            <span class="n">aid</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">annotgroup_rowid</span><span class="p">,</span>
+            <span class="n">aid</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_rowid_from_superkey</span>
     <span class="c1"># FIXME: encode superkey paramx</span>
@@ -137,7 +143,7 @@
 <div class="viewcode-block" id="delete_gar"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_garelate_funcs.delete_gar">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="c1"># @register_api(&#39;/api/gar/&#39;, methods=[&#39;DELETE&#39;])</span>
 <span class="k">def</span> <span class="nf">delete_gar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; gar.delete(gar_rowid_list)</span>
+    <span class="sd">&quot;&quot;&quot;gar.delete(gar_rowid_list)</span>
 
 <span class="sd">    delete gar rows</span>
 
@@ -176,7 +182,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="c1"># @register_api(&#39;/api/gar/annot/rowid/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">get_gar_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; aid_list &lt;- gar.aid[gar_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;aid_list &lt;- gar.aid[gar_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;aid&quot; in the &quot;gar&quot; table</span>
 
@@ -217,7 +223,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="c1"># @register_api(&#39;/api/gar/annotgroup/rowid/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">get_gar_annotgroup_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gar_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_rowid_list &lt;- gar.annotgroup_rowid[gar_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_rowid_list &lt;- gar.annotgroup_rowid[gar_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotgroup_rowid&quot; in the &quot;gar&quot; table</span>
 
@@ -258,7 +264,7 @@
 <span class="k">def</span> <span class="nf">get_gar_rowid_from_superkey</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; gar_rowid_list &lt;- gar[annotgroup_rowid_list, aid_list]</span>
+    <span class="sd">&quot;&quot;&quot;gar_rowid_list &lt;- gar[annotgroup_rowid_list, aid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        superkey lists: annotgroup_rowid_list, aid_list</span>

@@ -213,7 +213,13 @@
 <span class="sd">                [assert_cache_hits] CACHE INVALID: %r != %r</span>
 <span class="sd">                &quot;&quot;&quot;</span>
             <span class="p">)</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">,</span> <span class="n">cache_vals_list</span><span class="p">,</span> <span class="n">db_vals_list</span><span class="p">,)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmt</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tblname</span><span class="p">,</span>
+                <span class="n">colname</span><span class="p">,</span>
+                <span class="n">cfgkeys</span><span class="p">,</span>
+                <span class="n">cache_vals_list</span><span class="p">,</span>
+                <span class="n">db_vals_list</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">list1</span> <span class="o">=</span> <span class="n">cache_vals_list</span>
                 <span class="n">list2</span> <span class="o">=</span> <span class="n">db_vals_list</span>
@@ -337,7 +343,7 @@
 
 
 <div class="viewcode-block" id="cache_invalidator"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.accessor_decors.cache_invalidator">[docs]</a><span class="k">def</span> <span class="nf">cache_invalidator</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; cacher decorator</span>
+    <span class="sd">&quot;&quot;&quot;cacher decorator</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        tablename (str): the table that the owns the underlying cache</span>

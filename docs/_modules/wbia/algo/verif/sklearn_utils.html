@@ -211,8 +211,7 @@
             <span class="k">yield</span> <span class="n">test_folds</span> <span class="o">==</span> <span class="n">i</span>
 
 <div class="viewcode-block" id="StratifiedGroupKFold.split"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.StratifiedGroupKFold.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate indices to split data into training and test set.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Generate indices to split data into training and test set.&quot;&quot;&quot;</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">StratifiedGroupKFold</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">groups</span><span class="p">)</span></div></div>
 
@@ -802,7 +801,7 @@
         <span class="k">return</span> <span class="n">avg</span></div>
 
 <div class="viewcode-block" id="PrefitEstimatorEnsemble.predict"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.sklearn_utils.PrefitEstimatorEnsemble.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Predict class labels for X.</span>
+        <span class="sd">&quot;&quot;&quot;Predict class labels for X.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

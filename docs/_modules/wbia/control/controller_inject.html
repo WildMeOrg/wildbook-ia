@@ -246,7 +246,10 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rawreturn</span></div>
 
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,)</span></div>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="WebMissingUUIDException"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.WebMissingUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebMissingUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
@@ -613,7 +616,14 @@
                 <span class="n">key_</span> <span class="o">=</span> <span class="n">key_</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="n">length1</span><span class="p">)</span>
                 <span class="n">type_</span> <span class="o">=</span> <span class="n">type_</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">length2</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">message_</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : </span><span class="si">%s</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">key_</span><span class="p">,</span>
+                            <span class="n">type_</span><span class="p">,</span>
+                            <span class="n">message_</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[TRANSLATE] </span><span class="se">\t</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) : UNICODE ERROR&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -648,11 +658,23 @@
                     <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
                     <span class="n">value_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
                     <span class="n">value_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="n">value_str</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
-                    <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_str</span><span class="p">,))</span>
+                    <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">key</span><span class="p">,</span>
+                            <span class="n">value_str</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="c1"># msg_list.append(&#39;\targs = %r&#39; % (args,))</span>
                 <span class="c1"># msg_list.append(&#39;flask.request.args = %r&#39; % (flask.request.args,))</span>
                 <span class="c1"># msg_list.append(&#39;flask.request.form = %r&#39; % (flask.request.form,))</span>
-                <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ex2</span><span class="p">,))</span>
+                <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="nb">type</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                        <span class="n">ex2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">WEB_DEBUG_INCLUDE_TRACE</span><span class="p">:</span>
                     <span class="n">trace</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                     <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
@@ -739,7 +761,10 @@
 
 <div class="viewcode-block" id="get_url_authorization"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.controller_inject.get_url_authorization">[docs]</a><span class="k">def</span> <span class="nf">get_url_authorization</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
     <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,)</span>
+    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">GLOBAL_APP_NAME</span><span class="p">,</span>
+        <span class="n">hash_</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">hash_challenge</span></div>
 
 
@@ -1238,7 +1263,11 @@
                         <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                             <span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1"> with args: </span><span class="si">%r</span><span class="s1"> and kwargs: </span><span class="si">%r</span><span class="s1">&#39;</span>
-                            <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,)</span>
+                            <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">func</span><span class="p">,</span>
+                                <span class="n">args</span><span class="p">,</span>
+                                <span class="n">kwargs</span><span class="p">,</span>
+                            <span class="p">)</span>
                         <span class="p">)</span>
 
                         <span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="kn">import</span> <span class="n">PROMETHEUS</span>

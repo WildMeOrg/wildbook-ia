@@ -395,7 +395,10 @@
         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[harn.help] parsed </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> unique annot configs&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acfg_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">),)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list_</span><span class="p">),</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">),</span>
+                <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[harn.help] parsed from: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acfg_name_list</span><span class="p">,))</span>

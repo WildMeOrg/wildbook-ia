@@ -55,7 +55,7 @@
 
 <div class="viewcode-block" id="delete_empty_imgsetids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_gsgrelate_funcs.delete_empty_imgsetids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">delete_empty_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Removes imagesets without images</span>
+    <span class="sd">&quot;&quot;&quot;Removes imagesets without images</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  wbia controller object</span>
@@ -86,7 +86,7 @@
 <span class="k">def</span> <span class="nf">get_image_gsgrids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list):  a list of imageset-image-relationship rowids for each imageid &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list):  a list of imageset-image-relationship rowids for each imageid&quot;&quot;&quot;</span>
     <span class="c1"># TODO: Group type</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;image_rowid=?&#39;</span>
@@ -205,7 +205,7 @@
 <span class="k">def</span> <span class="nf">get_gsgr_rowid_from_superkey</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        gsgrid_list (list):  eg-relate-ids from info constrained to be unique (imgsetid, gid) &quot;&quot;&quot;</span>
+<span class="sd">        gsgrid_list (list):  eg-relate-ids from info constrained to be unique (imgsetid, gid)&quot;&quot;&quot;</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">)</span>
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;image_rowid=? AND imageset_rowid=?&#39;</span>

@@ -84,15 +84,15 @@
             <span class="p">(</span><span class="s1">&#39;review_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
             <span class="p">(</span>
                 <span class="s1">&#39;review_time_posix&#39;</span><span class="p">,</span>
-                <span class="sd">&#39;&#39;&#39;INTEGER DEFAULT (CAST(STRFTIME(&#39;%s&#39;, &#39;NOW&#39;, &#39;UTC&#39;) AS INTEGER))&#39;&#39;&#39;</span><span class="p">,</span>
+                <span class="sd">&quot;&quot;&quot;INTEGER DEFAULT (CAST(STRFTIME(&#39;%s&#39;, &#39;NOW&#39;, &#39;UTC&#39;) AS INTEGER))&quot;&quot;&quot;</span><span class="p">,</span>
             <span class="p">),</span>  <span class="c1"># this should probably be UCT</span>
             <span class="p">(</span><span class="s1">&#39;review_identity&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;review_tags&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">),</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;review_count&#39;</span><span class="p">)],</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        Used to store completed user review states of two matched annotations</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Used to store completed user review states of two matched annotations</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -125,7 +125,8 @@
         <span class="n">review_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">))]</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_set_review_uuids</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">,</span> <span class="n">review_uuid_list</span><span class="p">)</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;review_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;UUID NOT NULL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="p">[(</span><span class="s1">&#39;review_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;UUID NOT NULL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span>
     <span class="p">)</span></div>
 
 
@@ -151,13 +152,13 @@
             <span class="p">(</span><span class="s1">&#39;test_result&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">),</span>
             <span class="p">(</span>
                 <span class="s1">&#39;test_time_posix&#39;</span><span class="p">,</span>
-                <span class="sd">&#39;&#39;&#39;INTEGER DEFAULT (CAST(STRFTIME(&#39;%s&#39;, &#39;NOW&#39;, &#39;UTC&#39;) AS INTEGER))&#39;&#39;&#39;</span><span class="p">,</span>
+                <span class="sd">&quot;&quot;&quot;INTEGER DEFAULT (CAST(STRFTIME(&#39;%s&#39;, &#39;NOW&#39;, &#39;UTC&#39;) AS INTEGER))&quot;&quot;&quot;</span><span class="p">,</span>
             <span class="p">),</span>  <span class="c1"># this should probably be UCT</span>
         <span class="p">),</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;test_uuid&#39;</span><span class="p">,)],</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        Used to store tests given to the user, their responses, and their results</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Used to store tests given to the user, their responses, and their results</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -180,9 +181,9 @@
             <span class="p">(</span><span class="s1">&#39;weight_algo_confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;REAL&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;weight_metadata_json&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">],</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        Used to store completed algo weight states of two matched annotations</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Used to store completed algo weight states of two matched annotations</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_count&#39;</span><span class="p">)],</span>
     <span class="p">)</span></div>
 

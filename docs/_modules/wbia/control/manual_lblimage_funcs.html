@@ -66,7 +66,7 @@
 <span class="k">def</span> <span class="nf">get_glr_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">glrid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list):  confidence in an image relationship &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list):  confidence in an image relationship&quot;&quot;&quot;</span>
     <span class="n">glr_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;glr_confidence&#39;</span><span class="p">,),</span> <span class="n">glrid_list</span>
     <span class="p">)</span>
@@ -99,7 +99,7 @@
 <span class="k">def</span> <span class="nf">add_lblimages</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lblimage_uuid_list</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Adds new lblimages (labels of imageations)</span>
+    <span class="sd">&quot;&quot;&quot;Adds new lblimages (labels of imageations)</span>
 <span class="sd">    creates a new uuid for any new pair(type, value)</span>
 <span class="sd">    #TODO: reverse order of rowid_list value_list in input</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -190,7 +190,7 @@
 <span class="k">def</span> <span class="nf">get_lblimage_values</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list): text lblimages &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list): text lblimages&quot;&quot;&quot;</span>
     <span class="c1"># TODO: Remove keyword argument</span>
     <span class="c1"># ibsfuncs.assert_lblimage_rowids_are_type(ibs, lblimage_rowid_list,  ibs.lbltype_ids[_lbltype])</span>
     <span class="n">lblimage_value_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -226,8 +226,8 @@
 <span class="k">def</span> <span class="nf">add_image_relationship_one</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">glr_confidence_list</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Adds a relationship between images and lblimages</span>
-<span class="sd">        (imageations and labels of imageations) &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Adds a relationship between images and lblimages</span>
+<span class="sd">    (imageations and labels of imageations)&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">glr_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">glr_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
@@ -270,7 +270,7 @@
 <div class="viewcode-block" id="get_image_glrids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_image_glrids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
 <span class="k">def</span> <span class="nf">get_image_glrids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; FIXME: __name__</span>
+    <span class="sd">&quot;&quot;&quot;FIXME: __name__</span>
 <span class="sd">    Get all the relationship ids belonging to the input images</span>
 <span class="sd">    if lblimage lbltype is specified the relationship ids are filtered to</span>
 <span class="sd">    be only of a specific lbltype/category/type</span>

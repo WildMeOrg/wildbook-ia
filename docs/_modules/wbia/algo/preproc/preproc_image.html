@@ -64,7 +64,7 @@
 
 <div class="viewcode-block" id="parse_imageinfo"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_image.parse_imageinfo">[docs]</a><span class="nd">@profile</span>
 <span class="k">def</span> <span class="nf">parse_imageinfo</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Worker function: gpath must be in UNIX-PATH format!</span>
+    <span class="sd">&quot;&quot;&quot;Worker function: gpath must be in UNIX-PATH format!</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        gpath (str): image path</span>
@@ -124,7 +124,10 @@
                 <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
                 <span class="c1"># base = filename</span>
                 <span class="n">base</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
-                <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;.</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">ext</span><span class="p">,)</span>
+                <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;.</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">base</span><span class="p">,</span>
+                    <span class="n">ext</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">temp_file</span><span class="p">,</span> <span class="n">temp_filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">)</span>
                 <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">gpath</span><span class="p">,</span>
@@ -154,7 +157,10 @@
                         <span class="n">scheme</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">allow_fragments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">scheme</span>
                         <span class="n">uri_</span> <span class="o">=</span> <span class="n">uri_</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scheme</span><span class="p">,))</span>
                         <span class="n">uri_path</span> <span class="o">=</span> <span class="n">urlquote</span><span class="p">(</span><span class="n">uri_</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">))</span>
-                        <span class="n">uri_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scheme</span><span class="p">,</span> <span class="n">uri_path</span><span class="p">,)</span>
+                        <span class="n">uri_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">scheme</span><span class="p">,</span>
+                            <span class="n">uri_path</span><span class="p">,</span>
+                        <span class="p">)</span>
                         <span class="c1"># six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)</span>
                         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="k">assert</span> <span class="p">(</span>
@@ -192,7 +198,13 @@
             <span class="c1">#                          warn.line)</span>
             <span class="c1">#     warnstr = warnings.formatwarning</span>
             <span class="c1">#     logger.info(warnstr)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> warnings issued by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="n">gpath</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> warnings issued by </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">),</span>
+                    <span class="n">gpath</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
     <span class="c1"># Parse out the data</span>
     <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">pil_img</span><span class="o">.</span><span class="n">size</span>  <span class="c1"># Read width, height</span>
     <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">orient</span> <span class="o">=</span> <span class="n">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>  <span class="c1"># Read exif tags</span>

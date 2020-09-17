@@ -157,7 +157,16 @@
     <span class="n">db_path_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_revert.sqlite3&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">db_path_</span><span class="p">)</span>
     <span class="n">fpath</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_*</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="p">,)))</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+            <span class="n">backup_dir</span><span class="p">,</span>
+            <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_*</span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fname</span><span class="p">,</span>
+                <span class="n">ext</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
     <span class="n">previous_backup</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">copy_database</span><span class="p">(</span><span class="n">previous_backup</span><span class="p">,</span> <span class="n">db_path</span><span class="p">)</span>
@@ -167,7 +176,16 @@
     <span class="n">staging_path_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_revert.sqlite3&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">staging_path</span><span class="p">,</span> <span class="n">staging_path_</span><span class="p">)</span>
     <span class="n">fpath</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_*</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="p">,)))</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+            <span class="n">backup_dir</span><span class="p">,</span>
+            <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_*</span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fname</span><span class="p">,</span>
+                <span class="n">ext</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
     <span class="n">previous_backup</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">copy_database</span><span class="p">(</span><span class="n">previous_backup</span><span class="p">,</span> <span class="n">staging_path</span><span class="p">)</span>
@@ -246,7 +264,10 @@
     <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">dst_fpath</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[ensure_daily_database_backup] Daily backup of database: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">src_fpath</span><span class="p">,</span>
+                <span class="n">dst_fpath</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="n">copy_database</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">)</span>
         <span class="c1"># Clean-up old database backups</span>

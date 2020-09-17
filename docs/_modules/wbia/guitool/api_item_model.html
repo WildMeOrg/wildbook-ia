@@ -348,7 +348,11 @@
         <span class="k">if</span> <span class="n">VERBOSE_MODEL</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[APIItemModel] _set_sort, index=</span><span class="si">%r</span><span class="s1"> reverse=</span><span class="si">%r</span><span class="s1">, rebuild=</span><span class="si">%r</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">col_sort_index</span><span class="p">,</span> <span class="n">col_sort_reverse</span><span class="p">,</span> <span class="n">rebuild_structure</span><span class="p">,)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">col_sort_index</span><span class="p">,</span>
+                    <span class="n">col_sort_reverse</span><span class="p">,</span>
+                    <span class="n">rebuild_structure</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">col_name_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_ASSERT</span><span class="p">:</span>

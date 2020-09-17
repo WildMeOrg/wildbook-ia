@@ -48,7 +48,13 @@
 <div class="viewcode-block" id="ishow_image"><a class="viewcode-back" href="../../../../wbia.viz.interact.html#wbia.viz.interact.interact_image.ishow_image">[docs]</a><span class="k">def</span> <span class="nf">ishow_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">select_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[interact_image] gid=</span><span class="si">%r</span><span class="s1"> fnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;[interact_image] gid=</span><span class="si">%r</span><span class="s1"> fnum=</span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">gid</span><span class="p">,</span>
+                <span class="n">fnum</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
     <span class="c1"># TODO: change to class based structure</span>

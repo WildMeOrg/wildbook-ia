@@ -482,7 +482,9 @@
         <span class="n">reviewed_width</span> <span class="o">=</span> <span class="mf">2.0</span>
         <span class="k">if</span> <span class="n">highlight_reviews</span><span class="p">:</span>
             <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span>
-                <span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">reviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">reviewed_width</span><span class="p">]),</span>
+                <span class="n">graph</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">reviewed_edges</span><span class="p">,</span> <span class="p">[</span><span class="n">reviewed_width</span><span class="p">]),</span>
             <span class="p">)</span>
             <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span>
                 <span class="n">graph</span><span class="p">,</span>

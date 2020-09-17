@@ -412,7 +412,10 @@
             <span class="k">def</span> <span class="nf">clf_partial</span><span class="p">():</span>
                 <span class="n">pipe</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span>
                     <span class="p">[</span>
-                        <span class="p">(</span><span class="s1">&#39;inputer&#39;</span><span class="p">,</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">impute</span><span class="o">.</span><span class="n">SimpleImputer</span><span class="p">(</span><span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">),),</span>
+                        <span class="p">(</span>
+                            <span class="s1">&#39;inputer&#39;</span><span class="p">,</span>
+                            <span class="n">sklearn</span><span class="o">.</span><span class="n">impute</span><span class="o">.</span><span class="n">SimpleImputer</span><span class="p">(</span><span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">),</span>
+                        <span class="p">),</span>
                         <span class="c1"># (&#39;scale&#39;, sklearn.preprocessing.StandardScaler),</span>
                         <span class="p">(</span><span class="s1">&#39;est&#39;</span><span class="p">,</span> <span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">)),</span>
                     <span class="p">]</span>
@@ -424,7 +427,10 @@
             <span class="k">def</span> <span class="nf">clf_partial</span><span class="p">():</span>
                 <span class="n">pipe</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span>
                     <span class="p">[</span>
-                        <span class="p">(</span><span class="s1">&#39;inputer&#39;</span><span class="p">,</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">impute</span><span class="o">.</span><span class="n">SimpleImputer</span><span class="p">(</span><span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">),),</span>
+                        <span class="p">(</span>
+                            <span class="s1">&#39;inputer&#39;</span><span class="p">,</span>
+                            <span class="n">sklearn</span><span class="o">.</span><span class="n">impute</span><span class="o">.</span><span class="n">SimpleImputer</span><span class="p">(</span><span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">),</span>
+                        <span class="p">),</span>
                         <span class="p">(</span><span class="s1">&#39;est&#39;</span><span class="p">,</span> <span class="n">est_class</span><span class="p">(</span><span class="o">**</span><span class="n">est_params</span><span class="p">)),</span>
                     <span class="p">]</span>
                 <span class="p">)</span>
@@ -1511,7 +1517,9 @@
         <span class="n">labels</span><span class="o">.</span><span class="n">indicator_df</span> <span class="o">=</span> <span class="n">indicator_df</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">class_names</span> <span class="o">=</span> <span class="n">indicator_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">encoded_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="n">indicator_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">task_name</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+            <span class="n">indicator_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">task_name</span><span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">task_name</span> <span class="o">=</span> <span class="n">task_name</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>

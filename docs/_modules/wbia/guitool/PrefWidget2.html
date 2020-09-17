@@ -155,7 +155,9 @@
                 <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
-                    <span class="sa">r</span><span class="s1">&#39;^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
+                    <span class="sa">r</span><span class="s1">&#39;^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$&#39;</span><span class="p">,</span>
+                    <span class="n">text</span><span class="p">,</span>
+                    <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
                 <span class="p">):</span>
                     <span class="c1"># print(&#39;INVALIDATE text = %r&#39; % (text,))</span>
                     <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QValidator</span><span class="o">.</span><span class="n">Invalid</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
@@ -431,7 +433,12 @@
         <span class="k">if</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">VERBOSE_CONFIG</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
                 <span class="s1">&#39;[DELEGATE] editorEvent event=</span><span class="si">%r</span><span class="s1"> with model=</span><span class="si">%r</span><span class="s1">, option=</span><span class="si">%r</span><span class="s1">, index=</span><span class="si">%r</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">,)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">event</span><span class="p">,</span>
+                    <span class="n">model</span><span class="p">,</span>
+                    <span class="n">option</span><span class="p">,</span>
+                    <span class="n">index</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConfigValueDelegate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">editorEvent</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
 
@@ -732,7 +739,12 @@
         <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">strlist</span> <span class="o">+=</span> <span class="p">[</span>
                 <span class="n">indent</span> <span class="o">+</span> <span class="s1">&#39;┌── &#39;</span><span class="p">,</span>
-                <span class="n">indent</span> <span class="o">+</span> <span class="s1">&#39;┃ </span><span class="si">%s</span><span class="s1">(name=</span><span class="si">%r</span><span class="s1">):&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,),</span>
+                <span class="n">indent</span>
+                <span class="o">+</span> <span class="s1">&#39;┃ </span><span class="si">%s</span><span class="s1">(name=</span><span class="si">%r</span><span class="s1">):&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">typestr</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="p">),</span>
             <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">():</span>
             <span class="n">strlist</span> <span class="o">+=</span> <span class="p">[</span>

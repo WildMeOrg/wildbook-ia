@@ -52,7 +52,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): all nids of known animals</span>
-<span class="sd">        (does not include unknown names) &quot;&quot;&quot;</span>
+<span class="sd">        (does not include unknown names)&quot;&quot;&quot;</span>
     <span class="n">all_known_lblannot_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="s1">&#39;lbltype_rowid=?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">],)</span>
     <span class="p">)</span>
@@ -62,7 +62,7 @@
 <div class="viewcode-block" id="add_lbltype"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lbltype_funcs.add_lbltype">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@adder</span>
 <span class="k">def</span> <span class="nf">add_lbltype</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">text_list</span><span class="p">,</span> <span class="n">default_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Adds a label type and its default value</span>
+    <span class="sd">&quot;&quot;&quot;Adds a label type and its default value</span>
 <span class="sd">    Should only be called at the begining of the program.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">text_list</span><span class="p">,</span> <span class="n">default_list</span><span class="p">)</span>

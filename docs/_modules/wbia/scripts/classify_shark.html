@@ -137,7 +137,10 @@
         <span class="n">test_outptuts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">test_outptuts</span><span class="p">[</span><span class="s1">&#39;predictions&#39;</span><span class="p">]</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span><span class="n">y_true</span><span class="o">=</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="o">=</span><span class="n">y_pred</span><span class="p">,)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span>
+            <span class="n">y_true</span><span class="o">=</span><span class="n">y_test</span><span class="p">,</span>
+            <span class="n">y_pred</span><span class="o">=</span><span class="n">y_pred</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
 
         <span class="n">state_fpath</span> <span class="o">=</span> <span class="s1">&#39;/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/model_state_arch_jzuddodd.pkl&#39;</span>

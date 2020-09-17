@@ -218,7 +218,14 @@
             <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">)))))</span>
             <span class="c1"># aid_list =</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Specified </span><span class="si">%d</span><span class="s1"> custom aids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Specified </span><span class="si">%d</span><span class="s1"> custom aids&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span>
+                        <span class="n">aid_list</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="n">request_annot_subset</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">aid_list</span>
         <span class="n">valid_nids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
@@ -454,7 +461,13 @@
             <span class="k">if</span> <span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">min_age</span> <span class="o">=</span> <span class="n">max_age</span>
             <span class="k">if</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found UNKNOWN Age: </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">min_age</span><span class="p">,</span> <span class="n">max_age</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Found UNKNOWN Age: </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">min_age</span><span class="p">,</span>
+                        <span class="n">max_age</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="n">age_dict</span><span class="p">[</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">min_age</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">)</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
                 <span class="n">age_dict</span><span class="p">[</span><span class="s1">&#39;Infant&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -643,7 +656,13 @@
 
     <span class="n">annot_block_lines</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
-        <span class="p">(</span><span class="s1">&#39;# Annots </span><span class="si">%s</span><span class="s1">            = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset_str</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">,)),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;# Annots </span><span class="si">%s</span><span class="s1">            = </span><span class="si">%d</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">subset_str</span><span class="p">,</span>
+                <span class="n">num_annots</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;# Annots (unknown)           = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_unknown_annots</span><span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;# Annots (singleton)         = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_singleton_annots</span><span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;# Annots (multiton)          = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_multiton_annots</span><span class="p">),</span>
@@ -832,8 +851,7 @@
 
 
 <div class="viewcode-block" id="show_time_distributions"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.show_time_distributions">[docs]</a><span class="k">def</span> <span class="nf">show_time_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">unixtime_list</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
     <span class="c1"># import vtool as vt</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
@@ -1161,7 +1179,7 @@
 
 
 <div class="viewcode-block" id="get_short_infostr"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.dbinfo.get_short_infostr">[docs]</a><span class="k">def</span> <span class="nf">get_short_infostr</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns printable database information</span>
+    <span class="sd">&quot;&quot;&quot;Returns printable database information</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  wbia controller object</span>

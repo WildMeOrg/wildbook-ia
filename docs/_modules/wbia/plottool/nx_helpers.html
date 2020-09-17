@@ -1729,7 +1729,11 @@
                 <span class="k">if</span> <span class="n">sketch_params</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
                     <span class="c1"># scale, length, randomness</span>
                     <span class="c1"># sketch_params = (10.0, 128.0, 16.0)</span>
-                    <span class="n">sketch_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mf">128.0</span><span class="p">,</span> <span class="n">randomness</span><span class="o">=</span><span class="mf">16.0</span><span class="p">,)</span>
+                    <span class="n">sketch_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                        <span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+                        <span class="n">length</span><span class="o">=</span><span class="mf">128.0</span><span class="p">,</span>
+                        <span class="n">randomness</span><span class="o">=</span><span class="mf">16.0</span><span class="p">,</span>
+                    <span class="p">)</span>
 
             <span class="n">stroke_info</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stroke&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">stroke_info</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">]:</span>
@@ -1896,8 +1900,22 @@
             <span class="c1"># ax.add_patch(patch)</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> node patches &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;node_patch_dict&#39;</span><span class="p">],)))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> edge patches &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;edge_patch_dict&#39;</span><span class="p">],)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> node patches &#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;node_patch_dict&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Adding </span><span class="si">%r</span><span class="s1"> edge patches &#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;edge_patch_dict&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;n_invis_edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_invis_edge</span><span class="p">,))</span>
 
     <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">patch_dict</span><span class="p">[</span><span class="s1">&#39;patch_frame_dict&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>

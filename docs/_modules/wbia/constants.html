@@ -66,28 +66,76 @@
 
 <span class="n">VIEWTEXT_TO_YAW_RADIANS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
     <span class="p">[</span>
-        <span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;frontright&#39;</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;frontleft&#39;</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;backleft&#39;</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;backright&#39;</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;right&#39;</span><span class="p">,</span>
+            <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;frontright&#39;</span><span class="p">,</span>
+            <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;front&#39;</span><span class="p">,</span>
+            <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;frontleft&#39;</span><span class="p">,</span>
+            <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+            <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;backleft&#39;</span><span class="p">,</span>
+            <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;back&#39;</span><span class="p">,</span>
+            <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;backright&#39;</span><span class="p">,</span>
+            <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">]</span>
 <span class="p">)</span>
 
 <span class="c1"># Mapping of viewpoints codes to yaw angles</span>
 <span class="n">VIEWTEXT_TO_YAW_RADIANS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
     <span class="p">[</span>
-        <span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;frontright&#39;</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;frontleft&#39;</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;backleft&#39;</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-        <span class="p">(</span><span class="s1">&#39;backright&#39;</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;right&#39;</span><span class="p">,</span>
+            <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;frontright&#39;</span><span class="p">,</span>
+            <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;front&#39;</span><span class="p">,</span>
+            <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;frontleft&#39;</span><span class="p">,</span>
+            <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+            <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;backleft&#39;</span><span class="p">,</span>
+            <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;back&#39;</span><span class="p">,</span>
+            <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;backright&#39;</span><span class="p">,</span>
+            <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">]</span>
 <span class="p">)</span>
 <span class="n">VIEWTEXT_TO_VIEWPOINT_RADIANS</span> <span class="o">=</span> <span class="n">VIEWTEXT_TO_YAW_RADIANS</span>
@@ -133,13 +181,31 @@
 
 <span class="n">QUALITY_INT_TO_TEXT</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
     <span class="p">[</span>
-        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">QUAL_EXCELLENT</span><span class="p">,),</span>
-        <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">QUAL_GOOD</span><span class="p">,),</span>
-        <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">QUAL_OK</span><span class="p">,),</span>
-        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">QUAL_POOR</span><span class="p">,),</span>
+        <span class="p">(</span>
+            <span class="mi">5</span><span class="p">,</span>
+            <span class="n">QUAL_EXCELLENT</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="mi">4</span><span class="p">,</span>
+            <span class="n">QUAL_GOOD</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="mi">3</span><span class="p">,</span>
+            <span class="n">QUAL_OK</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="mi">2</span><span class="p">,</span>
+            <span class="n">QUAL_POOR</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="c1"># oops forgot 1. will be mapped to poor</span>
-        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">QUAL_JUNK</span><span class="p">,),</span>
-        <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">QUAL_UNKNOWN</span><span class="p">,),</span>
+        <span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">QUAL_JUNK</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">QUAL_UNKNOWN</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">]</span>
 <span class="p">)</span>
 

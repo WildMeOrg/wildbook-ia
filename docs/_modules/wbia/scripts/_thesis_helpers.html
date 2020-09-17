@@ -368,7 +368,10 @@
             <span class="c1"># PZ_Master is too big to run in full.  Select a smaller sample.</span>
             <span class="c1"># Be sure to include photobomb and incomparable cases.</span>
             <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
-                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
+                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span>
+                <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

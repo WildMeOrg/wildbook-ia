@@ -175,8 +175,14 @@
                 <span class="s1">&#39;drew.blount&#39;</span><span class="p">,</span>
             <span class="p">],</span>
         <span class="p">),</span>
-        <span class="s1">&#39;kitware&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;Kitware&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.crall&#39;</span><span class="p">],),</span>
-        <span class="s1">&#39;ctrl-h&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CTRL-H&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.hannis&#39;</span><span class="p">,</span> <span class="s1">&#39;melinda.hannis&#39;</span><span class="p">],),</span>
+        <span class="s1">&#39;kitware&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">&#39;Kitware&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;jon.crall&#39;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="s1">&#39;ctrl-h&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">&#39;CTRL-H&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;jon.hannis&#39;</span><span class="p">,</span> <span class="s1">&#39;melinda.hannis&#39;</span><span class="p">],</span>
+        <span class="p">),</span>
     <span class="p">}</span>
     <span class="n">organization_dict_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">organization_dict</span><span class="p">)</span>
 
@@ -817,7 +823,10 @@
     <span class="n">age_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">age_total</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">age_total</span>
 
     <span class="k">def</span> <span class="nf">age_fmt_str</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">% 2.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">age_total</span><span class="p">,)</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">% 2.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span>
+            <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">age_total</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="n">age_str_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age</span><span class="p">)</span> <span class="k">for</span> <span class="n">age</span> <span class="ow">in</span> <span class="n">age_list_</span><span class="p">]</span> <span class="k">for</span> <span class="n">age_list_</span> <span class="ow">in</span> <span class="n">age_list</span><span class="p">]</span>
     <span class="n">age_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age_unreviewed</span><span class="p">))</span>
@@ -1647,7 +1656,13 @@
             <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">num_pccs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">()))</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">proposing PCCs for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">num_pccs</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">proposing PCCs for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">species</span><span class="p">,</span>
+                    <span class="n">num_pccs</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
             <span class="n">infr</span><span class="o">.</span><span class="n">relabel_using_reviews</span><span class="p">(</span><span class="n">rectify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">write_wbia_staging_feedback</span><span class="p">()</span>
@@ -1690,7 +1705,10 @@
 
             <span class="n">trace</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">graph_exception</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">)</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-            <span class="n">graph_exception</span> <span class="o">=</span> <span class="s1">&#39;Exception: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_exception</span><span class="p">,</span> <span class="n">trace</span><span class="p">,)</span>
+            <span class="n">graph_exception</span> <span class="o">=</span> <span class="s1">&#39;Exception: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">graph_exception</span><span class="p">,</span>
+                <span class="n">trace</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">graph_client</span><span class="o">.</span><span class="n">review_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">num_edges</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1827,7 +1845,13 @@
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">image_unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">datetime_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -1918,7 +1942,13 @@
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
         <span class="nb">zip</span><span class="p">(</span>
@@ -1993,7 +2023,13 @@
     <span class="n">pid_list</span> <span class="o">=</span> <span class="n">pid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 
     <span class="n">pid_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">pid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pid_list</span>
@@ -2080,7 +2116,13 @@
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">nid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="n">annotations_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -2262,7 +2304,10 @@
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_parallel_chips</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -2310,7 +2355,12 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">default_list</span>
     <span class="p">}</span>
     <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
     <span class="p">]</span>
     <span class="n">config_str</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config_str_list</span><span class="p">)</span>
 
@@ -2754,7 +2804,10 @@
     <span class="k">if</span> <span class="n">is_canonical</span><span class="p">:</span>
         <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ia-detection-setting-parts-show&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span> <span class="n">imgsetid</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span>
+        <span class="n">imgsetid</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
         <span class="s1">&#39;detection&#39;</span><span class="p">,</span>
@@ -2889,7 +2942,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
 
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span> <span class="n">gid</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span>
+        <span class="n">gid</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
         <span class="s1">&#39;detection_dynamic&#39;</span><span class="p">,</span>
@@ -3153,7 +3209,13 @@
 
     <span class="n">finished</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
-    <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">highlighted_list_</span><span class="p">,</span> <span class="n">confidence_list_</span><span class="p">,))</span>
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">aid_list_</span><span class="p">,</span>
+            <span class="n">highlighted_list_</span><span class="p">,</span>
+            <span class="n">confidence_list_</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">aid_list_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">))</span>
 
     <span class="n">annotation_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -3191,7 +3253,11 @@
         <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
 
-        <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
+        <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">aid_list</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">annotation_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_splits&#39;</span><span class="p">),)</span>
@@ -3220,7 +3286,12 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">default_list</span>
     <span class="p">}</span>
     <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
     <span class="p">]</span>
     <span class="n">config_str</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config_str_list</span><span class="p">)</span>
 
@@ -3273,7 +3344,10 @@
         <span class="k">for</span> <span class="p">(</span><span class="n">settings_key</span><span class="p">,</span> <span class="n">settings_default</span><span class="p">)</span> <span class="ow">in</span> <span class="n">settings_key_list</span>
     <span class="p">}</span>
 
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_contour&#39;</span><span class="p">),</span> <span class="n">imgsetid</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_contour&#39;</span><span class="p">),</span>
+        <span class="n">imgsetid</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
         <span class="s1">&#39;contour&#39;</span><span class="p">,</span>
@@ -4091,7 +4165,10 @@
                 <span class="n">status_remaining</span> <span class="o">=</span> <span class="n">status_dict</span><span class="p">[</span><span class="s1">&#39;num_names_max&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">0</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Feedback counter    = </span><span class="si">%r</span><span class="s1"> / </span><span class="si">%r</span><span class="s1">&#39;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">query_object</span><span class="o">.</span><span class="n">GLOBAL_FEEDBACK_COUNTER</span><span class="p">,</span> <span class="n">GLOBAL_FEEDBACK_LIMIT</span><span class="p">,)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">query_object</span><span class="o">.</span><span class="n">GLOBAL_FEEDBACK_COUNTER</span><span class="p">,</span>
+                        <span class="n">GLOBAL_FEEDBACK_LIMIT</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Status dict         = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_dict</span><span class="p">,))</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Raw list len        = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">raw_review_list</span><span class="p">),))</span>
@@ -4980,7 +5057,11 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">base</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;turk_identification_graph&#39;</span><span class="p">)</span>
             <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span> <span class="k">if</span> <span class="s1">&#39;?&#39;</span> <span class="ow">in</span> <span class="n">base</span> <span class="k">else</span> <span class="s1">&#39;?&#39;</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">graph_uuid</span><span class="p">),)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">base</span><span class="p">,</span>
+                <span class="n">sep</span><span class="p">,</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">graph_uuid</span><span class="p">),</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">hardcase</span><span class="p">:</span>
                 <span class="n">url</span> <span class="o">+=</span> <span class="s1">&#39;&amp;hardcase=True&#39;</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span>
@@ -5132,7 +5213,10 @@
         <span class="n">base</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_identification_v2_kaia&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">base</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_identification_v2&#39;</span><span class="p">)</span>
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">graph_uuid_str</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">base</span><span class="p">,</span>
+        <span class="n">graph_uuid_str</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">hogwild_graph_uuid_str</span> <span class="o">=</span> <span class="s1">&#39;graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">hogwild_graph_uuid</span><span class="p">),)</span>
     <span class="n">hogwild_graph_uuid_str</span> <span class="o">=</span> <span class="n">hogwild_graph_uuid_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span>
@@ -5415,11 +5499,17 @@
                     <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nid_list</span><span class="p">))</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Checking </span><span class="si">%d</span><span class="s1"> annotations for </span><span class="si">%d</span><span class="s1"> names&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">),)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">),</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> annotations for </span><span class="si">%d</span><span class="s1"> names&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="n">GLOBAL_KAIA_CACHE</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid_list</span>
                 <span class="n">aid_list</span> <span class="o">=</span> <span class="n">GLOBAL_KAIA_CACHE</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
@@ -5495,7 +5585,12 @@
             <span class="n">quality_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
             <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
             <span class="n">name_aid_combined_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-                <span class="nb">zip</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">,</span> <span class="n">quality_list</span><span class="p">,</span> <span class="n">quality_text_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,)</span>
+                <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">name_aid_list</span><span class="p">,</span>
+                    <span class="n">quality_list</span><span class="p">,</span>
+                    <span class="n">quality_text_list</span><span class="p">,</span>
+                    <span class="n">viewpoint_list</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
             <span class="c1"># name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -5609,7 +5704,12 @@
             <span class="n">method</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">methods</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,))</span>
+            <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">method</span><span class="p">,</span>
+                    <span class="n">url</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
     <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/api/core/dbname/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,)</span>

@@ -121,7 +121,10 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">image_file</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">image_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-    <span class="n">prediction_url</span> <span class="o">=</span> <span class="n">DETECTION_URL</span> <span class="o">%</span> <span class="p">(</span><span class="n">prediction_project</span><span class="p">,</span> <span class="n">prediction_iteration</span><span class="p">,)</span>
+    <span class="n">prediction_url</span> <span class="o">=</span> <span class="n">DETECTION_URL</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">prediction_project</span><span class="p">,</span>
+        <span class="n">prediction_iteration</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">prediction_header</span> <span class="o">=</span> <span class="n">DETECTION_HEADER</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">prediction_header</span><span class="p">[</span><span class="s1">&#39;Prediction-Key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prediction_model</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">prediction_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">prediction_header</span><span class="p">)</span>

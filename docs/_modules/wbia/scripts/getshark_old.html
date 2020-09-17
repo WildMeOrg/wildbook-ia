@@ -271,7 +271,9 @@
     <span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gid_list</span>
 
     <span class="n">failed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;# failed </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;# failed </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),</span>
+    <span class="p">)</span>
     <span class="n">passed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)</span>
     <span class="n">clist</span> <span class="o">=</span> <span class="n">clist</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">passed_flags</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>

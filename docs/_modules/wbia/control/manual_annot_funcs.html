@@ -928,7 +928,7 @@
 <div class="viewcode-block" id="get_annot_aid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.get_annot_aid">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annot_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; self verifier</span>
+    <span class="sd">&quot;&quot;&quot;self verifier</span>
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.control.IBEISControl import *  # NOQA</span>
@@ -3973,7 +3973,11 @@
     <span class="n">annot_age_months_est_min_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_age_months_est_max_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_age_months_est_text_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">age_min_text</span><span class="p">,</span> <span class="n">age_max_text</span><span class="p">,)</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">age_min_text</span><span class="p">,</span>
+            <span class="n">age_max_text</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">age_min_text</span><span class="p">,</span> <span class="n">age_max_text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
             <span class="n">annot_age_months_est_min_text_list</span><span class="p">,</span> <span class="n">annot_age_months_est_max_text_list</span>
         <span class="p">)</span>
@@ -4169,7 +4173,7 @@
 <div class="viewcode-block" id="get_annot_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.get_annot_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annot_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annot_tags_list &lt;- annot.annot_tags[aid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annot_tags_list &lt;- annot.annot_tags[aid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annot_tags&quot; in the &quot;annot&quot; table</span>
 
@@ -4204,7 +4208,7 @@
 <div class="viewcode-block" id="set_annot_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.set_annot_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
 <span class="k">def</span> <span class="nf">set_annot_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_tags_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annot_tags_list -&gt; annot.annot_tags[aid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annot_tags_list -&gt; annot.annot_tags[aid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        aid_list</span>

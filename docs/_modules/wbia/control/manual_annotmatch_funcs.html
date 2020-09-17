@@ -91,7 +91,7 @@
 
 <span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_get_all_annotmatch_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; all_annotmatch_rowids &lt;- annotmatch.get_all_rowids()</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;all_annotmatch_rowids &lt;- annotmatch.get_all_rowids()</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): unfiltered annotmatch_rowids</span>
@@ -178,7 +178,7 @@
 
 <div class="viewcode-block" id="delete_annotmatch"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.delete_annotmatch">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">delete_annotmatch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch.delete(annotmatch_rowid_list)</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch.delete(annotmatch_rowid_list)</span>
 
 <span class="sd">    delete annotmatch rows</span>
 
@@ -216,7 +216,7 @@
 <div class="viewcode-block" id="get_annotmatch_aid1"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.get_annotmatch_aid1">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annotmatch_aid1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; aid1_list &lt;- annotmatch.aid1[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;aid1_list &lt;- annotmatch.aid1[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;aid1&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -256,7 +256,7 @@
 <div class="viewcode-block" id="get_annotmatch_aid2"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.get_annotmatch_aid2">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annotmatch_aid2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; aid2_list &lt;- annotmatch.aid2[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;aid2_list &lt;- annotmatch.aid2[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;aid2&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -296,7 +296,7 @@
 <div class="viewcode-block" id="get_annotmatch_confidence"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.get_annotmatch_confidence">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annotmatch_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_confidence_list &lt;- annotmatch.annotmatch_confidence[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_confidence_list &lt;- annotmatch.annotmatch_confidence[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotmatch_confidence&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -338,7 +338,7 @@
 <span class="k">def</span> <span class="nf">get_annotmatch_posixtime_modified</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_posixtime_modified_list &lt;- annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_posixtime_modified_list &lt;- annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotmatch_posixtime_modified&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -378,7 +378,7 @@
 <div class="viewcode-block" id="get_annotmatch_reviewer"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.get_annotmatch_reviewer">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annotmatch_reviewer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_reviewer_list &lt;- annotmatch.annotmatch_reviewer[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_reviewer_list &lt;- annotmatch.annotmatch_reviewer[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotmatch_reviewer&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -418,7 +418,7 @@
 <div class="viewcode-block" id="get_annotmatch_rowid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.get_annotmatch_rowid">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annotmatch_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_rowid_list &lt;- annotmatch.annotmatch_rowid[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_rowid_list &lt;- annotmatch.annotmatch_rowid[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotmatch_rowid&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -459,7 +459,7 @@
 <span class="k">def</span> <span class="nf">get_annotmatch_rowid_from_superkey</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_rowid_list &lt;- annotmatch[aid1_list, aid2_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_rowid_list &lt;- annotmatch[aid1_list, aid2_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        superkey lists: aid1_list, aid2_list</span>
@@ -489,7 +489,7 @@
 <div class="viewcode-block" id="get_annotmatch_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotmatch_funcs.get_annotmatch_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_tag_text_list &lt;- annotmatch.annotmatch_tag_text[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_tag_text_list &lt;- annotmatch.annotmatch_tag_text[annotmatch_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotmatch_tag_text&quot; in the &quot;annotmatch&quot; table</span>
 
@@ -603,7 +603,7 @@
 <span class="k">def</span> <span class="nf">set_annotmatch_confidence</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">annotmatch_confidence_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_confidence_list -&gt; annotmatch.annotmatch_confidence[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_confidence_list -&gt; annotmatch.annotmatch_confidence[annotmatch_rowid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        annotmatch_rowid_list</span>
@@ -632,7 +632,7 @@
     <span class="n">annotmatch_posixtime_modified_list</span><span class="p">,</span>
     <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_posixtime_modified_list -&gt; annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_posixtime_modified_list -&gt; annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        annotmatch_rowid_list</span>
@@ -660,7 +660,7 @@
 <span class="k">def</span> <span class="nf">set_annotmatch_reviewer</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">annotmatch_reviewer_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_reviewer_list -&gt; annotmatch.annotmatch_reviewer[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_reviewer_list -&gt; annotmatch.annotmatch_reviewer[annotmatch_rowid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        annotmatch_rowid_list</span>
@@ -688,7 +688,7 @@
 <span class="k">def</span> <span class="nf">set_annotmatch_tag_text</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">annotmatch_tag_text_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
 <span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annotmatch_tag_text_list -&gt; annotmatch.annotmatch_tag_text[annotmatch_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annotmatch_tag_text_list -&gt; annotmatch.annotmatch_tag_text[annotmatch_rowid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        annotmatch_rowid_list</span>
@@ -734,7 +734,10 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/match/decision/meta/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">set_annotmatch_meta_decision</span><span class="p">(</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">annotmatch_meta_decision_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">annotmatch_rowid_list</span><span class="p">,</span>
+    <span class="n">annotmatch_meta_decision_list</span><span class="p">,</span>
+    <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">annotmatch_rowid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOTMATCH_META_DECISION</span><span class="p">,)</span>

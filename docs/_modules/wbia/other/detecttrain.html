@@ -270,7 +270,9 @@
     <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-classifier-canonical-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">extracted_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_canonical_training_images_pytorch</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="p">,</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -321,7 +323,9 @@
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
     <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-localizer-canonical-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
     <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_localizer_canonical_training_images_pytorch</span><span class="p">(</span>
-        <span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">species</span><span class="p">,</span>
+        <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -453,7 +457,10 @@
 
     <span class="n">cache_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cache_path</span><span class="p">)</span>
-    <span class="n">training_instance_folder</span> <span class="o">=</span> <span class="s1">&#39;lightnet-training-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cache_species_str</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">,)</span>
+    <span class="n">training_instance_folder</span> <span class="o">=</span> <span class="s1">&#39;lightnet-training-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">cache_species_str</span><span class="p">,</span>
+        <span class="n">hashstr</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">training_instance_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="n">training_instance_folder</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="n">training_instance_path</span><span class="p">)</span>
 
@@ -502,7 +509,10 @@
     <span class="p">)</span>
 
     <span class="c1"># Call labels</span>
-    <span class="n">call_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">python_exe</span><span class="p">,</span> <span class="n">labels_py_path</span><span class="p">,)</span>
+    <span class="n">call_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">python_exe</span><span class="p">,</span>
+        <span class="n">labels_py_path</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">call_str</span><span class="p">)</span>
     <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">call_str</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -622,7 +632,10 @@
 
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">final_config_prefix</span> <span class="o">=</span> <span class="s1">&#39;detect.lightnet.</span><span class="si">%s</span><span class="s1">.v</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">deploy_tag</span><span class="p">,</span> <span class="n">counter</span><span class="p">,)</span>
+            <span class="n">final_config_prefix</span> <span class="o">=</span> <span class="s1">&#39;detect.lightnet.</span><span class="si">%s</span><span class="s1">.v</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">deploy_tag</span><span class="p">,</span>
+                <span class="n">counter</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">final_config_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">final_config_prefix</span><span class="p">,)</span>
             <span class="n">final_config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">final_path</span><span class="p">,</span> <span class="n">final_config_filename</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_config_filepath</span><span class="p">):</span>
@@ -743,7 +756,10 @@
 
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">final_config_prefix</span> <span class="o">=</span> <span class="s1">&#39;detect.lightnet.</span><span class="si">%s</span><span class="s1">.v</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">deploy_tag</span><span class="p">,</span> <span class="n">counter</span><span class="p">,)</span>
+            <span class="n">final_config_prefix</span> <span class="o">=</span> <span class="s1">&#39;detect.lightnet.</span><span class="si">%s</span><span class="s1">.v</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">deploy_tag</span><span class="p">,</span>
+                <span class="n">counter</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">final_config_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">final_config_prefix</span><span class="p">,)</span>
             <span class="n">final_config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">final_path</span><span class="p">,</span> <span class="n">final_config_filename</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_config_filepath</span><span class="p">):</span>

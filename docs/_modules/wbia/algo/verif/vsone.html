@@ -800,7 +800,8 @@
                 <span class="n">lnbnn_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lnbnn_score_list</span><span class="p">]</span>
 
                 <span class="n">simple_scores</span> <span class="o">=</span> <span class="n">simple_scores</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                    <span class="n">score_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_score_list</span><span class="p">,</span> <span class="n">rank_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_rank_list</span><span class="p">,</span>
+                    <span class="n">score_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_score_list</span><span class="p">,</span>
+                    <span class="n">rank_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_rank_list</span><span class="p">,</span>
                 <span class="p">)</span>
 
             <span class="n">simple_scores</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">simple_scores</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -987,7 +988,10 @@
                 <span class="n">df_auc_ovr_hat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                     <span class="nb">dict</span><span class="p">(</span>
                         <span class="p">[</span>
-                            <span class="p">(</span><span class="n">datakey</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_combo_res</span><span class="p">[</span><span class="n">datakey</span><span class="p">]</span><span class="o">.</span><span class="n">roc_scores_ovr_hat</span><span class="p">()),)</span>
+                            <span class="p">(</span>
+                                <span class="n">datakey</span><span class="p">,</span>
+                                <span class="nb">list</span><span class="p">(</span><span class="n">data_combo_res</span><span class="p">[</span><span class="n">datakey</span><span class="p">]</span><span class="o">.</span><span class="n">roc_scores_ovr_hat</span><span class="p">()),</span>
+                            <span class="p">)</span>
                             <span class="k">for</span> <span class="n">datakey</span> <span class="ow">in</span> <span class="n">data_keys</span>
                         <span class="p">]</span>
                     <span class="p">),</span>
@@ -1011,7 +1015,14 @@
             <span class="c1"># selected_data_keys[task_key].append(best_data_key)</span>
 
             <span class="n">combo_res</span> <span class="o">=</span> <span class="n">data_combo_res</span><span class="p">[</span><span class="n">best_data_key</span><span class="p">]</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] BEST DataKey = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf_key</span><span class="p">,</span> <span class="n">best_data_key</span><span class="p">,),</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
+                <span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] BEST DataKey = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">clf_key</span><span class="p">,</span>
+                    <span class="n">best_data_key</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="s1">&#39;green&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_data_key</span><span class="p">,)):</span>
                 <span class="n">combo_res</span><span class="o">.</span><span class="n">extended_clf_report</span><span class="p">()</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">combo_res</span>
@@ -1308,12 +1319,12 @@
 
 <div class="viewcode-block" id="OneVsOneProblem.evaluate_simple_scores"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.evaluate_simple_scores">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_simple_scores</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
-<span class="sd">            &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.set_pandas_options()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.load_samples()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.load_features()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.evaluate_simple_scores()</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.set_pandas_options()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.load_samples()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.load_features()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.evaluate_simple_scores()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">task_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">task_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span><span class="p">]</span>
@@ -1434,7 +1445,8 @@
 
         <span class="c1"># Take average feature importance</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
-            <span class="s1">&#39;MARGINAL IMPORTANCE INFO for </span><span class="si">%s</span><span class="s1"> on task </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,</span> <span class="n">task_key</span><span class="p">),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MARGINAL IMPORTANCE INFO for </span><span class="si">%s</span><span class="s1"> on task </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,</span> <span class="n">task_key</span><span class="p">),</span>
+            <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; Caption:&#39;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * The NaN row ensures that `weight` always sums to 1&#39;</span><span class="p">)</span>

@@ -520,7 +520,13 @@
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">image_unixtime_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">image_unixtime_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting times: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">image_unixtime_list_</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Setting times: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">gid_list_</span><span class="p">,</span>
+                <span class="n">image_unixtime_list_</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_unixtime</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">image_unixtime_list_</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">image_gps_lat_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">image_gps_lon_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -556,7 +562,11 @@
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Setting gps: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">image_gps_lat_list_</span><span class="p">,</span> <span class="n">image_gps_lon_list_</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">gid_list_</span><span class="p">,</span>
+                <span class="n">image_gps_lat_list_</span><span class="p">,</span>
+                <span class="n">image_gps_lon_list_</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_gps</span><span class="p">(</span>
             <span class="n">gid_list_</span><span class="p">,</span> <span class="n">lat_list</span><span class="o">=</span><span class="n">image_gps_lat_list_</span><span class="p">,</span> <span class="n">lon_list</span><span class="o">=</span><span class="n">image_gps_lon_list_</span>
@@ -1782,7 +1792,8 @@
 
 
 <div class="viewcode-block" id="set_annot_note_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_json.set_annot_note_json">[docs]</a><span class="nd">@register_api</span><span class="p">(</span>
-    <span class="s1">&#39;/api/annot/note/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;/api/annot/note/json/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">],</span>
 <span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_annot_note_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_note_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>

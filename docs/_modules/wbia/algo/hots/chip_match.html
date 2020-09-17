@@ -172,9 +172,12 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">safe_check_lens_eq</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">,</span> <span class="s1">&#39;outer lengths do not correspond&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">)):</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span>
-                <span class="s1">&#39;inner lengths at position=</span><span class="si">%r</span><span class="s1"> do not correspond (</span><span class="si">%r</span><span class="s1"> != </span><span class="si">%r</span><span class="s1">)&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">y</span>
+            <span class="p">),</span> <span class="s1">&#39;inner lengths at position=</span><span class="si">%r</span><span class="s1"> do not correspond (</span><span class="si">%r</span><span class="s1"> != </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">count</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
             <span class="p">)</span></div>
 
 
@@ -556,7 +559,13 @@
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">aid2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">aid2</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">ntop</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[cm] ishow_single_annotmatch aids(</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[cm] ishow_single_annotmatch aids(</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span>
+                <span class="n">aid2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">kwshow</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">inter</span> <span class="o">=</span> <span class="n">interact_matches</span><span class="o">.</span><span class="n">MatchInteraction</span><span class="p">(</span>
@@ -953,8 +962,7 @@
 
 
 <div class="viewcode-block" id="MatchBaseIO"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.chip_match.MatchBaseIO">[docs]</a><span class="k">class</span> <span class="nc">MatchBaseIO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MatchBaseIO.load_from_fpath"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.chip_match.MatchBaseIO.load_from_fpath">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load_from_fpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
@@ -1223,7 +1231,8 @@
 
         <span class="n">cminfo_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="nb">dict</span><span class="p">(</span>
-                <span class="n">gt_aid</span><span class="o">=</span><span class="n">cminfo_dict</span><span class="p">[</span><span class="s1">&#39;gt_annot_daid&#39;</span><span class="p">],</span> <span class="n">gf_aid</span><span class="o">=</span><span class="n">cminfo_dict</span><span class="p">[</span><span class="s1">&#39;gf_annot_daid&#39;</span><span class="p">],</span>
+                <span class="n">gt_aid</span><span class="o">=</span><span class="n">cminfo_dict</span><span class="p">[</span><span class="s1">&#39;gt_annot_daid&#39;</span><span class="p">],</span>
+                <span class="n">gf_aid</span><span class="o">=</span><span class="n">cminfo_dict</span><span class="p">[</span><span class="s1">&#39;gf_annot_daid&#39;</span><span class="p">],</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">del</span> <span class="n">cminfo_dict</span><span class="p">[</span><span class="s1">&#39;gt_annot_daid&#39;</span><span class="p">]</span>
@@ -1886,7 +1895,10 @@
                     <span class="n">varinfo_list</span> <span class="o">+=</span> <span class="p">[</span>
                         <span class="c1"># &#39;    %s varinfo(%s):&#39; % (symbol, varname,),</span>
                         <span class="s1">&#39;    </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> = &lt;not shown!&gt;&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">varname</span><span class="p">,),</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">symbol</span><span class="p">,</span>
+                            <span class="n">varname</span><span class="p">,</span>
+                        <span class="p">),</span>
                     <span class="p">]</span>
                 <span class="n">varinfo_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;          len = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">varval</span><span class="p">),)]</span>
                 <span class="k">if</span> <span class="n">depth</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">varval</span><span class="p">):</span>
@@ -2734,7 +2746,7 @@
         <span class="k">return</span> <span class="n">out</span></div>
 
 <div class="viewcode-block" id="ChipMatch.shortlist_subset"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.chip_match.ChipMatch.shortlist_subset">[docs]</a>    <span class="k">def</span> <span class="nf">shortlist_subset</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; returns a new cmtup_old with only the requested daids</span>
+        <span class="sd">&quot;&quot;&quot;returns a new cmtup_old with only the requested daids</span>
 <span class="sd">        TODO: rectify with take_feature_matches</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">idx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid2_idx</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">)</span>

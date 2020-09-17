@@ -149,7 +149,10 @@
         <span class="n">msgbox</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="n">opt</span><span class="p">),</span> <span class="n">role</span><span class="p">)</span>
     <span class="c1"># Set default button</span>
     <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">options</span><span class="p">,</span> <span class="s1">&#39;default=</span><span class="si">%r</span><span class="s1"> is not in options=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">options</span><span class="p">,)</span>
+        <span class="k">assert</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">options</span><span class="p">,</span> <span class="s1">&#39;default=</span><span class="si">%r</span><span class="s1"> is not in options=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">default</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">qbutton</span> <span class="ow">in</span> <span class="n">msgbox</span><span class="o">.</span><span class="n">buttons</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">default</span> <span class="o">==</span> <span class="n">qbutton</span><span class="o">.</span><span class="n">text</span><span class="p">():</span>
                 <span class="n">msgbox</span><span class="o">.</span><span class="n">setDefaultButton</span><span class="p">(</span><span class="n">qbutton</span><span class="p">)</span>
@@ -600,7 +603,7 @@
 
 
 <div class="viewcode-block" id="msgbox"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_dialogs.msgbox">[docs]</a><span class="k">def</span> <span class="nf">msgbox</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;msgbox&#39;</span><span class="p">,</span> <span class="n">detailed_msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Make a non modal critical QtWidgets.QMessageBox.</span>
+    <span class="sd">&quot;&quot;&quot;Make a non modal critical QtWidgets.QMessageBox.</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m wbia.guitool.guitool_dialogs --test-msgbox</span>
@@ -644,7 +647,7 @@
 
 
 <div class="viewcode-block" id="build_nested_qmenu"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_dialogs.build_nested_qmenu">[docs]</a><span class="k">def</span> <span class="nf">build_nested_qmenu</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">context_options</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; builds nested menu for context menus but can be used for other menu</span>
+    <span class="sd">&quot;&quot;&quot;builds nested menu for context menus but can be used for other menu</span>
 <span class="sd">    related things.</span>
 
 <span class="sd">    References:</span>

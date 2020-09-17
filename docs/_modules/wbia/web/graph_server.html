@@ -48,8 +48,7 @@
 
 <div class="viewcode-block" id="ProcessActorExecutor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ProcessActorExecutor">[docs]</a><span class="k">class</span> <span class="nc">ProcessActorExecutor</span><span class="p">(</span><span class="n">ProcessPoolExecutor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actor_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a new ThreadPoolExecutor instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initializes a new ThreadPoolExecutor instance.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ProcessActorExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_instance</span> <span class="o">=</span> <span class="n">actor_class</span><span class="p">()</span>
 
@@ -59,8 +58,7 @@
 
 <div class="viewcode-block" id="ThreadedActorExecutor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ThreadedActorExecutor">[docs]</a><span class="k">class</span> <span class="nc">ThreadedActorExecutor</span><span class="p">(</span><span class="n">ThreadPoolExecutor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actor_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a new ThreadPoolExecutor instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initializes a new ThreadPoolExecutor instance.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ThreadedActorExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_instance</span> <span class="o">=</span> <span class="n">actor_class</span><span class="p">()</span>
 
@@ -349,7 +347,12 @@
 
 <div class="viewcode-block" id="GraphActor.update_task_thresh"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphActor.update_task_thresh">[docs]</a>    <span class="k">def</span> <span class="nf">update_task_thresh</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s1">&#39;Updating actor.infr.task_thresh with </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">value</span><span class="p">,)</span>
+            <span class="s1">&#39;Updating actor.infr.task_thresh with </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">task</span><span class="p">,</span>
+                <span class="n">decision</span><span class="p">,</span>
+                <span class="n">value</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">[</span><span class="n">task</span><span class="p">][</span><span class="n">decision</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Updated actor.infr.task_thresh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,))</span>
@@ -581,7 +584,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;Exception&#39;</span>
                 <span class="n">client</span><span class="o">.</span><span class="n">exception</span> <span class="o">=</span> <span class="n">exception</span>
-            <span class="n">client</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> in Futures Queue)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">num_futures</span><span class="p">,)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> in Futures Queue)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">status</span><span class="p">,</span>
+                <span class="n">num_futures</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">exception</span></div>
 
 <div class="viewcode-block" id="GraphClient.add_annots"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphClient.add_annots">[docs]</a>    <span class="k">def</span> <span class="nf">add_annots</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>

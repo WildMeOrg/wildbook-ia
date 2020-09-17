@@ -363,7 +363,11 @@
         <span class="k">def</span> <span class="nf">_wrap_set_annot_prop</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;[SETTING] Clicked set prop=</span><span class="si">%r</span><span class="s1"> to val=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">toggle_val</span><span class="p">,)</span>
+                    <span class="s1">&#39;[SETTING] Clicked set prop=</span><span class="si">%r</span><span class="s1"> to val=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">prop</span><span class="p">,</span>
+                        <span class="n">toggle_val</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_prop</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">toggle_val</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>

@@ -231,7 +231,7 @@
     <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="n">tags_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Adds an annotation the size of the entire image to each image.</span>
+    <span class="sd">&quot;&quot;&quot;Adds an annotation the size of the entire image to each image.</span>
 <span class="sd">    adjust_percent - shrinks the ANNOTATION by percentage on each side</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">pct</span> <span class="o">=</span> <span class="n">adjust_percent</span>  <span class="c1"># Alias</span>
@@ -273,7 +273,12 @@
     <span class="n">been_ori_adjusted</span> <span class="o">=</span> <span class="n">ori_list</span> <span class="o">!=</span> <span class="mi">0</span>
 
     <span class="n">adjusted_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">gw</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">gh</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">gw</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">gh</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,)</span>
+        <span class="p">(</span>
+            <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">gw</span><span class="p">,</span>
+            <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">gh</span><span class="p">,</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">gw</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">gh</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="p">(</span><span class="n">gw</span><span class="p">,</span> <span class="n">gh</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">size_list</span><span class="p">)</span>
     <span class="p">]</span>
 
@@ -327,8 +332,7 @@
 
 <div class="viewcode-block" id="assert_valid_gids"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.assert_valid_gids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">assert_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">veryverbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
     <span class="n">isinvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="s1">&#39;invalid gids: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
@@ -539,7 +543,11 @@
         <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hash_histogram</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Found [</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">] images that have duplicates...&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">divergent</span><span class="p">,</span> <span class="n">counter</span><span class="p">,</span> <span class="n">total</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">divergent</span><span class="p">,</span>
+                <span class="n">counter</span><span class="p">,</span>
+                <span class="n">total</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">global_delete_gid_list</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleted </span><span class="si">%d</span><span class="s1"> images.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">global_delete_gid_list</span><span class="p">),))</span></div>
@@ -701,7 +709,12 @@
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
 
-    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,))</span>
+    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">gpath_list</span><span class="p">,</span>
+            <span class="n">orient_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span>
         <span class="n">check_image_loadable_worker</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,</span> <span class="n">futures_threaded</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
@@ -1034,7 +1047,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">has_latlon</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> have gps info&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">has_latlon</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">has_latlon</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> have gps info&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="n">has_latlon</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">has_latlon</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="n">key2_freq</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">num_tags_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1411,7 +1430,11 @@
                 <span class="n">squeeze_tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
 
     <span class="n">tables_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span> <span class="n">wbia</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_gids</span><span class="p">()),),</span>
+        <span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span>
+            <span class="n">wbia</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_gids</span><span class="p">()),</span>
+        <span class="p">),</span>
         <span class="p">(</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span>
             <span class="n">wbia</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
@@ -1520,7 +1543,7 @@
 
 <div class="viewcode-block" id="fix_and_clean_database"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.fix_and_clean_database">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">fix_and_clean_database</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Function to run all database cleanup scripts</span>
+    <span class="sd">&quot;&quot;&quot;Function to run all database cleanup scripts</span>
 
 <span class="sd">    Rename to run_cleanup_scripts</span>
 
@@ -1552,7 +1575,7 @@
 
 <div class="viewcode-block" id="fix_exif_data"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.fix_exif_data">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">fix_exif_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; TODO CALL SCRIPT</span>
+    <span class="sd">&quot;&quot;&quot;TODO CALL SCRIPT</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  wbia controller object</span>
@@ -2068,16 +2091,20 @@
     <span class="c1"># Then preform the lookup / implicit mapping</span>
     <span class="n">flat_vals</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s1">&#39;flat lens not the same, len(flat_vals)=</span><span class="si">%d</span><span class="s1"> len(flat_rowids)=</span><span class="si">%d</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">),)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">flat_rowids</span>
+        <span class="p">),</span> <span class="s1">&#39;flat lens not the same, len(flat_vals)=</span><span class="si">%d</span><span class="s1"> len(flat_rowids)=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">),</span>
         <span class="p">)</span>
     <span class="c1"># Then ut.unflatten2 the results to the original input dimensions</span>
     <span class="n">unflat_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unflatten2</span><span class="p">(</span><span class="n">flat_vals</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflat_vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s1">&#39;unflat lens not the same, len(unflat_vals)=</span><span class="si">%d</span><span class="s1"> len(unflat_rowids)=</span><span class="si">%d</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unflat_vals</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">),)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflat_vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">unflat_rowids</span>
+        <span class="p">),</span> <span class="s1">&#39;unflat lens not the same, len(unflat_vals)=</span><span class="si">%d</span><span class="s1"> len(unflat_rowids)=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">unflat_vals</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">),</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">unflat_vals</span></div>
 
@@ -2710,7 +2737,7 @@
 
 <div class="viewcode-block" id="print_imageset_table"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.print_imageset_table">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">print_imageset_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Dumps imageset table to stdout</span>
+    <span class="sd">&quot;&quot;&quot;Dumps imageset table to stdout</span>
 
 <span class="sd">    Kwargs:</span>
 <span class="sd">        exclude_columns (list):</span>
@@ -3003,7 +3030,7 @@
 
 <div class="viewcode-block" id="make_next_name"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.make_next_name">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">make_next_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">str_format</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">species_text</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Creates a number of names which are not in the database, but does not</span>
+    <span class="sd">&quot;&quot;&quot;Creates a number of names which are not in the database, but does not</span>
 <span class="sd">    add them</span>
 
 <span class="sd">    Args:</span>
@@ -3661,7 +3688,7 @@
 
 <div class="viewcode-block" id="get_infostr"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.get_infostr">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">get_infostr</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns sort printable database information</span>
+    <span class="sd">&quot;&quot;&quot;Returns sort printable database information</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  wbia controller object</span>
@@ -5430,7 +5457,7 @@
 <span class="k">def</span> <span class="nf">get_annot_stats_dict</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">forceall</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">old</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_hist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; stats for a set of annots</span>
+    <span class="sd">&quot;&quot;&quot;stats for a set of annots</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (wbia.IBEISController):  wbia controller object</span>
@@ -6487,7 +6514,7 @@
 
 <div class="viewcode-block" id="get_annot_occurrence_text"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.get_annot_occurrence_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">get_annot_occurrence_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Occurrence identifier for annotations</span>
+    <span class="sd">&quot;&quot;&quot;Occurrence identifier for annotations</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (wbia.IBEISController):  image analysis api</span>
@@ -6603,7 +6630,10 @@
                                 <span class="s1">&#39;Skipped Invalid Observation with &#39;</span>
                                 <span class="s1">&#39;photonumber: </span><span class="si">%r</span><span class="s1">, waypoint_id: </span><span class="si">%r</span><span class="s1">&#39;</span>
                             <span class="p">)</span>
-                            <span class="o">%</span> <span class="p">(</span><span class="n">sValue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">waypoint_id</span><span class="p">,)</span>
+                            <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">sValue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                                <span class="n">waypoint_id</span><span class="p">,</span>
+                            <span class="p">)</span>
                         <span class="p">)</span>
                         <span class="k">continue</span>
                     <span class="c1"># Check that the photo_number is within the acceptable bounds</span>
@@ -6632,7 +6662,10 @@
                             <span class="s1">&#39;[ibs]     Skipped Empty Observation with&#39;</span>
                             <span class="s1">&#39;&quot;categoryKey&quot;: </span><span class="si">%r</span><span class="s1">, waypoint_id: </span><span class="si">%r</span><span class="s1">&#39;</span>
                         <span class="p">)</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">categoryKey</span><span class="p">,</span> <span class="n">waypoint_id</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">categoryKey</span><span class="p">,</span>
+                            <span class="n">waypoint_id</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -6641,7 +6674,10 @@
                         <span class="s1">&#39;Skipped Incompatible Observation with &#39;</span>
                         <span class="s1">&#39;&quot;categoryKey&quot;: </span><span class="si">%r</span><span class="s1">, waypoint_id: </span><span class="si">%r</span><span class="s1">&#39;</span>
                     <span class="p">)</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">categoryKey</span><span class="p">,</span> <span class="n">waypoint_id</span><span class="p">,)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">categoryKey</span><span class="p">,</span>
+                        <span class="n">waypoint_id</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
     <span class="c1"># Append the last photo_number</span>
     <span class="k">if</span> <span class="n">last_photo_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">last_imageset_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -6668,7 +6704,11 @@
                 <span class="s1">&#39;[ibs] ERROR: Parsing Patrol XML file failed, &#39;</span>
                 <span class="s1">&#39;rolling back by deleting </span><span class="si">%d</span><span class="s1"> images...&#39;</span>
             <span class="p">)</span>
-            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,))</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">gid_list</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">raise</span> <span class="n">e</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -6690,7 +6730,10 @@
         <span class="n">gps_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gps</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_gps</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">gps_list</span><span class="p">)</span>
         <span class="c1"># Create a new imageset</span>
-        <span class="n">imagesettext</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Waypoint </span><span class="si">%03d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.xml&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span>
+        <span class="n">imagesettext</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Waypoint </span><span class="si">%03d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">xml_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.xml&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="n">imagesettext</span><span class="p">)</span>
         <span class="c1"># Add images to the imagesets</span>
         <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
@@ -7071,9 +7114,24 @@
             <span class="n">closest_diff</span> <span class="o">%=</span> <span class="mi">60</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">closest_diff</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;FOUND LOCATION FOR AID </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">DIFF   : </span><span class="si">%d</span><span class="s1"> H, </span><span class="si">%d</span><span class="s1"> M, </span><span class="si">%d</span><span class="s1"> S&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">DIFF   : </span><span class="si">%d</span><span class="s1"> H, </span><span class="si">%d</span><span class="s1"> M, </span><span class="si">%d</span><span class="s1"> S&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">h</span><span class="p">,</span>
+                    <span class="n">m</span><span class="p">,</span>
+                    <span class="n">s</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">NEW GPS: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">closest_gps</span><span class="p">,))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_all</span><span class="p">,</span> <span class="n">num_bad</span><span class="p">,</span> <span class="n">num_known</span><span class="p">,</span> <span class="n">num_found</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_all</span><span class="p">,</span>
+            <span class="n">num_bad</span><span class="p">,</span>
+            <span class="n">num_known</span><span class="p">,</span>
+            <span class="n">num_found</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">recovered_aid_list</span><span class="p">,</span> <span class="n">recovered_gps_list</span><span class="p">,</span> <span class="n">recovered_dist_list</span></div>
 
 
@@ -7144,7 +7202,13 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Match was found&#39;</span><span class="p">)</span>
             <span class="k">break</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Processing </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">note</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Processing </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">filepath</span><span class="p">,</span>
+                <span class="n">note</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">qr_list</span> <span class="o">=</span> <span class="n">pyzbar</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">[</span><span class="n">pyzbar</span><span class="o">.</span><span class="n">ZBarSymbol</span><span class="o">.</span><span class="n">QRCODE</span><span class="p">])</span>
@@ -7356,7 +7420,10 @@
         <span class="n">number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">letter</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">]</span>
 
-        <span class="n">imageset_name</span> <span class="o">=</span> <span class="s1">&#39;GGR2,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,)</span>
+        <span class="n">imageset_name</span> <span class="o">=</span> <span class="s1">&#39;GGR2,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">number</span><span class="p">,</span>
+            <span class="n">letter</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">imageset_id</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_name</span><span class="p">)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imageset_id</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">qr_gid</span> <span class="ow">in</span> <span class="n">gid_list</span>
@@ -7462,13 +7529,23 @@
             <span class="n">match_gid</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="k">if</span> <span class="n">letter</span> <span class="o">!=</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Individual car missing A: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Individual car missing A: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="n">match_gid</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qr_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Individual car missing QR: </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> (imageset_rowid = </span><span class="si">%r</span><span class="s1">)&#39;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,</span> <span class="n">imageset_rowid</span><span class="p">,)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter</span><span class="p">,</span>
+                        <span class="n">imageset_rowid</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">qr</span> <span class="ow">in</span> <span class="n">qr_list</span><span class="p">:</span>
@@ -7479,12 +7556,22 @@
                 <span class="k">if</span> <span class="n">match_gid</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Individual car incorrect QR: </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> (imageset_rowid = </span><span class="si">%r</span><span class="s1">)&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,</span> <span class="n">imageset_rowid</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">number</span><span class="p">,</span>
+                            <span class="n">letter</span><span class="p">,</span>
+                            <span class="n">imageset_rowid</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qr_list</span><span class="p">,))</span>
 
             <span class="k">if</span> <span class="n">imageset_rowid</span> <span class="ow">in</span> <span class="n">cleared_imageset_rowid_list</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cleared Imageset: </span><span class="si">%d</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cleared Imageset: </span><span class="si">%d</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
 
             <span class="n">sync_dict</span><span class="p">[</span><span class="n">imageset_rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">match_gid</span>
         <span class="k">else</span><span class="p">:</span>
@@ -7511,24 +7598,50 @@
                         <span class="n">failed_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">letter</span><span class="p">,</span> <span class="n">imageset_rowid</span><span class="p">))</span>
 
                 <span class="k">if</span> <span class="n">imageset_rowid</span> <span class="ow">in</span> <span class="n">cleared_imageset_rowid_list</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cleared Imageset: </span><span class="si">%d</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Cleared Imageset: </span><span class="si">%d</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">number</span><span class="p">,</span>
+                            <span class="n">letter</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
 
                 <span class="n">sync_dict</span><span class="p">[</span><span class="n">imageset_rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">match_gid</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Group car missing QR: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter_list</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Group car missing QR: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter_list</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">missing</span><span class="p">,</span> <span class="n">imageset_rowid</span> <span class="ow">in</span> <span class="n">missing_list</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">No QR for </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> (imageset_rowid = </span><span class="si">%r</span><span class="s1">)&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">missing</span><span class="p">,</span> <span class="n">imageset_rowid</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">number</span><span class="p">,</span>
+                            <span class="n">missing</span><span class="p">,</span>
+                            <span class="n">imageset_rowid</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Group car incorrect QR: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter_list</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Group car incorrect QR: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter_list</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">failed</span><span class="p">,</span> <span class="n">imageset_rowid</span> <span class="ow">in</span> <span class="n">failed_list</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Bad QR for </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> (imageset_rowid = </span><span class="si">%r</span><span class="s1">)&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">failed</span><span class="p">,</span> <span class="n">imageset_rowid</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">number</span><span class="p">,</span>
+                            <span class="n">failed</span><span class="p">,</span>
+                            <span class="n">imageset_rowid</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
 
     <span class="n">filename_qr_json</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;imageset_qr_dict.final.json&#39;</span><span class="p">)</span>
@@ -7741,7 +7854,13 @@
             <span class="n">current_offset</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_timedelta_posix</span><span class="p">([</span><span class="n">qr_gid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">offset</span> <span class="o">+=</span> <span class="n">current_offset</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_timedelta_posix</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Correcting offset for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">offset</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Correcting offset for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">values</span><span class="p">,</span>
+                    <span class="n">offset</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">qr_time</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">qr_gid</span><span class="p">)</span>
@@ -7749,7 +7868,13 @@
             <span class="n">offset</span> <span class="o">=</span> <span class="n">anchor_time</span> <span class="o">-</span> <span class="n">qr_time</span>
             <span class="k">assert</span> <span class="n">offset</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Failed to correct offset for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">offset</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Failed to correct offset for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1"> &#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">values</span><span class="p">,</span>
+                    <span class="n">offset</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">imageset_rowid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cleared_imageset_rowid_list</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">lower_posix</span> <span class="o">&lt;=</span> <span class="n">qr_time</span> <span class="ow">and</span> <span class="n">qr_time</span> <span class="o">&lt;=</span> <span class="n">upper_posix</span>
@@ -7880,13 +8005,28 @@
                 <span class="n">closest_diff</span> <span class="o">%=</span> <span class="mi">60</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="n">closest_diff</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;FOUND LOCATION FOR GID </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,))</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">DIFF   : </span><span class="si">%d</span><span class="s1"> H, </span><span class="si">%d</span><span class="s1"> M, </span><span class="si">%d</span><span class="s1"> S&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">DIFF   : </span><span class="si">%d</span><span class="s1"> H, </span><span class="si">%d</span><span class="s1"> M, </span><span class="si">%d</span><span class="s1"> S&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">h</span><span class="p">,</span>
+                        <span class="n">m</span><span class="p">,</span>
+                        <span class="n">s</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">NEW GPS: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">closest_gps</span><span class="p">,))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">not_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">not_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_all</span><span class="p">,</span> <span class="n">num_bad</span><span class="p">,</span> <span class="n">num_unrecovered</span><span class="p">,</span> <span class="n">num_found</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_all</span><span class="p">,</span>
+            <span class="n">num_bad</span><span class="p">,</span>
+            <span class="n">num_unrecovered</span><span class="p">,</span>
+            <span class="n">num_found</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">num_recovered</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovered_gid_list</span><span class="p">)</span>
     <span class="n">num_unrecovered</span> <span class="o">=</span> <span class="n">num_bad</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovered_gid_list</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Missing GPS: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_bad</span><span class="p">,))</span>
@@ -7958,13 +8098,28 @@
                 <span class="n">closest_diff</span> <span class="o">%=</span> <span class="mi">60</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="n">closest_diff</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;FOUND LOCATION FOR AID </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">DIFF   : </span><span class="si">%d</span><span class="s1"> H, </span><span class="si">%d</span><span class="s1"> M, </span><span class="si">%d</span><span class="s1"> S&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">DIFF   : </span><span class="si">%d</span><span class="s1"> H, </span><span class="si">%d</span><span class="s1"> M, </span><span class="si">%d</span><span class="s1"> S&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">h</span><span class="p">,</span>
+                        <span class="n">m</span><span class="p">,</span>
+                        <span class="n">s</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">NEW GPS: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">closest_gps</span><span class="p">,))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">not_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">not_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_all</span><span class="p">,</span> <span class="n">num_bad</span><span class="p">,</span> <span class="n">num_unrecovered</span><span class="p">,</span> <span class="n">num_found</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1"> \ </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_all</span><span class="p">,</span>
+            <span class="n">num_bad</span><span class="p">,</span>
+            <span class="n">num_unrecovered</span><span class="p">,</span>
+            <span class="n">num_found</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">num_recovered</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovered_aid_list</span><span class="p">)</span>
     <span class="n">num_unrecovered</span> <span class="o">=</span> <span class="n">num_bad</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">recovered_aid_list</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Missing GPS: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_bad</span><span class="p">,))</span>
@@ -8282,7 +8437,13 @@
 
     <span class="n">broken_gid_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing gid = </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%d</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Processing gid = </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%d</span><span class="s1"> annots&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">gid</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">continue</span>
 
@@ -8436,7 +8597,11 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Filtered out </span><span class="si">%d</span><span class="s1"> annotations from </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">num_difference</span><span class="p">,</span> <span class="n">num_finish</span><span class="p">,</span> <span class="n">num_start</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">num_difference</span><span class="p">,</span>
+                <span class="n">num_finish</span><span class="p">,</span>
+                <span class="n">num_start</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">aid_list</span></div>
@@ -8546,7 +8711,15 @@
         <span class="p">)</span>
 
     <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">*</span> <span class="n">level</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Level </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">length</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Level </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">prefix</span><span class="p">,</span>
+            <span class="n">level</span><span class="p">,</span>
+            <span class="n">index</span><span class="p">,</span>
+            <span class="n">length</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">length</span></div>
 
@@ -8566,11 +8739,19 @@
         <span class="p">)</span>
 
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imageset_rowid_list_</span><span class="p">))</span>
-    <span class="n">imageset_text_</span> <span class="o">=</span> <span class="s1">&#39;Leaf - </span><span class="si">%s</span><span class="s1"> - </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">index</span><span class="p">,)</span>
+    <span class="n">imageset_text_</span> <span class="o">=</span> <span class="s1">&#39;Leaf - </span><span class="si">%s</span><span class="s1"> - </span><span class="si">%d</span><span class="s1"> - </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">tag</span><span class="p">,</span>
+        <span class="n">level</span><span class="p">,</span>
+        <span class="n">index</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Setting </span><span class="si">%d</span><span class="s1"> for </span><span class="si">%d</span><span class="s1"> to </span><span class="si">%r</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_rowid_list_</span><span class="p">),</span> <span class="n">imageset_text_</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">imageset_rowid_list_</span><span class="p">),</span>
+            <span class="n">imageset_text_</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">imageset_text_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">imageset_text_list</span><span class="p">:</span>

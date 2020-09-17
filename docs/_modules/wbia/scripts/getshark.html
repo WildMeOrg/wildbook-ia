@@ -130,7 +130,10 @@
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),))</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> images not from this downloaded set&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">num_ia_unique</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_ia_unique</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
@@ -151,7 +154,10 @@
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),))</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> images not from this downloaded set&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">num_ia_unique</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_ia_unique</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Missing </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
@@ -756,7 +762,11 @@
         <span class="k">if</span> <span class="n">injured</span><span class="p">:</span>
             <span class="k">if</span> <span class="s1">&#39;healthy&#39;</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;shark aid=</span><span class="si">%r</span><span class="s1"> labeled as injured and healty </span><span class="si">%r</span><span class="s1">!!!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">tags</span><span class="p">,)</span>
+                    <span class="s1">&#39;shark aid=</span><span class="si">%r</span><span class="s1"> labeled as injured and healty </span><span class="si">%r</span><span class="s1">!!!&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">aid</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tags</span>
@@ -824,7 +834,9 @@
 
     <span class="c1"># Check to see if adding any images failed</span>
     <span class="n">failed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">miss_info</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;# failed to add </span><span class="si">%s</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;# failed to add </span><span class="si">%s</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),</span>
+    <span class="p">)</span>
 
     <span class="n">passed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)</span>
     <span class="n">miss_info</span> <span class="o">=</span> <span class="n">miss_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">passed_flags</span><span class="p">)</span>

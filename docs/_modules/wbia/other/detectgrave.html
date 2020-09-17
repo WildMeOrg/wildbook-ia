@@ -103,9 +103,21 @@
                 <span class="s1">&#39;localizations_features&#39;</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
             <span class="p">)</span>
             <span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_list</span><span class="p">)</span>
-            <span class="n">index_list</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">gid</span><span class="p">,</span> <span class="n">offset</span><span class="p">,)</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_list</span><span class="p">))]</span>
+            <span class="n">index_list</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">gid</span><span class="p">,</span>
+                    <span class="n">offset</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_list</span><span class="p">))</span>
+            <span class="p">]</span>
             <span class="n">features_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature_list</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Used </span><span class="si">%d</span><span class="s1"> images to mine </span><span class="si">%d</span><span class="s1"> features&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">features_list</span><span class="p">),</span> <span class="n">total</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Used </span><span class="si">%d</span><span class="s1"> images to mine </span><span class="si">%d</span><span class="s1"> features&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">features_list</span><span class="p">),</span>
+                <span class="n">total</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">data_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">features_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="p">:</span>
             <span class="n">data_list</span> <span class="o">=</span> <span class="n">data_list</span><span class="p">[:</span><span class="n">limit</span><span class="p">]</span>
@@ -147,7 +159,13 @@
         <span class="n">stop_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">ann_round</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ann_batch</span>
         <span class="k">assert</span> <span class="n">start_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">stop_index</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">stop_index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Slicing index range: [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">stop_index</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Slicing index range: [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">start_index</span><span class="p">,</span>
+                <span class="n">stop_index</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="c1"># Slice gids and get feature data</span>
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">stop_index</span><span class="p">]</span>
@@ -171,7 +189,13 @@
 
     <span class="c1"># Build forest</span>
     <span class="n">trees</span> <span class="o">=</span> <span class="n">index</span> <span class="o">//</span> <span class="mi">100000</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Build ANN model using </span><span class="si">%d</span><span class="s1"> feature vectors and </span><span class="si">%d</span><span class="s1"> trees&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">trees</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Build ANN model using </span><span class="si">%d</span><span class="s1"> feature vectors and </span><span class="si">%d</span><span class="s1"> trees&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">index</span><span class="p">,</span>
+            <span class="n">trees</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">ann_model</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">trees</span><span class="p">)</span>
 
     <span class="c1"># Save forest</span>
@@ -395,7 +419,10 @@
 
                 <span class="n">chip_list</span> <span class="o">=</span> <span class="n">chip_list</span><span class="p">[:</span><span class="n">min_chips</span><span class="p">]</span>
                 <span class="n">canvas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">chip_list</span><span class="p">)</span>
-                <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;neighbors_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">offset</span><span class="p">,)</span>
+                <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;neighbors_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">gid</span><span class="p">,</span>
+                    <span class="n">offset</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
                 <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">canvas</span><span class="p">)</span></div>
 
@@ -1039,7 +1066,10 @@
                     <span class="n">cat_pred_list</span> <span class="o">+=</span> <span class="n">pred_list_</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;NMS Proposals (start) for category </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">cat_tag</span><span class="p">,</span> <span class="n">cat_pred_total</span><span class="p">,)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">cat_tag</span><span class="p">,</span>
+                        <span class="n">cat_pred_total</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="c1"># Print stats</span>
                 <span class="n">conf_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1061,7 +1091,11 @@
                 <span class="n">category_dict</span><span class="p">[</span><span class="n">cat_tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">cat_pred_list</span>
                 <span class="n">cat_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat_pred_list</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;NMS Proposals (end) for category </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cat_tag</span><span class="p">,</span> <span class="n">cat_total</span><span class="p">,)</span>
+                    <span class="s1">&#39;NMS Proposals (end) for category </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">cat_tag</span><span class="p">,</span>
+                        <span class="n">cat_total</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
 
             <span class="c1">##################################################################################</span>
@@ -1165,7 +1199,10 @@
         <span class="c1"># Step 8: update the sorted_gid_list based on what neighbors were samples</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">round_neighbor_gid_hist</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">alpha</span><span class="p">:</span>
             <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="p">(</span><span class="n">round_neighbor_gid_hist</span><span class="p">[</span><span class="n">neighbor_gid_</span><span class="p">],</span> <span class="n">neighbor_gid_</span><span class="p">,)</span>
+                <span class="p">(</span>
+                    <span class="n">round_neighbor_gid_hist</span><span class="p">[</span><span class="n">neighbor_gid_</span><span class="p">],</span>
+                    <span class="n">neighbor_gid_</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">neighbor_gid_</span> <span class="ow">in</span> <span class="n">round_neighbor_gid_hist</span>
             <span class="p">]</span>
             <span class="n">vals_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">vals_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1302,7 +1339,13 @@
                 <span class="c1"># logger.info(&#39;Recovering %d&#39; % (recover, ))</span>
                 <span class="n">gid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recover</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">species</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">redo</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Redo? [enter to continue] &#39;</span><span class="p">)</span>
     <span class="n">redo</span> <span class="o">=</span> <span class="n">redo</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -1439,10 +1482,34 @@
         <span class="n">total</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span>
         <span class="n">accuracy</span> <span class="o">=</span> <span class="n">correct</span> <span class="o">/</span> <span class="n">total</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Accuracy: </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">accuracy</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">tp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tn</span><span class="p">,</span> <span class="n">tn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tp</span><span class="p">,</span>
+                <span class="n">tp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fn</span><span class="p">,</span>
+                <span class="n">fn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tn</span><span class="p">,</span>
+                <span class="n">tn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fp</span><span class="p">,</span>
+                <span class="n">fp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">output_filepath</span></div>
 
@@ -1561,10 +1628,34 @@
         <span class="n">total</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span>
         <span class="n">accuracy</span> <span class="o">=</span> <span class="n">correct</span> <span class="o">/</span> <span class="n">total</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Accuracy: </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">accuracy</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">tp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tn</span><span class="p">,</span> <span class="n">tn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tp</span><span class="p">,</span>
+                <span class="n">tp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fn</span><span class="p">,</span>
+                <span class="n">fn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> TN: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tn</span><span class="p">,</span>
+                <span class="n">tn</span> <span class="o">/</span> <span class="n">neg</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> FP: </span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fp</span><span class="p">,</span>
+                <span class="n">fp</span> <span class="o">/</span> <span class="n">pos</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">output_filepath</span></div>
 

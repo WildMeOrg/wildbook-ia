@@ -259,7 +259,13 @@
     <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">new_dbpath</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">join</span><span class="p">(</span><span class="s1">&#39;Datasets&#39;</span><span class="p">,</span> <span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Exporting to </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_dbpath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Exporting to </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1"> images&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">new_dbpath</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">export_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">)</span>
 
 
@@ -495,7 +501,12 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;t1, t2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">))</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;newtag = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newtag</span><span class="p">,))</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;truth_real, truth1, truth2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth_real</span><span class="p">,</span> <span class="n">truth1</span><span class="p">,</span> <span class="n">truth2</span><span class="p">,)</span>
+                <span class="s1">&#39;truth_real, truth1, truth2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">truth_real</span><span class="p">,</span>
+                    <span class="n">truth1</span><span class="p">,</span>
+                    <span class="n">truth2</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid1, aid2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
             <span class="n">fixme_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))))</span>

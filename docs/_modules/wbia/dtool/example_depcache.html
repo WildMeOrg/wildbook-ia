@@ -359,7 +359,10 @@
             <span class="k">yield</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">num</span>
 
     <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-        <span class="s1">&#39;descriptor&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;vecs&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="s1">&#39;descriptor&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;vecs&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
     <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_preproc_vecs</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">kp_rowid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -369,7 +372,10 @@
             <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">7</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">+</span> <span class="n">rowid</span><span class="p">,</span>
 
     <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-        <span class="s1">&#39;fgweight&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="s1">&#39;fgweight&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;fgweight&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
     <span class="p">)</span>
     <span class="k">def</span> <span class="nf">dummy_preproc_fgweight</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">kpts_rowid</span><span class="p">,</span> <span class="n">probchip_rowid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -438,7 +444,10 @@
                 <span class="k">yield</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">mask_fpath</span>
 
         <span class="nd">@depc</span><span class="o">.</span><span class="n">register_preproc</span><span class="p">(</span>
-            <span class="s1">&#39;notch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;notchdata&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+            <span class="s1">&#39;notch&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">dummy_root</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;notchdata&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="k">def</span> <span class="nf">dummy_preproc_notch</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

@@ -54,7 +54,11 @@
     <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">)</span>
     <span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="s1">&#39;[web] Set Cookie: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],)</span>
+        <span class="s1">&#39;[web] Set Cookie: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span></div>
 
@@ -81,7 +85,10 @@
     <span class="n">gpath</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="s1">&#39;thumbsize&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;thumbsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;thumbsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),</span>
+        <span class="p">)</span>
 
     <span class="k">if</span> <span class="s1">&#39;draw_annots&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;draw_annots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
@@ -116,7 +123,10 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
 
     <span class="k">if</span> <span class="s1">&#39;dim_size&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># image_src = _resize_src(image, **kwargs)</span>
@@ -132,7 +142,10 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
 
     <span class="k">if</span> <span class="s1">&#39;dim_size&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),</span>
+        <span class="p">)</span>
 
     <span class="n">image_filepath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">)</span>
@@ -148,7 +161,10 @@
 <span class="k">def</span> <span class="nf">part_src</span><span class="p">(</span><span class="n">part_rowid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="k">if</span> <span class="s1">&#39;dim_size&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_chips</span><span class="p">(</span><span class="n">part_rowid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">image_src</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_height</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">image_src</span></div>

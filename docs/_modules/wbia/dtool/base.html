@@ -855,7 +855,11 @@
         <span class="n">true_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dependency_levels</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># logger.info(&#39;[req] Ensuring %s request dependencies: %r&#39; % (request, true_order,))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span>
-            <span class="s1">&#39;[req] Ensuring request </span><span class="si">%s</span><span class="s1"> dependencies: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">true_order</span><span class="p">,),</span>
+            <span class="s1">&#39;[req] Ensuring request </span><span class="si">%s</span><span class="s1"> dependencies: </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="n">true_order</span><span class="p">,</span>
+            <span class="p">),</span>
             <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">true_order</span><span class="p">:</span>

@@ -416,14 +416,22 @@
         <span class="n">row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row_counter</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">addNewLabel</span><span class="p">(</span><span class="s1">&#39;Quality:&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qual_combo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addNewComboBox</span><span class="p">(</span>
-            <span class="n">options</span><span class="o">=</span><span class="n">valid_quals</span><span class="p">,</span> <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">valid_quals</span><span class="p">,</span>
+            <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+            <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span>
+            <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">gt</span><span class="o">.</span><span class="n">adjustSizePolicy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qual_combo</span><span class="p">,</span> <span class="n">hStretch</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
         <span class="n">row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row_counter</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">addNewLabel</span><span class="p">(</span><span class="s1">&#39;Viewpoint:&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">view_combo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addNewComboBox</span><span class="p">(</span>
-            <span class="n">options</span><span class="o">=</span><span class="n">valid_views</span><span class="p">,</span> <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">valid_views</span><span class="p">,</span>
+            <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+            <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span>
+            <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">gt</span><span class="o">.</span><span class="n">adjustSizePolicy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_combo</span><span class="p">,</span> <span class="n">hStretch</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 

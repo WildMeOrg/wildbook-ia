@@ -597,7 +597,9 @@
         <span class="c1"># Add control widgets (import, group, species selector, etc...)</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">control_widgets</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">control_widget_lists</span><span class="p">):</span>
             <span class="n">_container</span> <span class="o">=</span> <span class="n">status_wgt</span><span class="o">.</span><span class="n">addNewWidget</span><span class="p">(</span>
-                <span class="n">orientation</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ControlContainer</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,),</span>
+                <span class="n">orientation</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span><span class="p">,</span>
+                <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ControlContainer</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,),</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="n">control_widgets</span><span class="p">:</span>
                 <span class="n">_container</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
@@ -1414,7 +1416,10 @@
                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">override_all_annotation_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
                     <span class="p">),</span>
                     <span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s2">&quot;Remove annotation&#39;s name&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">unset_names</span><span class="p">([</span><span class="n">aid</span><span class="p">]),),</span>
+                    <span class="p">(</span>
+                        <span class="s2">&quot;Remove annotation&#39;s name&quot;</span><span class="p">,</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">unset_names</span><span class="p">([</span><span class="n">aid</span><span class="p">]),</span>
+                    <span class="p">),</span>
                     <span class="p">(</span><span class="s1">&#39;Delete annotation&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">),</span>
                 <span class="p">]</span>

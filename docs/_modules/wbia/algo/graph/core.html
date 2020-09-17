@@ -720,7 +720,10 @@
         <span class="n">num_inconsistent</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">recovery_ccs</span><span class="p">)</span>
         <span class="n">num_names_max</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span>
 
-        <span class="n">status</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">num_names_max</span><span class="o">=</span><span class="n">num_names_max</span><span class="p">,</span> <span class="n">num_inconsistent</span><span class="o">=</span><span class="n">num_inconsistent</span><span class="p">,)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">num_names_max</span><span class="o">=</span><span class="n">num_names_max</span><span class="p">,</span>
+            <span class="n">num_inconsistent</span><span class="o">=</span><span class="n">num_inconsistent</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;done checking status&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">status</span></div></div>
 

@@ -56,13 +56,52 @@
 
 <span class="c1"># FIXME (27-Jul-12020) This is currently used by CI to verify installation.</span>
 <span class="c1">#       Either make this the main function or move to location that makes sense.</span>
+
+
 <div class="viewcode-block" id="smoke_test"><a class="viewcode-back" href="../../wbia.html#wbia.__main__.smoke_test">[docs]</a><span class="k">def</span> <span class="nf">smoke_test</span><span class="p">():</span>  <span class="c1"># nocover</span>
+
     <span class="kn">import</span> <span class="nn">wbia</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Looks like the imports worked&#39;</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;wbia = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wbia</span><span class="p">))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;wbia.__file__ = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;wbia.__version__ = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="n">__version__</span><span class="p">))</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Looks like the imports worked&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wbia = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wbia</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wbia.__file__ = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wbia.__version__ = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="n">__version__</span><span class="p">))</span>
+
+    <span class="kn">from</span> <span class="nn">utool.__main__</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">utool_main</span>
+    <span class="kn">from</span> <span class="nn">vtool.__main__</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">vtool_main</span>
+
+    <span class="n">utool_main</span><span class="p">()</span>
+    <span class="n">vtool_main</span><span class="p">()</span>
+
+    <span class="kn">from</span> <span class="nn">pyhesaff.__main__</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">pyhesaff_main</span>
+    <span class="kn">from</span> <span class="nn">pyflann.__main__</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">pyflann_main</span>
+    <span class="kn">from</span> <span class="nn">pydarknet.__main__</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">pydarknet_main</span>
+    <span class="kn">from</span> <span class="nn">pyrf.__main__</span> <span class="kn">import</span> <span class="n">main</span> <span class="k">as</span> <span class="n">pyrf_main</span>
+
+    <span class="n">pyhesaff_main</span><span class="p">()</span>
+    <span class="n">pyflann_main</span><span class="p">()</span>
+    <span class="n">pydarknet_main</span><span class="p">()</span>
+    <span class="n">pyrf_main</span><span class="p">()</span>
+
+    <span class="kn">import</span> <span class="nn">brambox</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;Brambox: </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">brambox</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+            <span class="n">brambox</span><span class="o">.</span><span class="vm">__file__</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">lightnet</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;Lightnet: </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">lightnet</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+            <span class="n">lightnet</span><span class="o">.</span><span class="vm">__file__</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="run_wbia"><a class="viewcode-back" href="../../wbia.html#wbia.__main__.run_wbia">[docs]</a><span class="k">def</span> <span class="nf">run_wbia</span><span class="p">():</span>

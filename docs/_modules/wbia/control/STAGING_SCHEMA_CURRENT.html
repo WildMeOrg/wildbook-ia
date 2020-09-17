@@ -64,10 +64,10 @@
             <span class="p">(</span><span class="s1">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;metadata_value&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">],</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        The table that stores permanently all of the metadata about the</span>
-<span class="s1">        database (tables, etc)</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        The table that stores permanently all of the metadata about the</span>
+<span class="s2">        database (tables, etc)</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;metadata_key&#39;</span><span class="p">,)],</span>
     <span class="p">)</span>
 
@@ -90,9 +90,9 @@
             <span class="p">(</span><span class="s1">&#39;review_meta_decision&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;review_metadata_json&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">],</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        Used to store completed user review states of two matched annotations</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Used to store completed user review states of two matched annotations</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;review_count&#39;</span><span class="p">)],</span>
     <span class="p">)</span>
 
@@ -110,10 +110,10 @@
                 <span class="s2">&quot;INTEGER DEFAULT (CAST(STRFTIME(&#39;</span><span class="si">%s</span><span class="s2">&#39;, &#39;NOW&#39;, &#39;UTC&#39;) AS INTEGER))&quot;</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">],</span>
-        <span class="n">docstr</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        Used to store tests given to the user, their responses, and their</span>
-<span class="s1">        results</span>
-<span class="s1">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Used to store tests given to the user, their responses, and their</span>
+<span class="s2">        results</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;test_uuid&#39;</span><span class="p">,)],</span>
     <span class="p">)</span></div>
 </pre></div>

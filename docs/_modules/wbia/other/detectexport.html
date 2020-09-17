@@ -507,12 +507,22 @@
     <span class="n">tup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">yaw_list</span><span class="p">))</span>
     <span class="n">old_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">)</span>
     <span class="n">tup_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="n">yaw</span><span class="p">),)</span>
+        <span class="p">(</span>
+            <span class="n">aid</span><span class="p">,</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">viewpoint_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="n">yaw</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">tup_list</span>
         <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">category_set</span>
     <span class="p">]</span>
     <span class="n">new_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Filtered annotations: keep </span><span class="si">%d</span><span class="s1"> / original </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_len</span><span class="p">,</span> <span class="n">old_len</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Filtered annotations: keep </span><span class="si">%d</span><span class="s1"> / original </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">new_len</span><span class="p">,</span>
+            <span class="n">old_len</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="c1"># Skip any annotations that are of the wanted category and don&#39;t have a specified viewpoint</span>
     <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
@@ -587,7 +597,10 @@
             <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">skipped_yaw</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
-            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,)</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">species</span><span class="p">,</span>
+                <span class="n">yaw</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">valid_seen_set</span><span class="p">:</span>
             <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -595,8 +608,20 @@
             <span class="k">continue</span>
         <span class="n">aid_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">category_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipped Yaw:  skipped </span><span class="si">%d</span><span class="s1"> / total </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">skipped_yaw</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">),))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipped Seen: skipped </span><span class="si">%d</span><span class="s1"> / total </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">skipped_seen</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Skipped Yaw:  skipped </span><span class="si">%d</span><span class="s1"> / total </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">skipped_yaw</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Skipped Seen: skipped </span><span class="si">%d</span><span class="s1"> / total </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">skipped_seen</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">tup_list</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">category_list_</span><span class="p">)):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Making folder for </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">category</span><span class="p">,))</span>
@@ -636,7 +661,10 @@
         <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">patch_filepath</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
 
         <span class="c1"># Compute label</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">patch_filename</span><span class="p">,</span> <span class="n">category</span><span class="p">,)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">patch_filename</span><span class="p">,</span>
+            <span class="n">category</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using labels for labeler training:&#39;</span><span class="p">)</span>

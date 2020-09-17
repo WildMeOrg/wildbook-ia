@@ -111,7 +111,7 @@
 
 
 <div class="viewcode-block" id="backblock"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.backblock">[docs]</a><span class="k">def</span> <span class="nf">backblock</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; BLOCKING DECORATOR</span>
+    <span class="sd">&quot;&quot;&quot;BLOCKING DECORATOR</span>
 <span class="sd">    TODO: This decorator has to be specific to either front or back. Is there a</span>
 <span class="sd">    way to make it more general?</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1004,7 +1004,10 @@
         <span class="n">web_port</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
-        <span class="n">web_domain</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_url</span><span class="p">,</span> <span class="n">web_port</span><span class="p">,)</span>
+        <span class="n">web_domain</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">web_url</span><span class="p">,</span>
+            <span class="n">web_port</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">web_domain</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_imgsetid_list_in_web"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_imgsetid_list_in_web">[docs]</a>    <span class="k">def</span> <span class="nf">show_imgsetid_list_in_web</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1014,7 +1017,10 @@
         <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
         <span class="n">imgsetid_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">))</span>
         <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/images/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">imgsetid_str</span><span class="p">,)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/images/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">web_domain</span><span class="p">,</span>
+            <span class="n">imgsetid_str</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_imgsetid_detection_turk_in_web"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_imgsetid_detection_turk_in_web">[docs]</a>    <span class="k">def</span> <span class="nf">show_imgsetid_detection_turk_in_web</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1024,7 +1030,10 @@
         <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
         <span class="n">imgsetid_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">))</span>
         <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/detection/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">imgsetid_str</span><span class="p">,)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/detection/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">web_domain</span><span class="p">,</span>
+            <span class="n">imgsetid_str</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_imgsetid_annotation_turk_in_web"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_imgsetid_annotation_turk_in_web">[docs]</a>    <span class="k">def</span> <span class="nf">show_imgsetid_annotation_turk_in_web</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1034,7 +1043,10 @@
         <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
         <span class="n">imgsetid_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">))</span>
         <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/annotation/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">imgsetid_str</span><span class="p">,)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/annotation/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">web_domain</span><span class="p">,</span>
+            <span class="n">imgsetid_str</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_image"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_image">[docs]</a>    <span class="k">def</span> <span class="nf">show_image</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1052,9 +1064,15 @@
         <span class="n">gid_text</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">))</span>
         <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/detection?gid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">gid_text</span><span class="p">,)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/detection?gid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">web_domain</span><span class="p">,</span>
+                <span class="n">gid_text</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/images?gid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">gid_text</span><span class="p">,)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/images?gid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">web_domain</span><span class="p">,</span>
+                <span class="n">gid_text</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_annotation"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">show_annotation</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">show_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1063,7 +1081,10 @@
 
             <span class="n">back</span><span class="o">.</span><span class="n">start_web_server_parallel</span><span class="p">(</span><span class="n">browser</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/annotations?aid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">aid</span><span class="p">,)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/annotations?aid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">web_domain</span><span class="p">,</span>
+                <span class="n">aid</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">interact</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1086,7 +1107,10 @@
             <span class="n">aid_list</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/annotations?aid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/annotations?aid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">web_domain</span><span class="p">,</span>
+            <span class="n">aid_list</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_name"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_name">[docs]</a>    <span class="k">def</span> <span class="nf">show_name</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1115,7 +1139,10 @@
             <span class="n">aid_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/names?aid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">aid_str</span><span class="p">,)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/view/names?aid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">web_domain</span><span class="p">,</span>
+            <span class="n">aid_str</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MainWindowBackend.show_hough_image_"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.show_hough_image_">[docs]</a>    <span class="k">def</span> <span class="nf">show_hough_image_</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1517,7 +1544,7 @@
 
 <div class="viewcode-block" id="MainWindowBackend.delete_annot"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.delete_annot">[docs]</a>    <span class="nd">@blocking_slot</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">delete_annot</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Action -&gt; Delete Annotation</span>
+        <span class="sd">&quot;&quot;&quot;Action -&gt; Delete Annotation</span>
 
 <span class="sd">        CommandLine:</span>
 <span class="sd">            python -m wbia.gui.guiback --test-delete_annot --show</span>
@@ -1694,7 +1721,10 @@
             <span class="n">species</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[train_rf_with_imageset] Training Random Forest trees with imgsetid=</span><span class="si">%r</span><span class="s1"> and species=</span><span class="si">%r</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">species</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">imgsetid</span><span class="p">,</span>
+                <span class="n">species</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="n">randomforest</span><span class="o">.</span><span class="n">train_gid_list</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">teardown</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span></div>
 
@@ -2136,9 +2166,15 @@
             <span class="c1"># back.user_info(msg=&#39;Detection has finished. Launching web review&#39;)</span>
             <span class="n">web_domain</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_background_web_domain</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">review_in_web_mode</span> <span class="o">==</span> <span class="s1">&#39;annotations&#39;</span><span class="p">:</span>
-                <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/annotation/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,)</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/annotation/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">web_domain</span><span class="p">,</span>
+                    <span class="n">imgsetid</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="k">elif</span> <span class="n">review_in_web_mode</span> <span class="o">==</span> <span class="s1">&#39;detections&#39;</span><span class="p">:</span>
-                <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/detection/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_domain</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,)</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">/turk/detection/?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">web_domain</span><span class="p">,</span>
+                    <span class="n">imgsetid</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid value for review_in_web_mode&#39;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[guiback] Opening... </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
@@ -2553,7 +2589,8 @@
                     <span class="s1">&#39;You are about to run </span><span class="si">{query_title}</span><span class="s1"> &#39;</span>
                     <span class="s1">&#39;identification with </span><span class="si">{ngroups}</span><span class="s1"> groups...&#39;</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">query_title</span><span class="o">=</span><span class="n">query_title</span><span class="p">,</span> <span class="n">ngroups</span><span class="o">=</span><span class="n">ngroups</span><span class="p">,</span>
+                    <span class="n">query_title</span><span class="o">=</span><span class="n">query_title</span><span class="p">,</span>
+                    <span class="n">ngroups</span><span class="o">=</span><span class="n">ngroups</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2925,7 +2962,11 @@
 <span class="sd">            This new ImageSet will contain the images where zebras were detected.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="p">)</span>
-            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">imgset_dest_name</span><span class="p">,),</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+                <span class="n">imgset_dest_name</span><span class="p">,</span>
+            <span class="p">),</span>
             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Process ImageSet?&#39;</span><span class="p">,</span>
             <span class="n">default</span><span class="o">=</span><span class="s1">&#39;Yes&#39;</span><span class="p">,</span>
         <span class="p">)</span>
@@ -2949,7 +2990,13 @@
             <span class="k">for</span> <span class="n">class_</span><span class="p">,</span> <span class="n">score_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">class_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
         <span class="p">]</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_</span> <span class="o">&gt;=</span> <span class="n">score_thresh</span> <span class="k">for</span> <span class="n">score_</span> <span class="ow">in</span> <span class="n">score_list_</span><span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="n">pos_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="c1"># neg_gid_list = ut.compress(gid_list, ut.not_list(flag_list))</span>
@@ -2966,7 +3013,13 @@
         <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">wanted_set</span> <span class="o">&amp;</span> <span class="n">species_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">species_set</span> <span class="ow">in</span> <span class="n">species_set_list</span>
         <span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">nothing_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pos_gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">imgset_rowid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">imgset_rowid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">nothing_gid_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="n">nothing_gid_list</span><span class="p">,</span> <span class="n">imgset_rowid_list_</span><span class="p">)</span></div>
@@ -3039,7 +3092,8 @@
             <span class="n">nSingleEncounters</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nid2_aids</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
             <span class="n">unnamed_ok_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
-                <span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">,</span>
+                <span class="n">unnamed_aid_list</span><span class="p">,</span>
+                <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">nUnnamedOk</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">unnamed_ok_aid_list</span><span class="p">)</span>
 
@@ -3092,7 +3146,10 @@
                 <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1">1 cannot be shipped becuase &#39;</span>
                 <span class="s1">&#39;annotation(s) </span><span class="si">%r</span><span class="s1"> with an identifiable quality have &#39;</span>
                 <span class="s1">&#39;not been named&#39;</span>
-            <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_ok_aid_list</span><span class="p">,)</span>
+            <span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">imgsetid</span><span class="p">,</span>
+                <span class="n">unnamed_ok_aid_list</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">dry</span><span class="p">:</span>
                 <span class="c1"># back.start_web_server_parallel(browser=False)</span>
@@ -3316,7 +3373,7 @@
 
 <div class="viewcode-block" id="MainWindowBackend.new_database"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guiback.MainWindowBackend.new_database">[docs]</a>    <span class="nd">@blocking_slot</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">new_database</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">new_dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; File -&gt; New Database</span>
+        <span class="sd">&quot;&quot;&quot;File -&gt; New Database</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            new_dbdir (None): (default = None)</span>
@@ -3579,7 +3636,7 @@
         <span class="n">smart_xml_fpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">defaultdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; File -&gt; Import Images From Directory with smart</span>
+        <span class="sd">&quot;&quot;&quot;File -&gt; Import Images From Directory with smart</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dir_ (None): (default = None)</span>
@@ -3654,7 +3711,11 @@
                             <span class="s1">&#39;[back] ERROR: Parsing Patrol XML file failed, &#39;</span>
                             <span class="s1">&#39;rolling back by deleting </span><span class="si">%d</span><span class="s1"> images...&#39;</span>
                         <span class="p">)</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,))</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="nb">len</span><span class="p">(</span>
+                                <span class="n">gid_list</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="k">raise</span> <span class="n">e</span>
 
@@ -3806,7 +3867,10 @@
                 <span class="n">imageset_text</span> <span class="o">=</span> <span class="n">level1</span>
             <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">base</span><span class="p">,</span> <span class="n">level2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
-                <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">  (+)  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">level2</span><span class="p">,</span> <span class="n">level1</span><span class="p">,)</span>
+                <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">  (+)  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">level2</span><span class="p">,</span>
+                    <span class="n">level1</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="n">imageset_text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imagesettext</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">imageset_text_list</span><span class="p">)</span>
 
@@ -3821,7 +3885,7 @@
     <span class="k">def</span> <span class="nf">import_images_from_encounters_1</span><span class="p">(</span>
         <span class="n">back</span><span class="p">,</span> <span class="n">dir_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">defaultdir</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; File -&gt; Import Images From Encounters (1 level)</span>
+        <span class="sd">&quot;&quot;&quot;File -&gt; Import Images From Encounters (1 level)</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dir_ (None): (default = None)</span>
@@ -3846,7 +3910,7 @@
     <span class="k">def</span> <span class="nf">import_images_from_encounters_2</span><span class="p">(</span>
         <span class="n">back</span><span class="p">,</span> <span class="n">dir_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">defaultdir</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; File -&gt; Import Images From Encounters (2 levels)</span>
+        <span class="sd">&quot;&quot;&quot;File -&gt; Import Images From Encounters (2 levels)</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dir_ (None): (default = None)</span>
@@ -4032,7 +4096,10 @@
             <span class="o">+</span> <span class="s1">&#39;Tag:  </span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">Do you wish to continue?</span><span class="se">\n</span><span class="s1">All annotations &#39;</span>
             <span class="o">+</span> <span class="s1">&#39;with this species will be set to unknown.&#39;</span>
         <span class="p">)</span>
-        <span class="n">msg_str</span> <span class="o">=</span> <span class="n">msg_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_nice</span><span class="p">,</span> <span class="n">species_text</span><span class="p">,)</span>
+        <span class="n">msg_str</span> <span class="o">=</span> <span class="n">msg_str</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">species_nice</span><span class="p">,</span>
+            <span class="n">species_text</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">confirm_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">use_msg</span><span class="o">=</span><span class="n">msg_str</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Delete Selected Species?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">back</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="o">**</span><span class="n">confirm_kw</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span>

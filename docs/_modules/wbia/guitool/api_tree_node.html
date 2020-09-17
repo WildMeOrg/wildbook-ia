@@ -81,7 +81,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
 <span class="sd">        cdef long index</span>
-<span class="sd">         &quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_child</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TreeNode.set_children"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.set_children">[docs]</a>    <span class="k">def</span> <span class="nf">set_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_nodes</span><span class="p">):</span>
@@ -106,7 +106,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &lt;CYTH returns=&quot;TreeNode&quot;&gt;</span>
 <span class="sd">        cdef long index</span>
-<span class="sd">         &quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lazy_checks</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
 
@@ -126,18 +126,17 @@
             <span class="k">raise</span></div>
 
 <div class="viewcode-block" id="TreeNode.get_num_children"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_num_children">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; &lt;CYTH returns=long&gt;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;&lt;CYTH returns=long&gt;&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lazy_checks</span><span class="p">()</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">child_nodes</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TreeNode.get_id"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns python internal id of this class</span>
-<span class="sd">        &lt;CYTH returns=&quot;long&quot;&gt; &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns python internal id of this class</span>
+<span class="sd">        &lt;CYTH returns=&quot;long&quot;&gt;&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_</span></div>
 
 <div class="viewcode-block" id="TreeNode.get_row"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.TreeNode.get_row">[docs]</a>    <span class="k">def</span> <span class="nf">get_row</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns the row_index of this node w.r.t its parent.</span>
+        <span class="sd">&quot;&quot;&quot;Returns the row_index of this node w.r.t its parent.</span>
 
 <span class="sd">        cdef list sibling_nodes</span>
 <span class="sd">        cdef long row</span>
@@ -170,7 +169,7 @@
 
 
 <div class="viewcode-block" id="tree_node_string"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.api_tree_node.tree_node_string">[docs]</a><span class="k">def</span> <span class="nf">tree_node_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">charids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">id_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; makes a recrusive string representation of a treee</span>
+    <span class="sd">&quot;&quot;&quot;makes a recrusive string representation of a treee</span>
 
 <span class="sd">    HACK:if charids is 2  uses ordinals instead of characters</span>
 <span class="sd">    if charirsd is True triesto use Numbers</span>
@@ -220,7 +219,7 @@
 
 
 <span class="k">def</span> <span class="nf">_populate_tree_iterative</span><span class="p">(</span><span class="n">root_node</span><span class="p">,</span> <span class="n">num_levels</span><span class="p">,</span> <span class="n">ider_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Iteratively builds the tree structure. I dont quite trust this yet</span>
+    <span class="sd">&quot;&quot;&quot;Iteratively builds the tree structure. I dont quite trust this yet</span>
 <span class="sd">    #@cython.boundscheck(False)</span>
 <span class="sd">    #@cython.wraparound(False)</span>
 

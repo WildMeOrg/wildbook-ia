@@ -144,7 +144,11 @@
         <span class="n">old_title</span> <span class="o">=</span> <span class="n">setproctitle</span><span class="o">.</span><span class="n">getproctitle</span><span class="p">()</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;old_title = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_title</span><span class="p">,))</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
-        <span class="n">new_title</span> <span class="o">=</span> <span class="s1">&#39;WBIA_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">procname</span><span class="p">,)</span>
+        <span class="n">new_title</span> <span class="o">=</span> <span class="s1">&#39;WBIA_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">dbname</span><span class="p">,</span>
+            <span class="n">hostname</span><span class="p">,</span>
+            <span class="n">procname</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new_title = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_title</span><span class="p">,))</span>
         <span class="n">setproctitle</span><span class="o">.</span><span class="n">setproctitle</span><span class="p">(</span><span class="n">new_title</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -241,7 +245,8 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">reciever</span> <span class="o">=</span> <span class="n">JobBackend</span><span class="p">(</span><span class="n">use_static_ports</span><span class="o">=</span><span class="n">use_static_ports</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">reciever</span><span class="o">.</span><span class="n">initialize_background_processes</span><span class="p">(</span>
-            <span class="n">dbdir</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">containerized</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
+            <span class="n">dbdir</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span>
+            <span class="n">containerized</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="c1"># Delete any leftover locks from before</span>
@@ -598,7 +603,11 @@
             <span class="n">_spawner_func_</span> <span class="o">=</span> <span class="n">spawn_background_process</span>
 
             <span class="n">proc</span> <span class="o">=</span> <span class="n">_spawner_func_</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">proc</span><span class="o">.</span><span class="n">is_alive</span><span class="p">(),</span> <span class="s1">&#39;proc (</span><span class="si">%s</span><span class="s1">) died too soon&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+            <span class="k">assert</span> <span class="n">proc</span><span class="o">.</span><span class="n">is_alive</span><span class="p">(),</span> <span class="s1">&#39;proc (</span><span class="si">%s</span><span class="s1">) died too soon&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span>
+                    <span class="n">func</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="n">proc</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spawn_queue</span><span class="p">:</span>
@@ -963,7 +972,10 @@
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">values_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span><span class="n">initialize_process_record</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,)</span>
+                <span class="n">values_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span>
+                    <span class="n">initialize_process_record</span><span class="p">,</span>
+                    <span class="n">arg_iter</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">values_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">values_list</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">values_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1244,14 +1256,26 @@
         <span class="n">recieve_socket</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;ROUTER&#39;</span><span class="p">)</span>
         <span class="n">recieve_socket</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">interface_pull</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">interface_pull</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url1 = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">name</span><span class="p">,</span>
+                    <span class="n">interface_pull</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># bind the server router to the queue dealer</span>
         <span class="n">send_socket</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">DEALER</span><span class="p">)</span>  <span class="c1"># CHECKED - DEALER</span>
         <span class="n">send_socket</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;queue.&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;DEALER&#39;</span><span class="p">)</span>
         <span class="n">send_socket</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">interface_push</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">interface_push</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">name</span><span class="p">,</span>
+                    <span class="n">interface_push</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">zmq</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">QUEUE</span><span class="p">,</span> <span class="n">recieve_socket</span><span class="p">,</span> <span class="n">send_socket</span><span class="p">)</span>  <span class="c1"># CHECKED - QUEUE</span>
@@ -1296,7 +1320,13 @@
         <span class="p">)</span>
         <span class="n">engine_receive_socket</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">interface_engine_pull</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">interface_engine_pull</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">name</span><span class="p">,</span>
+                    <span class="n">interface_engine_pull</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># bind the server router to the queue dealer</span>
         <span class="n">engine_send_socket_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1309,7 +1339,11 @@
             <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;bind </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">_url2 = </span><span class="si">%r</span><span class="s1">&#39;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">lane</span><span class="p">,</span> <span class="n">interface_engine_push_dict</span><span class="p">[</span><span class="n">lane</span><span class="p">],)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">name</span><span class="p">,</span>
+                        <span class="n">lane</span><span class="p">,</span>
+                        <span class="n">interface_engine_push_dict</span><span class="p">[</span><span class="n">lane</span><span class="p">],</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
             <span class="n">engine_send_socket_dict</span><span class="p">[</span><span class="n">lane</span><span class="p">]</span> <span class="o">=</span> <span class="n">engine_send_socket</span>
 
@@ -1373,7 +1407,10 @@
                     <span class="k">if</span> <span class="n">lane</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">engine_lanes</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span>
                             <span class="s1">&#39;WARNING: did not recognize desired lane </span><span class="si">%r</span><span class="s1"> from </span><span class="si">%r</span><span class="s1">&#39;</span>
-                            <span class="o">%</span> <span class="p">(</span><span class="n">lane</span><span class="p">,</span> <span class="n">engine_lanes</span><span class="p">,)</span>
+                            <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">lane</span><span class="p">,</span>
+                                <span class="n">engine_lanes</span><span class="p">,</span>
+                            <span class="p">)</span>
                         <span class="p">)</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Defaulting to slow lane&#39;</span><span class="p">)</span>
                         <span class="n">lane</span> <span class="o">=</span> <span class="s1">&#39;slow&#39;</span>
@@ -1394,7 +1431,13 @@
                         <span class="p">)</span>
                         <span class="n">jobcounter</span> <span class="o">=</span> <span class="n">restart_jobcounter</span>
 
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating jobid </span><span class="si">%r</span><span class="s1"> (counter </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">jobcounter</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;Creating jobid </span><span class="si">%r</span><span class="s1"> (counter </span><span class="si">%d</span><span class="s1">)&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">jobid</span><span class="p">,</span>
+                            <span class="n">jobcounter</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
 
                     <span class="k">if</span> <span class="n">restart_received</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">received</span> <span class="o">=</span> <span class="n">restart_received</span>
@@ -1547,20 +1590,42 @@
         <span class="n">interface_collect_pull</span> <span class="o">=</span> <span class="n">port_dict</span><span class="p">[</span><span class="s1">&#39;collect_pull_url&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing </span><span class="si">%s</span><span class="s1"> engine </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lane</span><span class="p">,</span> <span class="n">id_</span><span class="p">,))</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;connect engine_</span><span class="si">%s</span><span class="s1">_push_url = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lane</span><span class="p">,</span> <span class="n">interface_engine_push</span><span class="p">,)</span>
+                <span class="s1">&#39;Initializing </span><span class="si">%s</span><span class="s1"> engine </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">lane</span><span class="p">,</span>
+                    <span class="n">id_</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;connect engine_</span><span class="si">%s</span><span class="s1">_push_url = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">lane</span><span class="p">,</span>
+                    <span class="n">interface_engine_push</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
 
         <span class="k">assert</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
         <span class="n">engine_send_sock</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">ROUTER</span><span class="p">)</span>  <span class="c1"># CHECKED - ROUTER</span>
-        <span class="n">engine_send_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;engine.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lane</span><span class="p">,</span> <span class="n">id_</span><span class="p">,))</span>
+        <span class="n">engine_send_sock</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span>
+            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span>
+            <span class="s1">&#39;engine.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">lane</span><span class="p">,</span>
+                <span class="n">id_</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">engine_send_sock</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">interface_engine_push</span><span class="p">)</span>
 
         <span class="n">collect_recieve_socket</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">DEALER</span><span class="p">)</span>
         <span class="n">collect_recieve_socket</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span>
-            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span> <span class="s1">&#39;engine.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">.collect.DEALER&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lane</span><span class="p">,</span> <span class="n">id_</span><span class="p">,)</span>
+            <span class="n">zmq</span><span class="o">.</span><span class="n">IDENTITY</span><span class="p">,</span>
+            <span class="s1">&#39;engine.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">.collect.DEALER&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">lane</span><span class="p">,</span>
+                <span class="n">id_</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">)</span>
         <span class="n">collect_recieve_socket</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">interface_collect_pull</span><span class="p">)</span>
 
@@ -1569,7 +1634,14 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;engine is initialized&#39;</span><span class="p">)</span>
 
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">update_proctitle</span><span class="p">(</span><span class="s1">&#39;engine_loop.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lane</span><span class="p">,</span> <span class="n">id_</span><span class="p">,),</span> <span class="n">dbname</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
+        <span class="n">update_proctitle</span><span class="p">(</span>
+            <span class="s1">&#39;engine_loop.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">lane</span><span class="p">,</span>
+                <span class="n">id_</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">dbname</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -1882,7 +1954,14 @@
         <span class="c1"># corrupted</span>
 
         <span class="n">current_status</span> <span class="o">=</span> <span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating jobid = </span><span class="si">%r</span><span class="s1"> status </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">current_status</span><span class="p">,</span> <span class="n">status</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;Updating jobid = </span><span class="si">%r</span><span class="s1"> status </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">jobid</span><span class="p">,</span>
+                <span class="n">current_status</span><span class="p">,</span>
+                <span class="n">status</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Notify </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">collector_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]))</span>

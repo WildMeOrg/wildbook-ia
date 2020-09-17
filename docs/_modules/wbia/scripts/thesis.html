@@ -3231,7 +3231,9 @@
         <span class="p">)</span>
         <span class="n">n_annots_per_enc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">encounters</span><span class="p">)</span>
         <span class="n">enc_info</span><span class="p">[</span><span class="s1">&#39;n_annots_per_encounter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ave_str</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">n_annots_per_enc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">n_annots_per_enc</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">n_annots_per_enc</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">n_annots_per_enc</span><span class="p">),</span>
+            <span class="n">precision</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">enc_info</span><span class="p">[</span><span class="s1">&#39;n_annots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">n_annots_per_enc</span><span class="p">)</span>
 

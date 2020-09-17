@@ -478,7 +478,9 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBatchUnknownVsExemplarQueries&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Unknowns vs Exemplars&#39;</span><span class="p">,</span>
         <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
+            <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>

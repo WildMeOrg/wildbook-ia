@@ -127,7 +127,10 @@
             <span class="p">(</span><span class="s1">&#39;image_gps_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;REAL DEFAULT -1.0&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;image_toggle_enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;image_toggle_reviewed&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;image_note&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">,),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;image_note&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">),</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_UUID</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
@@ -164,7 +167,10 @@
 
     <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span>
-        <span class="p">((</span><span class="n">CONFIG_ROWID</span><span class="p">,</span> <span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">CONFIG_SUFFIX</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),),</span>
+        <span class="p">(</span>
+            <span class="p">(</span><span class="n">CONFIG_ROWID</span><span class="p">,</span> <span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">CONFIG_SUFFIX</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">),</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">CONFIG_SUFFIX</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Used to store the ids of algorithm configurations that generate</span>
@@ -209,7 +215,12 @@
             <span class="p">(</span><span class="s1">&#39;lblimage_value&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;lblimage_note&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage_value&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;lblimage_value&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Used to store the labels (attributes) of images&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span>
@@ -223,7 +234,12 @@
             <span class="p">(</span><span class="s1">&#39;lblannot_value&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;lblannot_note&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblannot_value&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;lblannot_value&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Used to store the labels / attributes of annotations.</span>
 <span class="s2">        E.G name, species &quot;&quot;&quot;</span><span class="p">,</span>
@@ -243,7 +259,12 @@
             <span class="p">(</span><span class="s1">&#39;chip_width&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;chip_height&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Used to store *processed* annots as chips&quot;&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span>
@@ -270,7 +291,12 @@
             <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">IMAGE_ROWID</span><span class="p">,</span>
+                <span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Relationship between encounters and images (many to many mapping) the</span>
 <span class="s2">        many-to-many relationship between images and encounters is encoded here</span>
@@ -289,7 +315,13 @@
             <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;glr_confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;image_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Used to store one-to-many the relationship between images</span>
 <span class="s2">        and labels&quot;&quot;&quot;</span><span class="p">,</span>
@@ -304,7 +336,13 @@
             <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;alr_confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Used to store one-to-many the relationship between annotations (annots)</span>
 <span class="s2">        and labels&quot;&quot;&quot;</span><span class="p">,</span>
@@ -836,7 +874,12 @@
             <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;UUID&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">),</span>
         <span class="c1"># FIXME: This change may have broken things</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="n">CONFIG_SUFFIX</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;contributor_uuid&#39;</span><span class="p">,</span>
+                <span class="n">CONFIG_SUFFIX</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
     <span class="p">)</span>
 
     <span class="c1"># Add config to encounters</span>
@@ -846,7 +889,12 @@
             <span class="c1"># add column to v1.0.2 at index 2</span>
             <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;encounter_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;encounter_text&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;encounter_uuid&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;encounter_text&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
     <span class="p">)</span>
 
     <span class="c1"># Error in the drop table script, re-drop again from post_1_0_0 to kill table&#39;s metadata</span>
@@ -867,7 +915,12 @@
             <span class="c1"># rename column and change it&#39;s type</span>
             <span class="p">(</span><span class="s1">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">CONFIG_SUFFIX</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span>
+                <span class="n">CONFIG_SUFFIX</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
     <span class="p">)</span>
 
     <span class="c1"># Change type of column</span>
@@ -1058,7 +1111,7 @@
     <span class="n">TAU</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">TAU</span>
 
     <span class="k">def</span> <span class="nf">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">angle</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; we initially had viewpoint coordinates inverted</span>
+        <span class="sd">&quot;&quot;&quot;we initially had viewpoint coordinates inverted</span>
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -1137,7 +1190,10 @@
 
     <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">PARTY_TABLE</span><span class="p">,</span>
-        <span class="p">((</span><span class="n">PARTY_ROWID</span><span class="p">,</span> <span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">PARTY_TAG</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),),</span>
+        <span class="p">(</span>
+            <span class="p">(</span><span class="n">PARTY_ROWID</span><span class="p">,</span> <span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">PARTY_TAG</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">),</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">PARTY_TAG</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Serves as a group for contributors</span>
@@ -1174,7 +1230,12 @@
             <span class="p">(</span><span class="s1">&#39;annotmatch_truth&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER DEFAULT 2&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;annotmatch_confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;REAL DEFAULT 0&#39;</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="n">relates</span><span class="o">=</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">),</span>
         <span class="c1"># shortname=&#39;annotmatch&#39;,</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
@@ -1203,7 +1264,8 @@
     <span class="p">)</span>
 
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+        <span class="n">shortname</span><span class="o">=</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -1227,8 +1289,16 @@
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
         <span class="n">dependsmap</span><span class="o">=</span><span class="p">{</span>
-            <span class="n">ANNOT_ROWID1</span><span class="p">:</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span> <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,),),</span>
-            <span class="n">ANNOT_ROWID2</span><span class="p">:</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span> <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,),),</span>
+            <span class="n">ANNOT_ROWID1</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+                <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,),</span>
+            <span class="p">),</span>
+            <span class="n">ANNOT_ROWID2</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+                <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,),</span>
+            <span class="p">),</span>
         <span class="p">},</span>
     <span class="p">)</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
@@ -1259,7 +1329,10 @@
             <span class="s1">&#39;config_rowid&#39;</span><span class="p">:</span> <span class="p">(</span>
                 <span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span>
                 <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">CONFIG_SUFFIX</span><span class="p">,),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span>
+                    <span class="n">CONFIG_SUFFIX</span><span class="p">,</span>
+                <span class="p">),</span>
             <span class="p">),</span>
         <span class="p">},</span>
     <span class="p">)</span>
@@ -1268,7 +1341,11 @@
         <span class="s1">&#39;encounter_image_relationship&#39;</span><span class="p">,</span>
         <span class="n">dependsmap</span><span class="o">=</span><span class="p">{</span>
             <span class="s1">&#39;image_rowid&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">IMAGE_ROWID</span><span class="p">,),</span> <span class="p">(</span><span class="n">IMAGE_UUID</span><span class="p">,)),</span>
-            <span class="s1">&#39;encounter_rowid&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;encounters&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,),</span> <span class="p">(</span><span class="s1">&#39;encounter_text&#39;</span><span class="p">,),),</span>
+            <span class="s1">&#39;encounter_rowid&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s1">&#39;encounters&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,),</span>
+                <span class="p">(</span><span class="s1">&#39;encounter_text&#39;</span><span class="p">,),</span>
+            <span class="p">),</span>
         <span class="p">},</span>
     <span class="p">)</span></div>
 
@@ -1277,7 +1354,8 @@
     <span class="c1"># Encounters only care about their text again as a uuid We are removing</span>
     <span class="c1"># config_rowid from encounters. Thus the dependency is not encoded</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="s1">&#39;encounters&#39;</span><span class="p">,</span> <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;encounter_text&#39;</span><span class="p">,)],</span>
+        <span class="s1">&#39;encounters&#39;</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;encounter_text&#39;</span><span class="p">,)],</span>
     <span class="p">)</span></div>
 
 
@@ -1300,7 +1378,12 @@
     <span class="c1"># Remove contributors from configs</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
         <span class="s1">&#39;encounter_image_relationship&#39;</span><span class="p">,</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">IMAGE_ROWID</span><span class="p">,</span>
+                <span class="s1">&#39;encounter_rowid&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
         <span class="c1"># superkeys=[(CONFIG_SUFFIX,)]</span>
     <span class="p">)</span></div>
 
@@ -1398,7 +1481,8 @@
 
 <div class="viewcode-block" id="update_1_4_5"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.update_1_4_5">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_5</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;annotmatch_note&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+        <span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;annotmatch_note&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span>
     <span class="p">)</span></div>
 
 
@@ -1612,7 +1696,12 @@
             <span class="p">(</span><span class="s1">&#39;encounter_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;UUID NOT NULL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;encounter_text&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_text&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;encounter_note&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_note&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;encounter_start_time_posix&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_start_time_posix&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;encounter_start_time_posix&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;imageset_start_time_posix&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span>
+                <span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;encounter_end_time_posix&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_end_time_posix&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;encounter_gps_lat&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_gps_lat&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;encounter_gps_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;imageset_gps_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
@@ -1667,10 +1756,17 @@
 <div class="viewcode-block" id="update_1_5_1"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.DB_SCHEMA.update_1_5_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_5_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Rename encounters to imagesets</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_UUID</span><span class="p">,)],</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_UUID</span><span class="p">,)],</span>
     <span class="p">)</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">,)],</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;annot_rowid1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
     <span class="p">)</span></div>
 
 
@@ -1979,7 +2075,13 @@
             <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;annot_staged_user_identity&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
             <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;annot_staged_metadata_json&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">ANNOT_UUID</span><span class="p">,),</span> <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,</span> <span class="n">ANNOT_STAGED_UUID</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">ANNOT_UUID</span><span class="p">,),</span>
+            <span class="p">(</span>
+                <span class="n">ANNOT_VISUAL_UUID</span><span class="p">,</span>
+                <span class="n">ANNOT_STAGED_UUID</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
         <span class="n">primary_superkey</span><span class="o">=</span><span class="p">(</span><span class="n">ANNOT_UUID</span><span class="p">,),</span>
     <span class="p">)</span>
 

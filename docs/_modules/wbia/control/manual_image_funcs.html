@@ -219,7 +219,7 @@
 <div class="viewcode-block" id="get_image_gid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_image_funcs.get_image_gid">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_image_gid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; self verifier</span>
+    <span class="sd">&quot;&quot;&quot;self verifier</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m wbia.control.manual_image_funcs --exec-get_image_gid</span>
@@ -312,7 +312,13 @@
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ensure</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Importing </span><span class="si">%d</span><span class="s1"> files failed: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">),</span> <span class="n">failed_list</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Importing </span><span class="si">%d</span><span class="s1"> files failed: </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">),</span>
+                <span class="n">failed_list</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">params_list</span>
 
@@ -611,7 +617,13 @@
 
     <span class="c1"># Copy any s3/http images first</span>
     <span class="k">for</span> <span class="n">uri</span><span class="p">,</span> <span class="n">loc_gpath</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uri_list</span><span class="p">,</span> <span class="n">loc_gpath_list</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Localizing </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">loc_gpath</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Localizing </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">uri</span><span class="p">,</span>
+                <span class="n">loc_gpath</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">valid_protos</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">s3_proto</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">AWS S3 Fetch&#39;</span><span class="p">)</span>
@@ -635,7 +647,10 @@
                     <span class="n">scheme</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">allow_fragments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">scheme</span>
                     <span class="n">uri_</span> <span class="o">=</span> <span class="n">uri_</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scheme</span><span class="p">,))</span>
                     <span class="n">uri_path</span> <span class="o">=</span> <span class="n">urlquote</span><span class="p">(</span><span class="n">uri_</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">))</span>
-                    <span class="n">uri_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scheme</span><span class="p">,</span> <span class="n">uri_path</span><span class="p">,)</span>
+                    <span class="n">uri_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">scheme</span><span class="p">,</span>
+                        <span class="n">uri_path</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="c1"># six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)</span>
                     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="k">assert</span> <span class="p">(</span>
@@ -1150,7 +1165,13 @@
         <span class="n">new_orient</span> <span class="o">=</span> <span class="n">ORIENTATION_ORDER_LIST</span><span class="p">[</span><span class="n">new_index</span><span class="p">]</span>
         <span class="n">new_orient_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_orient</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Rotating images </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orient_list</span><span class="p">,</span> <span class="n">new_orient_list</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Rotating images </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">orient_list</span><span class="p">,</span>
+            <span class="n">new_orient_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_set_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">new_orient_list</span><span class="p">)</span>
 
     <span class="c1"># We&#39;ve just rotated, invert the width, height values in the database for each image</span>
@@ -2933,8 +2954,7 @@
 
 
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_image_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>

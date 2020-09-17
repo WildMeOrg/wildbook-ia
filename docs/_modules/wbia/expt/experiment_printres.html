@@ -49,7 +49,7 @@
 
 
 <div class="viewcode-block" id="get_diffranks"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.experiment_printres.get_diffranks">[docs]</a><span class="k">def</span> <span class="nf">get_diffranks</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Find rows which scored differently over the various configs</span>
+    <span class="sd">&quot;&quot;&quot;Find rows which scored differently over the various configs</span>
 <span class="sd">    FIXME: duplicated</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">isdiff_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">row</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rank_mat</span><span class="p">]</span>
@@ -283,7 +283,8 @@
         <span class="n">annots2</span> <span class="o">=</span> <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>  <span class="c1"># NOQA</span>
-            <span class="n">acfg_list</span><span class="o">=</span><span class="p">[</span><span class="n">acfg1</span><span class="p">,</span> <span class="n">acfg2</span><span class="p">],</span> <span class="n">expanded_aids_list</span><span class="o">=</span><span class="p">[</span><span class="n">annots1</span><span class="p">,</span> <span class="n">annots2</span><span class="p">],</span>
+            <span class="n">acfg_list</span><span class="o">=</span><span class="p">[</span><span class="n">acfg1</span><span class="p">,</span> <span class="n">acfg2</span><span class="p">],</span>
+            <span class="n">expanded_aids_list</span><span class="o">=</span><span class="p">[</span><span class="n">annots1</span><span class="p">,</span> <span class="n">annots2</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;candidacy_k&#39;</span><span class="p">]</span>
         <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span>

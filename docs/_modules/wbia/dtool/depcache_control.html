@@ -1631,7 +1631,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[depc] notified that columns (</span><span class="si">%s</span><span class="s1">) for (</span><span class="si">%d</span><span class="s1">) row(s) were modified&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">root_rowids</span><span class="p">),)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">prop</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">root_rowids</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="p">)</span>
         <span class="c1"># for key in tables_depending_on(prop)</span>
         <span class="c1"># depc.delete_property(key, root_rowids)</span>

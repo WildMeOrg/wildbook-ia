@@ -334,7 +334,7 @@
 <div class="viewcode-block" id="expand_single_acfg"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.filter_annots.expand_single_acfg">[docs]</a><span class="nd">@profile</span>
 <span class="k">def</span> <span class="nf">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    for main_helpers &quot;&quot;&quot;</span>
+<span class="sd">    for main_helpers&quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
 
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1932,13 +1932,22 @@
                     <span class="s1">&#39;Warning: Cannot meet sample_size=</span><span class="si">%r</span><span class="s1">. available_</span><span class="si">%s</span><span class="s1">aids &#39;</span>
                     <span class="s1">&#39;will be undersized by at least </span><span class="si">%d</span><span class="s1">&#39;</span>
                 <span class="p">)</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="o">-</span><span class="n">num_remove_gf</span><span class="p">,)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">sample_size</span><span class="p">,</span>
+                    <span class="n">prefix</span><span class="p">,</span>
+                    <span class="o">-</span><span class="n">num_remove_gf</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">num_keep_gf</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Too many multitons; Can never remove a multiton</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Warning: Cannot meet sample_size=</span><span class="si">%r</span><span class="s1">. available_</span><span class="si">%s</span><span class="s1">aids &#39;</span>
-                <span class="s1">&#39;will be oversized by at least </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="o">-</span><span class="n">num_keep_gf</span><span class="p">,)</span>
+                <span class="s1">&#39;will be oversized by at least </span><span class="si">%d</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">sample_size</span><span class="p">,</span>
+                    <span class="n">prefix</span><span class="p">,</span>
+                    <span class="o">-</span><span class="n">num_keep_gf</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">SEED2</span><span class="p">)</span>
         <span class="n">gf_avl_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">gf_avl_aids</span><span class="p">,</span> <span class="n">num_keep_gf</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>

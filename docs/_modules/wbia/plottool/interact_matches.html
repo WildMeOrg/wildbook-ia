@@ -365,7 +365,13 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... selected score at rank idx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idx</span><span class="p">,))</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... selected score with fs=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">[</span><span class="n">mx</span><span class="p">],))</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... resolved to mx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mx</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... fx1, fx2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fx1</span><span class="p">,</span> <span class="n">fx2</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;... fx1, fx2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">fx1</span><span class="p">,</span>
+                    <span class="n">fx2</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">select_ith_match</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...Unknown viztype: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
@@ -389,7 +395,13 @@
             <span class="k">def</span> <span class="nf">toggle_attr</span><span class="p">():</span>
                 <span class="n">new_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_states</span><span class="p">)</span>
                 <span class="n">new_value</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">new_value</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_value(</span><span class="si">%s</span><span class="s1">) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">new_value</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s1">&#39;new_value(</span><span class="si">%s</span><span class="s1">) = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">attr</span><span class="p">,</span>
+                        <span class="n">new_value</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">new_value</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>

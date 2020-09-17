@@ -82,7 +82,13 @@
         <span class="n">progkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;scoring </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score_method</span><span class="p">)</span>
     <span class="c1"># Choose the appropriate scoring mechanism</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[scoring] score </span><span class="si">%d</span><span class="s1"> chipmatches with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),</span> <span class="n">score_method</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[scoring] score </span><span class="si">%d</span><span class="s1"> chipmatches with </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),</span>
+            <span class="n">score_method</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;sumamech&#39;</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">progkw</span><span class="p">):</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">score_name_sumamech</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>

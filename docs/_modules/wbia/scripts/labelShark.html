@@ -53,7 +53,10 @@
     <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">32</span>
     <span class="n">model_name</span> <span class="o">=</span> <span class="s1">&#39;injur-shark-&#39;</span> <span class="o">+</span> <span class="n">suffix</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">WhaleSharkInjuryModel</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span> <span class="n">output_dims</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+        <span class="n">output_dims</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">init_arch</span><span class="p">()</span>
     <span class="n">filep</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">modelStateLocation</span><span class="p">)</span>

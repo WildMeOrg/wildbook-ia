@@ -168,7 +168,10 @@
     <span class="sd">&quot;&quot;&quot; SQL definition of configuration table. &quot;&quot;&quot;</span>
     <span class="n">config_addtable_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="n">CONFIG_TABLE</span><span class="p">,),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;tablename&#39;</span><span class="p">,</span>
+                <span class="n">CONFIG_TABLE</span><span class="p">,</span>
+            <span class="p">),</span>
             <span class="p">(</span>
                 <span class="s1">&#39;coldef_list&#39;</span><span class="p">,</span>
                 <span class="p">[</span>
@@ -527,7 +530,9 @@
             <span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  table.</span><span class="si">%s</span><span class="s1"> = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">a</span><span class="p">)))</span>
 
-    <span class="k">def</span> <span class="nf">print_table</span><span class="p">(</span><span class="n">table</span><span class="p">,):</span>
+    <span class="k">def</span> <span class="nf">print_table</span><span class="p">(</span>
+        <span class="n">table</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_table_csv</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
         <span class="c1"># if table.ismulti:</span>
         <span class="c1">#    table.print_model_manifests()</span>
@@ -627,7 +632,10 @@
                         <span class="s1">&#39;preproc_func=</span><span class="si">%r</span><span class="s1"> for table=</span><span class="si">%s</span><span class="s1"> must have a &#39;</span>
                         <span class="s1">&#39;depcache arg, at least one parent rowid arg, &#39;</span>
                         <span class="s1">&#39;and a config arg&#39;</span>
-                    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">preproc_func</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,)</span>
+                    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">table</span><span class="o">.</span><span class="n">preproc_func</span><span class="p">,</span>
+                        <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
                 <span class="n">rowid_args</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowid_args</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()):</span>
@@ -1446,7 +1454,13 @@
                         <span class="c1"># TODO: hash all input UUIDs and the full config together</span>
                         <span class="n">quick_access_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                         <span class="c1"># Give the setsize and setfpath data if needed</span>
-                        <span class="n">parent_extra</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">multi_setsizes</span><span class="p">,)))</span>
+                        <span class="n">parent_extra</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                            <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                                <span class="nb">zip</span><span class="p">(</span>
+                                    <span class="n">multi_setsizes</span><span class="p">,</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">quick_access_tup</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
                         <span class="n">parent_extra</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
@@ -1720,9 +1734,11 @@
         <span class="k">if</span> <span class="n">DEBUG_LIST_MODE</span><span class="p">:</span>
             <span class="n">proptup_gen</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">proptup_gen</span><span class="p">)</span>
             <span class="n">num_output</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proptup_gen</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">num_output</span> <span class="o">==</span> <span class="n">nInput</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;Input and output sizes do not agree. &#39;</span>
-                <span class="s1">&#39;num_output=</span><span class="si">%r</span><span class="s1">, num_input=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_output</span><span class="p">,</span> <span class="n">nInput</span><span class="p">,)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">num_output</span> <span class="o">==</span> <span class="n">nInput</span>
+            <span class="p">),</span> <span class="s1">&#39;Input and output sizes do not agree. &#39;</span> <span class="s1">&#39;num_output=</span><span class="si">%r</span><span class="s1">, num_input=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">num_output</span><span class="p">,</span>
+                <span class="n">nInput</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="c1"># Append rowids and rectify nested and external columns</span>
         <span class="n">dirty_params_iter</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">prepare_storage</span><span class="p">(</span>
@@ -2013,10 +2029,22 @@
         <span class="n">superkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">superkey_colnames</span><span class="p">]</span>
         <span class="n">add_table_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="p">(</span><span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;coldef_list&#39;</span><span class="p">,</span> <span class="n">coldef_list</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;docstr&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">docstr</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;superkeys&#39;</span><span class="p">,</span> <span class="n">superkeys</span><span class="p">,),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;tablename&#39;</span><span class="p">,</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;coldef_list&#39;</span><span class="p">,</span>
+                    <span class="n">coldef_list</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;docstr&#39;</span><span class="p">,</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">docstr</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;superkeys&#39;</span><span class="p">,</span>
+                    <span class="n">superkeys</span><span class="p">,</span>
+                <span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;dependson&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()),</span>
             <span class="p">]</span>
         <span class="p">)</span>
@@ -2083,7 +2111,11 @@
                 <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Add </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> new rows to </span><span class="si">%r</span><span class="s1">&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">num_dirty</span><span class="p">,</span> <span class="n">num_total</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">num_dirty</span><span class="p">,</span>
+                            <span class="n">num_total</span><span class="p">,</span>
+                            <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;[deptbl.add]  * config_rowid = </span><span class="si">{}</span><span class="s1">, config=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>

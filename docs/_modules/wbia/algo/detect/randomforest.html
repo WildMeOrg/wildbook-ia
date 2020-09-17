@@ -80,7 +80,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[randomforest.train()] training with </span><span class="si">%d</span><span class="s1"> gids and species=</span><span class="si">%r</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">species</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="n">species</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">trees_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">trees_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;trees&#39;</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
@@ -332,7 +335,10 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[randomforest.detect()] Detecting with </span><span class="si">%d</span><span class="s1"> trees with scale_list=</span><span class="si">%r</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tree_path_list</span><span class="p">),</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;scale_list&#39;</span><span class="p">],)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">tree_path_list</span><span class="p">),</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;scale_list&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
     <span class="c1"># Run detection</span>

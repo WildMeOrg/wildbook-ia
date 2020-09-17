@@ -271,7 +271,7 @@
             <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ColumnListItemModel.setData"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_tables.ColumnListItemModel.setData">[docs]</a>    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Sets the role data for the item at index to var.</span>
+        <span class="sd">&quot;&quot;&quot;Sets the role data for the item at index to var.</span>
 <span class="sd">        var is a QVariant (called data in documentation)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] setData: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qtype</span><span class="o">.</span><span class="n">qindexinfo</span><span class="p">(</span><span class="n">index</span><span class="p">))))</span>
@@ -291,7 +291,13 @@
                 <span class="n">type_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_coltype</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">qtype</span><span class="o">.</span><span class="n">cast_from_qt</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
             <span class="c1"># Do actual setting of data</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * new_data = </span><span class="si">%s</span><span class="s1">(</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">type_str</span><span class="p">(</span><span class="n">type_</span><span class="p">),</span> <span class="n">data</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39; * new_data = </span><span class="si">%s</span><span class="s1">(</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">utool</span><span class="o">.</span><span class="n">type_str</span><span class="p">(</span><span class="n">type_</span><span class="p">),</span>
+                    <span class="n">data</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
             <span class="c1"># Emit that data was changed and return succcess</span>
             <span class="n">model</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>

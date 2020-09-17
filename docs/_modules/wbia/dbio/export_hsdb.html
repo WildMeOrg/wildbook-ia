@@ -229,7 +229,7 @@
 
 
 <div class="viewcode-block" id="get_hots_flat_table"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.export_hsdb.get_hots_flat_table">[docs]</a><span class="k">def</span> <span class="nf">get_hots_flat_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Dumps hotspotter flat tables</span>
+    <span class="sd">&quot;&quot;&quot;Dumps hotspotter flat tables</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  wbia controller object</span>
@@ -251,13 +251,46 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">column_tups</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;aids&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="s1">&#39;bbox&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))),</span>
-        <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;gpaths&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;notes&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;uuids&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
+        <span class="p">(</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;aids&#39;</span><span class="p">,</span>
+            <span class="n">aid_list</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;names&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="nb">list</span><span class="p">,</span>
+            <span class="s1">&#39;bbox&#39;</span><span class="p">,</span>
+            <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span>
+                    <span class="nb">list</span><span class="p">,</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;theta&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;gpaths&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;notes&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;uuids&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">]</span>
     <span class="n">column_type</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">column_tups</span><span class="p">]</span>
     <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">column_tups</span><span class="p">]</span>

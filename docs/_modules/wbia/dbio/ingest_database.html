@@ -176,7 +176,9 @@
                     <span class="n">valid_values</span><span class="o">=</span><span class="n">valid_species</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
-                    <span class="s1">&#39;adjust_percent&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;images_as_annots&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;adjust_percent&#39;</span><span class="p">,</span>
+                    <span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;images_as_annots&#39;</span><span class="p">],</span>
                 <span class="p">),</span>
             <span class="p">]</span>
 
@@ -1517,7 +1519,10 @@
                 <span class="n">annot_vert_list</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annot_seg</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
                     <span class="n">annot_vert_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="p">(</span><span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span> <span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],)</span>
+                        <span class="p">(</span>
+                            <span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span>
+                            <span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
 
                 <span class="n">annot_verts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annot_vert_list</span><span class="p">)</span>

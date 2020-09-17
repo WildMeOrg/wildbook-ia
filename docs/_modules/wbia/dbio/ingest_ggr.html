@@ -430,7 +430,11 @@
                 <span class="k">assert</span> <span class="n">base2</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">base1</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;Folder name heredity conflict </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,</span> <span class="n">direct1</span><span class="p">,)</span>
+                    <span class="s1">&#39;Folder name heredity conflict </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">direct2</span><span class="p">,</span>
+                        <span class="n">direct1</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
 
@@ -468,7 +472,10 @@
                     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
                     <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
 
-                    <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;GGR2,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,)</span>
+                    <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;GGR2,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="n">note_list</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%05d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imageset_text</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -483,7 +490,11 @@
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">seen_letter_set</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">seen_letter_list</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;Duplicate letters in </span><span class="si">%r</span><span class="s1"> with letters </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,</span> <span class="n">seen_letter_list</span><span class="p">,)</span>
+                <span class="s1">&#39;Duplicate letters in </span><span class="si">%r</span><span class="s1"> with letters </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">direct1</span><span class="p">,</span>
+                    <span class="n">seen_letter_list</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">continue</span>
 

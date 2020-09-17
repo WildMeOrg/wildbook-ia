@@ -81,7 +81,10 @@
         <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<span class="n">REMOTE_URL</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_DOMAIN</span><span class="p">,</span> <span class="n">REMOTE_PORT</span><span class="p">,)</span>
+<span class="n">REMOTE_URL</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+    <span class="n">REMOTE_DOMAIN</span><span class="p">,</span>
+    <span class="n">REMOTE_PORT</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">REMOTE_UUID</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">REMOTE_UUID</span><span class="p">)</span>
 
 
@@ -90,7 +93,10 @@
         <span class="n">route_rule</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">route_rule</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">route_rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
         <span class="n">route_rule</span> <span class="o">=</span> <span class="n">route_rule</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
-    <span class="n">route_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_URL</span><span class="p">,</span> <span class="n">route_rule</span><span class="p">,)</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">REMOTE_URL</span><span class="p">,</span>
+        <span class="n">route_rule</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">route_url</span>
 
 
@@ -153,7 +159,14 @@
     <span class="n">num_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">image_path_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_path_list</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">num_images</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">num_images</span><span class="p">,</span>
+                <span class="n">image_path</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">file_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span>
         <span class="p">}</span>
@@ -205,7 +218,13 @@
 <span class="p">):</span>
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">route_rule</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Setting </span><span class="si">%s</span><span class="s1"> metadata for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">route_rule</span><span class="p">,</span> <span class="n">uuid_str</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Setting </span><span class="si">%s</span><span class="s1"> metadata for </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">route_rule</span><span class="p">,</span>
+            <span class="n">uuid_str</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">uuid_str</span><span class="p">:</span> <span class="n">uuid_list</span><span class="p">,</span>
         <span class="n">value_str</span><span class="p">:</span> <span class="n">value_list</span><span class="p">,</span>
@@ -480,7 +499,13 @@
 <span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_sync_get_annot_endpoint</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> aids from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">route_url</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> aids from </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+            <span class="n">route_url</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;aid_list&#39;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
     <span class="p">}</span>
@@ -500,7 +525,13 @@
     <span class="n">serialized_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">working_list</span><span class="p">)</span>
 
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> auuids from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">auuid_list</span><span class="p">),</span> <span class="n">route_url</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> auuids from </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">auuid_list</span><span class="p">),</span>
+            <span class="n">route_url</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;uuid_list&#39;</span><span class="p">:</span> <span class="n">serialized_uuids</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">_get</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
 
@@ -557,7 +588,11 @@
     <span class="n">confirm_str</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">confirm_list</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;You are about to submit </span><span class="si">%d</span><span class="s1"> images to a remote DETECT database at </span><span class="si">%r</span><span class="s1"> with UUID=</span><span class="si">%r</span><span class="s1">.&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">REMOTE_URL</span><span class="p">,</span> <span class="n">REMOTE_UUID</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="n">REMOTE_URL</span><span class="p">,</span>
+            <span class="n">REMOTE_UUID</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.&#39;</span>

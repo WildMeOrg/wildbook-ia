@@ -126,7 +126,14 @@
         <span class="s1">&#39;Running with image_uuid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">guuid_list</span><span class="p">)))</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;progress &#39;</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">gid, aid, nid = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">gid, aid, nid = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">gid</span><span class="p">,</span>
+                <span class="n">aid</span><span class="p">,</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rich_title</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span></div>
 

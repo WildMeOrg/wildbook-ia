@@ -94,7 +94,10 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s1">&#39;Received UUID </span><span class="si">%r</span><span class="s1"> that is not a UUID or string at index </span><span class="si">%s</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="n">index</span><span class="p">,)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">annot_uuid</span><span class="p">,</span>
+                    <span class="n">index</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">annot_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annot_dict</span><span class="p">:</span>
@@ -529,9 +532,10 @@
     <span class="k">def</span> <span class="nf">sanitize</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">state</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
-        <span class="k">assert</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">flat_states</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;matching_state_list has unrecognized states. Should be one of </span><span class="si">%r</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">prefered_states</span><span class="p">,)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">state</span> <span class="ow">in</span> <span class="n">flat_states</span>
+        <span class="p">),</span> <span class="s1">&#39;matching_state_list has unrecognized states. Should be one of </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">prefered_states</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">state</span>
 
@@ -546,9 +550,10 @@
     <span class="n">qname_list</span> <span class="o">=</span> <span class="n">query_annot_name_list</span>
 
     <span class="c1"># Check inputs</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
-        <span class="s1">&#39;Can only identify one query annotation at a time. Got </span><span class="si">%d</span><span class="s1"> &#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">),)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="p">),</span> <span class="s1">&#39;Can only identify one query annotation at a time. Got </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="k">assert</span> <span class="p">(</span>
         <span class="n">database_annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>

@@ -68,7 +68,13 @@
 
 <span class="k">def</span> <span class="nf">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">t_width</span><span class="p">,</span>
+                <span class="n">t_height</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">image</span>
@@ -163,7 +169,13 @@
         <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Zero division error (</span><span class="si">%r</span><span class="s1">) - tp: </span><span class="si">%r</span><span class="s1"> tn: </span><span class="si">%r</span><span class="s1"> fp: </span><span class="si">%r</span><span class="s1"> fn: </span><span class="si">%r</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span><span class="p">,)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">conf</span><span class="p">,</span>
+                    <span class="n">tp</span><span class="p">,</span>
+                    <span class="n">tn</span><span class="p">,</span>
+                    <span class="n">fp</span><span class="p">,</span>
+                    <span class="n">fn</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">conf_list_</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span></div>
@@ -275,7 +287,10 @@
         <span class="c1"># label = &#39;%s [AP = %0.02f, OP = %0.02f]&#39; % (label, ap * 100.0, best_conf)</span>
         <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> [AP = </span><span class="si">%0.02f</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ap</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> [AUC = </span><span class="si">%0.02f</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ap</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> [AUC = </span><span class="si">%0.02f</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">ap</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="n">linestyle</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;line_dotted&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;-&#39;</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_list</span><span class="p">,</span> <span class="n">y_list</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
@@ -434,7 +449,12 @@
         <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">confidence_list</span>
         <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">confidence_list</span><span class="p">,</span> <span class="n">max_overlap_list</span><span class="p">,</span> <span class="n">pred_index_list</span><span class="p">,</span> <span class="n">gt_index_list</span><span class="p">)</span>
         <span class="n">pred_conf_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">confidence</span><span class="p">,</span> <span class="n">max_overlap</span><span class="p">,</span> <span class="n">pred_index</span><span class="p">,</span> <span class="n">gt_index</span><span class="p">,)</span>
+            <span class="p">(</span>
+                <span class="n">confidence</span><span class="p">,</span>
+                <span class="n">max_overlap</span><span class="p">,</span>
+                <span class="n">pred_index</span><span class="p">,</span>
+                <span class="n">gt_index</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">max_overlap</span><span class="p">,</span> <span class="n">pred_index</span><span class="p">,</span> <span class="n">gt_index</span> <span class="ow">in</span> <span class="n">zipped</span>
         <span class="p">]</span>
         <span class="n">pred_conf_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pred_conf_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -539,7 +559,10 @@
                 <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">tag</span> <span class="o">=</span> <span class="n">species</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">tag</span><span class="p">,)</span>
+                    <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">species</span><span class="p">,</span>
+                        <span class="n">tag</span><span class="p">,</span>
+                    <span class="p">)</span>
 
                 <span class="n">temp</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s1">&#39;gid&#39;</span><span class="p">:</span> <span class="n">gid</span><span class="p">,</span>
@@ -1049,7 +1072,11 @@
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">, Accuracy = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">best_conf</span><span class="p">,</span> <span class="n">best_accuracy</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">best_conf</span><span class="p">,</span>
+            <span class="n">best_accuracy</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">best_args</span>
 
@@ -2221,7 +2248,10 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_tag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">config_tag</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_tag</span><span class="p">,)</span>
 
-    <span class="n">fig_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">localizer-precision-recall-</span><span class="si">%0.2f</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_tag</span><span class="p">,</span> <span class="n">min_overlap</span><span class="p">,)</span>
+    <span class="n">fig_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">localizer-precision-recall-</span><span class="si">%0.2f</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">config_tag</span><span class="p">,</span>
+        <span class="n">min_overlap</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">fig_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">fig_filename</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
 
@@ -2506,7 +2536,13 @@
     <span class="n">output_cases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">conf</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_gid_set_</span><span class="p">)</span>
@@ -2560,7 +2596,10 @@
             <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
             <span class="c1"># Get path</span>
             <span class="n">image_path</span> <span class="o">=</span> <span class="n">positive_path</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="k">else</span> <span class="n">negative_path</span>
-            <span class="n">image_filename</span> <span class="o">=</span> <span class="s1">&#39;hardidx_</span><span class="si">%d</span><span class="s1">_pred_</span><span class="si">%s</span><span class="s1">_case_fail.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,)</span>
+            <span class="n">image_filename</span> <span class="o">=</span> <span class="s1">&#39;hardidx_</span><span class="si">%d</span><span class="s1">_pred_</span><span class="si">%s</span><span class="s1">_case_fail.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">gid</span><span class="p">,</span>
+                <span class="n">prediction</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">image_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">image_filename</span><span class="p">)</span>
             <span class="c1"># Save path</span>
             <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
@@ -2641,7 +2680,11 @@
     <span class="n">best_area1</span> <span class="o">=</span> <span class="n">area_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_conf1</span> <span class="o">=</span> <span class="n">conf_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
-        <span class="s1">&#39;Precision-Recall Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_label1</span><span class="p">,</span> <span class="n">best_area1</span><span class="p">,),</span>
+        <span class="s1">&#39;Precision-Recall Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">best_label1</span><span class="p">,</span>
+            <span class="n">best_area1</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
@@ -2678,7 +2721,14 @@
     <span class="n">best_color2</span> <span class="o">=</span> <span class="n">color_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_area2</span> <span class="o">=</span> <span class="n">area_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_conf2</span> <span class="o">=</span> <span class="n">conf_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;ROC Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_label2</span><span class="p">,</span> <span class="n">best_area2</span><span class="p">,),</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
+        <span class="s1">&#39;ROC Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">best_label2</span><span class="p">,</span>
+            <span class="n">best_area2</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
         <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.102</span><span class="p">),</span>
         <span class="n">loc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
@@ -2921,7 +2971,13 @@
             <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_set</span><span class="p">)</span>
             <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">confidence_dict</span><span class="p">:</span>
-                <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-</span><span class="si">%0.04f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">confidence_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],))</span>
+                <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-</span><span class="si">%0.04f</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">key</span><span class="p">,</span>
+                        <span class="n">confidence_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
             <span class="n">y</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;image-index-</span><span class="si">%s</span><span class="s1">-gid-</span><span class="si">%s</span><span class="s1">-gt-</span><span class="si">%s</span><span class="s1">-pred-</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="n">index</span><span class="p">,</span>
@@ -3169,7 +3225,11 @@
 
     <span class="c1"># Make ground-truth</span>
     <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">viewpoint_</span><span class="p">,)</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">viewpoint_</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="c1"># Get predictions</span>
@@ -3247,7 +3307,13 @@
         <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Zero division error (</span><span class="si">%r</span><span class="s1">) - tp: </span><span class="si">%r</span><span class="s1"> tn: </span><span class="si">%r</span><span class="s1"> fp: </span><span class="si">%r</span><span class="s1"> fn: </span><span class="si">%r</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span><span class="p">,)</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">conf</span><span class="p">,</span>
+                    <span class="n">tp</span><span class="p">,</span>
+                    <span class="n">tn</span><span class="p">,</span>
+                    <span class="n">fp</span><span class="p">,</span>
+                    <span class="n">fn</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">conf_list_</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span></div>
@@ -3258,7 +3324,10 @@
     <span class="n">category_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Processing Precision-Recall for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">category_list</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">labeler_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
@@ -3269,7 +3338,13 @@
 <div class="viewcode-block" id="labeler_roc_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.labeler_roc_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">labeler_roc_algo_plot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
     <span class="n">category_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">category_list</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Processing ROC for: </span><span class="si">%r</span><span class="s1"> (category_list = </span><span class="si">%r</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">category_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">conf_list</span><span class="p">,</span> <span class="n">pr_list</span><span class="p">,</span> <span class="n">re_list</span><span class="p">,</span> <span class="n">tpr_list</span><span class="p">,</span> <span class="n">fpr_list</span> <span class="o">=</span> <span class="n">labeler_precision_recall_algo</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
@@ -3315,7 +3390,11 @@
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">prediction_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,)</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">viewpoint</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
     <span class="p">]</span>
 
@@ -3506,12 +3585,18 @@
     <span class="k">if</span> <span class="n">fuzzy</span><span class="p">:</span>
         <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span>
             <span class="s1">&#39;Predicted (Correct = </span><span class="si">%0.02f%%</span><span class="s1">, Fuzzy = </span><span class="si">%0.02f%%</span><span class="s1">)&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">correct_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="n">fuzzy_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">correct_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span>
+                <span class="n">fuzzy_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">axes_</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span>
             <span class="s1">&#39;Predicted (Correct = </span><span class="si">%0.02f%%</span><span class="s1">, Species = </span><span class="si">%0.02f%%</span><span class="s1">)&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">correct_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span> <span class="n">fuzzy_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,)</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">correct_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span>
+                <span class="n">fuzzy_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
     <span class="n">axes_</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Ground-Truth&#39;</span><span class="p">)</span>
@@ -3581,7 +3666,13 @@
 <div class="viewcode-block" id="canonical_confusion_matrix_algo_plot"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectfuncs.canonical_confusion_matrix_algo_plot">[docs]</a><span class="k">def</span> <span class="nf">canonical_confusion_matrix_algo_plot</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">output_cases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">conf</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
 
     <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">))</span>
@@ -3638,7 +3729,10 @@
                 <span class="k">continue</span>
             <span class="c1"># Get path</span>
             <span class="n">image_path</span> <span class="o">=</span> <span class="n">positive_path</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="k">else</span> <span class="n">negative_path</span>
-            <span class="n">image_filename</span> <span class="o">=</span> <span class="s1">&#39;hardidx_</span><span class="si">%d</span><span class="s1">_pred_</span><span class="si">%s</span><span class="s1">_case_fail.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,)</span>
+            <span class="n">image_filename</span> <span class="o">=</span> <span class="s1">&#39;hardidx_</span><span class="si">%d</span><span class="s1">_pred_</span><span class="si">%s</span><span class="s1">_case_fail.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">aid</span><span class="p">,</span>
+                <span class="n">prediction</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">image_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">image_filename</span><span class="p">)</span>
             <span class="c1"># Save path</span>
             <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
@@ -3714,7 +3808,11 @@
     <span class="n">best_area1</span> <span class="o">=</span> <span class="n">area_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_conf1</span> <span class="o">=</span> <span class="n">conf_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
-        <span class="s1">&#39;Precision-Recall Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_label1</span><span class="p">,</span> <span class="n">best_area1</span><span class="p">,),</span>
+        <span class="s1">&#39;Precision-Recall Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">best_label1</span><span class="p">,</span>
+            <span class="n">best_area1</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
@@ -3745,7 +3843,14 @@
     <span class="n">best_color2</span> <span class="o">=</span> <span class="n">color_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_area2</span> <span class="o">=</span> <span class="n">area_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_conf2</span> <span class="o">=</span> <span class="n">conf_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;ROC Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_label2</span><span class="p">,</span> <span class="n">best_area2</span><span class="p">,),</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
+        <span class="s1">&#39;ROC Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">best_label2</span><span class="p">,</span>
+            <span class="n">best_area2</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
         <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.102</span><span class="p">),</span>
         <span class="n">loc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
@@ -3873,7 +3978,12 @@
     <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y_list</span><span class="p">)</span>
     <span class="n">overshoot</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_list</span><span class="p">)</span>
 
-    <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (Over: </span><span class="si">%0.02f</span><span class="s1">, </span><span class="si">%0.02f</span><span class="s1">+/-</span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">overshoot</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (Over: </span><span class="si">%0.02f</span><span class="s1">, </span><span class="si">%0.02f</span><span class="s1">+/-</span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">label</span><span class="p">,</span>
+        <span class="n">overshoot</span><span class="p">,</span>
+        <span class="n">mean</span><span class="p">,</span>
+        <span class="n">std</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
         <span class="n">x_list</span><span class="p">,</span>
         <span class="n">y_list</span><span class="p">,</span>
@@ -3957,7 +4067,12 @@
     <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_list</span><span class="p">)</span>
     <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y_list</span><span class="p">)</span>
 
-    <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (Acc: </span><span class="si">%0.02f</span><span class="s1">, </span><span class="si">%0.02f</span><span class="s1">+/-</span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (Acc: </span><span class="si">%0.02f</span><span class="s1">, </span><span class="si">%0.02f</span><span class="s1">+/-</span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">label</span><span class="p">,</span>
+        <span class="n">accuracy</span><span class="p">,</span>
+        <span class="n">mean</span><span class="p">,</span>
+        <span class="n">std</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
         <span class="n">x_list</span><span class="p">,</span>
         <span class="n">y_list</span><span class="p">,</span>
@@ -4081,7 +4196,11 @@
 
         <span class="n">canvas_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
             <span class="n">output_path</span><span class="p">,</span>
-            <span class="s1">&#39;canonical-regression-iou-</span><span class="si">%0.02f</span><span class="s1">-aid-</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">overlap</span><span class="p">,</span> <span class="n">test_aid</span><span class="p">,),</span>
+            <span class="s1">&#39;canonical-regression-iou-</span><span class="si">%0.02f</span><span class="s1">-aid-</span><span class="si">%s</span><span class="s1">.jpg&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">overlap</span><span class="p">,</span>
+                <span class="n">test_aid</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">)</span>
         <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">canvas_filepath</span><span class="p">,</span> <span class="n">canvas</span><span class="p">)</span></div>
 
@@ -4293,7 +4412,10 @@
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="n">color_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">attribute_list</span><span class="p">,</span> <span class="n">color_list_</span><span class="p">)):</span>
         <span class="n">index_</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span>
         <span class="n">config_</span> <span class="o">=</span> <span class="n">config_list</span><span class="p">[</span><span class="n">index_</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">config_</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="n">attribute</span><span class="p">,)</span>
+        <span class="n">config_</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">config_</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="n">attribute</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">canonical_localization_deviation_plot</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="o">**</span><span class="n">config_</span>
         <span class="p">)</span>
@@ -4383,7 +4505,13 @@
 
         <span class="n">canvas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">blended</span><span class="p">))</span>
         <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
-            <span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;background.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,)</span>
+            <span class="n">output_path</span><span class="p">,</span>
+            <span class="s1">&#39;background.</span><span class="si">%s</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.png&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">species</span><span class="p">,</span>
+                <span class="n">gid</span><span class="p">,</span>
+                <span class="n">aid</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">)</span>
         <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">canvas</span><span class="p">)</span></div>
 
@@ -4447,7 +4575,13 @@
     <span class="n">test_gid_set_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">conf</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Processing Confusion Matrix for: </span><span class="si">%r</span><span class="s1"> (Conf = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">label</span><span class="p">,</span>
+            <span class="n">conf</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
     <span class="k">if</span> <span class="n">test_gid_set_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">test_gid_set_</span> <span class="o">=</span> <span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">)</span>
@@ -4588,7 +4722,11 @@
     <span class="n">best_area1</span> <span class="o">=</span> <span class="n">area_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_conf1</span> <span class="o">=</span> <span class="n">conf_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
-        <span class="s1">&#39;Precision-Recall Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_label1</span><span class="p">,</span> <span class="n">best_area1</span><span class="p">,),</span>
+        <span class="s1">&#39;Precision-Recall Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">best_label1</span><span class="p">,</span>
+            <span class="n">best_area1</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
@@ -4619,7 +4757,14 @@
     <span class="n">best_color2</span> <span class="o">=</span> <span class="n">color_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_area2</span> <span class="o">=</span> <span class="n">area_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">best_conf2</span> <span class="o">=</span> <span class="n">conf_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;ROC Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_label2</span><span class="p">,</span> <span class="n">best_area2</span><span class="p">,),</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
+        <span class="s1">&#39;ROC Curve (Best: </span><span class="si">%s</span><span class="s1">, AP = </span><span class="si">%0.02f</span><span class="s1">)&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">best_label2</span><span class="p">,</span>
+            <span class="n">best_area2</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">y</span><span class="o">=</span><span class="mf">1.10</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
         <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.102</span><span class="p">),</span>
         <span class="n">loc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>

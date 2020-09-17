@@ -687,7 +687,8 @@
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
-                    <span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Failed making daily backup. &#39;</span> <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">),</span>
+                    <span class="n">ex</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s1">&#39;Failed making daily backup. &#39;</span> <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">),</span>
                 <span class="p">)</span>
                 <span class="kn">import</span> <span class="nn">utool</span>
 
@@ -716,7 +717,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">db_uri</span> <span class="o">=</span> <span class="s1">&#39;file://</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">realpath</span><span class="p">(</span><span class="n">sqldb_fpath</span><span class="p">))</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="n">db_uri</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span>
+            <span class="n">db_uri</span><span class="p">,</span>
+            <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">readonly</span>
 
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -775,7 +779,8 @@
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
-                    <span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Failed making daily backup. &#39;</span> <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">),</span>
+                    <span class="n">ex</span><span class="p">,</span>
+                    <span class="p">(</span><span class="s1">&#39;Failed making daily backup. &#39;</span> <span class="s1">&#39;Run with --nobackup to disable&#39;</span><span class="p">),</span>
                 <span class="p">)</span>
                 <span class="k">raise</span>
         <span class="c1"># IBEIS SQL State Database</span>
@@ -801,7 +806,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">db_uri</span> <span class="o">=</span> <span class="s1">&#39;file://</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">realpath</span><span class="p">(</span><span class="n">sqlstaging_fpath</span><span class="p">))</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="n">db_uri</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span>
+            <span class="n">db_uri</span><span class="p">,</span>
+            <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">readonly</span>
 
         <span class="k">if</span> <span class="n">backup_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1275,7 +1283,11 @@
         <span class="c1"># hash_str = hex(id(ibs))</span>
         <span class="c1"># ibsstr = &#39;&lt;%s(%s) at %s&gt;&#39; % (typestr, dbname, hash_str, )</span>
         <span class="n">hash_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
-        <span class="n">ibsstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) with UUID </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">hash_str</span><span class="p">,)</span>
+        <span class="n">ibsstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) with UUID </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">typestr</span><span class="p">,</span>
+            <span class="n">dbname</span><span class="p">,</span>
+            <span class="n">hash_str</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">ibsstr</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>

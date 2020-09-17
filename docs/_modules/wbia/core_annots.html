@@ -705,7 +705,7 @@
     <span class="c1"># isinteractive=True,</span>
 <span class="p">)</span>
 <span class="k">def</span> <span class="nf">compute_probchip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Computes probability chips using pyrf</span>
+    <span class="sd">&quot;&quot;&quot;Computes probability chips using pyrf</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m wbia.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST</span>
@@ -2087,7 +2087,13 @@
                     <span class="n">flag2</span> <span class="o">=</span> <span class="n">result2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;wild_dog&#39;</span><span class="p">,</span> <span class="s1">&#39;wild_dog_puppy&#39;</span><span class="p">]</span>
                     <span class="n">flag3</span> <span class="o">=</span> <span class="n">result3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;wild_dog&#39;</span><span class="p">]</span>
 
-                    <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result3</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+                    <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="n">result1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="n">result2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="n">result3</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
 
                     <span class="k">if</span> <span class="n">flag3</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">flag1</span> <span class="ow">and</span> <span class="n">flag2</span><span class="p">:</span>
@@ -2110,7 +2116,10 @@
 
                     <span class="n">quality</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN&#39;</span>
                     <span class="n">orientation</span> <span class="o">=</span> <span class="mf">0.0</span>
-                    <span class="n">prob_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,)</span>
+                    <span class="n">prob_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">species</span><span class="p">,</span>
+                        <span class="n">viewpoint</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="n">probs</span> <span class="o">=</span> <span class="p">{}</span>
                     <span class="n">probs</span><span class="p">[</span><span class="n">prob_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
                     <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>

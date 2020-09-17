@@ -443,7 +443,13 @@
             <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">dsize</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">img_size</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;width, height= </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;width, height= </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">width</span><span class="p">,</span>
+                <span class="n">height</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">x1</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">width</span> <span class="o">*</span> <span class="n">bbox_alignment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">y1</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">height</span> <span class="o">*</span> <span class="n">bbox_alignment</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">x2</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">bbox_alignment</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1954,7 +1960,7 @@
 
 
 <div class="viewcode-block" id="ax_absolute_text"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.draw_func2.ax_absolute_text">[docs]</a><span class="k">def</span> <span class="nf">ax_absolute_text</span><span class="p">(</span><span class="n">x_</span><span class="p">,</span> <span class="n">y_</span><span class="p">,</span> <span class="n">txt</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roffset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Base function for text</span>
+    <span class="sd">&quot;&quot;&quot;Base function for text</span>
 
 <span class="sd">    Kwargs:</span>
 <span class="sd">        horizontalalignment in [&#39;right&#39;, &#39;center&#39;, &#39;left&#39;],</span>

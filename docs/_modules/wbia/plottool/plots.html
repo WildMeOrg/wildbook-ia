@@ -756,7 +756,14 @@
                 <span class="p">)</span>
             <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nd_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">val</span><span class="p">,)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">nd_basis</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">nd_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">val</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">nd_basis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">]</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">multi_plot</span><span class="p">(</span>
         <span class="n">xdata</span><span class="p">,</span>
@@ -1347,7 +1354,12 @@
 
     <span class="c1"># append amount of support</span>
     <span class="n">score_lbls_</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ydata</span><span class="p">),)</span> <span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">ydata</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">score_lbls</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">)</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">lbl</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">ydata</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">ydata</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">score_lbls</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">)</span>
     <span class="p">]</span>
 
     <span class="c1"># References:</span>

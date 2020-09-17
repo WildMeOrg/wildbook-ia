@@ -359,7 +359,12 @@
             <span class="s1">&#39;thumbsize&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span> <span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">),</span>
         <span class="p">}</span>
         <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span>
+            <span class="n">gid_list</span><span class="p">,</span>
+            <span class="s1">&#39;img&#39;</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">,</span>
+            <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -445,7 +450,12 @@
             <span class="s1">&#39;thumbsize&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span> <span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">),</span>
         <span class="p">}</span>
         <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span>
+            <span class="n">gid_list</span><span class="p">,</span>
+            <span class="s1">&#39;img&#39;</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config_</span><span class="p">,</span>
+            <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">config_</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_two_weight_filepath&#39;</span><span class="p">],</span>
@@ -1049,7 +1059,11 @@
                 <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Filtered with sensitivity = </span><span class="si">%0.02f</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">)&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;sensitivity&#39;</span><span class="p">],</span> <span class="n">count_old</span><span class="p">,</span> <span class="n">count_new</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">config</span><span class="p">[</span><span class="s1">&#39;sensitivity&#39;</span><span class="p">],</span>
+                            <span class="n">count_old</span><span class="p">,</span>
+                            <span class="n">count_new</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
 
         <span class="c1"># Apply NMS</span>
@@ -1242,7 +1256,11 @@
                 <span class="n">count_new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bboxes</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="s1">&#39;Filtered invalid images (</span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count_old</span><span class="p">,</span> <span class="n">count_new</span><span class="p">,)</span>
+                        <span class="s1">&#39;Filtered invalid images (</span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">)&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">count_old</span><span class="p">,</span>
+                            <span class="n">count_new</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;boundary&#39;</span><span class="p">]:</span>
@@ -1356,7 +1374,10 @@
         <span class="n">mask</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img_</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_size</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
         <span class="c1"># cv2.imshow(&#39;&#39;, mask)</span>
         <span class="c1"># cv2.waitKey()</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Chip shape </span><span class="si">%r</span><span class="s1"> does not agree with target size </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Chip shape </span><span class="si">%r</span><span class="s1"> does not agree with target size </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">new_size</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">new_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">new_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">msg</span>
         <span class="k">return</span> <span class="n">mask</span>
 
@@ -2479,10 +2500,18 @@
                 <span class="n">zipped_</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">conf</span> <span class="o">*</span> <span class="n">score</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;Localizer </span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;localizer_sensitivity&#39;</span><span class="p">],)</span>
+                    <span class="s1">&#39;Localizer </span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%0.02f</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">conf</span><span class="p">,</span>
+                        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;localizer_sensitivity&#39;</span><span class="p">],</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;Labeler   </span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_sensitivity&#39;</span><span class="p">],)</span>
+                    <span class="s1">&#39;Labeler   </span><span class="si">%0.02f</span><span class="s1"> </span><span class="si">%0.02f</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">score</span><span class="p">,</span>
+                        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_sensitivity&#39;</span><span class="p">],</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zipped_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">detect_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">empty_list</span><span class="p">)</span>
@@ -2532,7 +2561,12 @@
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
 
-    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,))</span>
+    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">gpath_list</span><span class="p">,</span>
+            <span class="n">orient_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">kwargs_iter</span> <span class="o">=</span> <span class="p">[</span><span class="n">config</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">raw_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate2</span><span class="p">(</span>
         <span class="n">compute_cameratrap_exif_worker</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,</span> <span class="n">kwargs_iter</span>

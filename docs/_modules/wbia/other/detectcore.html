@@ -162,10 +162,19 @@
             <span class="n">info</span><span class="p">[</span><span class="s1">&#39;interest&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span> <span class="k">if</span> <span class="n">interest</span> <span class="k">else</span> <span class="s1">&#39;0&#39;</span>
 
         <span class="k">if</span> <span class="n">part_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">species_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">part_type</span><span class="p">,)</span>
+            <span class="n">species_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">species_name</span><span class="p">,</span>
+                <span class="n">part_type</span><span class="p">,</span>
+            <span class="p">)</span>
 
         <span class="n">area</span> <span class="o">=</span> <span class="n">w_</span> <span class="o">*</span> <span class="n">h_</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">species_name</span><span class="p">,</span>
+                <span class="n">area</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="n">annotation</span><span class="o">.</span><span class="n">add_object</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="o">**</span><span class="n">info</span><span class="p">)</span>
 
@@ -222,7 +231,10 @@
             <span class="n">fulldir</span> <span class="o">=</span> <span class="n">image_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">fulldir</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
             <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># NOQA</span>
-            <span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,</span> <span class="n">index</span><span class="p">,)</span>
+            <span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">current_year</span><span class="p">,</span>
+                <span class="n">index</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">out_img</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_name</span><span class="p">,)</span>
 
             <span class="n">_image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
@@ -329,7 +341,12 @@
 
             <span class="c1"># Write XML</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),)</span>
+                <span class="s1">&#39;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">image_path</span><span class="p">,</span>
+                    <span class="n">dst_img</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span>
+                <span class="p">)</span>
             <span class="p">)</span>
             <span class="n">xml_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dst_annot</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
             <span class="n">xml_data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">annotation</span><span class="o">.</span><span class="n">xml</span><span class="p">())</span>
@@ -338,7 +355,10 @@
                 <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">offset</span> <span class="o">!=</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
                     <span class="k">break</span>
-                <span class="n">out_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_</span><span class="si">%06d</span><span class="s1">.xml&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,</span> <span class="n">index</span><span class="p">,)</span>
+                <span class="n">out_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_</span><span class="si">%06d</span><span class="s1">.xml&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">current_year</span><span class="p">,</span>
+                    <span class="n">index</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="n">dst_annot</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annotdir</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipping:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,))</span>
@@ -621,7 +641,12 @@
         <span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s1">&#39;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">image_filepath</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),)</span>
+            <span class="s1">&#39;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">image_path</span><span class="p">,</span>
+                <span class="n">image_filepath</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
@@ -694,7 +719,11 @@
                 <span class="n">individuals</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding annot </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">,)</span>
+                <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding annot </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">species_name</span><span class="p">,</span>
+                    <span class="n">area</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">include_reviews</span><span class="p">:</span>
@@ -728,7 +757,10 @@
                     <span class="n">part_uuid_list</span><span class="p">,</span> <span class="n">part_bbox_list</span><span class="p">,</span> <span class="n">part_theta_list</span><span class="p">,</span> <span class="n">part_type_list</span>
                 <span class="p">)</span>
                 <span class="k">for</span> <span class="n">part_uuid</span><span class="p">,</span> <span class="n">part_bbox</span><span class="p">,</span> <span class="n">part_theta</span><span class="p">,</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">part_zipped</span><span class="p">:</span>
-                    <span class="n">part_species_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">part_type</span><span class="p">,)</span>
+                    <span class="n">part_species_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">species_name</span><span class="p">,</span>
+                        <span class="n">part_type</span><span class="p">,</span>
+                    <span class="p">)</span>
 
                     <span class="n">part_species_name</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                         <span class="n">part_species_name</span><span class="p">,</span> <span class="n">part_species_name</span>
@@ -759,7 +791,10 @@
                     <span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding part </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">part_species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">,)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">part_species_name</span><span class="p">,</span>
+                            <span class="n">area</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;parts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
 
@@ -805,7 +840,10 @@
             <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot</span>
 
     <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">output_dict</span><span class="p">:</span>
-        <span class="n">json_filename</span> <span class="o">=</span> <span class="s1">&#39;instances_</span><span class="si">%s%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">current_year</span><span class="p">,)</span>
+        <span class="n">json_filename</span> <span class="o">=</span> <span class="s1">&#39;instances_</span><span class="si">%s%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">dataset</span><span class="p">,</span>
+            <span class="n">current_year</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">json_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annotdir</span><span class="p">,</span> <span class="n">json_filename</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
@@ -1296,7 +1334,10 @@
             <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">h</span><span class="p">))</span>
             <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">),</span> <span class="p">(</span><span class="n">xbr</span><span class="p">,</span> <span class="n">ybr</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
 
-        <span class="n">write_filename</span> <span class="o">=</span> <span class="s1">&#39;bboxes_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">version</span><span class="p">,)</span>
+        <span class="n">write_filename</span> <span class="o">=</span> <span class="s1">&#39;bboxes_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">gid</span><span class="p">,</span>
+            <span class="n">version</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">write_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">write_filename</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">)</span>
         <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>

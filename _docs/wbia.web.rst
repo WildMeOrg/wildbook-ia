@@ -1,13 +1,6 @@
 wbia.web package
 ================
 
-Subpackages
------------
-
-.. toctree::
-
-    wbia.web.futures_utils
-
 Submodules
 ----------
 

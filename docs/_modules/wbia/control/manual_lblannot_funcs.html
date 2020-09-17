@@ -102,7 +102,7 @@
 <span class="k">def</span> <span class="nf">add_lblannots</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lblannot_uuid_list</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Adds new lblannots (labels of annotations)</span>
+    <span class="sd">&quot;&quot;&quot;Adds new lblannots (labels of annotations)</span>
 <span class="sd">    creates a new uuid for any new pair(type, value)</span>
 <span class="sd">    #TODO: reverse order of rowid_list value_list in input</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -179,7 +179,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        alrid_list (list of rowids): annot + label relationship rows</span>
-<span class="sd">    get the annot_rowid belonging to each relationship &quot;&quot;&quot;</span>
+<span class="sd">    get the annot_rowid belonging to each relationship&quot;&quot;&quot;</span>
     <span class="n">annot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_rowids_list</span></div>
 
@@ -455,7 +455,7 @@
 <div class="viewcode-block" id="get_annot_alrids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblannot_funcs.get_annot_alrids">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1toM</span>
 <span class="k">def</span> <span class="nf">get_annot_alrids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; FIXME: __name__</span>
+    <span class="sd">&quot;&quot;&quot;FIXME: __name__</span>
 <span class="sd">    Get all the relationship ids belonging to the input annotations</span>
 <span class="sd">    if lblannot lbltype is specified the relationship ids are filtered to</span>
 <span class="sd">    be only of a specific lbltype/category/type</span>
@@ -515,7 +515,7 @@
 <span class="k">def</span> <span class="nf">get_annot_lblannot_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list): the name id of each annotation. &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list): the name id of each annotation.&quot;&quot;&quot;</span>
     <span class="c1"># Get all the annotation lblannot relationships</span>
     <span class="c1"># filter out only the ones which specify names</span>
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -528,7 +528,7 @@
 <span class="k">def</span> <span class="nf">get_annot_lblannot_rowids_oftype</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list): the name id of each annotation. &quot;&quot;&quot;</span>
+<span class="sd">        list_ (list): the name id of each annotation.&quot;&quot;&quot;</span>
     <span class="c1"># Get all the annotation lblannot relationships</span>
     <span class="c1"># filter out only the ones which specify names</span>
     <span class="k">assert</span> <span class="n">_lbltype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;should be using lbltype_rowids anyway&#39;</span>

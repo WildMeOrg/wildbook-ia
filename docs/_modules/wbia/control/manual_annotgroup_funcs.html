@@ -83,7 +83,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="c1"># @register_api(&#39;/api/annotgroup/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">_get_all_annotgroup_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; all_annotgroup_rowids &lt;- annotgroup.get_all_rowids()</span>
+    <span class="sd">&quot;&quot;&quot;all_annotgroup_rowids &lt;- annotgroup.get_all_rowids()</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): unfiltered annotgroup_rowids</span>
@@ -121,10 +121,16 @@
     <span class="p">)</span>
 
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="n">annotgroup_uuid</span><span class="p">,</span> <span class="n">annotgroup_text</span><span class="p">,</span> <span class="n">annotgroup_note</span><span class="p">,)</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">annotgroup_uuid</span><span class="p">,</span> <span class="n">annotgroup_text</span><span class="p">,</span> <span class="n">annotgroup_note</span><span class="p">,)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-            <span class="n">annotgroup_uuid_list</span><span class="p">,</span> <span class="n">annotgroup_text_list</span><span class="p">,</span> <span class="n">annotgroup_note_list</span>
+        <span class="p">(</span>
+            <span class="n">annotgroup_uuid</span><span class="p">,</span>
+            <span class="n">annotgroup_text</span><span class="p">,</span>
+            <span class="n">annotgroup_note</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">annotgroup_uuid</span><span class="p">,</span>
+            <span class="n">annotgroup_text</span><span class="p">,</span>
+            <span class="n">annotgroup_note</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annotgroup_uuid_list</span><span class="p">,</span> <span class="n">annotgroup_text_list</span><span class="p">,</span> <span class="n">annotgroup_note_list</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotgroup_rowid_from_superkey</span>
     <span class="c1"># FIXME: encode superkey paramx</span>
@@ -142,7 +148,7 @@
 <div class="viewcode-block" id="delete_annotgroup"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annotgroup_funcs.delete_annotgroup">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="c1"># @register_api(&#39;/api/annotgroup/&#39;, methods=[&#39;DELETE&#39;])</span>
 <span class="k">def</span> <span class="nf">delete_annotgroup</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup.delete(annotgroup_rowid_list)</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup.delete(annotgroup_rowid_list)</span>
 
 <span class="sd">    delete annotgroup rows</span>
 
@@ -182,11 +188,11 @@
 <span class="c1"># @register_api(&#39;/api/annotgroup/gar/rowids/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">get_annotgroup_gar_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Auto-docstr for &#39;get_annotgroup_gar_rowids&#39;</span>
+<span class="sd">    Auto-docstr for &#39;get_annotgroup_gar_rowids&#39;</span>
 
-<span class="sd">        RESTful:</span>
-<span class="sd">            Method: GET</span>
-<span class="sd">            URL:    /api/annotgroup/gar/rowids/</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annotgroup/gar/rowids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">GAR_ROWID</span><span class="p">,)</span>
     <span class="n">gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -203,7 +209,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="c1"># @register_api(&#39;/api/annotgroup/note/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">get_annotgroup_note</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_note_list &lt;- annotgroup.annotgroup_note[annotgroup_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_note_list &lt;- annotgroup.annotgroup_note[annotgroup_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotgroup_note&quot; in the &quot;annotgroup&quot; table</span>
 
@@ -244,7 +250,7 @@
 <span class="k">def</span> <span class="nf">get_annotgroup_rowid_from_superkey</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_text_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_rowid_list &lt;- annotgroup[annotgroup_text_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_rowid_list &lt;- annotgroup[annotgroup_text_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        superkey lists: annotgroup_text_list</span>
@@ -275,7 +281,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="c1"># @register_api(&#39;/api/annotgroup/text/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">get_annotgroup_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_text_list &lt;- annotgroup.annotgroup_text[annotgroup_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_text_list &lt;- annotgroup.annotgroup_text[annotgroup_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotgroup_text&quot; in the &quot;annotgroup&quot; table</span>
 
@@ -316,7 +322,7 @@
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="c1"># @register_api(&#39;/api/annotgroup/uuid/&#39;, methods=[&#39;GET&#39;])</span>
 <span class="k">def</span> <span class="nf">get_annotgroup_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_uuid_list &lt;- annotgroup.annotgroup_uuid[annotgroup_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_uuid_list &lt;- annotgroup.annotgroup_uuid[annotgroup_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annotgroup_uuid&quot; in the &quot;annotgroup&quot; table</span>
 
@@ -359,7 +365,7 @@
 <span class="k">def</span> <span class="nf">set_annotgroup_note</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">annotgroup_note_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_note_list -&gt; annotgroup.annotgroup_note[annotgroup_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_note_list -&gt; annotgroup.annotgroup_note[annotgroup_rowid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        annotgroup_rowid_list</span>
@@ -387,7 +393,7 @@
 <span class="k">def</span> <span class="nf">set_annotgroup_uuid</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annotgroup_rowid_list</span><span class="p">,</span> <span class="n">annotgroup_uuid_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; annotgroup_uuid_list -&gt; annotgroup.annotgroup_uuid[annotgroup_rowid_list]</span>
+    <span class="sd">&quot;&quot;&quot;annotgroup_uuid_list -&gt; annotgroup.annotgroup_uuid[annotgroup_rowid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        annotgroup_rowid_list</span>

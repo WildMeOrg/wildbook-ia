@@ -146,7 +146,11 @@
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">NAME_UUID</span><span class="p">,</span> <span class="n">NAME_TEXT</span><span class="p">,</span> <span class="n">NAME_NOTE</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">name_uuid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_note_list</span><span class="p">))</span>
     <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span></div>
     <span class="c1"># OLD WAY</span>
@@ -299,14 +303,28 @@
     <span class="n">alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_alias_texts</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">)</span>
     <span class="n">alias_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">alias_text_list</span><span class="p">)</span>
     <span class="c1"># Find the empty aliases, recursively</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">),))</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs without an alias&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_alias_nid_list</span><span class="p">),)</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">recstr</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs without an alias&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">recstr</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">no_alias_nid_list</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39; checking these recursively&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias...</span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">),</span> <span class="n">message</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">recstr</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">),</span>
+            <span class="n">message</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">empty_alias_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_empty_nids</span><span class="p">(</span><span class="n">_nid_list</span><span class="o">=</span><span class="n">alias_nid_list</span><span class="p">)</span>
     <span class="c1"># Compile the full list of nids without any associated annotations</span>
