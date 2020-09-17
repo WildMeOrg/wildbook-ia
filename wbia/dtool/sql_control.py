@@ -192,29 +192,37 @@ class SQLDatabaseController(object):
 
             @property
             def version(self):
-                stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
+                stmt = text(
+                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = :key'
+                )
                 try:
-                    return self.ctrlr.executeone(stmt, ('database_version',))[0]
-                except IndexError:  # No result
+                    return self.ctrlr.executeone(stmt, {'key': 'database_version'})[0]
+                except TypeError:  # NoneType
                     return None
 
             @version.setter
             def version(self, value):
                 if not value:
                     raise ValueError(value)
-                self.ctrlr.executeone(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
-                    ('database_version', value),
+                stmt = text(
+                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value)'
+                    'VALUES (:key, :value)'
                 )
+                params = {'key': 'database_version', 'value': value}
+                self.ctrlr.executeone(stmt, params)
 
             @property
             def init_uuid(self):
-                stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
+                stmt = text(
+                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = :key'
+                )
                 try:
-                    value = self.ctrlr.executeone(stmt, ('database_init_uuid',))[0]
-                except IndexError:  # No result
+                    value = self.ctrlr.executeone(stmt, {'key': 'database_init_uuid'})[0]
+                except TypeError:  # NoneType
                     return None
-                return uuid.UUID(value)
+                if value is not None:
+                    value = uuid.UUID(value)
+                return value
 
             @init_uuid.setter
             def init_uuid(self, value):
@@ -222,10 +230,12 @@ class SQLDatabaseController(object):
                     raise ValueError(value)
                 elif isinstance(value, uuid.UUID):
                     value = str(value)
-                self.ctrlr.executeone(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
-                    ('database_init_uuid', value),
+                stmt = text(
+                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) '
+                    'VALUES (:key, :value)'
                 )
+                params = {'key': 'database_init_uuid', 'value': value}
+                self.ctrlr.executeone(stmt, params)
 
             # collections.abc.MutableMapping abstract methods
 
@@ -272,15 +282,14 @@ class SQLDatabaseController(object):
             def __getattr__(self, name):
                 # Query the database for the value represented as name
                 key = '_'.join([self.table_name, name])
-                statement = (
+                statement = text(
                     'SELECT metadata_value '
                     f'FROM {METADATA_TABLE_NAME} '
-                    'WHERE metadata_key = ?'
+                    'WHERE metadata_key = :key'
                 )
                 try:
-                    value = self.ctrlr.executeone(statement, (key,))[0]
-                except IndexError:
-                    # No value for the requested metadata_key
+                    value = self.ctrlr.executeone(statement, {'key': key})[0]
+                except TypeError:  # NoneType
                     return None
                 if METADATA_TABLE_COLUMNS[name]['is_coded_data']:
                     value = eval(value)
@@ -307,14 +316,14 @@ class SQLDatabaseController(object):
 
                 # Insert or update the record
                 # FIXME postgresql (4-Aug-12020) 'insert or replace' is not valid for postgresql
-                statement = (
+                statement = text(
                     f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
-                    f'(metadata_key, metadata_value) VALUES (?, ?)'
+                    f'(metadata_key, metadata_value) VALUES (:key, :value)'
                 )
-                params = (
-                    key,
-                    value,
-                )
+                params = {
+                    'key': key,
+                    'value': value,
+                }
                 self.ctrlr.executeone(statement, params)
 
             def __delattr__(self, name):
@@ -323,8 +332,10 @@ class SQLDatabaseController(object):
                     raise AttributeError
 
                 # Insert or update the record
-                statement = f'DELETE FROM {METADATA_TABLE_NAME} where metadata_key = ?'
-                params = (self._get_key_name(name),)
+                statement = text(
+                    f'DELETE FROM {METADATA_TABLE_NAME} where metadata_key = :key'
+                )
+                params = {'key': self._get_key_name(name)}
                 self.ctrlr.executeone(statement, params)
 
             def __dir__(self):
@@ -1553,7 +1564,7 @@ class SQLDatabaseController(object):
 
         comma = ',' + sep
         table_body = comma.join(body_list + constraint_list)
-        return f'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
+        return text(f'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})')
 
     def add_table(self, tablename=None, coldef_list=None, **metadata_keyval):
         """
