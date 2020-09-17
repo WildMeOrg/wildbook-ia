@@ -32,16 +32,16 @@ def smoke_test():  # nocover
     print('wbia.__file__ = {!r}'.format(wbia.__file__))
     print('wbia.__version__ = {!r}'.format(wbia.__version__))
 
-    from wbia_utool.__main__ import main as utool_main
-    from wbia_vtool.__main__ import main as vtool_main
+    from utool.__main__ import main as utool_main
+    from vtool.__main__ import main as vtool_main
 
     utool_main()
     vtool_main()
 
-    from wbia_pyhesaff.__main__ import main as pyhesaff_main
-    from wbia_pyflann.__main__ import main as pyflann_main
-    from wbia_pydarknet.__main__ import main as pydarknet_main
-    from wbia_pyrf.__main__ import main as pyrf_main
+    from pyhesaff.__main__ import main as pyhesaff_main
+    from pyflann.__main__ import main as pyflann_main
+    from pydarknet.__main__ import main as pydarknet_main
+    from pyrf.__main__ import main as pyrf_main
 
     pyhesaff_main()
     pyflann_main()
