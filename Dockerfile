@@ -87,7 +87,7 @@ ENV CUDA_HOME "/usr/local/cuda"
 
 # Create the working directory
 RUN set -x \
-    && mkdir -p /data\
+    && mkdir -p /data \
     && chown wbia:wbia /data \
     && chmod 755 /data
 

@@ -43,7 +43,7 @@ ADD ./_config/embed.sh /bin/embed
 ADD ./_config/healthcheck.py /bin/healthcheck.py
 
 RUN set -x \
-    && mkdir -p /data\
+    && mkdir -p /data \
     && chown wbia:wbia /data \
     && chmod 755 /data
 
