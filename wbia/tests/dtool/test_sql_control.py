@@ -55,14 +55,14 @@ class TestMetadataProperty:
         self.ctrlr._ensure_metadata_table()
 
         # Create metadata in the table
+        insert_stmt = text(
+            'INSERT INTO metadata (metadata_key, metadata_value) VALUES (:key, :value)'
+        )
         for key, value in self.data.items():
             unprefixed_name = key.split('_')[-1]
             if METADATA_TABLE_COLUMNS[unprefixed_name]['is_coded_data']:
                 value = repr(value)
-            self.ctrlr.executeone(
-                'INSERT INTO metadata (metadata_key, metadata_value) VALUES (?, ?)',
-                (key, value),
-            )
+            self.ctrlr.connection.execute(insert_stmt, key=key, value=value)
 
     def monkey_get_table_names(self, *args, **kwargs):
         return ['foo', 'metadata']
@@ -120,9 +120,9 @@ class TestMetadataProperty:
         assert new_value == value
 
         # Also check the table does not have the record
-        assert not self.ctrlr.executeone(
+        assert not self.ctrlr.connection.execute(
             f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
-        )
+        ).fetchone()
 
     def test_setting_unknown_key(self):
         # Check setting of an unknown metadata key
@@ -141,9 +141,9 @@ class TestMetadataProperty:
         assert self.ctrlr.metadata.foo.docstr is None
 
         # Also check the table does not have the record
-        assert not self.ctrlr.executeone(
+        assert not self.ctrlr.connection.execute(
             f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
-        )
+        ).fetchone()
 
     def test_database_attributes(self):
         # Check the database version
@@ -244,9 +244,9 @@ class TestMetadataProperty:
         assert self.ctrlr.metadata.foo.docstr is None
 
         # Also check the table does not have the record
-        assert not self.ctrlr.executeone(
+        assert not self.ctrlr.connection.execute(
             f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
-        )
+        ).fetchone()
 
     def test_delitem_for_database(self):
         # You cannot delete database version metadata
