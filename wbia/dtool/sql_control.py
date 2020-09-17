@@ -967,7 +967,6 @@ class SQLDatabaseController(object):
         }
         return self._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
-    @profile
     def get_where(
         self,
         tblname,
@@ -978,34 +977,33 @@ class SQLDatabaseController(object):
         eager=True,
         **kwargs,
     ):
+        """
+        Interface to do a SQL select with a where clause
+
+        Args:
+            tblname (str): table name
+            colnames (tuple[str]): sequence of column names
+            params_iter (list[dict]): a sequence of dicts with parameters,
+                                      where each item in the sequence is used in a SQL execution
+            where_clause (str): conditional statement used in the where clause
+            unpack_scalars (bool): [deprecated] use to unpack a single result from each query
+                                   only use with operations that return a single result for each query
+                                   (default: True)
+
+        """
         if not isinstance(colnames, (tuple, list)):
             raise TypeError('colnames must be a sequence type of strings')
 
+        # Build and execute the query
+        columns = ', '.join(colnames)
+        stmt = f'SELECT {columns} FROM {tblname}'
         if where_clause is None:
-            operation_fmt = """
-            SELECT {colnames}
-            FROM {tblname}
-            """
-            fmtdict = {
-                'tblname': tblname,
-                'colnames': ', '.join(colnames),
-            }
-            val_list = self._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+            val_list = self.executeone(text(stmt), **kwargs)
         else:
-            operation_fmt = """
-            SELECT {colnames}
-            FROM {tblname}
-            WHERE {where_clauses}
-            """
-            fmtdict = {
-                'tblname': tblname,
-                'colnames': ', '.join(colnames),
-                'where_clauses': where_clause,
-            }
-            val_list = self._executemany_operation_fmt(
-                operation_fmt,
-                fmtdict,
-                params_iter=params_iter,
+            stmt += f' WHERE {where_clause}'
+            val_list = self.executemany(
+                text(stmt),
+                params_iter,
                 unpack_scalars=unpack_scalars,
                 eager=eager,
                 **kwargs,
