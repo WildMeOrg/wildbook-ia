@@ -115,7 +115,10 @@ def user_option(
         msgbox.addButton(QtWidgets.QPushButton(opt), role)
     # Set default button
     if default is not None:
-        assert default in options, 'default=%r is not in options=%r' % (default, options,)
+        assert default in options, 'default=%r is not in options=%r' % (
+            default,
+            options,
+        )
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)
@@ -566,7 +569,7 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
 
 
 def msgbox(msg='', title='msgbox', detailed_msg=None):
-    """ Make a non modal critical QtWidgets.QMessageBox.
+    """Make a non modal critical QtWidgets.QMessageBox.
 
     CommandLine:
         python -m wbia.guitool.guitool_dialogs --test-msgbox
@@ -610,7 +613,7 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
 
 
 def build_nested_qmenu(widget, context_options, name=None):
-    """ builds nested menu for context menus but can be used for other menu
+    """builds nested menu for context menus but can be used for other menu
     related things.
 
     References:

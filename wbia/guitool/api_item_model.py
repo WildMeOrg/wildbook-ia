@@ -314,7 +314,11 @@ class APIItemModel(API_MODEL_BASE):
         if VERBOSE_MODEL:
             logger.info(
                 '[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r'
-                % (col_sort_index, col_sort_reverse, rebuild_structure,)
+                % (
+                    col_sort_index,
+                    col_sort_reverse,
+                    rebuild_structure,
+                )
             )
         if len(model.col_name_list) > 0:
             if ut.USE_ASSERT:

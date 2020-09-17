@@ -77,7 +77,7 @@ def to_base255(color01, assume01=False):
 
 
 def ensure_base01(color):
-    """ always returns a base 01 color
+    """always returns a base 01 color
 
     Note, some colors cannot be determined to be either 255 or 01 if they are
     in float format.
@@ -339,7 +339,7 @@ def adjust_hsv_of_rgb255(rgb255, *args, **kwargs):
 
 
 def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
-    """ works on a single rgb tuple
+    """works on a single rgb tuple
 
     Args:
         rgb (tuple):

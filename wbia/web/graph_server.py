@@ -14,8 +14,7 @@ log = logging.getLogger('wbia')
 
 class ProcessActorExecutor(ProcessPoolExecutor):
     def __init__(self, actor_class, *args, **kwargs):
-        """Initializes a new ThreadPoolExecutor instance.
-        """
+        """Initializes a new ThreadPoolExecutor instance."""
         super(ProcessActorExecutor, self).__init__(*args, **kwargs)
         self.actor_instance = actor_class()
 
@@ -25,8 +24,7 @@ class ProcessActorExecutor(ProcessPoolExecutor):
 
 class ThreadedActorExecutor(ThreadPoolExecutor):
     def __init__(self, actor_class, *args, **kwargs):
-        """Initializes a new ThreadPoolExecutor instance.
-        """
+        """Initializes a new ThreadPoolExecutor instance."""
         super(ThreadedActorExecutor, self).__init__(*args, **kwargs)
         self.actor_instance = actor_class()
 
@@ -315,7 +313,12 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
     def update_task_thresh(actor, task, decision, value, **kwargs):
         log.info(
-            'Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value,)
+            'Updating actor.infr.task_thresh with %r %r %r'
+            % (
+                task,
+                decision,
+                value,
+            )
         )
         actor.infr.task_thresh[task][decision] = value
         log.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
@@ -547,7 +550,10 @@ class GraphClient(object):
             else:
                 status = 'Exception'
                 client.exception = exception
-            client.status = '%s (%d in Futures Queue)' % (status, num_futures,)
+            client.status = '%s (%d in Futures Queue)' % (
+                status,
+                num_futures,
+            )
         return client.status, client.exception
 
     def add_annots(client):

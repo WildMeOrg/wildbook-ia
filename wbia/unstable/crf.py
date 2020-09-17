@@ -90,7 +90,9 @@ def crftest():
     gm = opengm.gm(np.ones(numVar, dtype=opengm.label_type) * 3)
     unary_fids = gm.addFunctions(unaries)
     gm.addFactors(unary_fids, np.arange(numVar))
-    infParam = opengm.InfParam(workflow=ut.ensure_ascii('(IC)(TTC-I,CC-I)'),)
+    infParam = opengm.InfParam(
+        workflow=ut.ensure_ascii('(IC)(TTC-I,CC-I)'),
+    )
     inf = opengm.inference.Multicut(gm, parameter=infParam)
     visitor = inf.verboseVisitor(printNth=1, multiline=False)
     inf.infer(visitor)

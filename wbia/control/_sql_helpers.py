@@ -123,7 +123,16 @@ def revert_to_backup(ibs):
     db_path_ = '%s_revert.sqlite3' % (fname,)
     ut.move(db_path, db_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,)))
+    path_list = sorted(
+        ut.glob(
+            backup_dir,
+            '%s_*%s'
+            % (
+                fname,
+                ext,
+            ),
+        )
+    )
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, db_path)
@@ -133,7 +142,16 @@ def revert_to_backup(ibs):
     staging_path_ = '%s_revert.sqlite3' % (fname,)
     ut.move(staging_path, staging_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,)))
+    path_list = sorted(
+        ut.glob(
+            backup_dir,
+            '%s_*%s'
+            % (
+                fname,
+                ext,
+            ),
+        )
+    )
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, staging_path)
@@ -212,7 +230,10 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
     if exists(src_fpath) and not exists(dst_fpath):
         logger.info(
             '[ensure_daily_database_backup] Daily backup of database: %r -> %r'
-            % (src_fpath, dst_fpath,)
+            % (
+                src_fpath,
+                dst_fpath,
+            )
         )
         copy_database(src_fpath, dst_fpath)
         # Clean-up old database backups

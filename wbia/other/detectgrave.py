@@ -69,9 +69,21 @@ def bootstrap_pca_train(
                 'localizations_features', gid, 'vector', config=config
             )
             total += len(feature_list)
-            index_list += [(gid, offset,) for offset in range(len(feature_list))]
+            index_list += [
+                (
+                    gid,
+                    offset,
+                )
+                for offset in range(len(feature_list))
+            ]
             features_list.append(feature_list)
-        logger.info('\nUsed %d images to mine %d features' % (len(features_list), total,))
+        logger.info(
+            '\nUsed %d images to mine %d features'
+            % (
+                len(features_list),
+                total,
+            )
+        )
         data_list = np.vstack(features_list)
         if len(data_list) > limit:
             data_list = data_list[:limit]
@@ -113,7 +125,13 @@ def bootstrap_pca_train(
         stop_index = (ann_round + 1) * ann_batch
         assert start_index < len(gid_list)
         stop_index = min(stop_index, len(gid_list))
-        logger.info('Slicing index range: [%r, %r)' % (start_index, stop_index,))
+        logger.info(
+            'Slicing index range: [%r, %r)'
+            % (
+                start_index,
+                stop_index,
+            )
+        )
 
         # Slice gids and get feature data
         gid_list_ = gid_list[start_index:stop_index]
@@ -137,7 +155,13 @@ def bootstrap_pca_train(
 
     # Build forest
     trees = index // 100000
-    logger.info('Build ANN model using %d feature vectors and %d trees' % (index, trees,))
+    logger.info(
+        'Build ANN model using %d feature vectors and %d trees'
+        % (
+            index,
+            trees,
+        )
+    )
     ann_model.build(trees)
 
     # Save forest
@@ -361,7 +385,10 @@ def bootstrap_pca_test(
 
                 chip_list = chip_list[:min_chips]
                 canvas = np.hstack(chip_list)
-                output_filename = 'neighbors_%d_%d.png' % (gid, offset,)
+                output_filename = 'neighbors_%d_%d.png' % (
+                    gid,
+                    offset,
+                )
                 output_filepath = join(output_path, output_filename)
                 cv2.imwrite(output_filepath, canvas)
 
@@ -1005,7 +1032,10 @@ def bootstrap2(
                     cat_pred_list += pred_list_
                 logger.info(
                     'NMS Proposals (start) for category %r: %d'
-                    % (cat_tag, cat_pred_total,)
+                    % (
+                        cat_tag,
+                        cat_pred_total,
+                    )
                 )
                 # Print stats
                 conf_list = []
@@ -1027,7 +1057,11 @@ def bootstrap2(
                 category_dict[cat_tag] = cat_pred_list
                 cat_total = len(cat_pred_list)
                 logger.info(
-                    'NMS Proposals (end) for category %r: %d' % (cat_tag, cat_total,)
+                    'NMS Proposals (end) for category %r: %d'
+                    % (
+                        cat_tag,
+                        cat_total,
+                    )
                 )
 
             ##################################################################################
@@ -1131,7 +1165,10 @@ def bootstrap2(
         # Step 8: update the sorted_gid_list based on what neighbors were samples
         if len(round_neighbor_gid_hist) >= alpha:
             vals_list = [
-                (round_neighbor_gid_hist[neighbor_gid_], neighbor_gid_,)
+                (
+                    round_neighbor_gid_hist[neighbor_gid_],
+                    neighbor_gid_,
+                )
                 for neighbor_gid_ in round_neighbor_gid_hist
             ]
             vals_list = sorted(vals_list, reverse=True)
@@ -1268,7 +1305,13 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
                 # logger.info('Recovering %d' % (recover, ))
                 gid_list.append(recover)
 
-        logger.info('%r: %d' % (species, len(gid_list),))
+        logger.info(
+            '%r: %d'
+            % (
+                species,
+                len(gid_list),
+            )
+        )
 
     redo = input('Redo? [enter to continue] ')
     redo = redo.strip()
@@ -1405,10 +1448,34 @@ def classifier_train_image_svm(
         total = tp + tn + fp + fn
         accuracy = correct / total
         logger.info('Accuracy: %0.02f' % (accuracy,))
-        logger.info('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
-        logger.info('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
-        logger.info('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
-        logger.info('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
+        logger.info(
+            '\t TP: % 4d (%0.02f %%)'
+            % (
+                tp,
+                tp / pos,
+            )
+        )
+        logger.info(
+            '\t FN: % 4d (%0.02f %%)'
+            % (
+                fn,
+                fn / neg,
+            )
+        )
+        logger.info(
+            '\t TN: % 4d (%0.02f %%)'
+            % (
+                tn,
+                tn / neg,
+            )
+        )
+        logger.info(
+            '\t FP: % 4d (%0.02f %%)'
+            % (
+                fp,
+                fp / pos,
+            )
+        )
 
     return output_filepath
 
@@ -1527,10 +1594,34 @@ def classifier2_train_image_rf(
         total = tp + tn + fp + fn
         accuracy = correct / total
         logger.info('Accuracy: %0.02f' % (accuracy,))
-        logger.info('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos,))
-        logger.info('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg,))
-        logger.info('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg,))
-        logger.info('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos,))
+        logger.info(
+            '\t TP: % 4d (%0.02f %%)'
+            % (
+                tp,
+                tp / pos,
+            )
+        )
+        logger.info(
+            '\t FN: % 4d (%0.02f %%)'
+            % (
+                fn,
+                fn / neg,
+            )
+        )
+        logger.info(
+            '\t TN: % 4d (%0.02f %%)'
+            % (
+                tn,
+                tn / neg,
+            )
+        )
+        logger.info(
+            '\t FP: % 4d (%0.02f %%)'
+            % (
+                fp,
+                fp / pos,
+            )
+        )
 
     return output_filepath
 

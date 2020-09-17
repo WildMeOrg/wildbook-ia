@@ -278,8 +278,7 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
 
 
 def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
-    """
-    """
+    """"""
     scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAMES.scorenormdir)
     species_cachedir = join(scorenorm_cachedir, species_text)
     if ensure:
@@ -806,7 +805,7 @@ class UnbalancedExampleException(Exception):
 
 
 def get_topannot_training_idxs(cm, num=2):
-    """ top annots version
+    """top annots version
 
     Args:
         cm (wbia.ChipMatch):  object of feature correspondences and scores

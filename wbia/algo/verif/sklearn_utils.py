@@ -177,8 +177,7 @@ class StratifiedGroupKFold(_BaseKFold):
             yield test_folds == i
 
     def split(self, X, y, groups=None):
-        """Generate indices to split data into training and test set.
-        """
+        """Generate indices to split data into training and test set."""
         y = check_array(y, ensure_2d=False, dtype=None)
         return super(StratifiedGroupKFold, self).split(X, y, groups)
 
@@ -768,7 +767,7 @@ class PrefitEstimatorEnsemble(object):
         return avg
 
     def predict(self, X):
-        """ Predict class labels for X.
+        """Predict class labels for X.
 
         Parameters
         ----------

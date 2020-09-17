@@ -8,18 +8,18 @@ Flask-CAS
 flask-cors
 flask-swagger
 jupyter
+# Lasagne
+
+keras>=2.2
+line-profiler
+
+prometheus-client
 pydot
 pydot-ng
 pyfiglet
 
-prometheus-client
-line-profiler
-
 pytesseract
+tensorflow==1.8
 
 # pygpu
 Theano
-# Lasagne
-
-keras>=2.2
-tensorflow==1.8

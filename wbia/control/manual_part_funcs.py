@@ -793,7 +793,7 @@ def get_part_reviewed(ibs, part_rowid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_part_tag_text(ibs, part_rowid_list, **kwargs):
-    r""" part_tags_list <- part.part_tags[part_rowid_list]
+    r"""part_tags_list <- part.part_tags[part_rowid_list]
 
     gets data from the "native" column "part_tags" in the "part" table
 

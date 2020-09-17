@@ -101,7 +101,7 @@ class QueryParams(collections.Mapping):
 
     @profile
     def get_postsver_filtkey_list(qparams):
-        """ HACK: gets columns of fsv post spatial verification.  This will
+        """HACK: gets columns of fsv post spatial verification.  This will
         eventually be incorporated into cmtup_old instead and will not be
         dependant on specifically where you are in the pipeline
         """

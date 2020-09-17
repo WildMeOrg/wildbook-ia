@@ -62,7 +62,7 @@ def find_used_chars(name_list):
 
 
 def make_word_hotlinks(name_list, used_chars=[], after_colon=False):
-    """ Move to guitool
+    """Move to guitool
 
     Args:
         name_list (list):

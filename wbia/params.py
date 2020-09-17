@@ -136,7 +136,9 @@ def parse_args():
         parser2.add_str('--set-workdir', None)
         parser2.add_flag('--get-workdir', help='gets the default work directory')
         parser2.add_str(
-            ('--logdir', '--set-logdir'), None, help='sets the default logging directory',
+            ('--logdir', '--set-logdir'),
+            None,
+            help='sets the default logging directory',
         )
         parser2.add_flag('--get-logdir', help='gets the current logging directory')
         parser2.add_flag(

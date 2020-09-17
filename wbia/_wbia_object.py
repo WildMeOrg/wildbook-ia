@@ -273,16 +273,19 @@ def _inject_getter_attrs(
             source = '    %s = %s' % (alias, attrname)
             explicit_lines.append(source)
 
-        explicit_source = '\n'.join(
-            [
-                'from wbia import _wbia_object',
-                '',
-                '',
-                'class _%s_base_class(_wbia_object.ObjectList1D):',
-                '    __needs_inject__ = False',
-                '',
-            ]
-        ) % (objname,)
+        explicit_source = (
+            '\n'.join(
+                [
+                    'from wbia import _wbia_object',
+                    '',
+                    '',
+                    'class _%s_base_class(_wbia_object.ObjectList1D):',
+                    '    __needs_inject__ = False',
+                    '',
+                ]
+            )
+            % (objname,)
+        )
         explicit_source += '\n'.join(explicit_lines)
         explicit_fname = '_autogen_%s_base.py' % (objname,)
         from os.path import dirname, join

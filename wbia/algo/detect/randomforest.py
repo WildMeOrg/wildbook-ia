@@ -46,7 +46,10 @@ def train_gid_list(
     """
     logger.info(
         '[randomforest.train()] training with %d gids and species=%r'
-        % (len(gid_list), species,)
+        % (
+            len(gid_list),
+            species,
+        )
     )
     if trees_path is None and species is not None:
         trees_path = join(ibs.get_cachedir(), 'trees', species)
@@ -298,7 +301,10 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     if verbose:
         logger.info(
             '[randomforest.detect()] Detecting with %d trees with scale_list=%r'
-            % (len(tree_path_list), kwargs['scale_list'],)
+            % (
+                len(tree_path_list),
+                kwargs['scale_list'],
+            )
         )
 
     # Run detection

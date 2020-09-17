@@ -244,7 +244,9 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [], [])
         for (thumb_path, chip_path, chipsize) in zip(
-            thumb_gpaths, chip_paths, chipsize_list,
+            thumb_gpaths,
+            chip_paths,
+            chipsize_list,
         )
     ]
     # if not isiterable:
@@ -379,8 +381,7 @@ def delete_part_chips(ibs, part_rowid_list, config2_=None):
 
 
 def testdata_ibs():
-    r"""
-    """
+    r""""""
     import wbia
 
     ibs = wbia.opendb('testdb1')

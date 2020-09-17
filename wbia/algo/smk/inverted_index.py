@@ -200,7 +200,8 @@ class InvertedAnnotsExtras(object):
 
         # Stack them together
         solidbar = np.zeros(
-            (patch_img.shape[0], int(patch_img.shape[1] * 0.1), 3), dtype=patch_img.dtype,
+            (patch_img.shape[0], int(patch_img.shape[1] * 0.1), 3),
+            dtype=patch_img.dtype,
         )
         border_color = (100, 10, 10)  # bgr, darkblue
         if ut.is_float(solidbar):

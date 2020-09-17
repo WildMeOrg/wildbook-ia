@@ -236,7 +236,9 @@ def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, *
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
     if extracted_path is None:
         extracted_path = get_cnn_classifier_canonical_training_images_pytorch(
-            ibs, species, dest_path=data_path,
+            ibs,
+            species,
+            dest_path=data_path,
         )
 
     weights_path_list = []
@@ -287,7 +289,9 @@ def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
     args = (species,)
     data_path = join(ibs.get_cachedir(), 'extracted-localizer-canonical-%s' % args)
     extracted_path = get_cnn_localizer_canonical_training_images_pytorch(
-        ibs, species, dest_path=data_path,
+        ibs,
+        species,
+        dest_path=data_path,
     )
 
     weights_path_list = []
@@ -419,7 +423,10 @@ def localizer_lightnet_train(
 
     cache_path = join(ibs.cachedir, 'training', 'lightnet')
     ut.ensuredir(cache_path)
-    training_instance_folder = 'lightnet-training-%s-%s' % (cache_species_str, hashstr,)
+    training_instance_folder = 'lightnet-training-%s-%s' % (
+        cache_species_str,
+        hashstr,
+    )
     training_instance_path = join(cache_path, training_instance_folder)
     ut.copy(lightnet_training_kit_url, training_instance_path)
 
@@ -468,7 +475,10 @@ def localizer_lightnet_train(
     )
 
     # Call labels
-    call_str = '%s %s' % (python_exe, labels_py_path,)
+    call_str = '%s %s' % (
+        python_exe,
+        labels_py_path,
+    )
     logger.info(call_str)
     subprocess.call(call_str, shell=True)
 
@@ -588,7 +598,10 @@ def localizer_lightnet_train(
 
         counter = 0
         while True:
-            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter,)
+            final_config_prefix = 'detect.lightnet.%s.v%d' % (
+                deploy_tag,
+                counter,
+            )
             final_config_filename = '%s.py' % (final_config_prefix,)
             final_config_filepath = join(final_path, final_config_filename)
             if not exists(final_config_filepath):
@@ -709,7 +722,10 @@ def validate_model(
 
         counter = 0
         while True:
-            final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter,)
+            final_config_prefix = 'detect.lightnet.%s.v%d' % (
+                deploy_tag,
+                counter,
+            )
             final_config_filename = '%s.py' % (final_config_prefix,)
             final_config_filepath = join(final_path, final_config_filename)
             if not exists(final_config_filepath):

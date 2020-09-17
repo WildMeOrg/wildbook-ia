@@ -19,28 +19,49 @@ PROMETHEUS_LIMIT = 1
 
 
 PROMETHEUS_DATA = {
-    'info': Info('wbia_db', 'Description of IBEIS database',),
+    'info': Info(
+        'wbia_db',
+        'Description of IBEIS database',
+    ),
     'update': Gauge(
         'wbia_update_seconds',
         'Number of seconds for the most recent Prometheus update',
         ['name'],
     ),
     'imagesets': Gauge(
-        'wbia_assets_imagesets', 'Number of imagesets in IBEIS database', ['name'],
+        'wbia_assets_imagesets',
+        'Number of imagesets in IBEIS database',
+        ['name'],
     ),
     'images': Gauge(
-        'wbia_assets_images', 'Number of images in IBEIS database', ['name'],
+        'wbia_assets_images',
+        'Number of images in IBEIS database',
+        ['name'],
     ),
     'annotations': Gauge(
-        'wbia_assets_annotations', 'Number of annotations in IBEIS database', ['name'],
+        'wbia_assets_annotations',
+        'Number of annotations in IBEIS database',
+        ['name'],
     ),
-    'parts': Gauge('wbia_assets_parts', 'Number of parts in IBEIS database', ['name'],),
-    'names': Gauge('wbia_assets_names', 'Number of names in IBEIS database', ['name'],),
+    'parts': Gauge(
+        'wbia_assets_parts',
+        'Number of parts in IBEIS database',
+        ['name'],
+    ),
+    'names': Gauge(
+        'wbia_assets_names',
+        'Number of names in IBEIS database',
+        ['name'],
+    ),
     'species': Gauge(
-        'wbia_assets_species', 'Number of species in IBEIS database', ['name'],
+        'wbia_assets_species',
+        'Number of species in IBEIS database',
+        ['name'],
     ),
     'engine': Gauge(
-        'wbia_engine_jobs', 'Job engine status', ['status', 'name', 'endpoint'],
+        'wbia_engine_jobs',
+        'Job engine status',
+        ['status', 'name', 'endpoint'],
     ),
     'elapsed': Gauge(
         'wbia_elapsed_seconds',
@@ -57,12 +78,20 @@ PROMETHEUS_DATA = {
         'Number of turnaround seconds for the current working job',
         ['name', 'endpoint'],
     ),
-    'api': Counter('wbia_api_counter', 'Number of calls per IBEIS API', ['name', 'tag'],),
+    'api': Counter(
+        'wbia_api_counter',
+        'Number of calls per IBEIS API',
+        ['name', 'tag'],
+    ),
     'route': Counter(
-        'wbia_route_counter', 'Number of calls per IBEIS route endpoint', ['name', 'tag'],
+        'wbia_route_counter',
+        'Number of calls per IBEIS route endpoint',
+        ['name', 'tag'],
     ),
     'exception': Counter(
-        'wbia_exception_counter', 'Number of web exceptions', ['name', 'tag'],
+        'wbia_exception_counter',
+        'Number of web exceptions',
+        ['name', 'tag'],
     ),
 }
 
@@ -243,7 +272,11 @@ def prometheus_update(ibs, *args, **kwargs):
                                 total_seconds,
                             ) = calculate_timedelta(started, now)
                             logger.info(
-                                'ELAPSED (%s): %d seconds...' % (job_uuid, total_seconds,)
+                                'ELAPSED (%s): %d seconds...'
+                                % (
+                                    job_uuid,
+                                    total_seconds,
+                                )
                             )
                             PROMETHEUS_DATA['elapsed'].labels(
                                 name=container_name, endpoint=endpoint

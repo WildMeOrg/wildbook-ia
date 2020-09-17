@@ -184,7 +184,14 @@ def get_dbinfo(
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
             # aid_list =
         if verbose:
-            logger.info('Specified %d custom aids' % (len(aid_list,)))
+            logger.info(
+                'Specified %d custom aids'
+                % (
+                    len(
+                        aid_list,
+                    )
+                )
+            )
         request_annot_subset = True
         valid_aids = aid_list
         valid_nids = list(
@@ -420,7 +427,13 @@ def get_dbinfo(
             if min_age is None:
                 min_age = max_age
             if max_age is None and min_age is None:
-                logger.info('Found UNKNOWN Age: %r, %r' % (min_age, max_age,))
+                logger.info(
+                    'Found UNKNOWN Age: %r, %r'
+                    % (
+                        min_age,
+                        max_age,
+                    )
+                )
                 age_dict['UNKNOWN'] += 1
             elif (min_age is None or min_age < 12) and max_age < 12:
                 age_dict['Infant'] += 1
@@ -609,7 +622,13 @@ def get_dbinfo(
 
     annot_block_lines = [
         ('--' * num_tabs),
-        ('# Annots %s            = %d' % (subset_str, num_annots,)),
+        (
+            '# Annots %s            = %d'
+            % (
+                subset_str,
+                num_annots,
+            )
+        ),
         ('# Annots (unknown)           = %d' % num_unknown_annots),
         ('# Annots (singleton)         = %d' % num_singleton_annots),
         ('# Annots (multiton)          = %d' % num_multiton_annots),
@@ -798,8 +817,7 @@ def show_image_time_distributions(ibs, gid_list):
 
 
 def show_time_distributions(ibs, unixtime_list):
-    r"""
-    """
+    r""""""
     # import vtool as vt
     import wbia.plottool as pt
 
@@ -1127,7 +1145,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
 
 def get_short_infostr(ibs):
-    """ Returns printable database information
+    """Returns printable database information
 
     Args:
         ibs (IBEISController):  wbia controller object

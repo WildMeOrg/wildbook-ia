@@ -141,8 +141,14 @@ def login(refer=None, *args, **kwargs):
                 'drew.blount',
             ],
         ),
-        'kitware': ('Kitware', ['jon.crall'],),
-        'ctrl-h': ('CTRL-H', ['jon.hannis', 'melinda.hannis'],),
+        'kitware': (
+            'Kitware',
+            ['jon.crall'],
+        ),
+        'ctrl-h': (
+            'CTRL-H',
+            ['jon.hannis', 'melinda.hannis'],
+        ),
     }
     organization_dict_json = json.dumps(organization_dict)
 
@@ -783,7 +789,10 @@ def view_advanced0(**kwargs):
     age_total = np.nan if age_total == 0 else age_total
 
     def age_fmt_str(x):
-        return '% 4d (% 2.02f%%)' % (x, 100 * x / age_total,)
+        return '% 4d (% 2.02f%%)' % (
+            x,
+            100 * x / age_total,
+        )
 
     age_str_list = [[age_fmt_str(age) for age in age_list_] for age_list_ in age_list]
     age_str_list.append(age_fmt_str(age_unreviewed))
@@ -1613,7 +1622,13 @@ def view_graphs(sync=False, **kwargs):
             infr = wbia.AnnotInference(ibs=ibs, aids=aid_list, autoinit=True)
             infr.reset_feedback('staging', apply=True)
             num_pccs = len(list(infr.positive_components()))
-            logger.info('\tproposing PCCs for %r: %d' % (species, num_pccs,))
+            logger.info(
+                '\tproposing PCCs for %r: %d'
+                % (
+                    species,
+                    num_pccs,
+                )
+            )
 
             infr.relabel_using_reviews(rectify=True)
             infr.write_wbia_staging_feedback()
@@ -1656,7 +1671,10 @@ def view_graphs(sync=False, **kwargs):
 
             trace = traceback.format_tb(graph_exception.__traceback__)
             trace = '\n\n'.join(trace)
-            graph_exception = 'Exception: %s\n%s' % (graph_exception, trace,)
+            graph_exception = 'Exception: %s\n%s' % (
+                graph_exception,
+                trace,
+            )
         if graph_client.review_dict is None:
             num_edges = None
         else:
@@ -1793,7 +1811,13 @@ def view_images(**kwargs):
     gid_list = gid_list[page_start:page_end]
     logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
-        % (page_start, page_end, len(gid_list), page_previous, page_next,)
+        % (
+            page_start,
+            page_end,
+            len(gid_list),
+            page_previous,
+            page_next,
+        )
     )
     image_unixtime_list = ibs.get_image_unixtime(gid_list)
     datetime_list = [
@@ -1884,7 +1908,13 @@ def view_annotations(**kwargs):
     aid_list = aid_list[page_start:page_end]
     logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
-        % (page_start, page_end, len(aid_list), page_previous, page_next,)
+        % (
+            page_start,
+            page_end,
+            len(aid_list),
+            page_previous,
+            page_next,
+        )
     )
     annotation_list = list(
         zip(
@@ -1959,7 +1989,13 @@ def view_parts(
     pid_list = pid_list[page_start:page_end]
     logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
-        % (page_start, page_end, len(pid_list), page_previous, page_next,)
+        % (
+            page_start,
+            page_end,
+            len(pid_list),
+            page_previous,
+            page_next,
+        )
     )
 
     pid_list = [] if pid_list is None else pid_list
@@ -2046,7 +2082,13 @@ def view_names(**kwargs):
     nid_list = nid_list[page_start:page_end]
     logger.info(
         '[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s'
-        % (page_start, page_end, len(nid_list), page_previous, page_next,)
+        % (
+            page_start,
+            page_end,
+            len(nid_list),
+            page_previous,
+            page_next,
+        )
     )
     aids_list = ibs.get_name_aids(nid_list)
     annotations_list = [
@@ -2228,7 +2270,10 @@ def precompute_web_viewpoint_thumbnails(ibs, aid_list=None, **kwargs):
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
-    kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT),)
+    kwargs['dim_size'] = max(
+        int(appf.TARGET_WIDTH),
+        int(appf.TARGET_HEIGHT),
+    )
     ibs._parallel_chips = True
     ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=kwargs)
 
@@ -2276,7 +2321,12 @@ def turk_detection(
         for key, default in default_list
     }
     config_str_list = [
-        '%s=%s' % (key, 'true' if config[key] else 'false',) for key in config.keys()
+        '%s=%s'
+        % (
+            key,
+            'true' if config[key] else 'false',
+        )
+        for key in config.keys()
     ]
     config_str = '&'.join(config_str_list)
 
@@ -2720,7 +2770,10 @@ def turk_detection(
     if is_canonical:
         settings['ia-detection-setting-parts-show'] = True
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid,)
+    callback_url = '%s?imgsetid=%s' % (
+        url_for('submit_detection'),
+        imgsetid,
+    )
     return appf.template(
         'turk',
         'detection',
@@ -2855,7 +2908,10 @@ def turk_detection_dynamic(**kwargs):
     else:
         species = KEY_DEFAULTS[SPECIES_KEY]
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), gid,)
+    callback_url = '%s?imgsetid=%s' % (
+        url_for('submit_detection'),
+        gid,
+    )
     return appf.template(
         'turk',
         'detection_dynamic',
@@ -3119,7 +3175,13 @@ def turk_annotation_canonical(
 
     finished = len(aid_list_) == 0
 
-    annotation_list = list(zip(aid_list_, highlighted_list_, confidence_list_,))
+    annotation_list = list(
+        zip(
+            aid_list_,
+            highlighted_list_,
+            confidence_list_,
+        )
+    )
     aid_list_str = ','.join(map(str, aid_list_))
 
     annotation_list.sort(key=lambda t: t[0])
@@ -3157,7 +3219,11 @@ def turk_splits(aid=None, **kwargs):
         nid = ibs.get_annot_nids(aid)
         aid_list = ibs.get_name_aids(nid)
 
-        annotation_list = list(zip(aid_list,))
+        annotation_list = list(
+            zip(
+                aid_list,
+            )
+        )
 
     annotation_list.sort(key=lambda t: t[0])
     callback_url = '%s' % (url_for('submit_splits'),)
@@ -3186,7 +3252,12 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
         for key, default in default_list
     }
     config_str_list = [
-        '%s=%s' % (key, 'true' if config[key] else 'false',) for key in config.keys()
+        '%s=%s'
+        % (
+            key,
+            'true' if config[key] else 'false',
+        )
+        for key in config.keys()
     ]
     config_str = '&'.join(config_str_list)
 
@@ -3239,7 +3310,10 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
         for (settings_key, settings_default) in settings_key_list
     }
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid,)
+    callback_url = '%s?imgsetid=%s' % (
+        url_for('submit_contour'),
+        imgsetid,
+    )
     return appf.template(
         'turk',
         'contour',
@@ -4057,7 +4131,10 @@ def turk_identification(
                 status_remaining = status_dict['num_names_max'] - 0
                 logger.info(
                     'Feedback counter    = %r / %r'
-                    % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT,)
+                    % (
+                        query_object.GLOBAL_FEEDBACK_COUNTER,
+                        GLOBAL_FEEDBACK_LIMIT,
+                    )
                 )
                 logger.info('Status dict         = %r' % (status_dict,))
                 logger.info('Raw list len        = %r' % (len(raw_review_list),))
@@ -4946,7 +5023,11 @@ def turk_identification_graph(
             else:
                 base = url_for('turk_identification_graph')
             sep = '&' if '?' in base else '?'
-            url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid),)
+            url = '%s%sgraph_uuid=%s' % (
+                base,
+                sep,
+                ut.to_json(graph_uuid),
+            )
             if hardcase:
                 url += '&hardcase=True'
             url = url.replace(': ', ':')
@@ -5098,7 +5179,10 @@ def turk_identification_graph(
         base = url_for('submit_identification_v2_kaia')
     else:
         base = url_for('submit_identification_v2')
-    callback_url = '%s?%s' % (base, graph_uuid_str,)
+    callback_url = '%s?%s' % (
+        base,
+        graph_uuid_str,
+    )
 
     hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid),)
     hogwild_graph_uuid_str = hogwild_graph_uuid_str.replace(': ', ':')
@@ -5381,11 +5465,17 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
                     nid_list = list(set(nid_list))
                     logger.info(
                         'Checking %d annotations for %d names'
-                        % (len(aid_list_), len(nid_list_),)
+                        % (
+                            len(aid_list_),
+                            len(nid_list_),
+                        )
                     )
                     logger.info(
                         'Found %d annotations for %d names'
-                        % (len(aid_list), len(nid_list),)
+                        % (
+                            len(aid_list),
+                            len(nid_list),
+                        )
                     )
                     GLOBAL_KAIA_CACHE[species] = aid_list
                 aid_list = GLOBAL_KAIA_CACHE[species]
@@ -5461,7 +5551,12 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             quality_text_list = ibs.get_annot_quality_texts(name_aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(name_aid_list)
             name_aid_combined_list = list(
-                zip(name_aid_list, quality_list, quality_text_list, viewpoint_list,)
+                zip(
+                    name_aid_list,
+                    quality_list,
+                    quality_text_list,
+                    viewpoint_list,
+                )
             )
             # name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
         else:
@@ -5575,7 +5670,12 @@ def api_root(**kwargs):
             method = list(methods)[0]
             if method not in rule_dict.keys(**kwargs):
                 rule_dict[method] = []
-            rule_dict[method].append((method, url,))
+            rule_dict[method].append(
+                (
+                    method,
+                    url,
+                )
+            )
     for method in rule_dict.keys(**kwargs):
         rule_dict[method].sort()
     url = '%s/api/core/dbname/' % (current_app.server_url,)

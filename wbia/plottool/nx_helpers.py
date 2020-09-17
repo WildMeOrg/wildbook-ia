@@ -1695,7 +1695,11 @@ def draw_network2(
                 if sketch_params is True:
                     # scale, length, randomness
                     # sketch_params = (10.0, 128.0, 16.0)
-                    sketch_params = dict(scale=10.0, length=128.0, randomness=16.0,)
+                    sketch_params = dict(
+                        scale=10.0,
+                        length=128.0,
+                        randomness=16.0,
+                    )
 
             stroke_info = data.get('stroke', None)
             if stroke_info not in [None, False]:
@@ -1862,8 +1866,22 @@ def draw_network2(
             # ax.add_patch(patch)
 
     if verbose:
-        logger.info('Adding %r node patches ' % (len(patch_dict['node_patch_dict'],)))
-        logger.info('Adding %r edge patches ' % (len(patch_dict['edge_patch_dict'],)))
+        logger.info(
+            'Adding %r node patches '
+            % (
+                len(
+                    patch_dict['node_patch_dict'],
+                )
+            )
+        )
+        logger.info(
+            'Adding %r edge patches '
+            % (
+                len(
+                    patch_dict['edge_patch_dict'],
+                )
+            )
+        )
         logger.info('n_invis_edge = %r' % (n_invis_edge,))
 
     for frame in patch_dict['patch_frame_dict'].values():

@@ -334,7 +334,10 @@ class DBInputs(object):
             # PZ_Master is too big to run in full.  Select a smaller sample.
             # Be sure to include photobomb and incomparable cases.
             aids = ibs.filter_annots_general(
-                require_timestamp=True, species='primary', is_known=True, minqual='poor',
+                require_timestamp=True,
+                species='primary',
+                is_known=True,
+                minqual='poor',
             )
             infr = wbia.AnnotInference(ibs=ibs, aids=aids)
             infr.reset_feedback('staging', apply=True)

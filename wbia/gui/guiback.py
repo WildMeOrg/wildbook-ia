@@ -77,7 +77,7 @@ def backreport(func):
 
 
 def backblock(func):
-    """ BLOCKING DECORATOR
+    """BLOCKING DECORATOR
     TODO: This decorator has to be specific to either front or back. Is there a
     way to make it more general?
     """
@@ -970,7 +970,10 @@ class MainWindowBackend(GUIBACK_BASE):
         web_port = back.ibs.get_web_port_via_scan()
         if web_port is None:
             raise ValueError('IA web server is not running on any expected port')
-        web_domain = '%s:%s' % (web_url, web_port,)
+        web_domain = '%s:%s' % (
+            web_url,
+            web_port,
+        )
         return web_domain
 
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
@@ -980,7 +983,10 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/view/images/?imgsetid=%s' % (web_domain, imgsetid_str,)
+        url = 'http://%s/view/images/?imgsetid=%s' % (
+            web_domain,
+            imgsetid_str,
+        )
         webbrowser.open(url)
 
     def show_imgsetid_detection_turk_in_web(back, imgsetid_list, **kwargs):
@@ -990,7 +996,10 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid_str,)
+        url = 'http://%s/turk/detection/?imgsetid=%s' % (
+            web_domain,
+            imgsetid_str,
+        )
         webbrowser.open(url)
 
     def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
@@ -1000,7 +1009,10 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid_str,)
+        url = 'http://%s/turk/annotation/?imgsetid=%s' % (
+            web_domain,
+            imgsetid_str,
+        )
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
@@ -1018,9 +1030,15 @@ class MainWindowBackend(GUIBACK_BASE):
         gid_text = ','.join(map(str, gid_list))
         web_domain = back.get_background_web_domain()
         if len(gid_list) == 1:
-            url = 'http://%s/view/detection?gid=%s' % (web_domain, gid_text,)
+            url = 'http://%s/view/detection?gid=%s' % (
+                web_domain,
+                gid_text,
+            )
         else:
-            url = 'http://%s/view/images?gid=%s' % (web_domain, gid_text,)
+            url = 'http://%s/view/images?gid=%s' % (
+                web_domain,
+                gid_text,
+            )
         webbrowser.open(url)
 
     def show_annotation(back, aid, show_image=False, web=False, **kwargs):
@@ -1029,7 +1047,10 @@ class MainWindowBackend(GUIBACK_BASE):
 
             back.start_web_server_parallel(browser=False)
             web_domain = back.get_background_web_domain()
-            url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid,)
+            url = 'http://%s/view/annotations?aid=%s' % (
+                web_domain,
+                aid,
+            )
             webbrowser.open(url)
         else:
             interact.ishow_chip(back.ibs, aid, **kwargs)
@@ -1052,7 +1073,10 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list = ''
 
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid_list,)
+        url = 'http://%s/view/annotations?aid=%s' % (
+            web_domain,
+            aid_list,
+        )
         webbrowser.open(url)
 
     def show_name(back, nid, sel_aids=[], **kwargs):
@@ -1081,7 +1105,10 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_str = ''
 
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/view/names?aid=%s' % (web_domain, aid_str,)
+        url = 'http://%s/view/names?aid=%s' % (
+            web_domain,
+            aid_str,
+        )
         webbrowser.open(url)
 
     def show_hough_image_(back, gid, **kwargs):
@@ -1483,7 +1510,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def delete_annot(back, aid_list=None):
-        """ Action -> Delete Annotation
+        """Action -> Delete Annotation
 
         CommandLine:
             python -m wbia.gui.guiback --test-delete_annot --show
@@ -1660,7 +1687,10 @@ class MainWindowBackend(GUIBACK_BASE):
             species = None
         logger.info(
             '[train_rf_with_imageset] Training Random Forest trees with imgsetid=%r and species=%r'
-            % (imgsetid, species,)
+            % (
+                imgsetid,
+                species,
+            )
         )
         randomforest.train_gid_list(back.ibs, gid_list, teardown=False, species=species)
 
@@ -2102,9 +2132,15 @@ class MainWindowBackend(GUIBACK_BASE):
             # back.user_info(msg='Detection has finished. Launching web review')
             web_domain = back.get_background_web_domain()
             if review_in_web_mode == 'annotations':
-                url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid,)
+                url = 'http://%s/turk/annotation/?imgsetid=%s' % (
+                    web_domain,
+                    imgsetid,
+                )
             elif review_in_web_mode == 'detections':
-                url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid,)
+                url = 'http://%s/turk/detection/?imgsetid=%s' % (
+                    web_domain,
+                    imgsetid,
+                )
             else:
                 raise ValueError('invalid value for review_in_web_mode')
             logger.info('[guiback] Opening... %r' % (url,))
@@ -2519,7 +2555,8 @@ class MainWindowBackend(GUIBACK_BASE):
                     'You are about to run {query_title} '
                     'identification with {ngroups} groups...'
                 ).format(
-                    query_title=query_title, ngroups=ngroups,
+                    query_title=query_title,
+                    ngroups=ngroups,
                 )
             ]
         else:
@@ -2891,7 +2928,11 @@ class MainWindowBackend(GUIBACK_BASE):
             This new ImageSet will contain the images where zebras were detected.
             """
             )
-            % (len(gid_list), len(aid_list), imgset_dest_name,),
+            % (
+                len(gid_list),
+                len(aid_list),
+                imgset_dest_name,
+            ),
             title='Process ImageSet?',
             default='Yes',
         )
@@ -2915,7 +2956,13 @@ class MainWindowBackend(GUIBACK_BASE):
             for class_, score_ in zip(class_list, score_list)
         ]
         flag_list = [score_ >= score_thresh for score_ in score_list_]
-        logger.info('%d / %d' % (flag_list.count(True), len(flag_list),))
+        logger.info(
+            '%d / %d'
+            % (
+                flag_list.count(True),
+                len(flag_list),
+            )
+        )
 
         pos_gid_list = ut.compress(gid_list, flag_list)
         # neg_gid_list = ut.compress(gid_list, ut.not_list(flag_list))
@@ -2932,7 +2979,13 @@ class MainWindowBackend(GUIBACK_BASE):
         flag_list = [
             len(wanted_set & species_set) == 0 for species_set in species_set_list
         ]
-        logger.info('%d / %d' % (flag_list.count(True), len(flag_list),))
+        logger.info(
+            '%d / %d'
+            % (
+                flag_list.count(True),
+                len(flag_list),
+            )
+        )
         nothing_gid_list = ut.compress(pos_gid_list, flag_list)
         imgset_rowid_list_ = [imgset_rowid_list[0]] * len(nothing_gid_list)
         ibs.unrelate_images_and_imagesets(nothing_gid_list, imgset_rowid_list_)
@@ -3005,7 +3058,8 @@ class MainWindowBackend(GUIBACK_BASE):
             nSingleEncounters = sum([len(x) == 1 for x in nid2_aids.values()])
 
             unnamed_ok_aid_list = ibs.filter_annots_general(
-                unnamed_aid_list, minqual='ok',
+                unnamed_aid_list,
+                minqual='ok',
             )
             nUnnamedOk = sum(unnamed_ok_aid_list)
 
@@ -3058,7 +3112,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 'ImageSet imgsetid=%r1 cannot be shipped becuase '
                 'annotation(s) %r with an identifiable quality have '
                 'not been named'
-            ) % (imgsetid, unnamed_ok_aid_list,)
+            ) % (
+                imgsetid,
+                unnamed_ok_aid_list,
+            )
 
             if not dry:
                 # back.start_web_server_parallel(browser=False)
@@ -3282,7 +3339,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def new_database(back, new_dbdir=None):
-        """ File -> New Database
+        """File -> New Database
 
         Args:
             new_dbdir (None): (default = None)
@@ -3545,7 +3602,7 @@ class MainWindowBackend(GUIBACK_BASE):
         smart_xml_fpath=None,
         defaultdir=None,
     ):
-        """ File -> Import Images From Directory with smart
+        """File -> Import Images From Directory with smart
 
         Args:
             dir_ (None): (default = None)
@@ -3620,7 +3677,11 @@ class MainWindowBackend(GUIBACK_BASE):
                             '[back] ERROR: Parsing Patrol XML file failed, '
                             'rolling back by deleting %d images...'
                         )
-                        % (len(gid_list,))
+                        % (
+                            len(
+                                gid_list,
+                            )
+                        )
                     )
                     raise e
 
@@ -3772,7 +3833,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 imageset_text = level1
             if level == 2:
                 base, level2 = os.path.split(base)
-                imageset_text = '%s  (+)  %s' % (level2, level1,)
+                imageset_text = '%s  (+)  %s' % (
+                    level2,
+                    level1,
+                )
             imageset_text_list.append(imageset_text)
         ibs.set_image_imagesettext(gid_list, imageset_text_list)
 
@@ -3787,7 +3851,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def import_images_from_encounters_1(
         back, dir_list=None, size_filter=None, refresh=True, defaultdir=None
     ):
-        """ File -> Import Images From Encounters (1 level)
+        """File -> Import Images From Encounters (1 level)
 
         Args:
             dir_ (None): (default = None)
@@ -3812,7 +3876,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def import_images_from_encounters_2(
         back, dir_list=None, size_filter=None, refresh=True, defaultdir=None
     ):
-        """ File -> Import Images From Encounters (2 levels)
+        """File -> Import Images From Encounters (2 levels)
 
         Args:
             dir_ (None): (default = None)
@@ -3998,7 +4062,10 @@ class MainWindowBackend(GUIBACK_BASE):
             + 'Tag:  %r\n\nDo you wish to continue?\nAll annotations '
             + 'with this species will be set to unknown.'
         )
-        msg_str = msg_str % (species_nice, species_text,)
+        msg_str = msg_str % (
+            species_nice,
+            species_text,
+        )
         confirm_kw = dict(use_msg=msg_str, title='Delete Selected Species?', default='No')
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel

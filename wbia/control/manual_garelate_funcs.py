@@ -46,7 +46,7 @@ ANNOT_ROWID = 'annot_rowid'
 @register_ibs_method
 # @register_api('/api/gar/', methods=['GET'])
 def _get_all_gar_rowids(ibs):
-    """ all_gar_rowids <- gar.get_all_rowids()
+    """all_gar_rowids <- gar.get_all_rowids()
 
     Returns:
         list_ (list): unfiltered gar_rowids
@@ -84,8 +84,14 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list):
     # if aid_list is None:
     #    aid_list = [None] * len(annotgroup_rowid_list)
     params_iter = (
-        (annotgroup_rowid, aid,)
-        for (annotgroup_rowid, aid,) in zip(annotgroup_rowid_list, aid_list)
+        (
+            annotgroup_rowid,
+            aid,
+        )
+        for (
+            annotgroup_rowid,
+            aid,
+        ) in zip(annotgroup_rowid_list, aid_list)
     )
     get_rowid_from_superkey = ibs.get_gar_rowid_from_superkey
     # FIXME: encode superkey paramx
@@ -103,7 +109,7 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list):
 @register_ibs_method
 # @register_api('/api/gar/', methods=['DELETE'])
 def delete_gar(ibs, gar_rowid_list, config2_=None):
-    """ gar.delete(gar_rowid_list)
+    """gar.delete(gar_rowid_list)
 
     delete gar rows
 
@@ -142,7 +148,7 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
 @accessor_decors.getter_1to1
 # @register_api('/api/gar/annot/rowid/', methods=['GET'])
 def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
-    """ aid_list <- gar.aid[gar_rowid_list]
+    """aid_list <- gar.aid[gar_rowid_list]
 
     gets data from the "native" column "aid" in the "gar" table
 
@@ -183,7 +189,7 @@ def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
 @accessor_decors.getter_1to1
 # @register_api('/api/gar/annotgroup/rowid/', methods=['GET'])
 def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
-    """ annotgroup_rowid_list <- gar.annotgroup_rowid[gar_rowid_list]
+    """annotgroup_rowid_list <- gar.annotgroup_rowid[gar_rowid_list]
 
     gets data from the "native" column "annotgroup_rowid" in the "gar" table
 
@@ -224,7 +230,7 @@ def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
 def get_gar_rowid_from_superkey(
     ibs, annotgroup_rowid_list, aid_list, eager=True, nInput=None
 ):
-    """ gar_rowid_list <- gar[annotgroup_rowid_list, aid_list]
+    """gar_rowid_list <- gar[annotgroup_rowid_list, aid_list]
 
     Args:
         superkey lists: annotgroup_rowid_list, aid_list

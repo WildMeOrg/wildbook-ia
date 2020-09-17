@@ -766,7 +766,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 lnbnn_score_list = [0 if s is None else s for s in lnbnn_score_list]
 
                 simple_scores = simple_scores.assign(
-                    score_lnbnn_1vM=lnbnn_score_list, rank_lnbnn_1vM=lnbnn_rank_list,
+                    score_lnbnn_1vM=lnbnn_score_list,
+                    rank_lnbnn_1vM=lnbnn_rank_list,
                 )
 
             simple_scores[pd.isnull(simple_scores)] = 0
@@ -953,7 +954,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 df_auc_ovr_hat = pd.DataFrame(
                     dict(
                         [
-                            (datakey, list(data_combo_res[datakey].roc_scores_ovr_hat()),)
+                            (
+                                datakey,
+                                list(data_combo_res[datakey].roc_scores_ovr_hat()),
+                            )
                             for datakey in data_keys
                         ]
                     ),
@@ -977,7 +981,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # selected_data_keys[task_key].append(best_data_key)
 
             combo_res = data_combo_res[best_data_key]
-            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'green')
+            ut.cprint(
+                '[%s] BEST DataKey = %r'
+                % (
+                    clf_key,
+                    best_data_key,
+                ),
+                'green',
+            )
             with ut.Indenter('[%s] ' % (best_data_key,)):
                 combo_res.extended_clf_report()
             res = combo_res
@@ -1274,12 +1285,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """
-            >>> from wbia.algo.verif.vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty()
-            >>> pblm.set_pandas_options()
-            >>> pblm.load_samples()
-            >>> pblm.load_features()
-            >>> pblm.evaluate_simple_scores()
+        >>> from wbia.algo.verif.vsone import *  # NOQA
+        >>> pblm = OneVsOneProblem.from_empty()
+        >>> pblm.set_pandas_options()
+        >>> pblm.load_samples()
+        >>> pblm.load_features()
+        >>> pblm.evaluate_simple_scores()
         """
         if task_keys is None:
             task_keys = [pblm.primary_task_key]
@@ -1400,7 +1411,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # Take average feature importance
         ut.cprint(
-            'MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key), 'yellow',
+            'MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key),
+            'yellow',
         )
         logger.info(' Caption:')
         logger.info(' * The NaN row ensures that `weight` always sums to 1')

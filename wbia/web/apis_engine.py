@@ -60,7 +60,10 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
         if not isinstance(annot_uuid, (uuid.UUID, six.string_types)):
             raise ValueError(
                 'Received UUID %r that is not a UUID or string at index %s'
-                % (annot_uuid, index,)
+                % (
+                    annot_uuid,
+                    index,
+                )
             )
 
         if annot_uuid not in annot_dict:
@@ -495,9 +498,10 @@ def start_identify_annots_query(
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
-        assert state in flat_states, (
-            'matching_state_list has unrecognized states. Should be one of %r'
-            % (prefered_states,)
+        assert (
+            state in flat_states
+        ), 'matching_state_list has unrecognized states. Should be one of %r' % (
+            prefered_states,
         )
         return state
 
@@ -512,9 +516,10 @@ def start_identify_annots_query(
     qname_list = query_annot_name_list
 
     # Check inputs
-    assert len(query_annot_uuid_list) == 1, (
-        'Can only identify one query annotation at a time. Got %d '
-        % (len(query_annot_uuid_list),)
+    assert (
+        len(query_annot_uuid_list) == 1
+    ), 'Can only identify one query annotation at a time. Got %d ' % (
+        len(query_annot_uuid_list),
     )
     assert (
         database_annot_uuid_list is None or len(database_annot_uuid_list) > 0

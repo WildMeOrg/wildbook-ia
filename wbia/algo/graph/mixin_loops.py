@@ -474,7 +474,7 @@ class InfrLoops(object):
         # return infr._gen
 
     def main_loop(infr, max_loops=None, use_refresh=True):
-        """ DEPRICATED
+        """DEPRICATED
 
         use list(infr.main_gen) instead
         or assert not any(infr.main_gen())

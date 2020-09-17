@@ -50,15 +50,15 @@ def update_1_0_0(db, ibs=None):
             ('review_decision', 'INTEGER NOT NULL'),
             (
                 'review_time_posix',
-                '''INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))''',
+                """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
             ),  # this should probably be UCT
             ('review_identity', 'TEXT'),
             ('review_tags', 'TEXT'),
         ),
         superkeys=[('annot_1_rowid', 'annot_2_rowid', 'review_count')],
-        docstr='''
+        docstr="""
         Used to store completed user review states of two matched annotations
-        ''',
+        """,
     )
 
 
@@ -91,7 +91,8 @@ def post_1_0_2(db, ibs=None):
         review_uuid_list = [uuid.uuid4() for _ in range(len(review_rowid_list))]
         ibs._set_review_uuids(review_rowid_list, review_uuid_list)
     db.modify_table(
-        const.REVIEW_TABLE, [('review_uuid', '', 'UUID NOT NULL', None)],
+        const.REVIEW_TABLE,
+        [('review_uuid', '', 'UUID NOT NULL', None)],
     )
 
 
@@ -117,13 +118,13 @@ def update_1_1_0(db, ibs=None):
             ('test_result', 'INTEGER'),
             (
                 'test_time_posix',
-                '''INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))''',
+                """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
             ),  # this should probably be UCT
         ),
         superkeys=[('test_uuid',)],
-        docstr='''
+        docstr="""
         Used to store tests given to the user, their responses, and their results
-        ''',
+        """,
     )
 
 
@@ -146,9 +147,9 @@ def update_1_2_0(db, ibs=None):
             ('weight_algo_confidence', 'REAL'),
             ('weight_metadata_json', 'TEXT'),
         ],
-        docstr='''
+        docstr="""
         Used to store completed algo weight states of two matched annotations
-        ''',
+        """,
         superkeys=[('annot_1_rowid', 'annot_2_rowid', 'weight_count')],
     )
 

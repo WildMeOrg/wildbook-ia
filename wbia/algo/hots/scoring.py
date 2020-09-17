@@ -48,7 +48,13 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         progkw = dict(freq=1, time_thresh=30.0, adjust=True)
     lbl = 'scoring %s' % (score_method)
     # Choose the appropriate scoring mechanism
-    logger.info('[scoring] score %d chipmatches with %s' % (len(cm_list), score_method,))
+    logger.info(
+        '[scoring] score %d chipmatches with %s'
+        % (
+            len(cm_list),
+            score_method,
+        )
+    )
     if score_method == 'sumamech':
         for cm in ut.ProgressIter(cm_list, lbl=lbl, **progkw):
             cm.score_name_sumamech(qreq_)

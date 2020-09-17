@@ -396,7 +396,11 @@ def convert_ggr2018_to_wbia(
                 assert base2.startswith(base1)
             except AssertionError:
                 logger.info(
-                    'Folder name heredity conflict %r with %r' % (direct2, direct1,)
+                    'Folder name heredity conflict %r with %r'
+                    % (
+                        direct2,
+                        direct1,
+                    )
                 )
                 continue
 
@@ -434,7 +438,10 @@ def convert_ggr2018_to_wbia(
                     gid_list = ut.filter_Nones(gid_list)
                     gid_list = sorted(list(set(gid_list)))
 
-                    imageset_text = 'GGR2,%d,%s' % (number, letter,)
+                    imageset_text = 'GGR2,%d,%s' % (
+                        number,
+                        letter,
+                    )
                     note_list = [
                         '%s,%05d' % (imageset_text, index + 1)
                         for index, gid in enumerate(gid_list)
@@ -449,7 +456,11 @@ def convert_ggr2018_to_wbia(
             assert len(seen_letter_set) == len(seen_letter_list)
         except AssertionError:
             logger.info(
-                'Duplicate letters in %r with letters %r' % (direct1, seen_letter_list,)
+                'Duplicate letters in %r with letters %r'
+                % (
+                    direct1,
+                    seen_letter_list,
+                )
             )
             continue
 

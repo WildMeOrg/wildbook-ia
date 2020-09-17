@@ -72,7 +72,10 @@ def get_decorator(submodule, func, method):
     if submodule is None or func is None or method is None:
         return None
     if len(func) > 0:
-        url = '/api/%s/%s/' % (submodule, func,)
+        url = '/api/%s/%s/' % (
+            submodule,
+            func,
+        )
     else:
         url = '/api/%s/' % (submodule,)
     method = method.upper()
@@ -169,7 +172,10 @@ def process_file(filename, sub):
             latest = get_decorator(submodule, func, method)
             if latest is not None:
                 url, method = latest
-                wrapper = "@register_api('%s', methods=['%s'])\n" % (url, method,)
+                wrapper = "@register_api('%s', methods=['%s'])\n" % (
+                    url,
+                    method,
+                )
                 # logger.info(wrapper)
                 processed.append(wrapper)
         processed.append(line)

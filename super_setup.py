@@ -556,7 +556,8 @@ class Repo(ub.NiceRepr):
         # Print some status
         repo.debug(
             ' * branch = {} -> {}'.format(
-                repo.pygit.active_branch.name, repo.pygit.active_branch.tracking_branch(),
+                repo.pygit.active_branch.name,
+                repo.pygit.active_branch.tracking_branch(),
             )
         )
 

@@ -653,7 +653,8 @@ class IBEISController(BASE_CLASS):
                 )
             except IOError as ex:
                 ut.printex(
-                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable'),
+                    ex,
+                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
                 )
                 import utool
 
@@ -682,7 +683,10 @@ class IBEISController(BASE_CLASS):
         else:
             readonly = True
         db_uri = 'file://{}'.format(realpath(sqldb_fpath))
-        ibs.db = dtool.SQLDatabaseController.from_uri(db_uri, readonly=readonly,)
+        ibs.db = dtool.SQLDatabaseController.from_uri(
+            db_uri,
+            readonly=readonly,
+        )
         ibs.readonly = ibs.db.readonly
 
         if backup_idx is None:
@@ -741,7 +745,8 @@ class IBEISController(BASE_CLASS):
                 )
             except IOError as ex:
                 ut.printex(
-                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable'),
+                    ex,
+                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
                 )
                 raise
         # IBEIS SQL State Database
@@ -767,7 +772,10 @@ class IBEISController(BASE_CLASS):
         else:
             readonly = True
         db_uri = 'file://{}'.format(realpath(sqlstaging_fpath))
-        ibs.staging = dtool.SQLDatabaseController.from_uri(db_uri, readonly=readonly,)
+        ibs.staging = dtool.SQLDatabaseController.from_uri(
+            db_uri,
+            readonly=readonly,
+        )
         ibs.readonly = ibs.staging.readonly
 
         if backup_idx is None:
@@ -1241,7 +1249,11 @@ class IBEISController(BASE_CLASS):
         # hash_str = hex(id(ibs))
         # ibsstr = '<%s(%s) at %s>' % (typestr, dbname, hash_str, )
         hash_str = ibs.get_db_init_uuid()
-        ibsstr = '<%s(%s) with UUID %s>' % (typestr, dbname, hash_str,)
+        ibsstr = '<%s(%s) with UUID %s>' % (
+            typestr,
+            dbname,
+            hash_str,
+        )
         return ibsstr
 
     def __str__(ibs):

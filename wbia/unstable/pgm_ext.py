@@ -212,7 +212,7 @@ class ApproximateFactor(object):
         return data_ids
 
     def consolidate(self, inplace=False):
-        r""" removes duplicate entries
+        r"""removes duplicate entries
 
         Example:
             >>> # UNSTABLE_DOCTEST

@@ -237,7 +237,9 @@ def get_injured_sharks():
     clist['gid'] = gid_list
 
     failed_flags = ut.flag_None_items(clist['gid'])
-    logger.info('# failed %s' % (sum(failed_flags)),)
+    logger.info(
+        '# failed %s' % (sum(failed_flags)),
+    )
     passed_flags = ut.not_list(failed_flags)
     clist = clist.compress(passed_flags)
     ut.assert_all_not_None(clist['gid'])

@@ -722,7 +722,14 @@ def plot_multiple_scores(
                 )
             ]
     else:
-        label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
+        label_list = [
+            '%s=%r'
+            % (
+                nd_labels[1],
+                val,
+            )
+            for val in nd_basis[1]
+        ]
 
     fig = multi_plot(
         xdata,
@@ -1313,7 +1320,12 @@ def plot_score_histograms(
 
     # append amount of support
     score_lbls_ = [
-        '%s %d' % (lbl, len(ydata),) for lbl, ydata in zip(score_lbls, scores_list)
+        '%s %d'
+        % (
+            lbl,
+            len(ydata),
+        )
+        for lbl, ydata in zip(score_lbls, scores_list)
     ]
 
     # References:

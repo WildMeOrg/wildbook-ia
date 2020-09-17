@@ -311,7 +311,12 @@ def request_wbia_nnindexer(qreq_, verbose=True, **kwargs):
 
 
 def request_augmented_wbia_nnindexer(
-    qreq_, daid_list, verbose=True, use_memcache=True, force_rebuild=False, memtrack=None,
+    qreq_,
+    daid_list,
+    verbose=True,
+    use_memcache=True,
+    force_rebuild=False,
+    memtrack=None,
 ):
     r"""
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT
@@ -807,7 +812,7 @@ def can_request_background_nnindexer():
 
 
 def request_background_nnindexer(qreq_, daid_list):
-    r""" FIXME: Duplicate code
+    r"""FIXME: Duplicate code
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters

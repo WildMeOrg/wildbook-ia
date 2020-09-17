@@ -23,6 +23,7 @@ CMD = ub.argflag('--cmd')
 # FIXME (27-Jul-12020) This is currently used by CI to verify installation.
 #       Either make this the main function or move to location that makes sense.
 
+
 def smoke_test():  # nocover
 
     import wbia
@@ -49,10 +50,24 @@ def smoke_test():  # nocover
     pyrf_main()
 
     import brambox
-    print('Brambox: %r, %r' % (brambox.__version__, brambox.__file__, ))
+
+    print(
+        'Brambox: %r, %r'
+        % (
+            brambox.__version__,
+            brambox.__file__,
+        )
+    )
 
     import lightnet
-    print('Lightnet: %r, %r' % (lightnet.__version__, lightnet.__file__, ))
+
+    print(
+        'Lightnet: %r, %r'
+        % (
+            lightnet.__version__,
+            lightnet.__file__,
+        )
+    )
 
 
 def run_wbia():

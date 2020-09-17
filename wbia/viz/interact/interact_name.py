@@ -211,8 +211,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.show_page(bring_to_front=True)
 
     def infer_data(self):
-        """ Initialize data related to the input aids
-        """
+        """Initialize data related to the input aids"""
         ibs = self.ibs
         # The two matching aids
         self.aid_pair = (self.aid1, self.aid2)
@@ -357,7 +356,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ih.connect_callback(self.fig, 'key_press_event', self.on_key_press)
 
     def show_page(self, bring_to_front=False, onlyrows=None, fulldraw=True):
-        """ Plots all subaxes on a page
+        """Plots all subaxes on a page
 
         onlyrows is a hack to only draw a subset of the data again
         """
@@ -557,7 +556,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         return ax
 
     def show_hud(self):
-        """ Creates heads up display
+        """Creates heads up display
 
         button bar on bottom and title string
 
@@ -611,7 +610,9 @@ class MatchVerificationInteraction(AbstractInteraction):
         if all(is_unknown) and not nid1_is_known and not nid2_is_known:
             joinnew_text = 'match all (nonjunk)\n to a new name'
             self.append_button(
-                joinnew_text, callback=self.merge_nonjunk_into_new_name, rect=next_rect(),
+                joinnew_text,
+                callback=self.merge_nonjunk_into_new_name,
+                rect=next_rect(),
             )
         # option dismiss all and give new names to all nonjunk images
         if any(is_unknown):

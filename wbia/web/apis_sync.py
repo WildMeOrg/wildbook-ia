@@ -47,7 +47,10 @@ else:
         REMOTE_UUID = None
 
 
-REMOTE_URL = 'http://%s:%s' % (REMOTE_DOMAIN, REMOTE_PORT,)
+REMOTE_URL = 'http://%s:%s' % (
+    REMOTE_DOMAIN,
+    REMOTE_PORT,
+)
 REMOTE_UUID = None if REMOTE_UUID is None else uuid.UUID(REMOTE_UUID)
 
 
@@ -56,7 +59,10 @@ def _construct_route_url(route_rule):
         route_rule = '/' + route_rule
     if not route_rule.endswith('/'):
         route_rule = route_rule + '/'
-    route_url = '%s%s' % (REMOTE_URL, route_rule,)
+    route_url = '%s%s' % (
+        REMOTE_URL,
+        route_rule,
+    )
     return route_url
 
 
@@ -119,7 +125,14 @@ def _detect_remote_push_images(ibs, gid_list):
     num_images = len(gid_list)
     image_path_list = ibs.get_image_paths(gid_list)
     for index, image_path in enumerate(image_path_list):
-        logger.info('\tSending %d / %d: %r' % (index, num_images, image_path,))
+        logger.info(
+            '\tSending %d / %d: %r'
+            % (
+                index,
+                num_images,
+                image_path,
+            )
+        )
         file_dict = {
             'image': open(image_path, 'rb'),
         }
@@ -171,7 +184,13 @@ def _detect_remote_push_metadata(
 ):
     route_url = _construct_route_url(route_rule)
 
-    logger.info('\tSetting %s metadata for %s' % (route_rule, uuid_str,))
+    logger.info(
+        '\tSetting %s metadata for %s'
+        % (
+            route_rule,
+            uuid_str,
+        )
+    )
     data_dict = {
         uuid_str: uuid_list,
         value_str: value_list,
@@ -446,7 +465,13 @@ def _sync_get_remote_name_uuids(ibs, local_nids):
 @register_ibs_method
 def _sync_get_annot_endpoint(ibs, endpoint, aid_list):
     route_url = _construct_route_url(endpoint)
-    logger.info('\tGetting info on %d aids from %s' % (len(aid_list), route_url,))
+    logger.info(
+        '\tGetting info on %d aids from %s'
+        % (
+            len(aid_list),
+            route_url,
+        )
+    )
     data_dict = {
         'aid_list': json.dumps(aid_list),
     }
@@ -466,7 +491,13 @@ def _sync_get_auuid_endpoint(ibs, endpoint, auuid_list):
     serialized_uuids = ut.to_json(working_list)
 
     route_url = _construct_route_url(endpoint)
-    logger.info('\tGetting info on %d auuids from %s' % (len(auuid_list), route_url,))
+    logger.info(
+        '\tGetting info on %d auuids from %s'
+        % (
+            len(auuid_list),
+            route_url,
+        )
+    )
     data_dict = {'uuid_list': serialized_uuids}
     return _get(endpoint, data=data_dict)
 
@@ -523,7 +554,11 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
     confirm_str = '-'.join(confirm_list)
     logger.info(
         'You are about to submit %d images to a remote DETECT database at %r with UUID=%r.'
-        % (len(gid_list), REMOTE_URL, REMOTE_UUID,)
+        % (
+            len(gid_list),
+            REMOTE_URL,
+            REMOTE_UUID,
+        )
     )
     logger.info(
         'Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.'

@@ -33,7 +33,7 @@ def _wbia_cache_dump():
 
 
 def _wbia_cache_write(key, val):
-    """ Writes to global IBEIS cache
+    """Writes to global IBEIS cache
     TODO: Use text based config file
     """
     logger.info('[sysres] set %s=%r' % (key, val))
@@ -96,7 +96,7 @@ def get_workdir(allow_gui=True):
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
-    """ Sets the workdirectory for this computer
+    """Sets the workdirectory for this computer
 
     Args:
         work_dir (None): (default = None)
@@ -877,7 +877,13 @@ def ensure_db_from_url(zipped_db_url):
     dbdir = ut.grab_zipped_url(
         zipped_url=zipped_db_url, ensure=True, download_dir=workdir
     )
-    logger.info('have %s=%r' % (zipped_db_url, dbdir,))
+    logger.info(
+        'have %s=%r'
+        % (
+            zipped_db_url,
+            dbdir,
+        )
+    )
     return dbdir
 
 

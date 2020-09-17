@@ -547,8 +547,8 @@ def load_ordered_annots(data_uri_order, query_uri_order):
 def run_asmk_script():
     with ut.embed_on_exception_context:  # NOQA
         """
-    >>> from wbia.algo.smk.script_smk import *
-    """  # NOQA
+        >>> from wbia.algo.smk.script_smk import *
+        """  # NOQA
 
         # ==============================================
         # PREPROCESSING CONFIGURATION

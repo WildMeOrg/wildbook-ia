@@ -671,7 +671,7 @@ ProbchipImgType = dtool.ExternType(
     # isinteractive=True,
 )
 def compute_probchip(depc, aid_list, config=None):
-    """ Computes probability chips using pyrf
+    """Computes probability chips using pyrf
 
     CommandLine:
         python -m wbia.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
@@ -2053,7 +2053,13 @@ def compute_labels_annotations(depc, aid_list, config=None):
                     flag2 = result2[1] in ['wild_dog', 'wild_dog_puppy']
                     flag3 = result3[1] in ['wild_dog']
 
-                    score = np.mean((result1[0], result2[0], result3[0],))
+                    score = np.mean(
+                        (
+                            result1[0],
+                            result2[0],
+                            result3[0],
+                        )
+                    )
 
                     if flag3:
                         if flag1 and flag2:
@@ -2076,7 +2082,10 @@ def compute_labels_annotations(depc, aid_list, config=None):
 
                     quality = 'UNKNOWN'
                     orientation = 0.0
-                    prob_key = '%s:%s' % (species, viewpoint,)
+                    prob_key = '%s:%s' % (
+                        species,
+                        viewpoint,
+                    )
                     probs = {}
                     probs[prob_key] = score
                     if score < 1.0:

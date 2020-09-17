@@ -1255,7 +1255,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph1.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph1.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
     infr.show(
@@ -1266,7 +1268,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph2.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph2.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
     infr.show(
@@ -1277,7 +1281,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph3.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph3.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
     infr.show(
@@ -1288,7 +1294,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph4.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph4.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
     import networkx as nx
 
@@ -1296,7 +1304,9 @@ def show_id_graph():
     nx.set_node_attributes(infr.graph, name='pin', values='true')
     fig = pt.gcf()
     fig.savefig(
-        'id_graph5.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph5.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
     infr2 = infr.copy()
@@ -1307,7 +1317,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph6.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph6.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
     for edge in infr2.find_neg_redun_candidate_edges(k=2):
         infr2.add_feedback(edge, evidence_decision=NEGTV)
@@ -1316,7 +1328,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph7.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph7.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
     infr3 = infr.copy()
@@ -1337,7 +1351,9 @@ def show_id_graph():
     )
     fig = pt.gcf()
     fig.savefig(
-        'id_graph8.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph8.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
     infr4 = infr.copy()
@@ -1347,7 +1363,9 @@ def show_id_graph():
     infr4.show(show_cand=True, **showkw)
     fig = pt.gcf()
     fig.savefig(
-        'id_graph9.png', bbox_inches=pt.extract_axes_extents(fig, combine=True), **savekw,
+        'id_graph9.png',
+        bbox_inches=pt.extract_axes_extents(fig, combine=True),
+        **savekw,
     )
 
 
@@ -2139,7 +2157,17 @@ def system_diagram():
     # graphkw = dict(hpad=50, vpad=50, group_grid=True)
     # pnum_ = pt.make_pnum_nextgen(2, 1)
 
-    infr = demo.demodata_infr(ccs=[(1, 2, 3, 4), (5, 6, 7), (8, 9,), (10,)])
+    infr = demo.demodata_infr(
+        ccs=[
+            (1, 2, 3, 4),
+            (5, 6, 7),
+            (
+                8,
+                9,
+            ),
+            (10,),
+        ]
+    )
     showkw = dict(
         show_unreviewed_edges=True,
         show_inferred_same=False,

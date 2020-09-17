@@ -351,7 +351,7 @@ class CustomAPI(object):
 
     @staticmethod
     def _uinput_1to1(func, input_):
-        """ universal input (really just accept list or tuple as input to a list
+        """universal input (really just accept list or tuple as input to a list
         only function)
 
         Move to guitool

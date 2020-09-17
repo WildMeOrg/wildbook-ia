@@ -444,7 +444,9 @@ def setup_developer_menu(mainwin, back):
         name='actionBatchUnknownVsExemplarQueries',
         text='Query: Unknowns vs Exemplars',
         triggered=functools.partial(
-            back.compute_queries, query_is_known=False, daids_mode=const.VS_EXEMPLARS_KEY,
+            back.compute_queries,
+            query_is_known=False,
+            daids_mode=const.VS_EXEMPLARS_KEY,
         ),
     )
     adv_exq_menu.newAction(

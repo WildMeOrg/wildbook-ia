@@ -121,7 +121,13 @@ def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
-        logger.info('%s %s' % (index1, index2,))
+        logger.info(
+            '%s %s'
+            % (
+                index1,
+                index2,
+            )
+        )
         stats = None
         if uuid1 is not None and uuid2 is not None:
             if uuid1 == uuid2:
@@ -230,7 +236,13 @@ def voting_uuid_list(ibs, team_list):
             ]
     blacklist = list(set(blacklist))
     assert None not in blacklist
-    logger.info('Blacklisted %d / %d' % (len(blacklist), len(image_uuid_list),))
+    logger.info(
+        'Blacklisted %d / %d'
+        % (
+            len(blacklist),
+            len(image_uuid_list),
+        )
+    )
     image_uuid_list = list(set(image_uuid_list) - set(blacklist))
     annot_uuid_list = ut.flatten(
         ibs.get_image_annot_uuids(ibs.get_image_gids_from_uuid(image_uuid_list))
@@ -508,7 +520,9 @@ def experiments_voting_area_src(ibs, aoi=False, **kwargs):
 
 
 @register_api(
-    '/experiments/ajax/voting/bbox/metrics/', methods=['GET'], __api_plural_check__=False,
+    '/experiments/ajax/voting/bbox/metrics/',
+    methods=['GET'],
+    __api_plural_check__=False,
 )
 def experiments_voting_bbox_width(ibs, **kwargs):
     aoi_dict = voting_data(**kwargs)

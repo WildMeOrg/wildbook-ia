@@ -251,8 +251,8 @@ def get_row_and_qtindex_from_id(view, _id):
 @register_view_method
 def select_row_from_id(view, _id, scroll=False, collapse=True):
     """
-        _id is from the iders function (i.e. an wbia rowid)
-        selects the row in that view if it exists
+    _id is from the iders function (i.e. an wbia rowid)
+    selects the row in that view if it exists
     """
     with ut.Timer(
         '[api_item_view] select_row_from_id(id=%r, scroll=%r, collapse=%r)'

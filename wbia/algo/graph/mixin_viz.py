@@ -448,7 +448,9 @@ class GraphVisualization(object):
         reviewed_width = 2.0
         if highlight_reviews:
             nx.set_edge_attributes(
-                graph, name='linewidth', values=ut.dzip(reviewed_edges, [reviewed_width]),
+                graph,
+                name='linewidth',
+                values=ut.dzip(reviewed_edges, [reviewed_width]),
             )
             nx.set_edge_attributes(
                 graph,

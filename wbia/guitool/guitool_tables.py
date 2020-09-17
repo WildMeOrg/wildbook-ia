@@ -237,7 +237,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant()
 
     def setData(model, index, var, role=Qt.EditRole):
-        """ Sets the role data for the item at index to var.
+        """Sets the role data for the item at index to var.
         var is a QVariant (called data in documentation)
         """
         print('[model] setData: %r' % (str(qtype.qindexinfo(index))))
@@ -257,7 +257,13 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
                 type_ = model.get_coltype(index.column())
                 data = qtype.cast_from_qt(var, type_)
             # Do actual setting of data
-            print(' * new_data = %s(%r)' % (utool.type_str(type_), data,))
+            print(
+                ' * new_data = %s(%r)'
+                % (
+                    utool.type_str(type_),
+                    data,
+                )
+            )
             model.set_data(index, data)
             # Emit that data was changed and return succcess
             model.dataChanged.emit(index, index)

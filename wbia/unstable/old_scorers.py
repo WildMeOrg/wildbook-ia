@@ -261,7 +261,7 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
 def general_coverage_mask_generator(
     make_mask_func, qreq_, qaid, id_list, fm_list, fs_list, config, cov_cfg
 ):
-    """ agnostic to whether or not the id/fm/fs lists are name or annotation groups
+    """agnostic to whether or not the id/fm/fs lists are name or annotation groups
 
     DEPRICATE
     """
@@ -282,7 +282,14 @@ def general_coverage_mask_generator(
     for daid, fm, fs in zip(id_list, fm_list, fs_list):
         # CAREFUL weight_mask_m is overriden on every iteration
         weight_mask_m = compute_general_matching_coverage_mask(
-            make_mask_func, chipsize, fm, fs, qkpts, qweights, cov_cfg, out=weight_mask_m,
+            make_mask_func,
+            chipsize,
+            fm,
+            fs,
+            qkpts,
+            qweights,
+            cov_cfg,
+            out=weight_mask_m,
         )
         yield daid, weight_mask_m, weight_mask
 
@@ -352,7 +359,7 @@ def get_masks(qreq_, cm, config={}):
 
 
 def evaluate_masks_iter(masks_iter):
-    """ save evaluation of a masks iter
+    """save evaluation of a masks iter
     DEPRICATE
     """
     masks_list = [

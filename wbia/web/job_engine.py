@@ -110,7 +110,11 @@ def update_proctitle(procname, dbname=None):
         old_title = setproctitle.getproctitle()
         logger.info('old_title = %r' % (old_title,))
         hostname = ut.get_computer_name()
-        new_title = 'WBIA_%s_%s_%s' % (dbname, hostname, procname,)
+        new_title = 'WBIA_%s_%s_%s' % (
+            dbname,
+            hostname,
+            procname,
+        )
         logger.info('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:
@@ -207,7 +211,8 @@ def initialize_job_manager(ibs):
     else:
         ibs.job_manager.reciever = JobBackend(use_static_ports=use_static_ports)
         ibs.job_manager.reciever.initialize_background_processes(
-            dbdir=ibs.get_dbdir(), containerized=ibs.containerized,
+            dbdir=ibs.get_dbdir(),
+            containerized=ibs.containerized,
         )
 
     # Delete any leftover locks from before
@@ -564,7 +569,11 @@ class JobBackend(object):
             _spawner_func_ = spawn_background_process
 
             proc = _spawner_func_(func, *args, **kwargs)
-            assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
+            assert proc.is_alive(), 'proc (%s) died too soon' % (
+                ut.get_funcname(
+                    func,
+                )
+            )
             return proc
 
         if self.spawn_queue:
@@ -929,7 +938,10 @@ class JobInterface(object):
                 )
             )
             if len(arg_iter) > 0:
-                values_list = ut.util_parallel.generate2(initialize_process_record, arg_iter,)
+                values_list = ut.util_parallel.generate2(
+                    initialize_process_record,
+                    arg_iter,
+                )
                 values_list = list(values_list)
             else:
                 values_list = []
@@ -1210,14 +1222,26 @@ def collect_queue_loop(port_dict):
         recieve_socket.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'ROUTER')
         recieve_socket.bind(interface_pull)
         if VERBOSE_JOBS:
-            logger.info('bind %s_url1 = %r' % (name, interface_pull,))
+            logger.info(
+                'bind %s_url1 = %r'
+                % (
+                    name,
+                    interface_pull,
+                )
+            )
 
         # bind the server router to the queue dealer
         send_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
         send_socket.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'DEALER')
         send_socket.bind(interface_push)
         if VERBOSE_JOBS:
-            logger.info('bind %s_url2 = %r' % (name, interface_push,))
+            logger.info(
+                'bind %s_url2 = %r'
+                % (
+                    name,
+                    interface_push,
+                )
+            )
 
         try:
             zmq.device(zmq.QUEUE, recieve_socket, send_socket)  # CHECKED - QUEUE
@@ -1262,7 +1286,13 @@ def engine_queue_loop(port_dict, engine_lanes):
         )
         engine_receive_socket.bind(interface_engine_pull)
         if VERBOSE_JOBS:
-            logger.info('bind %s_url2 = %r' % (name, interface_engine_pull,))
+            logger.info(
+                'bind %s_url2 = %r'
+                % (
+                    name,
+                    interface_engine_pull,
+                )
+            )
 
         # bind the server router to the queue dealer
         engine_send_socket_dict = {}
@@ -1275,7 +1305,11 @@ def engine_queue_loop(port_dict, engine_lanes):
             if VERBOSE_JOBS:
                 logger.info(
                     'bind %s %s_url2 = %r'
-                    % (name, lane, interface_engine_push_dict[lane],)
+                    % (
+                        name,
+                        lane,
+                        interface_engine_push_dict[lane],
+                    )
                 )
             engine_send_socket_dict[lane] = engine_send_socket
 
@@ -1339,7 +1373,10 @@ def engine_queue_loop(port_dict, engine_lanes):
                     if lane not in engine_lanes:
                         print(
                             'WARNING: did not recognize desired lane %r from %r'
-                            % (lane, engine_lanes,)
+                            % (
+                                lane,
+                                engine_lanes,
+                            )
                         )
                         print('WARNING: Defaulting to slow lane')
                         lane = 'slow'
@@ -1360,7 +1397,13 @@ def engine_queue_loop(port_dict, engine_lanes):
                         )
                         jobcounter = restart_jobcounter
 
-                    logger.info('Creating jobid %r (counter %d)' % (jobid, jobcounter,))
+                    logger.info(
+                        'Creating jobid %r (counter %d)'
+                        % (
+                            jobid,
+                            jobcounter,
+                        )
+                    )
 
                     if restart_received is not None:
                         received = restart_received
@@ -1513,20 +1556,42 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
         interface_collect_pull = port_dict['collect_pull_url']
 
         if VERBOSE_JOBS:
-            logger.info('Initializing %s engine %s' % (lane, id_,))
             logger.info(
-                'connect engine_%s_push_url = %r' % (lane, interface_engine_push,)
+                'Initializing %s engine %s'
+                % (
+                    lane,
+                    id_,
+                )
+            )
+            logger.info(
+                'connect engine_%s_push_url = %r'
+                % (
+                    lane,
+                    interface_engine_push,
+                )
             )
 
         assert dbdir is not None
 
         engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
-        engine_send_sock.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s' % (lane, id_,))
+        engine_send_sock.setsockopt_string(
+            zmq.IDENTITY,
+            'engine.%s.%s'
+            % (
+                lane,
+                id_,
+            ),
+        )
         engine_send_sock.connect(interface_engine_push)
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)
         collect_recieve_socket.setsockopt_string(
-            zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_,)
+            zmq.IDENTITY,
+            'engine.%s.%s.collect.DEALER'
+            % (
+                lane,
+                id_,
+            ),
         )
         collect_recieve_socket.connect(interface_collect_pull)
 
@@ -1535,7 +1600,14 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('engine is initialized')
 
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
-        update_proctitle('engine_loop.%s.%s' % (lane, id_,), dbname=ibs.dbname)
+        update_proctitle(
+            'engine_loop.%s.%s'
+            % (
+                lane,
+                id_,
+            ),
+            dbname=ibs.dbname,
+        )
 
         try:
             while True:
@@ -1848,7 +1920,14 @@ def on_collect_request(
         # corrupted
 
         current_status = collector_data[jobid].get('status', None)
-        print('Updating jobid = %r status %r -> %r' % (jobid, current_status, status,))
+        print(
+            'Updating jobid = %r status %r -> %r'
+            % (
+                jobid,
+                current_status,
+                status,
+            )
+        )
         collector_data[jobid]['status'] = status
 
         logger.info('Notify %s' % ut.repr3(collector_data[jobid]))

@@ -59,7 +59,10 @@ class TestMetadataProperty:
                 value = repr(value)
             self.ctrlr.executeone(
                 'INSERT INTO metadata (metadata_key, metadata_value) VALUES (?, ?)',
-                (key, value,),
+                (
+                    key,
+                    value,
+                ),
             )
 
     def monkey_get_table_names(self, *args, **kwargs):
@@ -91,7 +94,13 @@ class TestMetadataProperty:
 
         # Check setting of a value by key, of list type
         key = 'superkeys'
-        value = [('a',), ('b', 'c',)]
+        value = [
+            ('a',),
+            (
+                'b',
+                'c',
+            ),
+        ]
         setattr(self.ctrlr.metadata.foo, key, value)
 
         new_value = getattr(self.ctrlr.metadata.foo, key)
@@ -152,7 +161,13 @@ class TestMetadataProperty:
 
     def test_update(self):
         targets = {
-            'superkeys': [('k',), ('x', 'y',)],
+            'superkeys': [
+                ('k',),
+                (
+                    'x',
+                    'y',
+                ),
+            ],
             'dependson': ['baz'],
             'docstr': 'hahaha',
         }
@@ -204,7 +219,13 @@ class TestMetadataProperty:
 
         # Check setting of a value by key, of list type
         key = 'superkeys'
-        value = [('a',), ('b', 'c',)]
+        value = [
+            ('a',),
+            (
+                'b',
+                'c',
+            ),
+        ]
         self.ctrlr.metadata.foo[key] = value
 
         new_value = getattr(self.ctrlr.metadata.foo, key)

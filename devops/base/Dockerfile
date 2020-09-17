@@ -6,7 +6,7 @@ ENV LC_ALL C.UTF-8
 
 ENV LANG C.UTF-8
 
-USER root 
+USER root
 
 # Create runtime user "wbia" (aka WildBook IA)
 RUN set -x \
@@ -19,7 +19,7 @@ RUN set -ex \
  && apt upgrade -y \
  && apt dist-upgrade -y \
  && apt install -y \
-        # Install build requirements 
+        # Install build requirements
         ca-certificates \
         build-essential \
         pkg-config \
@@ -83,7 +83,7 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install --upgrade \
         pip \
  && /virtualenv/env3/bin/pip install --upgrade \
-        # Install build requirements 
+        # Install build requirements
         cmake!=3.18.2 \
         ninja \
         scikit-build \

@@ -49,7 +49,7 @@ ANNOT_ROWID = 'annot_rowid'
 @register_ibs_method
 # @register_api('/api/annotgroup/', methods=['GET'])
 def _get_all_annotgroup_rowids(ibs):
-    """ all_annotgroup_rowids <- annotgroup.get_all_rowids()
+    """all_annotgroup_rowids <- annotgroup.get_all_rowids()
 
     Returns:
         list_ (list): unfiltered annotgroup_rowids
@@ -87,10 +87,16 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
     )
 
     params_iter = (
-        (annotgroup_uuid, annotgroup_text, annotgroup_note,)
-        for (annotgroup_uuid, annotgroup_text, annotgroup_note,) in zip(
-            annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
+        (
+            annotgroup_uuid,
+            annotgroup_text,
+            annotgroup_note,
         )
+        for (
+            annotgroup_uuid,
+            annotgroup_text,
+            annotgroup_note,
+        ) in zip(annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list)
     )
     get_rowid_from_superkey = ibs.get_annotgroup_rowid_from_superkey
     # FIXME: encode superkey paramx
@@ -108,7 +114,7 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
 @register_ibs_method
 # @register_api('/api/annotgroup/', methods=['DELETE'])
 def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
-    """ annotgroup.delete(annotgroup_rowid_list)
+    """annotgroup.delete(annotgroup_rowid_list)
 
     delete annotgroup rows
 
@@ -148,11 +154,11 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
 # @register_api('/api/annotgroup/gar/rowids/', methods=['GET'])
 def get_annotgroup_gar_rowids(ibs, annotgroup_rowid_list, eager=True, nInput=None):
     """
-        Auto-docstr for 'get_annotgroup_gar_rowids'
+    Auto-docstr for 'get_annotgroup_gar_rowids'
 
-        RESTful:
-            Method: GET
-            URL:    /api/annotgroup/gar/rowids/
+    RESTful:
+        Method: GET
+        URL:    /api/annotgroup/gar/rowids/
     """
     colnames = (GAR_ROWID,)
     gar_rowid_list = ibs.db.get(
@@ -169,7 +175,7 @@ def get_annotgroup_gar_rowids(ibs, annotgroup_rowid_list, eager=True, nInput=Non
 @accessor_decors.getter_1to1
 # @register_api('/api/annotgroup/note/', methods=['GET'])
 def get_annotgroup_note(ibs, annotgroup_rowid_list, eager=True, nInput=None):
-    """ annotgroup_note_list <- annotgroup.annotgroup_note[annotgroup_rowid_list]
+    """annotgroup_note_list <- annotgroup.annotgroup_note[annotgroup_rowid_list]
 
     gets data from the "native" column "annotgroup_note" in the "annotgroup" table
 
@@ -210,7 +216,7 @@ def get_annotgroup_note(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 def get_annotgroup_rowid_from_superkey(
     ibs, annotgroup_text_list, eager=True, nInput=None
 ):
-    """ annotgroup_rowid_list <- annotgroup[annotgroup_text_list]
+    """annotgroup_rowid_list <- annotgroup[annotgroup_text_list]
 
     Args:
         superkey lists: annotgroup_text_list
@@ -241,7 +247,7 @@ def get_annotgroup_rowid_from_superkey(
 @accessor_decors.getter_1to1
 # @register_api('/api/annotgroup/text/', methods=['GET'])
 def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
-    """ annotgroup_text_list <- annotgroup.annotgroup_text[annotgroup_rowid_list]
+    """annotgroup_text_list <- annotgroup.annotgroup_text[annotgroup_rowid_list]
 
     gets data from the "native" column "annotgroup_text" in the "annotgroup" table
 
@@ -282,7 +288,7 @@ def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 @accessor_decors.getter_1to1
 # @register_api('/api/annotgroup/uuid/', methods=['GET'])
 def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
-    """ annotgroup_uuid_list <- annotgroup.annotgroup_uuid[annotgroup_rowid_list]
+    """annotgroup_uuid_list <- annotgroup.annotgroup_uuid[annotgroup_rowid_list]
 
     gets data from the "native" column "annotgroup_uuid" in the "annotgroup" table
 
@@ -325,7 +331,7 @@ def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 def set_annotgroup_note(
     ibs, annotgroup_rowid_list, annotgroup_note_list, duplicate_behavior='error'
 ):
-    """ annotgroup_note_list -> annotgroup.annotgroup_note[annotgroup_rowid_list]
+    """annotgroup_note_list -> annotgroup.annotgroup_note[annotgroup_rowid_list]
 
     Args:
         annotgroup_rowid_list
@@ -353,7 +359,7 @@ def set_annotgroup_note(
 def set_annotgroup_uuid(
     ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplicate_behavior='error'
 ):
-    """ annotgroup_uuid_list -> annotgroup.annotgroup_uuid[annotgroup_rowid_list]
+    """annotgroup_uuid_list -> annotgroup.annotgroup_uuid[annotgroup_rowid_list]
 
     Args:
         annotgroup_rowid_list

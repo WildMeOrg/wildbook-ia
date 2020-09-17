@@ -894,7 +894,7 @@ def filter_annotation_set(
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
-    """ self verifier
+    """self verifier
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.IBEISControl import *  # NOQA
@@ -3939,7 +3939,11 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
     annot_age_months_est_min_text_list = ibs.get_annot_age_months_est_min_texts(aid_list)
     annot_age_months_est_max_text_list = ibs.get_annot_age_months_est_max_texts(aid_list)
     annot_age_months_est_text_list = [
-        '%s to %s' % (age_min_text, age_max_text,)
+        '%s to %s'
+        % (
+            age_min_text,
+            age_max_text,
+        )
         for age_min_text, age_max_text in zip(
             annot_age_months_est_min_text_list, annot_age_months_est_max_text_list
         )
@@ -4135,7 +4139,7 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
-    r""" annot_tags_list <- annot.annot_tags[aid_list]
+    r"""annot_tags_list <- annot.annot_tags[aid_list]
 
     gets data from the "native" column "annot_tags" in the "annot" table
 
@@ -4170,7 +4174,7 @@ def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.setter
 def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error'):
-    r""" annot_tags_list -> annot.annot_tags[aid_list]
+    r"""annot_tags_list -> annot.annot_tags[aid_list]
 
     Args:
         aid_list

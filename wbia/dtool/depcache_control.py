@@ -1597,7 +1597,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         """
         logger.info(
             '[depc] notified that columns (%s) for (%d) row(s) were modified'
-            % (prop, len(root_rowids),)
+            % (
+                prop,
+                len(root_rowids),
+            )
         )
         # for key in tables_depending_on(prop)
         # depc.delete_property(key, root_rowids)

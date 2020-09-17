@@ -32,28 +32,76 @@ TAU = 2.0 * PI
 
 VIEWTEXT_TO_YAW_RADIANS = OrderedDict(
     [
-        ('right', 0.000 * TAU,),
-        ('frontright', 0.125 * TAU,),
-        ('front', 0.250 * TAU,),
-        ('frontleft', 0.375 * TAU,),
-        ('left', 0.500 * TAU,),
-        ('backleft', 0.625 * TAU,),
-        ('back', 0.750 * TAU,),
-        ('backright', 0.875 * TAU,),
+        (
+            'right',
+            0.000 * TAU,
+        ),
+        (
+            'frontright',
+            0.125 * TAU,
+        ),
+        (
+            'front',
+            0.250 * TAU,
+        ),
+        (
+            'frontleft',
+            0.375 * TAU,
+        ),
+        (
+            'left',
+            0.500 * TAU,
+        ),
+        (
+            'backleft',
+            0.625 * TAU,
+        ),
+        (
+            'back',
+            0.750 * TAU,
+        ),
+        (
+            'backright',
+            0.875 * TAU,
+        ),
     ]
 )
 
 # Mapping of viewpoints codes to yaw angles
 VIEWTEXT_TO_YAW_RADIANS = OrderedDict(
     [
-        ('right', 0.000 * TAU,),
-        ('frontright', 0.125 * TAU,),
-        ('front', 0.250 * TAU,),
-        ('frontleft', 0.375 * TAU,),
-        ('left', 0.500 * TAU,),
-        ('backleft', 0.625 * TAU,),
-        ('back', 0.750 * TAU,),
-        ('backright', 0.875 * TAU,),
+        (
+            'right',
+            0.000 * TAU,
+        ),
+        (
+            'frontright',
+            0.125 * TAU,
+        ),
+        (
+            'front',
+            0.250 * TAU,
+        ),
+        (
+            'frontleft',
+            0.375 * TAU,
+        ),
+        (
+            'left',
+            0.500 * TAU,
+        ),
+        (
+            'backleft',
+            0.625 * TAU,
+        ),
+        (
+            'back',
+            0.750 * TAU,
+        ),
+        (
+            'backright',
+            0.875 * TAU,
+        ),
     ]
 )
 VIEWTEXT_TO_VIEWPOINT_RADIANS = VIEWTEXT_TO_YAW_RADIANS
@@ -99,13 +147,31 @@ QUAL_UNKNOWN = 'UNKNOWN'
 
 QUALITY_INT_TO_TEXT = OrderedDict(
     [
-        (5, QUAL_EXCELLENT,),
-        (4, QUAL_GOOD,),
-        (3, QUAL_OK,),
-        (2, QUAL_POOR,),
+        (
+            5,
+            QUAL_EXCELLENT,
+        ),
+        (
+            4,
+            QUAL_GOOD,
+        ),
+        (
+            3,
+            QUAL_OK,
+        ),
+        (
+            2,
+            QUAL_POOR,
+        ),
         # oops forgot 1. will be mapped to poor
-        (0, QUAL_JUNK,),
-        (-1, QUAL_UNKNOWN,),
+        (
+            0,
+            QUAL_JUNK,
+        ),
+        (
+            -1,
+            QUAL_UNKNOWN,
+        ),
     ]
 )
 

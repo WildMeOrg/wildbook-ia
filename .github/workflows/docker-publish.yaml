@@ -28,7 +28,7 @@ jobs:
       # Log into container registries
       - name: Log into Docker Hub
         run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
-      
+
       - name: Log into GitHub Packages
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
@@ -39,7 +39,7 @@ jobs:
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           bash devops/publish.sh -t ${VERSION} -r docker.pkg.github.com ${{ matrix.images }}
           bash devops/publish.sh -t latest -r docker.pkg.github.com ${{ matrix.images }}
-      
+
       - name: Push to Docker Hub
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
         run: |

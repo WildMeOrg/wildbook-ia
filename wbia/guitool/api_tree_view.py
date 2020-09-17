@@ -53,7 +53,7 @@ class APITreeView(API_VIEW_BASE):
     # ---------------
 
     def _init_tree_behavior(view):
-        """ Tree behavior
+        """Tree behavior
 
         SeeAlso:
             api_item_view._init_itemview_behavior
@@ -61,7 +61,7 @@ class APITreeView(API_VIEW_BASE):
         pass
 
     def _init_header_behavior(view):
-        """ Header behavior
+        """Header behavior
 
         CommandLine:
             python -m wbia.guitool.api_tree_view --test-_init_header_behavior

@@ -490,8 +490,7 @@ FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 def testdata_ibs():
-    r"""
-    """
+    r""""""
     import wbia
 
     ibs = wbia.opendb('testdb1')
@@ -1070,8 +1069,7 @@ def _init_burned_in_species(ibs):
 @register_ibs_method
 @profile
 def _load_named_config(ibs, cfgname=None):
-    r"""
-    """
+    r""""""
     # TODO: update cfgs between versions
     # Try to load previous config otherwise default
     # use_config_cache = not (ut.is_developer() and not ut.get_argflag(('--nocache-pref',)))

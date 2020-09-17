@@ -93,8 +93,7 @@ class DistinctivnessNormalizer(ut.Cachable):
         return cfgstr
 
     def add_support(dstcnvs_normer, new_vecs):
-        """
-        """
+        """"""
         raise NotImplementedError()
         pass
 

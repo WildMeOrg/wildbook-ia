@@ -851,7 +851,7 @@ class DetectionConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class OccurrenceConfig(ConfigBase):
-    """ OccurrenceConfig
+    """OccurrenceConfig
 
     CommandLine:
         python -m wbia.algo.Config --exec-OccurrenceConfig --show
@@ -981,7 +981,7 @@ def update_query_config(cfg, **kwargs):
 def load_named_config(
     cfgname, dpath, use_config_cache=False, verbose=ut.VERBOSE and ut.NOT_QUIET
 ):
-    """ hack 12-30-2014
+    """hack 12-30-2014
 
     Args:
         cfgname (str):
@@ -1098,7 +1098,7 @@ def _default_config(cfg, cfgname=None, new=True):
 
 @profile
 def _default_named_config(cfg, cfgname):
-    """ hack 12-30-2014
+    """hack 12-30-2014
 
     list default parameters per species
 

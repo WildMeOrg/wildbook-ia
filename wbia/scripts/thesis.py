@@ -3197,7 +3197,9 @@ class Chap3Measures(object):
         )
         n_annots_per_enc = ut.lmap(len, encounters)
         enc_info['n_annots_per_encounter'] = ave_str(
-            np.mean(n_annots_per_enc), np.std(n_annots_per_enc), precision=1,
+            np.mean(n_annots_per_enc),
+            np.std(n_annots_per_enc),
+            precision=1,
         )
         enc_info['n_annots'] = sum(n_annots_per_enc)
 

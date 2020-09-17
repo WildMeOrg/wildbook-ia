@@ -49,7 +49,7 @@ RUN set -ex \
  && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-curvrank.git \
  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
  && git fetch origin \
- && git checkout develop 
+ && git checkout develop
 
 RUN set -ex \
  && cd /wbia \
@@ -169,7 +169,7 @@ RUN set -ex \
         keras==2.2.5
 
 # Restore copy of our build OpenCV
-# When opencv-python is installed and subsequently un-installed is clobbers our version 
+# When opencv-python is installed and subsequently un-installed is clobbers our version
 RUN set -ex \
  && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
  && cp -r /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \

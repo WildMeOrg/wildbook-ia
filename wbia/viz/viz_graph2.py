@@ -382,14 +382,22 @@ class AnnotStateDialog(gt.GuitoolWidget):
         row = next(row_counter)
         self.addNewLabel('Quality:', row=row, column=0, align='left')
         self.qual_combo = self.addNewComboBox(
-            options=valid_quals, editor_mode='hybrid', row=row, column=1, columnSpan=4,
+            options=valid_quals,
+            editor_mode='hybrid',
+            row=row,
+            column=1,
+            columnSpan=4,
         )
         gt.adjustSizePolicy(self.qual_combo, hStretch=5)
 
         row = next(row_counter)
         self.addNewLabel('Viewpoint:', row=row, column=0, align='left')
         self.view_combo = self.addNewComboBox(
-            options=valid_views, editor_mode='hybrid', row=row, column=1, columnSpan=4,
+            options=valid_views,
+            editor_mode='hybrid',
+            row=row,
+            column=1,
+            columnSpan=4,
         )
         gt.adjustSizePolicy(self.view_combo, hStretch=5)
 
