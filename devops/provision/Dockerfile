@@ -113,15 +113,15 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-pie \
+ && /bin/bash run_developer_setup.sh'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-deepsense \
- && pip install -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-pie \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
