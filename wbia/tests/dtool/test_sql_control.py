@@ -486,6 +486,33 @@ class TestAPI:
         assert evens == [(i + 1, i) for i in range(0, 10) if not i % 2]
         assert odds == [(i + 1, i) for i in range(0, 10) if i % 2]
 
+    def test_get_where_eq(self):
+        table_name = 'test_get_where_eq'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (
+                (i % 2) and 'odd' or 'even',
+                i,
+                i * 2.01,
+            )
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        results = self.ctrlr.get_where_eq(
+            table_name,
+            ['id', 'y'],
+            (['even', 8], ['odd', 7]),  # params_iter
+            ('x', 'y'),  # where_colnames
+            op='AND',
+            unpack_scalars=True,
+        )
+
+        # Verify query
+        assert results == [(9, 8), (8, 7)]
+
     def test_setting(self):
         # Note, this is not a comprehensive test. It only attempts to test the SQL logic.
         # Make a table for records

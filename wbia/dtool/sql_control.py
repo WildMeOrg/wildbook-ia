@@ -898,28 +898,34 @@ class SQLDatabaseController(object):
         params_iter,
         where_colnames,
         unpack_scalars=True,
-        eager=True,
         op='AND',
         **kwargs,
     ):
-        """hacked in function for nicer templates
+        """Executes a SQL select where the given parameters match/equal
+        the specified where columns.
 
-        unpack_scalars = True
-        kwargs = {}
+        Args:
+            tblname (str): table name
+            colnames (tuple[str]): sequence of column names
+            params_iter (list[list]): a sequence of a sequence with parameters,
+                                      where each item in the sequence is used in a SQL execution
+            where_colnames (list[str]): column names to match for equality against the same index
+                                        of the param_iter values
+            op (str): SQL boolean operator (e.g. AND, OR)
+            unpack_scalars (bool): [deprecated] use to unpack a single result from each query
+                                   only use with operations that return a single result for each query
+                                   (default: True)
 
-        Kwargs:
-            verbose:
         """
-        andwhere_clauses = [colname + '=?' for colname in where_colnames]
-        logicop_ = ' %s ' % (op,)
-        where_clause = logicop_.join(andwhere_clauses)
+        equal_conditions = [f'{c}=:{c}' for c in where_colnames]
+        where_conditions = f' {op} '.upper().join(equal_conditions)
+        params = [dict(zip(where_colnames, p)) for p in params_iter]
         return self.get_where(
             tblname,
             colnames,
-            params_iter,
-            where_clause,
+            params,
+            where_conditions,
             unpack_scalars=unpack_scalars,
-            eager=eager,
             **kwargs,
         )
 
