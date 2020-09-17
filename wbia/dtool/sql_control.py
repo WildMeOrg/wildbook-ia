@@ -64,13 +64,13 @@ METADATA_TABLE_COLUMNS = {
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
-def _unpacker(results_):
+def _unpacker(results):
     """ HELPER: Unpacks results if unpack_scalars is True. """
-    if len(results_) == 0:
+    if not results:  # Check for None or empty list
         results = None
     else:
-        assert len(results_) <= 1, 'throwing away results! { %r }' % (results_,)
-        results = results_[0]
+        assert len(results) <= 1, 'throwing away results! { %r }' % (results,)
+        results = results[0]
     return results
 
 
