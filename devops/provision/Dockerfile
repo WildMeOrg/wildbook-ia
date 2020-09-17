@@ -75,23 +75,23 @@ RUN set -ex \
 # WBIA third-party toolkits
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
-     && cd /wbia/wbia-tpl-pyhesaff \
-     && /bin/bash run_developer_setup.sh'
+ && cd /wbia/wbia-tpl-pyhesaff \
+ && /bin/bash run_developer_setup.sh'
 
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
-     && cd /wbia/wbia-tpl-pyflann \
-     && /bin/bash run_developer_setup.sh'
+ && cd /wbia/wbia-tpl-pyflann \
+ && /bin/bash run_developer_setup.sh'
 
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
-     && cd /wbia/wbia-tpl-pydarknet \
-     && /bin/bash run_developer_setup.sh'
+ && cd /wbia/wbia-tpl-pydarknet \
+ && /bin/bash run_developer_setup.sh'
 
 RUN set -ex \
  && /bin/bash -xc '. /virtualenv/env3/bin/activate \
-     && cd /wbia/wbia-tpl-pyrf \
-     && /bin/bash run_developer_setup.sh'
+ && cd /wbia/wbia-tpl-pyrf \
+ && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-brambox \
@@ -105,12 +105,12 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
- && pip install -e .'
+ && /bin/bash run_developer_setup.sh'
 
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-cnn \
- && pip install -e .'
+ && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
