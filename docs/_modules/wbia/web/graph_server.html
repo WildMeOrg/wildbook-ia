@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.graph_server &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.graph_server &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,17 +33,70 @@
             
   <h1>Source code for wbia.web.graph_server</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">concurrent</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="c1"># from wbia.web import futures_utils as futures_actors</span>
-<span class="kn">import</span> <span class="nn">futures_actors</span>
 
-<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ProcessActorExecutor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ProcessActorExecutor">[docs]</a><span class="k">class</span> <span class="nc">ProcessActorExecutor</span><span class="p">(</span><span class="n">ProcessPoolExecutor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actor_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes a new ThreadPoolExecutor instance.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ProcessActorExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_instance</span> <span class="o">=</span> <span class="n">actor_class</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ProcessActorExecutor.post"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ProcessActorExecutor.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_instance</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ThreadedActorExecutor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ThreadedActorExecutor">[docs]</a><span class="k">class</span> <span class="nc">ThreadedActorExecutor</span><span class="p">(</span><span class="n">ThreadPoolExecutor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actor_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes a new ThreadPoolExecutor instance.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ThreadedActorExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_instance</span> <span class="o">=</span> <span class="n">actor_class</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ThreadedActorExecutor.post"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ThreadedActorExecutor.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_instance</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Actor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.Actor">[docs]</a><span class="k">class</span> <span class="nc">Actor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Actor.executor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.Actor.executor">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an asychronous instance of this Actor and returns the executor</span>
+<span class="sd">        to manage it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;use ProcessActor or ThreadActor&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Actor.handle"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.Actor.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method recieves, handles, and responds to the messages sent from</span>
+<span class="sd">        the executor. This function can return arbitrary values. These values</span>
+<span class="sd">        can be accessed from the main thread using the Future object returned</span>
+<span class="sd">        when the message was posted to this actor by the executor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;must implement message handler&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ProcessActor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ProcessActor">[docs]</a><span class="k">class</span> <span class="nc">ProcessActor</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+<div class="viewcode-block" id="ProcessActor.executor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ProcessActor.executor">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># assert &#39;mp_context&#39; not in kwargs</span>
+        <span class="c1"># kwargs[&#39;mp_context&#39;] = multiprocessing.get_context(&#39;spawn&#39;)</span>
+        <span class="k">return</span> <span class="n">ProcessActorExecutor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ThreadActor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ThreadActor">[docs]</a><span class="k">class</span> <span class="nc">ThreadActor</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+<div class="viewcode-block" id="ThreadActor.executor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.ThreadActor.executor">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ThreadedActorExecutor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="double_review_test"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.double_review_test">[docs]</a><span class="k">def</span> <span class="nf">double_review_test</span><span class="p">():</span>
@@ -71,14 +123,14 @@
         <span class="s1">&#39;init&#39;</span><span class="p">:</span> <span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">start_resp</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;start_resp = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start_resp</span><span class="p">))</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;start_resp = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start_resp</span><span class="p">))</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">infr</span>
 
     <span class="n">infr</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">100</span>
 
     <span class="n">user_resp</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">continue_review</span><span class="p">()</span>
     <span class="n">edge</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">user_resp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
 
     <span class="n">last</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -86,7 +138,7 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">edge_decision</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
         <span class="n">user_resp</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">continue_review</span><span class="p">()</span>
         <span class="n">edge</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">user_resp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">last</span> <span class="o">!=</span> <span class="n">edge</span>
         <span class="n">last</span> <span class="o">=</span> <span class="n">edge</span></div>
 
@@ -112,7 +164,7 @@
     <span class="k">return</span> <span class="n">payload</span></div>
 
 
-<div class="viewcode-block" id="testdata_feedback_payload"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.testdata_feedback_payload">[docs]</a><span class="k">def</span> <span class="nf">testdata_feedback_payload</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_testdata_feedback_payload</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">decision</span><span class="p">):</span>
     <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;add_feedback&#39;</span><span class="p">,</span>
         <span class="s1">&#39;edge&#39;</span><span class="p">:</span> <span class="n">edge</span><span class="p">,</span>
@@ -126,14 +178,15 @@
         <span class="s1">&#39;timestamp_c2&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
         <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="k">return</span> <span class="n">payload</span></div>
+    <span class="k">return</span> <span class="n">payload</span>
 
 
-<div class="viewcode-block" id="test_foo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.test_foo">[docs]</a><span class="k">def</span> <span class="nf">test_foo</span><span class="p">(</span><span class="n">future</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FOO </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">future</span><span class="p">,))</span></div>
+<span class="k">def</span> <span class="nf">_test_foo</span><span class="p">(</span><span class="n">future</span><span class="p">):</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;FOO </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">future</span><span class="p">,))</span>
 
 
-<span class="n">GRAPH_ACTOR_CLASS</span> <span class="o">=</span> <span class="n">futures_actors</span><span class="o">.</span><span class="n">ProcessActor</span>
+<span class="c1"># GRAPH_ACTOR_CLASS = ProcessActor if ut.LINUX or ut.WIN32 else ThreadActor</span>
+<span class="n">GRAPH_ACTOR_CLASS</span> <span class="o">=</span> <span class="n">ThreadActor</span>
 
 
 <div class="viewcode-block" id="GraphActor"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphActor">[docs]</a><span class="k">class</span> <span class="nc">GraphActor</span><span class="p">(</span><span class="n">GRAPH_ACTOR_CLASS</span><span class="p">):</span>
@@ -153,12 +206,13 @@
 <span class="sd">        &gt;&gt;&gt; user_request = actor.handle({&#39;action&#39;: &#39;continue_review&#39;})</span>
 <span class="sd">        &gt;&gt;&gt; # Wait for a response and  the GraphActor in another proc</span>
 <span class="sd">        &gt;&gt;&gt; edge, priority, edge_data = user_request[0]</span>
-<span class="sd">        &gt;&gt;&gt; user_resp_payload = testdata_feedback_payload(edge, &#39;match&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; user_resp_payload = _testdata_feedback_payload(edge, &#39;match&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; content = actor.handle(user_resp_payload)</span>
 <span class="sd">        &gt;&gt;&gt; actor.infr.dump_logs()</span>
 
 
 <span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.web.graph_server import *</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; actor = GraphActor()</span>
@@ -183,13 +237,13 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;user_request = {!r}&#39;.format(user_request))</span>
 <span class="sd">        &gt;&gt;&gt; # Wait for a response and  the GraphActor in another proc</span>
 <span class="sd">        &gt;&gt;&gt; edge, priority, edge_data = user_request[0]</span>
-<span class="sd">        &gt;&gt;&gt; user_resp_payload = testdata_feedback_payload(edge, &#39;match&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; user_resp_payload = _testdata_feedback_payload(edge, &#39;match&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; content = actor.handle(user_resp_payload)</span>
 <span class="sd">        &gt;&gt;&gt; actor.infr.dump_logs()</span>
 <span class="sd">        &gt;&gt;&gt; actor.infr.status()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">actor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">actor</span><span class="p">):</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="GraphActor.handle"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphActor.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
@@ -229,8 +283,8 @@
                         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Actor Server Error: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
                         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;Actor Server Traceback: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
                     <span class="k">raise</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">](</span><span class="n">trace</span><span class="p">)</span></div>
 
@@ -242,7 +296,7 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Create the AnnotInference</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;starting via actor with ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;starting via actor with ibs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;started via actor&#39;</span><span class="p">)</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config</span><span class="p">)))</span>
@@ -283,18 +337,25 @@
         <span class="k">return</span> <span class="n">response</span></div>
 
 <div class="viewcode-block" id="GraphActor.remove_annots"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphActor.remove_annots">[docs]</a>    <span class="k">def</span> <span class="nf">remove_annots</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Removing aids=</span><span class="si">%r</span><span class="s1"> from AnnotInference&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids</span><span class="p">,))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing aids=</span><span class="si">%r</span><span class="s1"> from AnnotInference&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids</span><span class="p">,))</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">remove_aids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> got response = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Applying NonDynamic Update to AnnotInference&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> got response = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Applying NonDynamic Update to AnnotInference&#39;</span><span class="p">)</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">apply_nondynamic_update</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> ...applied&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> ...applied&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;removed&#39;</span></div>
 
 <div class="viewcode-block" id="GraphActor.update_task_thresh"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphActor.update_task_thresh">[docs]</a>    <span class="k">def</span> <span class="nf">update_task_thresh</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating actor.infr.task_thresh with </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">decision</span><span class="p">,</span> <span class="n">value</span><span class="p">,))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Updating actor.infr.task_thresh with </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">task</span><span class="p">,</span>
+                <span class="n">decision</span><span class="p">,</span>
+                <span class="n">value</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">[</span><span class="n">task</span><span class="p">][</span><span class="n">decision</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updated actor.infr.task_thresh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Updated actor.infr.task_thresh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">task_thresh</span><span class="p">,))</span>
         <span class="k">return</span> <span class="s1">&#39;updated&#39;</span></div>
 
 <div class="viewcode-block" id="GraphActor.add_annots"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphActor.add_annots">[docs]</a>    <span class="k">def</span> <span class="nf">add_annots</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -361,11 +422,11 @@
 <span class="sd">        &gt;&gt;&gt; payload = testdata_start_payload()</span>
 <span class="sd">        &gt;&gt;&gt; client.post(payload).result()</span>
 <span class="sd">        &gt;&gt;&gt; f1 = client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">        &gt;&gt;&gt; f1.add_done_callback(test_foo)</span>
+<span class="sd">        &gt;&gt;&gt; f1.add_done_callback(_test_foo)</span>
 <span class="sd">        &gt;&gt;&gt; user_request = f1.result()</span>
 <span class="sd">        &gt;&gt;&gt; # Wait for a response and  the GraphActor in another proc</span>
 <span class="sd">        &gt;&gt;&gt; edge, priority, edge_data = user_request[0]</span>
-<span class="sd">        &gt;&gt;&gt; user_resp_payload = testdata_feedback_payload(edge, &#39;match&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; user_resp_payload = _testdata_feedback_payload(edge, &#39;match&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; f2 = client.post(user_resp_payload)</span>
 <span class="sd">        &gt;&gt;&gt; f2.result()</span>
 <span class="sd">        &gt;&gt;&gt; # Debug by getting the actor over a mp.Pipe</span>
@@ -386,39 +447,39 @@
 <span class="sd">    #     &gt;&gt;&gt; # The infr algorithm needs a review</span>
 <span class="sd">    #     &gt;&gt;&gt; edge, priority, edge_data = user_request[0]</span>
 <span class="sd">    #     &gt;&gt;&gt; #</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;wait&#39;, &#39;num&#39;: float(30)})</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
-<span class="sd">    #     &gt;&gt;&gt; client.post(testdata_feedback_payload(edge, &#39;match&#39;))</span>
+<span class="sd">    #     &gt;&gt;&gt; client.post(_testdata_feedback_payload(edge, &#39;match&#39;))</span>
 <span class="sd">    #     &gt;&gt;&gt; client.post({&#39;action&#39;: &#39;continue_review&#39;})</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">graph_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">{},</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">graph_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">{},</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">client</span><span class="o">.</span><span class="n">graph_uuid</span> <span class="o">=</span> <span class="n">graph_uuid</span>
         <span class="n">client</span><span class="o">.</span><span class="n">callbacks</span> <span class="o">=</span> <span class="n">callbacks</span>
         <span class="n">client</span><span class="o">.</span><span class="n">executor</span> <span class="o">=</span> <span class="kc">None</span>
@@ -445,7 +506,7 @@
 <div class="viewcode-block" id="GraphClient.initialize"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphClient.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
         <span class="n">client</span><span class="o">.</span><span class="n">executor</span> <span class="o">=</span> <span class="n">GraphActor</span><span class="o">.</span><span class="n">executor</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
         <span class="n">client</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
 
 <div class="viewcode-block" id="GraphClient.shutdown"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphClient.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
@@ -523,7 +584,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;Exception&#39;</span>
                 <span class="n">client</span><span class="o">.</span><span class="n">exception</span> <span class="o">=</span> <span class="n">exception</span>
-            <span class="n">client</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> in Futures Queue)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">num_futures</span><span class="p">,)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> in Futures Queue)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">status</span><span class="p">,</span>
+                <span class="n">num_futures</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">exception</span></div>
 
 <div class="viewcode-block" id="GraphClient.add_annots"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphClient.add_annots">[docs]</a>    <span class="k">def</span> <span class="nf">add_annots</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
@@ -533,7 +597,7 @@
         <span class="n">client</span><span class="o">.</span><span class="n">review_vip</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">data_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GRAPH CLIENT GOT NONE UPDATE&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;GRAPH CLIENT GOT NONE UPDATE&#39;</span><span class="p">)</span>
             <span class="n">client</span><span class="o">.</span><span class="n">review_dict</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
@@ -542,8 +606,8 @@
             <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">num_items</span><span class="p">)</span>
             <span class="n">first</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_list</span><span class="p">[:</span><span class="n">num_samples</span><span class="p">])</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;UPDATING GRAPH CLIENT WITH </span><span class="si">{}</span><span class="s1"> ITEM(S):&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_items</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;First few are: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;UPDATING GRAPH CLIENT WITH </span><span class="si">{}</span><span class="s1"> ITEM(S):&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_items</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;First few are: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
             <span class="n">client</span><span class="o">.</span><span class="n">review_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
             <span class="k">for</span> <span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">edge_data_dict</span><span class="p">)</span> <span class="ow">in</span> <span class="n">data_list</span><span class="p">:</span>
@@ -572,7 +636,7 @@
 <div class="viewcode-block" id="GraphClient.sample"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.graph_server.GraphClient.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">previous_edge_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">max_previous_edges</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">client</span><span class="o">.</span><span class="n">review_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebReviewFinishedException</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">graph_uuid</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SAMPLING&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SAMPLING&#39;</span><span class="p">)</span>
         <span class="n">edge_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">review_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -590,38 +654,24 @@
                         <span class="k">break</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SHOWING VIP TO USER!!!&#39;</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SHOWING VIP TO USER!!!&#39;</span><span class="p">)</span>
                     <span class="n">edge</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">review_vip</span>
                     <span class="n">client</span><span class="o">.</span><span class="n">prev_vip</span> <span class="o">=</span> <span class="n">edge</span>
                     <span class="n">client</span><span class="o">.</span><span class="n">review_vip</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)&#39;</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!&#39;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">edge</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;VIP ALREADY SHOWN!!!&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;VIP ALREADY SHOWN!!!&#39;</span><span class="p">)</span>
             <span class="n">edge</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span>
 
         <span class="n">priority</span><span class="p">,</span> <span class="n">data_dict</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">review_dict</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SAMPLED edge = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SAMPLED edge = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">data_dict</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.web.graph_server</span>
-<span class="sd">        python -m wbia.web.graph_server --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -657,17 +707,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -684,7 +732,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

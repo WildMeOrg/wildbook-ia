@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dtool.depcache_table &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.dtool.depcache_table &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -55,22 +54,26 @@
 
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
 
-<span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="k">import</span> <span class="n">SQLDatabaseController</span>
-<span class="kn">from</span> <span class="nn">wbia.dtool.types</span> <span class="k">import</span> <span class="n">TYPE_TO_SQLTYPE</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="kn">import</span> <span class="n">sqlite3</span> <span class="k">as</span> <span class="n">lite</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="kn">import</span> <span class="n">SQLDatabaseController</span>
+<span class="kn">from</span> <span class="nn">wbia.dtool.types</span> <span class="kn">import</span> <span class="n">TYPE_TO_SQLTYPE</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
 
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depcache_table]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">EXTERN_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_extern_uri&#39;</span>
@@ -88,15 +91,13 @@
 <span class="c1"># else:</span>
 <span class="n">GRACE_PERIOD</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--grace&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="n">STORE_CFGDICT</span> <span class="o">=</span> <span class="kc">True</span>
-
 
 <div class="viewcode-block" id="ExternType"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.depcache_table.ExternType">[docs]</a><span class="k">class</span> <span class="nc">ExternType</span><span class="p">(</span><span class="n">ub</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Type to denote an external resource not saved in an SQL table</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read_func</span><span class="p">,</span> <span class="n">write_func</span><span class="p">,</span> <span class="n">extern_ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extkey</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read_func</span><span class="p">,</span> <span class="n">write_func</span><span class="p">,</span> <span class="n">extern_ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extkey</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_func</span> <span class="o">=</span> <span class="n">write_func</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">read_func</span> <span class="o">=</span> <span class="n">read_func</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">extern_ext</span> <span class="o">=</span> <span class="n">extern_ext</span>
@@ -116,7 +117,7 @@
 <div class="viewcode-block" id="ExternalStorageException"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.depcache_table.ExternalStorageException">[docs]</a><span class="k">class</span> <span class="nc">ExternalStorageException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Indicates a missing external file &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ExternalStorageException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -170,7 +171,10 @@
     <span class="sd">&quot;&quot;&quot; SQL definition of configuration table. &quot;&quot;&quot;</span>
     <span class="n">config_addtable_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="n">CONFIG_TABLE</span><span class="p">,),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;tablename&#39;</span><span class="p">,</span>
+                <span class="n">CONFIG_TABLE</span><span class="p">,</span>
+            <span class="p">),</span>
             <span class="p">(</span>
                 <span class="s1">&#39;coldef_list&#39;</span><span class="p">,</span>
                 <span class="p">[</span>
@@ -178,8 +182,8 @@
                     <span class="p">(</span><span class="n">CONFIG_HASHID</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
                     <span class="p">(</span><span class="n">CONFIG_TABLENAME</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
                     <span class="p">(</span><span class="n">CONFIG_STRID</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span>
-                <span class="p">]</span>
-                <span class="o">+</span> <span class="p">([(</span><span class="n">CONFIG_DICT</span><span class="p">,</span> <span class="s1">&#39;DICT&#39;</span><span class="p">)]</span> <span class="k">if</span> <span class="n">STORE_CFGDICT</span> <span class="k">else</span> <span class="p">[]),</span>
+                    <span class="p">(</span><span class="n">CONFIG_DICT</span><span class="p">,</span> <span class="s1">&#39;DICT&#39;</span><span class="p">),</span>
+                <span class="p">],</span>
             <span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;docstr&#39;</span><span class="p">,</span> <span class="s1">&#39;table for algo configurations&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;superkeys&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="n">CONFIG_HASHID</span><span class="p">,)]),</span>
@@ -357,7 +361,7 @@
 <span class="sd">            WHERE config_rowid IN {bad_rowids}</span>
 <span class="sd">            &quot;&quot;&quot;</span>
         <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">bad_rowids</span><span class="o">=</span><span class="n">in_str</span><span class="p">)</span>
-        <span class="c1"># print(command)</span>
+        <span class="c1"># logger.info(command)</span>
         <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
         <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="n">table</span><span class="o">.</span><span class="n">delete_rows</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">dry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delete_extern</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -443,7 +447,6 @@
         <span class="k">return</span> <span class="n">config_rowid_list</span>
 
     <span class="k">def</span> <span class="nf">get_config_from_rowid</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">config_rowids</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">STORE_CFGDICT</span>
         <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="n">CONFIG_TABLE</span><span class="p">,</span>
             <span class="n">colnames</span><span class="o">=</span><span class="p">(</span><span class="n">CONFIG_DICT</span><span class="p">,),</span>
@@ -464,26 +467,22 @@
             <span class="n">config_strid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">config_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">config_strid</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config_strid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_strid</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config_hashid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_hashid</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config_strid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_strid</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config_hashid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_hashid</span><span class="p">,))</span>
         <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_rowid_from_hashid</span>
-        <span class="k">if</span> <span class="n">STORE_CFGDICT</span><span class="p">:</span>
-            <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONFIG_HASHID</span><span class="p">,</span> <span class="n">CONFIG_TABLENAME</span><span class="p">,</span> <span class="n">CONFIG_STRID</span><span class="p">,</span> <span class="n">CONFIG_DICT</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">):</span>
-                <span class="c1"># Hack for requests</span>
-                <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span>
-            <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
-            <span class="n">param_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">config_hashid</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">config_strid</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONFIG_HASHID</span><span class="p">,</span> <span class="n">CONFIG_TABLENAME</span><span class="p">,</span> <span class="n">CONFIG_STRID</span><span class="p">)</span>
-            <span class="n">param_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">config_hashid</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">config_strid</span><span class="p">)]</span>
+        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONFIG_HASHID</span><span class="p">,</span> <span class="n">CONFIG_TABLENAME</span><span class="p">,</span> <span class="n">CONFIG_STRID</span><span class="p">,</span> <span class="n">CONFIG_DICT</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">):</span>
+            <span class="c1"># Hack for requests</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">config_hashid</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">config_strid</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)]</span>
         <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
             <span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">param_list</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span>
         <span class="p">)</span>
         <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">config_rowid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config_rowid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid_list</span><span class="p">,))</span>
-            <span class="c1"># print(&#39;config_rowid = %r&#39; % (config_rowid,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config_rowid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid_list</span><span class="p">,))</span>
+            <span class="c1"># logger.info(&#39;config_rowid = %r&#39; % (config_rowid,))</span>
         <span class="k">return</span> <span class="n">config_rowid</span>
 
 
@@ -511,11 +510,13 @@
 <span class="sd">            &gt;&gt;&gt; for table in ut.take(depc, tablenames): # .tables:</span>
 <span class="sd">            &gt;&gt;&gt;     table.print_internal_info()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;----&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
         <span class="c1"># Print the other inferred attrs</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.parent_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parent_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.data_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;table.parent_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parent_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.data_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
         <span class="c1"># Print the inferred allcol attrs</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
             <span class="s1">&#39;table.internal_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span>
@@ -523,60 +524,64 @@
             <span class="s1">&#39;python&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">add_table_kw</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_addtable_kw</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.add_table_kw = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">add_table_kw</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.add_table_kw = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">add_table_kw</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
         <span class="n">table</span><span class="o">.</span><span class="n">print_sql_info</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">all_attrs</span><span class="p">:</span>
             <span class="c1"># Print all attributes</span>
             <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_instance_attrnames</span><span class="p">(</span>
                 <span class="n">table</span><span class="p">,</span> <span class="n">with_properties</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  table.</span><span class="si">%s</span><span class="s1"> = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">a</span><span class="p">)))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  table.</span><span class="si">%s</span><span class="s1"> = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">a</span><span class="p">)))</span>
 
-    <span class="k">def</span> <span class="nf">print_table</span><span class="p">(</span><span class="n">table</span><span class="p">,):</span>
+    <span class="k">def</span> <span class="nf">print_table</span><span class="p">(</span>
+        <span class="n">table</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_table_csv</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
         <span class="c1"># if table.ismulti:</span>
         <span class="c1">#    table.print_model_manifests()</span>
 
     <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">with_colattrs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_graphattrs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; debug function &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TABLE ATTRIBUTES&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.tablename = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.isinteractive = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">isinteractive</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.default_onthefly = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">default_onthefly</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.rm_extern_on_delete = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">rm_extern_on_delete</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.chunksize = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">chunksize</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.fname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">fname</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.docstr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">docstr</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.data_colnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_colnames</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.data_coltypes = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_coltypes</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TABLE ATTRIBUTES&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.tablename = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.isinteractive = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">isinteractive</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.default_onthefly = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">default_onthefly</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.rm_extern_on_delete = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">rm_extern_on_delete</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.chunksize = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">chunksize</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.fname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">fname</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.docstr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">docstr</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.data_colnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_colnames</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.data_coltypes = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_coltypes</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">with_graphattrs</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TABLE GRAPH ATTRIBUTES&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.children = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">children</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.parent = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parent</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.configclass = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">configclass</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.requestclass = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">requestclass</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TABLE GRAPH ATTRIBUTES&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.children = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">children</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.parent = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parent</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.configclass = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">configclass</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.requestclass = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">requestclass</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">with_colattrs</span><span class="p">:</span>
             <span class="n">nl</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TABEL COLUMN ATTRIBUTES&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.data_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="n">nl</span><span class="p">),))</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TABEL COLUMN ATTRIBUTES&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;table.data_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="n">nl</span><span class="p">),)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;table.parent_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parent_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="n">nl</span><span class="p">),)</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;table.internal_data_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">internal_data_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="n">nl</span><span class="p">),)</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;table.internal_parent_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">internal_parent_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="n">nl</span><span class="p">),)</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;table.internal_col_attrs = </span><span class="si">%s</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">internal_col_attrs</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="n">nl</span><span class="p">),)</span>
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">print_schemadef</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_autogen_str</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_autogen_str</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)))</span>
 
     <span class="k">def</span> <span class="nf">print_configs</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -599,18 +604,18 @@
 <span class="sd">            &gt;&gt;&gt; table.print_configs()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">CONFIG_TABLE</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">print_csv</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="n">truncate</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="n">truncate</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">print_model_manifests</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;manifests&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;manifests&#39;</span><span class="p">)</span>
         <span class="n">rowids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_all_rowids</span><span class="p">()</span>
         <span class="n">uuids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_model_uuid</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">uuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">uuids</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">get_model_inputs</span><span class="p">(</span><span class="n">uuid</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">get_model_inputs</span><span class="p">(</span><span class="n">uuid</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_assert_self</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data_colnames</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
@@ -625,18 +630,21 @@
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;varargs and kwargs must have one arg for depcache&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
                     <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="s1">&#39;preproc_func=</span><span class="si">%r</span><span class="s1"> for table=</span><span class="si">%s</span><span class="s1"> must have a &#39;</span>
                         <span class="s1">&#39;depcache arg, at least one parent rowid arg, &#39;</span>
                         <span class="s1">&#39;and a config arg&#39;</span>
-                    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">preproc_func</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,)</span>
+                    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">table</span><span class="o">.</span><span class="n">preproc_func</span><span class="p">,</span>
+                        <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
                 <span class="n">rowid_args</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowid_args</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;table.preproc_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">preproc_func</span><span class="p">,))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rowid_args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid_args</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table.preproc_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">preproc_func</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;rowid_args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid_args</span><span class="p">,))</span>
                     <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="s1">&#39;preproc function for table=</span><span class="si">%s</span><span class="s1"> must have as many &#39;</span>
                         <span class="s1">&#39;rowids </span><span class="si">%d</span><span class="s1"> args as parent </span><span class="si">%d</span><span class="s1">&#39;</span>
@@ -1192,7 +1200,7 @@
         <span class="k">return</span> <span class="n">children_tablenames</span>
 
     <span class="k">def</span> <span class="nf">show_dep_subgraph</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">inter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">ExpandableInteraction</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="kn">import</span> <span class="n">ExpandableInteraction</span>
 
         <span class="n">autostart</span> <span class="o">=</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1232,7 +1240,7 @@
 <span class="sd">            &gt;&gt;&gt; #print(depc[&#39;smk_match&#39;].flat_compute_rmi_edges)</span>
 <span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">ExpandableInteraction</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="kn">import</span> <span class="n">ExpandableInteraction</span>
 
         <span class="n">autostart</span> <span class="o">=</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1272,7 +1280,7 @@
 <span class="sd">            &gt;&gt;&gt; pt.interactions.zoom_factory()</span>
 <span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="k">import</span> <span class="n">input_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="kn">import</span> <span class="n">input_helpers</span>
 
         <span class="n">graph</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">explicit_graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span>
@@ -1300,7 +1308,7 @@
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">            inputs = &lt;TableInput [annot[t], vocab[t], inv_index[t]]&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="k">import</span> <span class="n">input_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="kn">import</span> <span class="n">input_helpers</span>
 
         <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">expanded_input_graph</span>
         <span class="n">rootmost_inputs</span> <span class="o">=</span> <span class="n">input_helpers</span><span class="o">.</span><span class="n">get_rootmost_inputs</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span>
@@ -1449,7 +1457,13 @@
                         <span class="c1"># TODO: hash all input UUIDs and the full config together</span>
                         <span class="n">quick_access_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                         <span class="c1"># Give the setsize and setfpath data if needed</span>
-                        <span class="n">parent_extra</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">multi_setsizes</span><span class="p">,)))</span>
+                        <span class="n">parent_extra</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                            <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                                <span class="nb">zip</span><span class="p">(</span>
+                                    <span class="n">multi_setsizes</span><span class="p">,</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">quick_access_tup</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
                         <span class="n">parent_extra</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
@@ -1464,7 +1478,7 @@
                         <span class="o">+</span> <span class="n">data_cols</span>
                         <span class="o">+</span> <span class="n">parent_extra</span>
                     <span class="p">)</span>
-                    <span class="c1"># print(&#39;row_tup = %r&#39; % (row_tup,))</span>
+                    <span class="c1"># logger.info(&#39;row_tup = %r&#39; % (row_tup,))</span>
                     <span class="k">yield</span> <span class="n">row_tup</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
@@ -1598,7 +1612,7 @@
                 <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">extern_data</span><span class="p">,</span> <span class="n">extern_fpaths</span><span class="p">,</span> <span class="n">extern_writers</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">obj</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">write_func</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
                     <span class="n">abs_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">extern_dpath</span><span class="p">,</span> <span class="n">fpath</span><span class="p">)</span>
-                    <span class="c1"># print(&#39;WRITE fpath = %r, abs_fpath = %r&#39; % (fpath, abs_fpath, ))</span>
+                    <span class="c1"># logger.info(&#39;WRITE fpath = %r, abs_fpath = %r&#39; % (fpath, abs_fpath, ))</span>
                     <span class="n">write_func</span><span class="p">(</span><span class="n">abs_fpath</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">abs_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -1697,7 +1711,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_parent_ids</span><span class="p">)</span>
         <span class="c1"># if verbose:</span>
-        <span class="c1">#     print(&#39;[deptbl.compute] nInput = %r&#39; % (nInput,))</span>
+        <span class="c1">#     logger.info(&#39;[deptbl.compute] nInput = %r&#39; % (nInput,))</span>
 
         <span class="c1"># Pack arguments into column-wise order to send to the func</span>
         <span class="n">argsT</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">dirty_preproc_args</span><span class="p">)</span>
@@ -1723,9 +1737,11 @@
         <span class="k">if</span> <span class="n">DEBUG_LIST_MODE</span><span class="p">:</span>
             <span class="n">proptup_gen</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">proptup_gen</span><span class="p">)</span>
             <span class="n">num_output</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proptup_gen</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">num_output</span> <span class="o">==</span> <span class="n">nInput</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;Input and output sizes do not agree. &#39;</span>
-                <span class="s1">&#39;num_output=</span><span class="si">%r</span><span class="s1">, num_input=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_output</span><span class="p">,</span> <span class="n">nInput</span><span class="p">,)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">num_output</span> <span class="o">==</span> <span class="n">nInput</span>
+            <span class="p">),</span> <span class="s1">&#39;Input and output sizes do not agree. &#39;</span> <span class="s1">&#39;num_output=</span><span class="si">%r</span><span class="s1">, num_input=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">num_output</span><span class="p">,</span>
+                <span class="n">nInput</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="c1"># Append rowids and rectify nested and external columns</span>
         <span class="n">dirty_params_iter</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">prepare_storage</span><span class="p">(</span>
@@ -1761,7 +1777,7 @@
         <span class="n">chunksize</span> <span class="o">=</span> <span class="n">nInput</span> <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">chunksize</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">table</span><span class="o">.</span><span class="n">chunksize</span>
 
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[deptbl.compute] nInput=</span><span class="si">{}</span><span class="s1">, chunksize=</span><span class="si">{}</span><span class="s1">, tbl=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">nInput</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">chunksize</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span>
                 <span class="p">)</span>
@@ -1879,7 +1895,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="n">table</span><span class="p">,</span>
         <span class="n">depc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">parent_tablenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1958,10 +1974,10 @@
 <span class="sd">        Ensures the SQL schema for this cache table</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">table</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">fname_to_db</span><span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">fname</span><span class="p">]</span>
-        <span class="c1"># print(&#39;Checking sql for table=%r&#39; % (table.tablename,))</span>
+        <span class="c1"># logger.info(&#39;Checking sql for table=%r&#39; % (table.tablename,))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">_debug</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initializing table=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing table=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,))</span>
             <span class="n">new_state</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_addtable_kw</span><span class="p">()</span>
             <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="o">**</span><span class="n">new_state</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1982,7 +1998,7 @@
                 <span class="n">current_state</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_autogen_dict</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">current_state</span><span class="p">[</span><span class="s1">&#39;coldef_list&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">new_state</span><span class="p">[</span><span class="s1">&#39;coldef_list&#39;</span><span class="p">]:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING TABLE IS MODIFIED&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING TABLE IS MODIFIED&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">predrop_grace_period</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">):</span>
                     <span class="n">table</span><span class="o">.</span><span class="n">clear_table</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -2016,10 +2032,22 @@
         <span class="n">superkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">superkey_colnames</span><span class="p">]</span>
         <span class="n">add_table_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="p">(</span><span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;coldef_list&#39;</span><span class="p">,</span> <span class="n">coldef_list</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;docstr&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">docstr</span><span class="p">,),</span>
-                <span class="p">(</span><span class="s1">&#39;superkeys&#39;</span><span class="p">,</span> <span class="n">superkeys</span><span class="p">,),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;tablename&#39;</span><span class="p">,</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;coldef_list&#39;</span><span class="p">,</span>
+                    <span class="n">coldef_list</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;docstr&#39;</span><span class="p">,</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">docstr</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;superkeys&#39;</span><span class="p">,</span>
+                    <span class="n">superkeys</span><span class="p">,</span>
+                <span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;dependson&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()),</span>
             <span class="p">]</span>
         <span class="p">)</span>
@@ -2038,7 +2066,14 @@
 
     <span class="c1"># @profile</span>
 <div class="viewcode-block" id="DependencyCacheTable.ensure_rows"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.depcache_table.DependencyCacheTable.ensure_rows">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_rows</span><span class="p">(</span>
-        <span class="n">table</span><span class="p">,</span> <span class="n">parent_ids_</span><span class="p">,</span> <span class="n">preproc_args</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">_debug</span><span class="o">=</span><span class="kc">None</span>
+        <span class="n">table</span><span class="p">,</span>
+        <span class="n">parent_ids_</span><span class="p">,</span>
+        <span class="n">preproc_args</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">_debug</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">retry</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">retry_delay</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Lazy addition</span>
@@ -2061,89 +2096,124 @@
 <span class="sd">            &gt;&gt;&gt; result = (&#39;rowids = %r&#39; % (rowids,))</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
-        <span class="c1"># Get requested configuration id</span>
-        <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_rowid</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
+            <span class="c1"># Get requested configuration id</span>
+            <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_rowid</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
-        <span class="c1"># Check which rows are already computed</span>
-        <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-        <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
+            <span class="c1"># Check which rows are already computed</span>
+            <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s1">&#39;[deptbl.ensure] initial_rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">),)</span>
-            <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[deptbl.ensure] config_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">,))</span>
-
-        <span class="c1"># Get corresponding &quot;dirty&quot; parent rowids</span>
-        <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
-        <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">isdirty_list</span><span class="p">)</span>
-        <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[ADD]&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">_debug</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span>
-                        <span class="s1">&#39;Add </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> new rows to </span><span class="si">%r</span><span class="s1">&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="n">num_dirty</span><span class="p">,</span> <span class="n">num_total</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,)</span>
-                    <span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span>
-                        <span class="s1">&#39;[deptbl.add]  * config_rowid = </span><span class="si">{}</span><span class="s1">, config=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">config_rowid</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-                        <span class="p">)</span>
-                    <span class="p">)</span>
-
-                <span class="n">dirty_parent_ids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
-                <span class="n">dirty_preproc_args_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">preproc_args</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
-
-                <span class="c1"># Process only unique items</span>
-                <span class="n">unique_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">)</span>
-                <span class="n">dirty_parent_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
-                <span class="n">dirty_preproc_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_preproc_args_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
-
-                <span class="c1"># Break iterator into chunks</span>
-                <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="c1"># check parent configs we are working with</span>
-                    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">parname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()):</span>
-                        <span class="k">if</span> <span class="n">parname</span> <span class="o">==</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">root</span><span class="p">:</span>
-                            <span class="k">continue</span>
-                        <span class="n">parent_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">parname</span><span class="p">]</span>
-                        <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-                        <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">parent_history</span> <span class="o">=</span> <span class="n">parent_table</span><span class="o">.</span><span class="n">get_config_history</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)</span>
-                            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;parent_history = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent_history</span><span class="p">,))</span>
-                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                            <span class="nb">print</span><span class="p">(</span>
-                                <span class="s1">&#39;[depcache_table] WARNING: config history is having troubles... says Jon&#39;</span>
-                            <span class="p">)</span>
-
-                <span class="c1"># Gives the function a hacky cache to use between chunks</span>
-                <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">gen</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_chunk_compute_dirty_rows</span><span class="p">(</span>
-                    <span class="n">dirty_parent_ids</span><span class="p">,</span> <span class="n">dirty_preproc_args</span><span class="p">,</span> <span class="n">config_rowid</span><span class="p">,</span> <span class="n">config</span>
+            <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;[deptbl.ensure] initial_rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">),)</span>
                 <span class="p">)</span>
-                <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                colnames, dirty_params_iter, nChunkInput = next(gen)</span>
-<span class="sd">                &quot;&quot;&quot;</span>
-                <span class="k">for</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nChunkInput</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
-                    <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span>
-                        <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nChunkInput</span>
-                    <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.ensure] config_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">,))</span>
 
-                <span class="c1"># Remove cache when main add is done</span>
-                <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] finished add&#39;</span><span class="p">)</span>
-                <span class="c1">#</span>
-                <span class="c1"># The requested data is clean and must now exist in the parent</span>
-                <span class="c1"># database, do a lookup to ensure the correct order.</span>
-                <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">initial_rowid_list</span>
-        <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">))</span>
+            <span class="c1"># Get corresponding &quot;dirty&quot; parent rowids</span>
+            <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
+            <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">isdirty_list</span><span class="p">)</span>
+            <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[ADD]&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">_debug</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s1">&#39;Add </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> new rows to </span><span class="si">%r</span><span class="s1">&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">num_dirty</span><span class="p">,</span>
+                                <span class="n">num_total</span><span class="p">,</span>
+                                <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s1">&#39;[deptbl.add]  * config_rowid = </span><span class="si">{}</span><span class="s1">, config=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">config_rowid</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+
+                    <span class="n">dirty_parent_ids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+                    <span class="n">dirty_preproc_args_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">preproc_args</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+
+                    <span class="c1"># Process only unique items</span>
+                    <span class="n">unique_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">)</span>
+                    <span class="n">dirty_parent_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
+                    <span class="n">dirty_preproc_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_preproc_args_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
+
+                    <span class="c1"># Break iterator into chunks</span>
+                    <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                        <span class="c1"># check parent configs we are working with</span>
+                        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">parname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()):</span>
+                            <span class="k">if</span> <span class="n">parname</span> <span class="o">==</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">root</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                            <span class="n">parent_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">parname</span><span class="p">]</span>
+                            <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                            <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">parent_history</span> <span class="o">=</span> <span class="n">parent_table</span><span class="o">.</span><span class="n">get_config_history</span><span class="p">(</span>
+                                    <span class="n">rowid_list</span>
+                                <span class="p">)</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;parent_history = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent_history</span><span class="p">,))</span>
+                            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                    <span class="s1">&#39;[depcache_table] WARNING: config history is having troubles... says Jon&#39;</span>
+                                <span class="p">)</span>
+
+                    <span class="c1"># Gives the function a hacky cache to use between chunks</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">gen</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_chunk_compute_dirty_rows</span><span class="p">(</span>
+                        <span class="n">dirty_parent_ids</span><span class="p">,</span> <span class="n">dirty_preproc_args</span><span class="p">,</span> <span class="n">config_rowid</span><span class="p">,</span> <span class="n">config</span>
+                    <span class="p">)</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                    colnames, dirty_params_iter, nChunkInput = next(gen)</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                    <span class="k">for</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nChunkInput</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
+                        <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span>
+                            <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                            <span class="n">colnames</span><span class="p">,</span>
+                            <span class="n">dirty_params_iter</span><span class="p">,</span>
+                            <span class="n">nInput</span><span class="o">=</span><span class="n">nChunkInput</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+                    <span class="c1"># Remove cache when main add is done</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] finished add&#39;</span><span class="p">)</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># The requested data is clean and must now exist in the parent</span>
+                    <span class="c1"># database, do a lookup to ensure the correct order.</span>
+                    <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">initial_rowid_list</span>
+            <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">lite</span><span class="o">.</span><span class="n">IntegrityError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">retry</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;DEPC ENSURE_ROWS FOR TABLE </span><span class="si">%r</span><span class="s1"> FAILED DUE TO INTEGRITY ERROR (RETRY </span><span class="si">%d</span><span class="s1">)!&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">table</span><span class="p">,</span>
+                    <span class="n">retry</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> WAITING </span><span class="si">%d</span><span class="s1"> SECONDS THEN RETRYING&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">retry_delay</span><span class="p">,))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">retry_delay</span><span class="p">)</span>
+
+            <span class="n">retry_</span> <span class="o">=</span> <span class="n">retry</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">ensure_rows</span><span class="p">(</span>
+                <span class="n">parent_ids_</span><span class="p">,</span>
+                <span class="n">preproc_args</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">_debug</span><span class="o">=</span><span class="n">_debug</span><span class="p">,</span>
+                <span class="n">retry</span><span class="o">=</span><span class="n">retry_</span><span class="p">,</span>
+                <span class="n">retry_delay</span><span class="o">=</span><span class="n">retry_delay</span><span class="p">,</span>
+            <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">rowid_list</span></div>
 
     <span class="k">def</span> <span class="nf">_rectify_ids</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">):</span>
@@ -2297,13 +2367,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
         <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[deptbl.get_rowid] Get </span><span class="si">%s</span><span class="s1"> rowids via </span><span class="si">%d</span><span class="s1"> parent superkeys&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">))</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">_debug</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[deptbl.get_rowid] config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[deptbl.get_rowid] ensure = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ensure</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.get_rowid] config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.get_rowid] ensure = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ensure</span><span class="p">,))</span>
 
         <span class="c1"># Ensure inputs are in the correct format / remove Nones</span>
         <span class="c1"># Collapse multi-inputs into a UUID hash</span>
@@ -2311,7 +2381,7 @@
         <span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">preproc_args</span><span class="p">,</span> <span class="n">idxs1</span><span class="p">,</span> <span class="n">idxs2</span><span class="p">)</span> <span class="o">=</span> <span class="n">rectify_tup</span>
         <span class="c1"># Do the getting / adding work</span>
         <span class="k">if</span> <span class="n">recompute</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;REQUESTED RECOMPUTE&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REQUESTED RECOMPUTE&#39;</span><span class="p">)</span>
             <span class="c1"># get existing rowids, delete them, recompute the request</span>
             <span class="n">rowid_list_</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span>
                 <span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_debug</span><span class="o">=</span><span class="n">_debug</span>
@@ -2352,18 +2422,18 @@
         <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_rowid</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
         <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
         <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid table.tablename = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid parent_ids_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">)))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid config = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid table.rowid_colname = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">rowid_colname</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid config_rowid = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid table.tablename = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid parent_ids_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid config = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid table.rowid_colname = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">rowid_colname</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid config_rowid = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">))</span>
         <span class="n">andwhere_colnames</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">superkey_colnames</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">ids_</span> <span class="o">+</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">ids_</span> <span class="ow">in</span> <span class="n">parent_ids_</span><span class="p">)</span>
         <span class="c1"># TODO: make sure things that call this can accept a generator</span>
         <span class="c1"># Then remove this next line</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
-        <span class="c1"># print(&#39;**params_iter = %r&#39; % (params_iter,))</span>
+        <span class="c1"># logger.info(&#39;**params_iter = %r&#39; % (params_iter,))</span>
         <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
             <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
             <span class="n">colnames</span><span class="p">,</span>
@@ -2373,7 +2443,7 @@
             <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_get_rowid rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;_get_rowid rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">rowid_list</span>
 
 <div class="viewcode-block" id="DependencyCacheTable.clear_table"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.depcache_table.DependencyCacheTable.clear_table">[docs]</a>    <span class="k">def</span> <span class="nf">clear_table</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
@@ -2381,7 +2451,7 @@
 <span class="sd">        Deletes all data in this table</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: need to clear one-to-one dependencies as well</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Clearing data in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Clearing data in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="p">,))</span>
         <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
         <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="o">**</span><span class="n">table</span><span class="o">.</span><span class="n">_get_addtable_kw</span><span class="p">())</span></div>
 
@@ -2430,13 +2500,13 @@
             <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Requested delete of </span><span class="si">%d</span><span class="s1"> rows from </span><span class="si">%s</span><span class="s1">&#39;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">),</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">dry</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dry run&#39;</span><span class="p">)</span>
-            <span class="c1"># print(&#39;delete_extern = %r&#39; % (delete_extern,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dry run&#39;</span><span class="p">)</span>
+            <span class="c1"># logger.info(&#39;delete_extern = %r&#39; % (delete_extern,))</span>
         <span class="n">depc</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span>
 
         <span class="c1"># TODO:</span>
@@ -2461,12 +2531,12 @@
             <span class="n">fpaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">fpath</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">absuris</span> <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)]</span>
             <span class="k">if</span> <span class="n">delete_extern</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpaths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;deleting </span><span class="si">{}</span><span class="s1"> existing internal files&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths</span><span class="p">)))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;deleting </span><span class="si">{}</span><span class="s1"> existing internal files&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths</span><span class="p">)))</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">dry</span><span class="p">:</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">remove_fpaths</span><span class="p">(</span><span class="n">fpaths</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpaths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Leaving </span><span class="si">{}</span><span class="s1"> dangling filepaths&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths</span><span class="p">)))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Leaving </span><span class="si">{}</span><span class="s1"> dangling filepaths&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths</span><span class="p">)))</span>
 
         <span class="c1"># DELETE EXPLICITLY DEFINED CHILDREN</span>
         <span class="c1"># (TODO: handle implicit definitions)</span>
@@ -2491,9 +2561,9 @@
 
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Deleting from </span><span class="si">%r</span><span class="s1"> children&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">children</span><span class="p">),))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleting from </span><span class="si">%r</span><span class="s1"> children&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">children</span><span class="p">),))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Table is a leaf node&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Table is a leaf node&#39;</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
                 <span class="n">child_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">child</span><span class="p">]</span>
@@ -2510,11 +2580,11 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
             <span class="n">non_none_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_none_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Deleting </span><span class="si">%d</span><span class="s1"> non-None rows from </span><span class="si">%s</span><span class="s1">&#39;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">non_none_rowids</span><span class="p">),</span> <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...done!&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...done!&#39;</span><span class="p">)</span>
 
         <span class="c1"># Finalize: Delete rows from this table</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dry</span><span class="p">:</span>
@@ -2628,7 +2698,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
         <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="p">(</span><span class="s1">&#39;Get col of tablename=</span><span class="si">%r</span><span class="s1">, colnames=</span><span class="si">%r</span><span class="s1"> with &#39;</span> <span class="s1">&#39;tbl_rowids=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">))</span>
             <span class="p">)</span>
@@ -2646,12 +2716,12 @@
             <span class="n">requested_colnames</span> <span class="o">=</span> <span class="n">colnames</span>
 
         <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;requested_colnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">requested_colnames</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;requested_colnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">requested_colnames</span><span class="p">,))</span>
         <span class="n">tup</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_resolve_requested_columns</span><span class="p">(</span><span class="n">requested_colnames</span><span class="p">)</span>
         <span class="n">nesting_xs</span><span class="p">,</span> <span class="n">extern_resolve_tups</span><span class="p">,</span> <span class="n">flat_intern_colnames</span> <span class="o">=</span> <span class="n">tup</span>
 
         <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[deptbl.get_row_data] flat_intern_colnames = </span><span class="si">%r</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">flat_intern_colnames</span><span class="p">,)</span>
             <span class="p">)</span>
@@ -2738,7 +2808,7 @@
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;noneager mode not fully worked out yet&#39;</span>
                 <span class="k">return</span> <span class="n">prop_gen</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># print(&#39;raw_prop_list = %r&#39; % (raw_prop_list,))</span>
+                <span class="c1"># logger.info(&#39;raw_prop_list = %r&#39; % (raw_prop_list,))</span>
                 <span class="k">if</span> <span class="n">num_retries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">raw_prop_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">raw_prop_list</span><span class="p">)</span>  <span class="c1"># TODO tee iterator instead?</span>
                 <span class="k">for</span> <span class="n">try_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_retries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
@@ -2804,7 +2874,7 @@
 
         <span class="k">for</span> <span class="n">extern_colx</span><span class="p">,</span> <span class="n">read_func</span> <span class="ow">in</span> <span class="n">extern_resolve_tups</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[deptbl.get_row_data] read_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">read_func</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.get_row_data] read_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">read_func</span><span class="p">,))</span>
             <span class="n">data_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">failed_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">prop_listT</span><span class="p">[</span><span class="n">extern_colx</span><span class="p">]:</span>
@@ -2841,7 +2911,9 @@
                 <span class="c1"># rather than deleting the rowids.  Need the parent ids and</span>
                 <span class="c1"># config to do that.</span>
                 <span class="n">failed_uris</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">prop_listT</span><span class="p">[</span><span class="n">extern_colx</span><span class="p">],</span> <span class="n">failed_list</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to read </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">failed_uris</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">300</span><span class="p">)))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Failed to read </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">failed_uris</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">300</span><span class="p">))</span>
+                <span class="p">)</span>
                 <span class="n">failed_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nonNone_tbl_rowids</span><span class="p">,</span> <span class="n">failed_list</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">delete_on_fail</span><span class="p">:</span>
                     <span class="n">table</span><span class="o">.</span><span class="n">_recompute_external_storage</span><span class="p">(</span><span class="n">failed_rowids</span><span class="p">)</span>
@@ -2859,8 +2931,7 @@
 <span class="sd">        Recomputes the external file stored for this row.</span>
 <span class="sd">        This DOES NOT modify the depcache internals.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">STORE_CFGDICT</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Recomputing external data (_recompute_external_storage)&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Recomputing external data (_recompute_external_storage)&#39;</span><span class="p">)</span>
         <span class="c1"># TODO: need to rectify parent ids?</span>
 
         <span class="n">parent_rowids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_parent_rowids</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">)</span>
@@ -2887,8 +2958,7 @@
 <span class="sd">        Recomputes all data stored for this row.</span>
 <span class="sd">        This DOES modify the depcache internals.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">STORE_CFGDICT</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Recomputing external data (_recompute_and_store)&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Recomputing external data (_recompute_and_store)&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="n">parent_rowids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_parent_rowids</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">)</span>
@@ -3022,20 +3092,6 @@
 
         <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM </span><span class="si">{tablename}</span><span class="s1"> WHERE rowid=?&#39;</span><span class="p">)</span>
         <span class="k">pass</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m dtool.depcache_table</span>
-<span class="sd">        python -m dtool.depcache_table --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -3071,17 +3127,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -3098,7 +3152,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

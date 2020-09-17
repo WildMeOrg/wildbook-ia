@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.guitool_components &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.guitool.guitool_components &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,18 +33,19 @@
             
   <h1>Source code for wbia.guitool.guitool_components</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__._internal</span> <span class="k">import</span> <span class="n">GUITOOL_PYQT_VERSION</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtWidgets</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__._internal</span> <span class="kn">import</span> <span class="n">GUITOOL_PYQT_VERSION</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">guitool_dialogs</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">guitool_dialogs</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">DEBUG_WIDGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--dbgwgt&#39;</span><span class="p">,</span> <span class="s1">&#39;--debugwidget&#39;</span><span class="p">,</span> <span class="s1">&#39;--debug-widget&#39;</span><span class="p">))</span>
 
@@ -372,7 +372,7 @@
         <span class="n">action</span><span class="o">.</span><span class="n">setShortcut</span><span class="p">(</span><span class="n">action_shortcut</span><span class="p">)</span>
         <span class="c1"># action.setShortcutContext(Qt.WidgetWithChildrenShortcut)</span>
         <span class="n">action</span><span class="o">.</span><span class="n">setShortcutContext</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowShortcut</span><span class="p">)</span>
-        <span class="c1"># print(&#39;&lt;%s&gt;.setShortcut(%r)&#39; % (name, action_shortcut,))</span>
+        <span class="c1"># logger.info(&#39;&lt;%s&gt;.setShortcut(%r)&#39; % (name, action_shortcut,))</span>
     <span class="k">if</span> <span class="n">triggered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">action</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">triggered</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">action</span></div>
@@ -382,9 +382,9 @@
 
 
 <div class="viewcode-block" id="GuiProgContext"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.GuiProgContext">[docs]</a><span class="k">class</span> <span class="nc">GuiProgContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">prog_bar</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">prog_bar</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">PROG_TEXT</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[guitool] GuiProgContext.__init__&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[guitool] GuiProgContext.__init__&#39;</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">prog_bar</span> <span class="o">=</span> <span class="n">prog_bar</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="kc">None</span>
@@ -405,9 +405,9 @@
 <div class="viewcode-block" id="GuiProgContext.set_total"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.GuiProgContext.set_total">[docs]</a>    <span class="k">def</span> <span class="nf">set_total</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">total</span><span class="p">):</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="n">total</span></div>
 
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">PROG_TEXT</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[guitool] GuiProgContext.__enter__&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[guitool] GuiProgContext.__enter__&#39;</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">prog_bar</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">prog_bar</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">lbl</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">title</span>
@@ -417,13 +417,13 @@
         <span class="n">ctx</span><span class="o">.</span><span class="n">prog_bar</span><span class="o">.</span><span class="n">utool_prog_hook</span><span class="o">.</span><span class="n">force_event_update</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ctx</span>
 
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">PROG_TEXT</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[guitool] GuiProgContext.__exit__&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[guitool] GuiProgContext.__exit__&#39;</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">prog_bar</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[back] Error in context manager!: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[back] Error in context manager!: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># return a falsey value on error</span></div>
 
 
@@ -498,7 +498,7 @@
     <span class="n">progress_changed_signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
     <span class="n">show_indefinite_progress_signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">global_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">global_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ProgHook</span><span class="p">,</span> <span class="n">hook</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">prog_bar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">hook</span><span class="o">.</span><span class="n">progressBarRef</span> <span class="o">=</span> <span class="kc">None</span>
@@ -680,15 +680,15 @@
         <span class="c1"># DEBUG = False</span>
         <span class="c1"># if DEBUG:</span>
         <span class="c1">#    with ut.Indenter(&#39; &#39; * 4 * length):</span>
-        <span class="c1">#        print(&#39;\n&#39;)</span>
-        <span class="c1">#        print(&#39;+____&lt;NEW SUBSTEPS&gt;____&#39;)</span>
-        <span class="c1">#        print(&#39;Making %d substeps for hook.lbl = %s&#39; % (num_substeps, hook.lbl,))</span>
-        <span class="c1">#        print(&#39; * step_min         = %.2f&#39; % (step_min,))</span>
-        <span class="c1">#        print(&#39; * step_size        = %.2f&#39; % (step_size,))</span>
-        <span class="c1">#        print(&#39; * substep_size     = %.2f&#39; % (substep_size,))</span>
-        <span class="c1">#        print(&#39; * substep_min_list = %r&#39; % (substep_min_list,))</span>
-        <span class="c1">#        print(r&#39;L____&lt;/NEW SUBSTEPS&gt;____&#39;)</span>
-        <span class="c1">#        print(&#39;\n&#39;)</span>
+        <span class="c1">#        logger.info(&#39;\n&#39;)</span>
+        <span class="c1">#        logger.info(&#39;+____&lt;NEW SUBSTEPS&gt;____&#39;)</span>
+        <span class="c1">#        logger.info(&#39;Making %d substeps for hook.lbl = %s&#39; % (num_substeps, hook.lbl,))</span>
+        <span class="c1">#        logger.info(&#39; * step_min         = %.2f&#39; % (step_min,))</span>
+        <span class="c1">#        logger.info(&#39; * step_size        = %.2f&#39; % (step_size,))</span>
+        <span class="c1">#        logger.info(&#39; * substep_size     = %.2f&#39; % (substep_size,))</span>
+        <span class="c1">#        logger.info(&#39; * substep_min_list = %r&#39; % (substep_min_list,))</span>
+        <span class="c1">#        logger.info(r&#39;L____&lt;/NEW SUBSTEPS&gt;____&#39;)</span>
+        <span class="c1">#        logger.info(&#39;\n&#39;)</span>
 
 <div class="viewcode-block" id="ProgHook.set_progress"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.ProgHook.set_progress">[docs]</a>    <span class="k">def</span> <span class="nf">set_progress</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -704,7 +704,7 @@
         <span class="n">hook</span><span class="o">.</span><span class="n">progress_changed_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">global_fraction</span><span class="p">,</span> <span class="n">hook</span><span class="o">.</span><span class="n">lbl</span><span class="p">)</span></div>
         <span class="c1"># hook.on_progress_changed(global_fraction, hook.lbl)</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">hook</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ProgHook.local_progress"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.ProgHook.local_progress">[docs]</a>    <span class="k">def</span> <span class="nf">local_progress</span><span class="p">(</span><span class="n">hook</span><span class="p">):</span>
@@ -728,14 +728,14 @@
             <span class="n">resolution</span> <span class="o">=</span> <span class="mi">75</span>
             <span class="n">num_full</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">global_fraction</span> <span class="o">*</span> <span class="n">resolution</span><span class="p">))</span>
             <span class="n">num_empty</span> <span class="o">=</span> <span class="n">resolution</span> <span class="o">-</span> <span class="n">num_full</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[&#39;</span>
                 <span class="o">+</span> <span class="s1">&#39;#&#39;</span> <span class="o">*</span> <span class="n">num_full</span>
                 <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">*</span> <span class="n">num_empty</span>
                 <span class="o">+</span> <span class="s1">&#39;] </span><span class="si">%7.3f%%</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">global_fraction</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">hook</span><span class="o">.</span><span class="n">lbl</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">prog_bar</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">prog_bar</span>
         <span class="k">if</span> <span class="n">prog_bar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">prog_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
@@ -762,15 +762,15 @@
 
 <div class="viewcode-block" id="ProgHook.force_event_update"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.ProgHook.force_event_update">[docs]</a>    <span class="k">def</span> <span class="nf">force_event_update</span><span class="p">(</span><span class="n">hook</span><span class="p">):</span>
         <span class="c1"># major hack</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">guitool</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">guitool</span>
 
         <span class="n">qtapp</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">get_qtapp</span><span class="p">()</span>
         <span class="n">flag</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QEventLoop</span><span class="o">.</span><span class="n">ExcludeUserInputEvents</span>
         <span class="n">return_status</span> <span class="o">=</span> <span class="n">qtapp</span><span class="o">.</span><span class="n">processEvents</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
-        <span class="c1"># print(&#39;(1)return_status = %r&#39; % (return_status,))</span>
+        <span class="c1"># logger.info(&#39;(1)return_status = %r&#39; % (return_status,))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">return_status</span><span class="p">:</span>
             <span class="n">return_status</span> <span class="o">=</span> <span class="n">qtapp</span><span class="o">.</span><span class="n">processEvents</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span></div></div>
-            <span class="c1"># print(&#39;(2)return_status = %r&#39; % (return_status,))</span>
+            <span class="c1"># logger.info(&#39;(2)return_status = %r&#39; % (return_status,))</span>
 
 
 <div class="viewcode-block" id="newProgressBar"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.newProgressBar">[docs]</a><span class="k">def</span> <span class="nf">newProgressBar</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verticalStretch</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -915,7 +915,7 @@
     <span class="nb">setattr</span><span class="p">(</span><span class="n">progressBar</span><span class="p">,</span> <span class="s1">&#39;_guitool_sizepolicy&#39;</span><span class="p">,</span> <span class="n">sizePolicy</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">visible</span><span class="p">:</span>
         <span class="c1"># hack to make progres bar show up immediately</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">guitool</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">guitool</span>
 
         <span class="n">progressBar</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="n">qtapp</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">get_qtapp</span><span class="p">()</span>
@@ -925,7 +925,7 @@
 
 
 <div class="viewcode-block" id="newOutputLog"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.newOutputLog">[docs]</a><span class="k">def</span> <span class="nf">newOutputLog</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">pointSize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verticalStretch</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.guitool.guitool_misc</span> <span class="k">import</span> <span class="n">QLoggedOutput</span>
+    <span class="kn">from</span> <span class="nn">wbia.guitool.guitool_misc</span> <span class="kn">import</span> <span class="n">QLoggedOutput</span>
 
     <span class="n">outputLog</span> <span class="o">=</span> <span class="n">QLoggedOutput</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="n">visible</span><span class="p">)</span>
     <span class="n">sizePolicy</span> <span class="o">=</span> <span class="n">newSizePolicy</span><span class="p">(</span>
@@ -998,7 +998,7 @@
         <span class="n">label</span><span class="o">.</span><span class="n">setScaledContents</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">_on_resize_slot</span><span class="p">():</span>
-            <span class="c1"># print(&#39;_on_resize_slot&#39;)</span>
+            <span class="c1"># logger.info(&#39;_on_resize_slot&#39;)</span>
             <span class="n">label</span><span class="o">.</span><span class="n">setPixmap</span><span class="p">(</span>
                 <span class="n">label</span><span class="o">.</span><span class="n">_orig_pixmap</span><span class="o">.</span><span class="n">scaled</span><span class="p">(</span>
                     <span class="n">label</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">Qt</span><span class="o">.</span><span class="n">KeepAspectRatio</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">SmoothTransformation</span>
@@ -1114,7 +1114,7 @@
     <span class="n">verticalStretch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">fontkw</span><span class="o">=</span><span class="p">{},</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; This is a text line</span>
+    <span class="sd">&quot;&quot;&quot;This is a text line</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -1184,7 +1184,7 @@
 <span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(qwin=self, freq=10)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">valid_tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">valid_tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TagEdit</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="c1"># self.layout = QtWidgets.QHBoxLayout(self)</span>
         <span class="c1"># if editor_mode == &#39;line&#39;:</span>
@@ -1224,7 +1224,7 @@
 <span class="sd">    As such, this is less flexible, but quicker to get started.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
-    <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">PrefWidget2</span>
+    <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">PrefWidget2</span>
 
     <span class="c1"># Creates addNewWidget and newWidget</span>
 
@@ -1472,7 +1472,7 @@
 
     <span class="n">closed</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">orientation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1597,8 +1597,8 @@
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Walk the widget hierarchy looking for object</span>
 
-<span class="sd">    print(&#39;\n&#39;.join(gt.walk_widget_heirarchy(self, attrs=[&#39;minimumWidth&#39;], skip=True)))</span>
-<span class="sd">    print(&#39;\n&#39;.join(gt.walk_widget_heirarchy(self, attrs=[&#39;sizePolicy&#39;], skip=True)))</span>
+<span class="sd">    logger.info(&#39;\n&#39;.join(gt.walk_widget_heirarchy(self, attrs=[&#39;minimumWidth&#39;], skip=True)))</span>
+<span class="sd">    logger.info(&#39;\n&#39;.join(gt.walk_widget_heirarchy(self, attrs=[&#39;sizePolicy&#39;], skip=True)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">default_attrs</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s1">&#39;sizePolicy&#39;</span>
@@ -1663,7 +1663,7 @@
 <div class="viewcode-block" id="print_widget_heirarchy"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.print_widget_heirarchy">[docs]</a><span class="k">def</span> <span class="nf">print_widget_heirarchy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">walk_widget_heirarchy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fix_child_attr_heirarchy"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.fix_child_attr_heirarchy">[docs]</a><span class="k">def</span> <span class="nf">fix_child_attr_heirarchy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
@@ -1719,7 +1719,7 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;updated_config = %r&#39; % (updated_config,))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># FIXME: http://doc.qt.io/qt-5/qsizepolicy.html</span>
         <span class="c1"># kwargs[&#39;horizontalSizePolicy&#39;] = QSizePolicy.Minimum</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;horizontalSizePolicy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Expanding</span>
@@ -1737,7 +1737,7 @@
         <span class="n">with_spoiler</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1"># import copy</span>
-        <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">PrefWidget2</span>
+        <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">PrefWidget2</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">orig_config</span> <span class="o">=</span> <span class="n">config</span>
@@ -1848,16 +1848,16 @@
         <span class="c1"># Set default button</span>
 
 <div class="viewcode-block" id="ConfigConfirmWidget.update_state"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.ConfigConfirmWidget.update_state">[docs]</a>    <span class="k">def</span> <span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Update state&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;*args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Update state&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_info_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need dtool config&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need dtool config&#39;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_info_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">pi</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">currentValue</span><span class="p">()</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Changed: key, value = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Changed: key, value = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_info_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1866,8 +1866,8 @@
             <span class="n">row</span><span class="o">.</span><span class="n">edit</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ConfigConfirmWidget.confirm"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.ConfigConfirmWidget.confirm">[docs]</a>    <span class="k">def</span> <span class="nf">confirm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">confirm_option</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[gt] Confirmed config&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;confirm_option = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">confirm_option</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[gt] Confirmed config&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;confirm_option = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">confirm_option</span><span class="p">,))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confirm_option</span> <span class="o">=</span> <span class="n">confirm_option</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -1923,8 +1923,8 @@
         <span class="c1">#    return s</span>
 
         <span class="k">def</span> <span class="nf">_adjust_widget</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-----------&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">w</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;-----------&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;w = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">w</span><span class="p">,))</span>
             <span class="n">orig_size</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
             <span class="n">hint_size</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">()</span>
             <span class="c1"># adj_size = adjusted_size(w)</span>
@@ -1934,13 +1934,13 @@
             <span class="c1"># height = min(adj_size.height(), hint_size.height())</span>
             <span class="n">height</span> <span class="o">=</span> <span class="n">hint_size</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
             <span class="n">newsize</span> <span class="o">=</span> <span class="p">(</span><span class="n">orig_size</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">height</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;orig_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orig_size</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;hint_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hint_size</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;adj_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">adj_size</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;newsize = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newsize</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;orig_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orig_size</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;hint_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hint_size</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;adj_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">adj_size</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;newsize = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newsize</span><span class="p">,))</span>
             <span class="c1"># w.setMinimumSize(*newsize)</span>
             <span class="n">w</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="o">*</span><span class="n">newsize</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Actual new size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">size</span><span class="p">()))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Actual new size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">size</span><span class="p">()))</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;topLevelWidget&#39;</span><span class="p">):</span>
             <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topLevelWidget</span><span class="p">()</span>
@@ -1957,7 +1957,7 @@
         <span class="c1">#    _adjust_widget(parent)</span>
 
 <div class="viewcode-block" id="ConfigConfirmWidget.cancel"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.ConfigConfirmWidget.cancel">[docs]</a>    <span class="k">def</span> <span class="nf">cancel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[gt] Canceled confirm config&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[gt] Canceled confirm config&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
 
 
@@ -2154,7 +2154,7 @@
 
 
 <div class="viewcode-block" id="CustomComboBox"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.CustomComboBox">[docs]</a><span class="k">class</span> <span class="nc">CustomComboBox</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QComboBox</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">combo</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">combo</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CustomComboBox</span><span class="p">,</span> <span class="n">combo</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
 
         <span class="c1"># Check for tuple option formating</span>
@@ -2232,7 +2232,7 @@
 <span class="sd">    Mutually exclusive set of options (alternative to combo box)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[],</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">[],</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RadioButtonGroup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
         <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">opt</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">opt</span><span class="p">),</span> <span class="n">opt</span><span class="p">)</span>
@@ -2317,7 +2317,7 @@
 
 
 <div class="viewcode-block" id="CustomCheckBox"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.CustomCheckBox">[docs]</a><span class="k">class</span> <span class="nc">CustomCheckBox</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QCheckBox</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">checked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">checked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">changed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># QtWidgets.QCheckBox.__init__(self, text, parent=parent)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CustomCheckBox</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">changed</span> <span class="o">=</span> <span class="n">changed</span>
@@ -2457,7 +2457,7 @@
 
     <span class="n">toggle_finished</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
@@ -2690,7 +2690,7 @@
 <span class="sd">        http://stackoverflow.com/questions/12737721/developing-pyqt4-tree-widget</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SimpleTree</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QTreeWidget</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">parent</span><span class="p">:</span>
@@ -2698,7 +2698,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">setHeaderHidden</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">invisibleRootItem</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handleChanged</span><span class="p">)</span>
-        <span class="c1"># print(&#39;x = %r&#39; % (x,))</span>
+        <span class="c1"># logger.info(&#39;x = %r&#39; % (x,))</span>
         <span class="c1"># self.tree.itemClicked.connect(self.handleClicked)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -2755,7 +2755,7 @@
     <span class="c1"># @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)</span>
     <span class="c1"># def handleClicked(self, item, column):</span>
     <span class="c1">#     pass</span>
-    <span class="c1">#     # print(&#39;item = %r&#39; % (item,))</span>
+    <span class="c1">#     # logger.info(&#39;item = %r&#39; % (item,))</span>
 
 <div class="viewcode-block" id="SimpleTree.handleChanged"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.SimpleTree.handleChanged">[docs]</a>    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QTreeWidgetItem</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">handleChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
@@ -2769,14 +2769,14 @@
 
 
 <div class="viewcode-block" id="BlockSignals"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_components.BlockSignals">[docs]</a><span class="k">class</span> <span class="nc">BlockSignals</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qobj</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qobj</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qobj</span> <span class="o">=</span> <span class="n">qobj</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qobj</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qobj</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev</span><span class="p">)</span></div>
 
 
@@ -2815,7 +2815,7 @@
 <span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(freq=10)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FlowLayout</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2828,7 +2828,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">itemList</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">takeAt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">while</span> <span class="n">item</span><span class="p">:</span>
             <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">takeAt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -2943,7 +2943,7 @@
 <span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(qwin=self, freq=10)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ori&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="s1">&#39;vert&#39;</span><span class="p">))</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ori&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;horiz&#39;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;margin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -3021,8 +3021,8 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">combo</span><span class="o">.</span><span class="n">setItemData</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">TextAlignmentRole</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">combo_options</span><span class="p">)):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">combo</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">combo</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">combo</span><span class="o">.</span><span class="n">setEditable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">combo</span><span class="o">.</span><span class="n">lineEdit</span><span class="p">()</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
@@ -3067,21 +3067,6 @@
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">rb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radio_buttons</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">rb</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">radio_options</span><span class="p">[</span><span class="n">count</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.guitool.guitool_components</span>
-<span class="sd">        python -m wbia.guitool.guitool_components --allexamples</span>
-<span class="sd">        python -m wbia.guitool.guitool_components --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -3119,17 +3104,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -3146,7 +3129,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

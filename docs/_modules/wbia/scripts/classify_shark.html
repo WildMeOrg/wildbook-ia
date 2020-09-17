@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts.classify_shark &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.scripts.classify_shark &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -35,26 +34,27 @@
   <h1>Source code for wbia.scripts.classify_shark</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># flake8: noqa</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sklearn</span>
 <span class="kn">import</span> <span class="nn">sklearn.datasets</span>
 <span class="kn">import</span> <span class="nn">sklearn.svm</span>
 <span class="kn">import</span> <span class="nn">sklearn.metrics</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">preprocessing</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">preprocessing</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">wbia_cnn.models</span> <span class="k">import</span> <span class="n">abstract_models</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models</span> <span class="kn">import</span> <span class="n">abstract_models</span>
 
     <span class="n">AbstractCategoricalModel</span> <span class="o">=</span> <span class="n">abstract_models</span><span class="o">.</span><span class="n">AbstractCategoricalModel</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">AbstractCategoricalModel</span> <span class="o">=</span> <span class="nb">object</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no wbia_cnn&#39;</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="shark_net"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.shark_net">[docs]</a><span class="k">def</span> <span class="nf">shark_net</span><span class="p">(</span><span class="n">dry</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -69,7 +69,7 @@
 <span class="sd">        &gt;&gt;&gt; from wbia.scripts.classify_shark import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; shark_net()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">classify_shark</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;WS_ALL&#39;</span><span class="p">)</span>  <span class="c1"># NOQA</span>
@@ -136,9 +136,12 @@
         <span class="c1"># y_pred = model.predict(X_test)</span>
         <span class="n">test_outptuts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">test_outptuts</span><span class="p">[</span><span class="s1">&#39;predictions&#39;</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span><span class="n">y_true</span><span class="o">=</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="o">=</span><span class="n">y_pred</span><span class="p">,)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span>
+            <span class="n">y_true</span><span class="o">=</span><span class="n">y_test</span><span class="p">,</span>
+            <span class="n">y_pred</span><span class="o">=</span><span class="n">y_pred</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
 
         <span class="n">state_fpath</span> <span class="o">=</span> <span class="s1">&#39;/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/model_state_arch_jzuddodd.pkl&#39;</span>
         <span class="n">dpath</span> <span class="o">=</span> <span class="s1">&#39;/home/joncrall/Desktop/manually_saved/arch_injur-shark-lenet_o2_d11_c688_acioqbst&#39;</span>
@@ -194,9 +197,9 @@
 
 <div class="viewcode-block" id="WhaleSharkInjuryModel.def_lenet"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_lenet">[docs]</a>    <span class="k">def</span> <span class="nf">def_lenet</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">wbia_cnn.__LASAGNE__</span> <span class="k">as</span> <span class="nn">lasange</span>
-        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">custom_layers</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">custom_layers</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] init_arch&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[model] init_arch&#39;</span><span class="p">)</span>
 
         <span class="n">lrelu</span> <span class="o">=</span> <span class="n">lasange</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">))</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">lasange</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
@@ -232,9 +235,9 @@
 
 <div class="viewcode-block" id="WhaleSharkInjuryModel.def_resnet"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_resnet">[docs]</a>    <span class="k">def</span> <span class="nf">def_resnet</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">wbia_cnn.__LASAGNE__</span> <span class="k">as</span> <span class="nn">lasange</span>
-        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">custom_layers</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">custom_layers</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] init_arch&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[model] init_arch&#39;</span><span class="p">)</span>
         <span class="n">nonlinearity</span> <span class="o">=</span> <span class="n">lasange</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">))</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">lasange</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">HeNormal</span><span class="p">(</span><span class="n">gain</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
         <span class="c1"># W = lasange.init.GlorotUniform()</span>
@@ -271,9 +274,9 @@
 
 <div class="viewcode-block" id="WhaleSharkInjuryModel.def_inception"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.WhaleSharkInjuryModel.def_inception">[docs]</a>    <span class="k">def</span> <span class="nf">def_inception</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">wbia_cnn.__LASAGNE__</span> <span class="k">as</span> <span class="nn">lasange</span>
-        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">custom_layers</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">custom_layers</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] init_arch&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[model] init_arch&#39;</span><span class="p">)</span>
 
         <span class="n">N</span> <span class="o">=</span> <span class="mi">16</span>
 
@@ -349,7 +352,7 @@
 <span class="sd">            &gt;&gt;&gt; model.show_arch(fullinfo=False)</span>
 <span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">custom_layers</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">custom_layers</span>
 
         <span class="c1"># if ut.get_computer_name() == &#39;Leviathan&#39;:</span>
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;incep&#39;</span><span class="p">):</span>
@@ -393,7 +396,7 @@
 <span class="sd">        &gt;&gt;&gt; augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">augment</span>
+        <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">augment</span>
 
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span>
         <span class="n">affperterb_ranges</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -427,8 +430,8 @@
 <span class="sd">    &gt;&gt;&gt; data_type = &#39;hog&#39;</span>
 <span class="sd">    &gt;&gt;&gt; dataset = get_shark_dataset(target_type)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="k">import</span> <span class="n">DataSet</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="kn">import</span> <span class="n">DataSet</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">classify_shark</span>
 
     <span class="n">tup</span> <span class="o">=</span> <span class="n">classify_shark</span><span class="o">.</span><span class="n">get_shark_labels_and_metadata</span><span class="p">(</span><span class="n">target_type</span><span class="p">)</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annots</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">target_names</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">enc</span> <span class="o">=</span> <span class="n">tup</span>
@@ -458,7 +461,7 @@
         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">)</span>
 
     <span class="n">dataset</span><span class="o">.</span><span class="n">setprop</span><span class="p">(</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">setprop</span><span class="p">(</span><span class="s1">&#39;annots&#39;</span><span class="p">,</span> <span class="n">annots</span><span class="p">)</span>
@@ -489,7 +492,7 @@
             <span class="c1"># Save data where dataset expects it to be</span>
             <span class="n">dataset</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">data_per_label</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="k">import</span> <span class="n">stratified_label_shuffle_split</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="kn">import</span> <span class="n">stratified_label_shuffle_split</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_split</span><span class="p">(</span><span class="s1">&#39;learn&#39;</span><span class="p">):</span>
         <span class="n">nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;nids&#39;</span><span class="p">])</span>
@@ -559,9 +562,9 @@
     <span class="c1"># if False:</span>
     <span class="c1">#    x = ibs.images().compress(isempty)</span>
     <span class="n">num_empty_images</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">isempty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Images without annotations: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_empty_images</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Images without annotations: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_empty_images</span><span class="p">,))</span>
 
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Building labels for </span><span class="si">%r</span><span class="s1"> annotations from </span><span class="si">%r</span><span class="s1"> images&#39;</span>
         <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_annots</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">all_annots</span><span class="o">.</span><span class="n">gids</span><span class="p">)))</span>
     <span class="p">)</span>
@@ -571,15 +574,15 @@
     <span class="k">if</span> <span class="n">target_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">target_type</span> <span class="o">=</span> <span class="n">TARGET_TYPE</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="n">category_tags</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">get_injur_categories</span><span class="p">(</span><span class="n">all_annots</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Base Category Tags tags&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">category_tags</span><span class="p">))))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Base Category Tags tags&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">category_tags</span><span class="p">))))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Base Co-Occurrence Freq&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Base Co-Occurrence Freq&#39;</span><span class="p">)</span>
     <span class="n">co_occur1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tag_coocurrence</span><span class="p">(</span><span class="n">category_tags</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur1</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur1</span><span class="p">))</span>
 
     <span class="n">ntags_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">category_tags</span><span class="p">))</span>
     <span class="n">is_no_tag</span> <span class="o">=</span> <span class="n">ntags_list</span> <span class="o">==</span> <span class="mi">0</span>
@@ -614,7 +617,7 @@
     <span class="n">tag_vocab</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flat_unique</span><span class="p">(</span><span class="o">*</span><span class="n">category_tags</span><span class="p">)</span>
     <span class="n">alias_map</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">build_alias_map</span><span class="p">(</span><span class="n">regex_map</span><span class="p">,</span> <span class="n">tag_vocab</span><span class="p">)</span>
     <span class="n">unmapped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tag_vocab</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">alias_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unmapped = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unmapped</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;unmapped = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unmapped</span><span class="p">,))</span>
     <span class="n">category_tags2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">alias_tags</span><span class="p">(</span><span class="n">category_tags</span><span class="p">,</span> <span class="n">alias_map</span><span class="p">)</span>
 
     <span class="n">ntags_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">category_tags2</span><span class="p">))</span>
@@ -622,33 +625,33 @@
     <span class="n">is_single_tag</span> <span class="o">=</span> <span class="n">ntags_list</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="n">is_multi_tag</span> <span class="o">=</span> <span class="n">ntags_list</span> <span class="o">&gt;</span> <span class="mi">1</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cleaned tags&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Cleaned tags&#39;</span><span class="p">)</span>
     <span class="n">hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tag_hist</span><span class="p">(</span><span class="n">category_tags2</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">hist</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">hist</span><span class="p">))</span>
 
     <span class="c1"># Get tag co-occurrence</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Freq&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Freq&#39;</span><span class="p">)</span>
     <span class="n">co_occur</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tag_coocurrence</span><span class="p">(</span><span class="n">category_tags2</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur</span><span class="p">))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Percent&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Percent&#39;</span><span class="p">)</span>
     <span class="n">co_occur_percent</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
         <span class="p">[(</span><span class="n">keys</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span> <span class="o">*</span> <span class="n">val</span> <span class="o">/</span> <span class="n">hist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span> <span class="k">for</span> <span class="n">keys</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">co_occur</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur_percent</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur_percent</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
     <span class="n">multi_annots</span> <span class="o">=</span> <span class="n">all_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_multi_tag</span><span class="p">)</span>  <span class="c1"># NOQA</span>
     <span class="c1"># ibs.set_image_imagesettext(multi_annots.gids, [&#39;MultiTaged&#39;] * is_multi_tag.sum())</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;can&#39;t use </span><span class="si">%r</span><span class="s2"> annots due to no labels&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_no_tag</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;can&#39;t use </span><span class="si">%r</span><span class="s2"> annots due to inconsistent labels&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_multi_tag</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;will use </span><span class="si">%r</span><span class="s1"> annots with consistent labels&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_single_tag</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;can&#39;t use </span><span class="si">%r</span><span class="s2"> annots due to no labels&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_no_tag</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;can&#39;t use </span><span class="si">%r</span><span class="s2"> annots due to inconsistent labels&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_multi_tag</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;will use </span><span class="si">%r</span><span class="s1"> annots with consistent labels&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_single_tag</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
 
     <span class="n">annot_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">category_tags2</span><span class="p">,</span> <span class="n">is_single_tag</span><span class="p">)</span>
     <span class="n">annots</span> <span class="o">=</span> <span class="n">all_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_single_tag</span><span class="p">)</span>
     <span class="n">annot_tag_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">annot_tags</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final Annot Tags&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">annot_tag_hist</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Final Annot Tags&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">annot_tag_hist</span><span class="p">))</span>
 
     <span class="c1"># target_names = [&#39;healthy&#39;, &#39;injured&#39;]</span>
     <span class="n">enc</span> <span class="o">=</span> <span class="n">preprocessing</span><span class="o">.</span><span class="n">LabelEncoder</span><span class="p">()</span>
@@ -668,14 +671,14 @@
 <div class="viewcode-block" id="ClfProblem"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.ClfProblem">[docs]</a><span class="k">class</span> <span class="nc">ClfProblem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Harness for researching a classification problem &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">ds</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">ds</span><span class="p">):</span>
         <span class="n">problem</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span>
 
 <div class="viewcode-block" id="ClfProblem.print_support_info"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.ClfProblem.print_support_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_support_info</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
         <span class="n">enc</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">enc</span>
         <span class="n">target_labels</span> <span class="o">=</span> <span class="n">enc</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
         <span class="n">label_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">target_labels</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;support hist&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">label_hist</span><span class="p">))</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;support hist&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">label_hist</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="ClfProblem.fit_new_classifier"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.ClfProblem.fit_new_classifier">[docs]</a>    <span class="k">def</span> <span class="nf">fit_new_classifier</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -685,7 +688,7 @@
 <span class="sd">            http://scikit-learn.org/stable/modules/svm.html#svm-classification</span>
 <span class="sd">            http://scikit-learn.org/stable/modules/grid_search.html</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[problem] train classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_idx</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[problem] train classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_idx</span><span class="p">)))</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">data</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target</span>
         <span class="n">x_train</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">train_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -708,7 +711,7 @@
         <span class="k">return</span> <span class="n">clf</span></div>
 
 <div class="viewcode-block" id="ClfProblem.fit_new_linear_svm"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.ClfProblem.fit_new_linear_svm">[docs]</a>    <span class="k">def</span> <span class="nf">fit_new_linear_svm</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[problem] train classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_idx</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[problem] train classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_idx</span><span class="p">)))</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">data</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target</span>
         <span class="n">x_train</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">train_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -781,12 +784,14 @@
             <span class="p">)</span>
             <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
             <span class="c1"># (NOTE grid.predict only uses the best estimator)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clf.best_params_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf</span><span class="o">.</span><span class="n">best_params_</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best parameters set found on development set:&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">clf</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Grid scores on development set:&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;clf.best_params_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf</span><span class="o">.</span><span class="n">best_params_</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Best parameters set found on development set:&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">clf</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Grid scores on development set:&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">mean_score</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">clf</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%0.3f</span><span class="s1"> (+/-</span><span class="si">%0.03f</span><span class="s1">) for </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mean_score</span><span class="p">,</span> <span class="n">scores</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%0.3f</span><span class="s1"> (+/-</span><span class="si">%0.03f</span><span class="s1">) for </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mean_score</span><span class="p">,</span> <span class="n">scores</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">clf</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">])</span>
             <span class="n">ydata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">clf</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">])</span>
 
@@ -857,7 +862,7 @@
             <span class="c1"># 0.702 (+/-0.047) for {u&#39;C&#39;: 1000}</span>
 
 <div class="viewcode-block" id="ClfProblem.classifier_test"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.ClfProblem.classifier_test">[docs]</a>    <span class="k">def</span> <span class="nf">classifier_test</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[problem] test classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_idx</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[problem] test classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_idx</span><span class="p">),))</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">data</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target</span>
         <span class="n">X_test</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">test_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -895,7 +900,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span> <span class="s1">&#39;nids&#39;</span><span class="p">):</span>
             <span class="c1"># Ensure that an individual does not appear in both the train</span>
             <span class="c1"># and the test dataset</span>
-            <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="k">import</span> <span class="n">stratified_kfold_label_split</span>
+            <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="kn">import</span> <span class="n">stratified_kfold_label_split</span>
 
             <span class="n">labels</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">nids</span>
             <span class="n">_iter</span> <span class="o">=</span> <span class="n">stratified_kfold_label_split</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">n_folds</span><span class="o">=</span><span class="n">n_folds</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
@@ -924,7 +929,7 @@
 <span class="sd">        &gt;&gt;&gt; result = ClfSingleResult()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">ds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_true</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">ds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_true</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">result</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span>
         <span class="n">result</span><span class="o">.</span><span class="n">test_idx</span> <span class="o">=</span> <span class="n">test_idx</span>
         <span class="n">result</span><span class="o">.</span><span class="n">y_true</span> <span class="o">=</span> <span class="n">y_true</span>
@@ -954,7 +959,7 @@
         <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span>
             <span class="n">result</span><span class="o">.</span><span class="n">y_true</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target_names</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="get_model_state"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.classify_shark.get_model_state">[docs]</a><span class="k">def</span> <span class="nf">get_model_state</span><span class="p">(</span><span class="n">clf</span><span class="p">):</span>
@@ -978,7 +983,7 @@
     <span class="n">attr_names_</span> <span class="o">=</span> <span class="n">attr_namesA</span> <span class="o">+</span> <span class="n">attr_namesB</span> <span class="o">+</span> <span class="n">attr_namesC</span>
     <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attr_names_</span><span class="p">:</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">model_state</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;a = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;a = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,))</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -1057,7 +1062,7 @@
 <span class="sd">        &gt;&gt;&gt; shark_svm()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">classify_shark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">classify_shark</span>
 
     <span class="n">target_type</span> <span class="o">=</span> <span class="s1">&#39;binary&#39;</span>
     <span class="c1"># target_type = &#39;multiclass3&#39;</span>
@@ -1121,16 +1126,16 @@
     <span class="c1">#                                     n_folds=n_folds, rng=rng)</span>
 
     <span class="k">class</span> <span class="nc">MyLabelCV</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">nids_train</span><span class="p">,</span> <span class="n">n_folds</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">nids_train</span><span class="p">,</span> <span class="n">n_folds</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">nids_train</span> <span class="o">=</span> <span class="n">nids_train</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span> <span class="o">=</span> <span class="n">y_train</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">n_folds</span> <span class="o">=</span> <span class="n">n_folds</span>
 
-        <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_folds</span>
 
-        <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="k">import</span> <span class="n">stratified_kfold_label_split</span>
+        <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">wbia_cnn.dataset</span> <span class="kn">import</span> <span class="n">stratified_kfold_label_split</span>
 
             <span class="n">rng</span> <span class="o">=</span> <span class="mi">1809629827</span>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stratified_kfold_label_split</span><span class="p">(</span>
@@ -1217,7 +1222,9 @@
             <span class="n">grid</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">mean_score</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%0.3f</span><span class="s1"> (+/-</span><span class="si">%0.03f</span><span class="s1">) for </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mean_score</span><span class="p">,</span> <span class="n">scores</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%0.3f</span><span class="s1"> (+/-</span><span class="si">%0.03f</span><span class="s1">) for </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mean_score</span><span class="p">,</span> <span class="n">scores</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                <span class="p">)</span>
 
             <span class="n">c_xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">])</span>
             <span class="n">c_ydata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">])</span>
@@ -1227,9 +1234,9 @@
             <span class="n">submaxima_x</span><span class="p">,</span> <span class="n">submaxima_y</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">argsubmaxima</span><span class="p">(</span><span class="n">c_ydata</span><span class="p">,</span> <span class="n">c_xdata</span><span class="p">)</span>
             <span class="c1"># pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)</span>
             <span class="n">C</span> <span class="o">=</span> <span class="n">submaxima_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">C</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;C = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">C</span><span class="p">,))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">C</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;C = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">C</span><span class="p">,))</span>
 
         <span class="n">clf_all</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">svm</span><span class="o">.</span><span class="n">SVC</span><span class="p">(</span>
             <span class="n">kernel</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;linear&#39;</span><span class="p">),</span>
@@ -1247,7 +1254,7 @@
         <span class="n">clf</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">ut</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">clf_fpath</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">classifier_test</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[problem] test classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_idx</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[problem] test classifier on </span><span class="si">%d</span><span class="s1"> data points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_idx</span><span class="p">),))</span>
         <span class="n">y_conf</span> <span class="o">=</span> <span class="n">predict_svc_ovr</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">y_conf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">ClfSingleResult</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_conf</span><span class="p">)</span>
@@ -1275,11 +1282,11 @@
     <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span>
         <span class="n">y_true</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">],</span> <span class="n">y_pred</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">],</span> <span class="n">target_names</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target_names</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
 
     <span class="n">confusion</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix:&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix:&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
             <span class="n">confusion</span><span class="p">,</span>
             <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target_names</span><span class="p">],</span>
@@ -1362,11 +1369,11 @@
     <span class="n">report</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span>
         <span class="n">y_true</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">],</span> <span class="n">y_pred</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">],</span> <span class="n">target_names</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target_names</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
 
     <span class="n">confusion</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix:&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Confusion Matrix:&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
             <span class="n">confusion</span><span class="p">,</span>
             <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">target_names</span><span class="p">],</span>
@@ -1382,7 +1389,7 @@
     <span class="k">def</span> <span class="nf">grab_subchunk</span><span class="p">(</span><span class="n">frac</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
         <span class="n">df_chunk</span> <span class="o">=</span> <span class="n">target_partition</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
         <span class="n">sl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">snapped_slice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_chunk</span><span class="p">),</span> <span class="n">frac</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;sl = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sl</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;sl = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sl</span><span class="p">,))</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">df_chunk</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
         <span class="n">df_chunk</span> <span class="o">=</span> <span class="n">df_chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="n">min_frac</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">start</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_chunk</span><span class="p">)</span>
@@ -1398,7 +1405,7 @@
 
     <span class="k">def</span> <span class="nf">grab_subchunk2</span><span class="p">(</span><span class="n">df_chunk</span><span class="p">,</span> <span class="n">frac</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
         <span class="n">sl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">snapped_slice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_chunk</span><span class="p">),</span> <span class="n">frac</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;sl = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sl</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;sl = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sl</span><span class="p">,))</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">df_chunk</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
         <span class="n">df_chunk</span> <span class="o">=</span> <span class="n">df_chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="n">min_frac</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">start</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_chunk</span><span class="p">)</span>
@@ -1450,26 +1457,12 @@
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">config</span>
-    <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="k">import</span> <span class="n">draw_results</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn</span> <span class="kn">import</span> <span class="n">draw_results</span>
 
     <span class="n">inter</span> <span class="o">=</span> <span class="n">draw_results</span><span class="o">.</span><span class="n">make_InteractClasses</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">df_chunks</span><span class="p">,</span> <span class="n">nCols</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">view_targets</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">inter</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.scripts.classify_shark</span>
-<span class="sd">        python -m wbia.scripts.classify_shark --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1505,17 +1498,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1532,7 +1523,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

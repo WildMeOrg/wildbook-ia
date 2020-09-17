@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.hots.neighbor_index_cache &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.algo.hots.neighbor_index_cache &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -37,15 +36,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">NEEDS CLEANUP</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="k">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.hots.neighbor_index</span> <span class="k">import</span> <span class="n">NeighborIndex</span><span class="p">,</span> <span class="n">get_support_data</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots.neighbor_index</span> <span class="kn">import</span> <span class="n">NeighborIndex</span><span class="p">,</span> <span class="n">get_support_data</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">USE_HOTSPOTTER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-hs&#39;</span><span class="p">)</span>
@@ -70,7 +70,7 @@
 <span class="sd">    should be loaded from disk initially</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
         <span class="c1"># self.uuid_map_fpath = uuid_map_fpath</span>
         <span class="c1"># self.init(uuid_map_fpath, min_reindex_thresh)</span>
@@ -118,7 +118,7 @@
 
     <span class="c1"># @profile</span>
     <span class="c1"># def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):</span>
-    <span class="c1">#    print(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
+    <span class="c1">#    logger.info(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
     <span class="c1">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
     <span class="c1">#        with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
     <span class="c1">#            uuid_map[daids_hashid] = visual_uuid_list</span>
@@ -144,7 +144,7 @@
     <span class="c1">#    Also lets nnindexer know about other prebuilt indexers so it can attempt to</span>
     <span class="c1">#    just add points to them as to avoid a rebuild.</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    print(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
+    <span class="c1">#    logger.info(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
     <span class="c1">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
     <span class="c1">#        try:</span>
     <span class="c1">#            uuid_map = ut.load_cPkl(uuid_map_fpath)</span>
@@ -174,7 +174,7 @@
 <span class="sd">        just add points to them as to avoid a rebuild.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">NOCACHE_UUIDS</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;uuid cache is off&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;uuid cache is off&#39;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="c1"># with ut.EmbedOnException():</span>
         <span class="n">uuid_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
@@ -287,11 +287,11 @@
 <span class="sd">        &gt;&gt;&gt; result = str(fgws_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nnindex] clearing uuid cache&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] clearing uuid cache&#39;</span><span class="p">)</span>
     <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">uuid_map_fpath</span> <span class="o">+</span> <span class="s1">&#39;.lock&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nnindex] finished uuid cache clear&#39;</span><span class="p">)</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] finished uuid cache clear&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="print_uuid_cache"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.print_uuid_cache">[docs]</a><span class="k">def</span> <span class="nf">print_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
@@ -308,10 +308,10 @@
 <span class="sd">        &gt;&gt;&gt; result = str(nnindexer)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nnindex] clearing uuid cache&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] clearing uuid cache&#39;</span><span class="p">)</span>
     <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">read_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">candidate_uuids</span><span class="p">)</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">candidate_uuids</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="request_wbia_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_wbia_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_wbia_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -345,7 +345,12 @@
 
 
 <div class="viewcode-block" id="request_augmented_wbia_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_augmented_wbia_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_augmented_wbia_nnindexer</span><span class="p">(</span>
-    <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_rebuild</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">qreq_</span><span class="p">,</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">force_rebuild</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">memtrack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT</span>
@@ -409,11 +414,11 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">can_augment</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[aug] Requesting augmented nnindexer&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[aug] Requesting augmented nnindexer&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">can_augment</span><span class="p">:</span>
         <span class="n">covered_aids</span> <span class="o">=</span> <span class="n">covered_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[aug] Augmenting index </span><span class="si">%r</span><span class="s1"> old daids with </span><span class="si">%d</span><span class="s1"> new daids&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">covered_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_daid_list</span><span class="p">))</span>
             <span class="p">)</span>
@@ -426,7 +431,7 @@
         <span class="k">if</span> <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>  <span class="c1"># NOQA (has_key is for a lru cache)</span>
             <span class="n">base_nnindexer</span><span class="o">.</span><span class="n">cfgstr</span>
         <span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Removing key from memcache&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing key from memcache&#39;</span><span class="p">)</span>
             <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">base_nnindexer</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">del</span> <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">base_nnindexer</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">]</span>
 
@@ -452,13 +457,13 @@
             <span class="p">)</span>
         <span class="c1"># Write to memcache</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[aug] Wrote to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[aug] Wrote to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
         <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">nnindex_cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnindexer</span>
         <span class="k">return</span> <span class="n">nnindexer</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># if ut.VERBOSE:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[aug] Nothing to augment, fallback to memcache&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[aug] Nothing to augment, fallback to memcache&#39;</span><span class="p">)</span>
         <span class="c1"># Fallback</span>
         <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_memcached_wbia_nnindexer</span><span class="p">(</span>
             <span class="n">qreq_</span><span class="p">,</span>
@@ -509,9 +514,11 @@
     <span class="k">global</span> <span class="n">NEIGHBOR_CACHE</span>
     <span class="c1"># try:</span>
     <span class="k">if</span> <span class="n">veryverbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">NEIGHBOR_CACHE</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">NEIGHBOR_CACHE</span><span class="p">),)</span>
+        <span class="p">)</span>
         <span class="c1"># the lru cache wont be recognized by get_object_size_str, cast to pure python objects</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = </span><span class="si">%s</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),)</span>
         <span class="p">)</span>
@@ -525,11 +532,11 @@
         <span class="ow">and</span> <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">)</span>  <span class="c1"># NOQA (has_key is for a lru cache)</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">veryverbose</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... nnindex memcache hit: cfgstr=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... nnindex memcache hit: cfgstr=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
         <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">nnindex_cfgstr</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">veryverbose</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... nnindex memcache miss: cfgstr=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... nnindex memcache miss: cfgstr=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
         <span class="c1"># Write to inverse uuid</span>
         <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_diskcached_wbia_nnindexer</span><span class="p">(</span>
             <span class="n">qreq_</span><span class="p">,</span>
@@ -544,11 +551,11 @@
         <span class="k">if</span> <span class="n">NEIGHBOR_CACHE_WRITE</span><span class="p">:</span>
             <span class="c1"># Write to memcache</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[disk] Write to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[disk] Write to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
             <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">nnindex_cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnindexer</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[disk] Did not write to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[disk] Did not write to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">nnindexer</span></div>
 
 
@@ -604,7 +611,7 @@
     <span class="c1"># Get annot descriptors to index</span>
     <span class="k">if</span> <span class="n">prog_hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">prog_hook</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;Loading support data for indexer&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[nnindex] Loading support data for indexer&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] Loading support data for indexer&#39;</span><span class="p">)</span>
     <span class="n">vecs_list</span><span class="p">,</span> <span class="n">fgws_list</span><span class="p">,</span> <span class="n">fxs_list</span> <span class="o">=</span> <span class="n">get_support_data</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">memtrack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;[AFTER GET SUPPORT DATA]&#39;</span><span class="p">)</span>
@@ -666,7 +673,7 @@
 <span class="sd">        &gt;&gt;&gt; uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(</span>
 <span class="sd">        ...     qreq_, daid_list, min_reindex_thresh, max_covers)</span>
 <span class="sd">        &gt;&gt;&gt; result1 = uncovered_aids, covered_aids_list</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_eq(result1, ([1, 2, 3], []), &#39;pre request&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(result1, ([], [[1, 2, 3]]), &#39;pre request&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; # TEST 2: SHOULD MAKE 123 COVERED</span>
 <span class="sd">        &gt;&gt;&gt; nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list)</span>
 <span class="sd">        &gt;&gt;&gt; uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(</span>
@@ -820,7 +827,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">CURRENT_THREAD</span>
     <span class="k">if</span> <span class="n">CURRENT_THREAD</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[FG] background thread is not ready yet&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[FG] background thread is not ready yet&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="c1"># Get info set in background process</span>
     <span class="n">finishtup</span> <span class="o">=</span> <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">finishtup</span>
@@ -839,7 +846,7 @@
 
 
 <div class="viewcode-block" id="request_background_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_background_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; FIXME: Duplicate code</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;FIXME: Duplicate code</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
@@ -863,12 +870,12 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">CURRENT_THREAD</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Requesting background reindex&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Requesting background reindex&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">can_request_background_nnindexer</span><span class="p">():</span>
         <span class="c1"># Make sure this function doesn&#39;t run if it is already running</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;REQUEST DENIED&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REQUEST DENIED&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;REQUEST ACCPETED&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REQUEST ACCPETED&#39;</span><span class="p">)</span>
     <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
     <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">build_nnindex_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
@@ -914,7 +921,7 @@
     <span class="n">min_reindex_thresh</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot; FIXME: Duplicate code &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[BG] Starting Background FLANN&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[BG] Starting Background FLANN&#39;</span><span class="p">)</span>
     <span class="c1"># FIXME. dont use flann cache</span>
     <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">NeighborIndex</span><span class="p">(</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
     <span class="c1"># Initialize neighbor with unindexed data</span>
@@ -923,21 +930,7 @@
     <span class="n">nnindexer</span><span class="o">.</span><span class="n">ensure_indexer</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_reindex_thresh</span><span class="p">:</span>
         <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">write_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[BG] Finished Background FLANN&#39;</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache</span>
-<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[BG] Finished Background FLANN&#39;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -977,17 +970,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1004,7 +995,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

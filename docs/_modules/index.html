@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Overview: module code &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overview: module code &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -36,6 +35,7 @@
 <ul><li><a href="PyQt5/QtCore.html">PyQt5.QtCore</a></li>
 <li><a href="PyQt5/QtGui.html">PyQt5.QtGui</a></li>
 <li><a href="PyQt5/QtWidgets.html">PyQt5.QtWidgets</a></li>
+<li><a href="logging.html">logging</a></li>
 <li><a href="torch/optim/adam.html">torch.optim.adam</a></li>
 <li><a href="torch/optim/sgd.html">torch.optim.sgd</a></li>
 <li><a href="utool/util_class.html">utool.util_class</a></li>
@@ -50,6 +50,7 @@
 <ul><li><a href="wbia/algo/Config.html">wbia.algo.Config</a></li>
 <li><a href="wbia/algo/detect.html">wbia.algo.detect</a></li>
 <ul><li><a href="wbia/algo/detect/azure.html">wbia.algo.detect.azure</a></li>
+<li><a href="wbia/algo/detect/canonical.html">wbia.algo.detect.canonical</a></li>
 <li><a href="wbia/algo/detect/darknet.html">wbia.algo.detect.darknet</a></li>
 <li><a href="wbia/algo/detect/densenet.html">wbia.algo.detect.densenet</a></li>
 <li><a href="wbia/algo/detect/fasterrcnn.html">wbia.algo.detect.fasterrcnn</a></li>
@@ -82,7 +83,6 @@
 <li><a href="wbia/algo/graph/nx_utils.html">wbia.algo.graph.nx_utils</a></li>
 <li><a href="wbia/algo/graph/refresh.html">wbia.algo.graph.refresh</a></li>
 <li><a href="wbia/algo/graph/tests/dyn_cases.html">wbia.algo.graph.tests.dyn_cases</a></li>
-<li><a href="wbia/algo/graph/tests/test_graph_iden.html">wbia.algo.graph.tests.test_graph_iden</a></li>
 <li><a href="wbia/algo/graph/tests/test_neg_metagraph.html">wbia.algo.graph.tests.test_neg_metagraph</a></li>
 </ul><li><a href="wbia/algo/hots.html">wbia.algo.hots</a></li>
 <ul><li><a href="wbia/algo/hots/_pipeline_helpers.html">wbia.algo.hots._pipeline_helpers</a></li>
@@ -123,9 +123,12 @@
 <li><a href="wbia/algo/verif/pairfeat.html">wbia.algo.verif.pairfeat</a></li>
 <li><a href="wbia/algo/verif/ranker.html">wbia.algo.verif.ranker</a></li>
 <li><a href="wbia/algo/verif/sklearn_utils.html">wbia.algo.verif.sklearn_utils</a></li>
+<li><a href="wbia/algo/verif/torch/fit_harness.html">wbia.algo.verif.torch.fit_harness</a></li>
 <li><a href="wbia/algo/verif/torch/gpu_util.html">wbia.algo.verif.torch.gpu_util</a></li>
 <li><a href="wbia/algo/verif/torch/lr_schedule.html">wbia.algo.verif.torch.lr_schedule</a></li>
+<li><a href="wbia/algo/verif/torch/models.html">wbia.algo.verif.torch.models</a></li>
 <li><a href="wbia/algo/verif/torch/netmath.html">wbia.algo.verif.torch.netmath</a></li>
+<li><a href="wbia/algo/verif/torch/train_main.html">wbia.algo.verif.torch.train_main</a></li>
 <li><a href="wbia/algo/verif/verifier.html">wbia.algo.verif.verifier</a></li>
 <li><a href="wbia/algo/verif/vsone.html">wbia.algo.verif.vsone</a></li>
 </ul></ul><li><a href="wbia/annotmatch_funcs.html">wbia.annotmatch_funcs</a></li>
@@ -176,7 +179,12 @@
 <li><a href="wbia/demodata.html">wbia.demodata</a></li>
 <li><a href="wbia/detecttools/ctypes_interface.html">wbia.detecttools.ctypes_interface</a></li>
 <li><a href="wbia/detecttools/directory.html">wbia.detecttools.directory</a></li>
-<li><a href="wbia/detecttools/pypascalmarkup.html">wbia.detecttools.pypascalmarkup</a></li>
+<li><a href="wbia/detecttools/pascaldata.html">wbia.detecttools.pascaldata</a></li>
+<ul><li><a href="wbia/detecttools/pascaldata/common.html">wbia.detecttools.pascaldata.common</a></li>
+<li><a href="wbia/detecttools/pascaldata/pascal_image.html">wbia.detecttools.pascaldata.pascal_image</a></li>
+<li><a href="wbia/detecttools/pascaldata/pascal_object.html">wbia.detecttools.pascaldata.pascal_object</a></li>
+<li><a href="wbia/detecttools/pascaldata/pascal_part.html">wbia.detecttools.pascaldata.pascal_part</a></li>
+</ul><li><a href="wbia/detecttools/pypascalmarkup.html">wbia.detecttools.pypascalmarkup</a></li>
 <li><a href="wbia/detecttools/wbiadata.html">wbia.detecttools.wbiadata</a></li>
 <ul><li><a href="wbia/detecttools/wbiadata/common.html">wbia.detecttools.wbiadata.common</a></li>
 <li><a href="wbia/detecttools/wbiadata/wbia_image.html">wbia.detecttools.wbiadata.wbia_image</a></li>
@@ -191,7 +199,8 @@
 <li><a href="wbia/dtool/input_helpers.html">wbia.dtool.input_helpers</a></li>
 <li><a href="wbia/dtool/sql_control.html">wbia.dtool.sql_control</a></li>
 <li><a href="wbia/expt.html">wbia.expt</a></li>
-<ul><li><a href="wbia/expt/cfghelpers.html">wbia.expt.cfghelpers</a></li>
+<ul><li><a href="wbia/expt/annotation_configs.html">wbia.expt.annotation_configs</a></li>
+<li><a href="wbia/expt/cfghelpers.html">wbia.expt.cfghelpers</a></li>
 <li><a href="wbia/expt/draw_helpers.html">wbia.expt.draw_helpers</a></li>
 <li><a href="wbia/expt/experiment_configs.html">wbia.expt.experiment_configs</a></li>
 <li><a href="wbia/expt/experiment_drawing.html">wbia.expt.experiment_drawing</a></li>
@@ -219,6 +228,7 @@
 <li><a href="wbia/guitool/api_item_widget.html">wbia.guitool.api_item_widget</a></li>
 <li><a href="wbia/guitool/api_table_view.html">wbia.guitool.api_table_view</a></li>
 <li><a href="wbia/guitool/api_thumb_delegate.html">wbia.guitool.api_thumb_delegate</a></li>
+<li><a href="wbia/guitool/api_timestamp_delegate.html">wbia.guitool.api_timestamp_delegate</a></li>
 <li><a href="wbia/guitool/api_tree_node.html">wbia.guitool.api_tree_node</a></li>
 <li><a href="wbia/guitool/api_tree_view.html">wbia.guitool.api_tree_view</a></li>
 <li><a href="wbia/guitool/filter_proxy_model.html">wbia.guitool.filter_proxy_model</a></li>
@@ -240,7 +250,6 @@
 <li><a href="wbia/init/main_commands.html">wbia.init.main_commands</a></li>
 <li><a href="wbia/init/main_helpers.html">wbia.init.main_helpers</a></li>
 <li><a href="wbia/init/sysres.html">wbia.init.sysres</a></li>
-<li><a href="wbia/main_module.html">wbia.main_module</a></li>
 <li><a href="wbia/other.html">wbia.other</a></li>
 <ul><li><a href="wbia/other/dbinfo.html">wbia.other.dbinfo</a></li>
 <li><a href="wbia/other/detectcore.html">wbia.other.detectcore</a></li>
@@ -299,9 +308,7 @@
 <ul><li><a href="wbia/templates/generate_notebook.html">wbia.templates.generate_notebook</a></li>
 <li><a href="wbia/templates/notebook_cells.html">wbia.templates.notebook_cells</a></li>
 <li><a href="wbia/templates/notebook_helpers.html">wbia.templates.notebook_helpers</a></li>
-</ul><li><a href="wbia/tests/reset_testdbs.html">wbia.tests.reset_testdbs</a></li>
-<li><a href="wbia/tests/run_tests.html">wbia.tests.run_tests</a></li>
-<li><a href="wbia/viz.html">wbia.viz</a></li>
+</ul><li><a href="wbia/viz.html">wbia.viz</a></li>
 <ul><li><a href="wbia/viz/interact.html">wbia.viz.interact</a></li>
 <ul><li><a href="wbia/viz/interact/interact_annotations2.html">wbia.viz.interact.interact_annotations2</a></li>
 <li><a href="wbia/viz/interact/interact_chip.html">wbia.viz.interact.interact_chip</a></li>
@@ -332,10 +339,6 @@
 <li><a href="wbia/web/apis_sync.html">wbia.web.apis_sync</a></li>
 <li><a href="wbia/web/app.html">wbia.web.app</a></li>
 <li><a href="wbia/web/appfuncs.html">wbia.web.appfuncs</a></li>
-<li><a href="wbia/web/futures_utils/_base_actor.html">wbia.web.futures_utils._base_actor</a></li>
-<li><a href="wbia/web/futures_utils/process_actor.html">wbia.web.futures_utils.process_actor</a></li>
-<li><a href="wbia/web/futures_utils/tests.html">wbia.web.futures_utils.tests</a></li>
-<li><a href="wbia/web/futures_utils/thread_actor.html">wbia.web.futures_utils.thread_actor</a></li>
 <li><a href="wbia/web/graph_server.html">wbia.web.graph_server</a></li>
 <li><a href="wbia/web/job_engine.html">wbia.web.job_engine</a></li>
 <li><a href="wbia/web/prometheus.html">wbia.web.prometheus</a></li>
@@ -377,17 +380,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -404,7 +405,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

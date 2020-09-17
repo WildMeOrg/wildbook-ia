@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.gui.guimenus &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.gui.guimenus &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -38,21 +37,20 @@
 <span class="sd">This module defines all of the menu items in the main GUI</span>
 <span class="sd">as well as their callbacks in guiback</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
 
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[guimenus]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DummyBack"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.DummyBack">[docs]</a><span class="k">class</span> <span class="nc">DummyBack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;using dummy back&#39;</span><span class="p">)</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="c1"># print(name)</span>
         <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
@@ -480,7 +478,9 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;actionBatchUnknownVsExemplarQueries&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Query: Unknowns vs Exemplars&#39;</span><span class="p">,</span>
         <span class="n">triggered</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span>
+            <span class="n">query_is_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">,</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
@@ -544,8 +544,7 @@
         <span class="c1"># shortcut=&#39;Ctrl+]&#39;,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+K&#39;</span><span class="p">,</span>
         <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">take_screenshot</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">setup_depricated_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span></div>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_refresh_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_refresh_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_refresh_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
@@ -602,43 +601,6 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="setup_depricated_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_depricated_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_depricated_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
-    <span class="c1"># mainwin.menuDepr = mainwin.menubar.newMenu(&#39;Depricated&#39;)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDepr</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Depricated&#39;</span><span class="p">)</span>
-    <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDepr</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
-    <span class="c1"># menu.newAction(</span>
-    <span class="c1">#    name=&#39;actionCompute_Queries&#39;,</span>
-    <span class="c1">#    text=&#39;Query: Old Style&#39;,</span>
-    <span class="c1">#    tooltip=&#39;&#39;&#39;This might take anywhere from a coffee break to an</span>
-    <span class="c1">#                overnight procedure depending on how many ANNOTATIONs you\&#39;ve</span>
-    <span class="c1">#                made. It queries each chip and saves the result which</span>
-    <span class="c1">#                allows multiple queries to be rapidly inspected later.&#39;&#39;&#39;,</span>
-    <span class="c1">#    #shortcut=&#39;Ctrl+4&#39;,</span>
-    <span class="c1">#    triggered=back.compute_queries)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c1"># ---------</span>
-    <span class="c1"># menu.newAction(</span>
-    <span class="c1">#     text=&#39;Query: Incremental&#39;,</span>
-    <span class="c1">#     triggered=back.incremental_query</span>
-    <span class="c1"># )</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Import Cropped Images As Annotations (select file(s))&#39;</span><span class="p">,</span>
-        <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_as_annots_from_file</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Developer Reload&#39;</span><span class="p">,</span> <span class="n">shortcut</span><span class="o">=</span><span class="s1">&#39;Ctrl+Shift+R&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_reload</span>
-    <span class="p">)</span>
-
-    <span class="c1"># TESTS</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Tests&#39;</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run IBEIS Tests&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_tests</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Utool Tests&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_utool_tests</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Run Vtool Tests&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_vtool_tests</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuTests</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Assert Modules&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">assert_modules</span><span class="p">)</span>
-    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Update Source Install&#39;</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_source_install</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="setup_zebra_menu"><a class="viewcode-back" href="../../../wbia.gui.html#wbia.gui.guimenus.setup_zebra_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_zebra_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="s1">&#39;Zebra&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span>
@@ -647,22 +609,6 @@
         <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Process ImageSet as Camera Trap Images&#39;</span><span class="p">,</span>
         <span class="n">triggered</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">filter_imageset_as_camera_trap</span><span class="p">,</span>
     <span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.gui.guimenus --test-setup_dummy_menus</span>
-<span class="sd">        python -m wbia.gui.guimenus</span>
-<span class="sd">        python -m wbia.gui.guimenus --allexamples</span>
-<span class="sd">        python -m wbia.gui.guimenus --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -698,17 +644,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -725,7 +669,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

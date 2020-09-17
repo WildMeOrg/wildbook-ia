@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.annots &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.annots &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -34,14 +33,15 @@
             
   <h1>Source code for wbia.annots</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">_wbia_object</span>
-<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_wbia_object</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[annot]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -206,7 +206,7 @@
 <span class="sd">        &gt;&gt;&gt; _wbia_object._find_wbia_attrs(ibs, objname, blacklist)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">_AnnotPropInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
 
@@ -298,7 +298,7 @@
 
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">_autogen_annot_base</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_autogen_annot_base</span>
 
     <span class="n">BASE</span> <span class="o">=</span> <span class="n">_autogen_annot_base</span><span class="o">.</span><span class="n">_annot_base_class</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -432,7 +432,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hog_img</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">core_annots</span><span class="o">.</span><span class="n">make_hog_block_image</span><span class="p">(</span><span class="n">hog</span><span class="p">)</span> <span class="k">for</span> <span class="n">hog</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hog_hog</span><span class="p">]</span>
 
@@ -442,10 +442,10 @@
 <div class="viewcode-block" id="Annots.remove_tags"><a class="viewcode-back" href="../../wbia.html#wbia.annots.Annots.remove_tags">[docs]</a>    <span class="k">def</span> <span class="nf">remove_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">remove_annot_case_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">aids</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -456,7 +456,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">aids</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">False</span>
@@ -464,14 +464,14 @@
 <div class="viewcode-block" id="Annots.show"><a class="viewcode-back" href="../../wbia.html#wbia.annots.Annots.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Can only show one, got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
-        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_chip</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
 
         <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">_AnnotGroupPropInjector</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">_AnnotGroupPropInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
 
@@ -490,7 +490,7 @@
 
         <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">ANNOT_BASE_ATTRS</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cannot inject annot group attrname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attrname</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Cannot inject annot group attrname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attrname</span><span class="p">,))</span>
                 <span class="k">continue</span>
             <span class="n">ibs_unflat_getter</span> <span class="o">=</span> <span class="n">_make_unflat_getter</span><span class="p">(</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="s1">&#39;_unflat_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">ibs_unflat_getter</span><span class="p">)</span>
@@ -502,12 +502,12 @@
 <span class="k">class</span> <span class="nc">AnnotGroups</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Effciently handle operations on multiple groups of annotations &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annots_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annots_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span> <span class="o">=</span> <span class="n">annots_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rowids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">_rowids</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -523,10 +523,10 @@
             <span class="n">nice</span> <span class="o">=</span> <span class="s1">&#39;(n=</span><span class="si">%r</span><span class="s1">, m=</span><span class="si">%.1f</span><span class="s1">, s=</span><span class="si">%.1f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">nice</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
     <span class="nd">@property</span>
@@ -560,7 +560,7 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;settable_attrs = &#39; + ut.repr4(settable_attrs))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">_AnnotMatchPropInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
 
@@ -645,20 +645,6 @@
     <span class="k">def</span> <span class="nf">evidence_decision_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">INT_TO_CODE</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">INT_TO_CODE</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">evidence_decision</span><span class="p">]</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.annot</span>
-<span class="sd">        python -m wbia.annot --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -694,17 +680,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -721,7 +705,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

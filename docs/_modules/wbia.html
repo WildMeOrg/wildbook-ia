@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -41,16 +40,15 @@
 <span class="sd">    http://code.activestate.com/recipes/473888-lazy-module-imports/</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># flake8: noqa</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">wbia._version</span> <span class="k">import</span> <span class="n">__version__</span>
+    <span class="kn">from</span> <span class="nn">wbia._version</span> <span class="kn">import</span> <span class="n">__version__</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.0.0&#39;</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[wbia !!!] ERROR: Unable to load all core utility modules.&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[wbia !!!] Perhaps try super_setup.py pull&#39;</span><span class="p">)</span>
@@ -74,7 +72,7 @@
 <span class="c1"># If we dont initialize plottool before &lt;something&gt;</span>
 <span class="c1"># then it causes a crash in windows. Its so freaking weird.</span>
 <span class="c1"># something is not guitool, wbia.viz</span>
-<span class="c1"># has to be before control, can be after constants, params, and main_module</span>
+<span class="c1"># has to be before control, can be after constants, params, and entry_points</span>
 <span class="c1"># import wbia.plottool</span>
 
 
@@ -82,22 +80,22 @@
 
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">params</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">main_module</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">other</span>
-    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">params</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">entry_points</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">other</span>
+    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">sysres</span>
 
-    <span class="c1"># main_module._preload()</span>
+    <span class="c1"># entry_points._preload()</span>
 
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">control</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dbio</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">control</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dbio</span>
 
     <span class="c1"># from wbia import web</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">sysres</span>
-    <span class="kn">from</span> <span class="nn">wbia.main_module</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">wbia.entry_points</span> <span class="kn">import</span> <span class="p">(</span>
         <span class="n">main</span><span class="p">,</span>
         <span class="n">_preload</span><span class="p">,</span>
         <span class="n">_init_numpy</span><span class="p">,</span>
@@ -106,11 +104,11 @@
         <span class="n">opendb_in_background</span><span class="p">,</span>
         <span class="n">opendb_bg_web</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">wbia.control.IBEISControl</span> <span class="k">import</span> <span class="n">IBEISController</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.hots.query_request</span> <span class="k">import</span> <span class="n">QueryRequest</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.hots.chip_match</span> <span class="k">import</span> <span class="n">ChipMatch</span><span class="p">,</span> <span class="n">AnnotMatch</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph.core</span> <span class="k">import</span> <span class="n">AnnotInference</span>
-    <span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="kn">from</span> <span class="nn">wbia.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots.query_request</span> <span class="kn">import</span> <span class="n">QueryRequest</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots.chip_match</span> <span class="kn">import</span> <span class="n">ChipMatch</span><span class="p">,</span> <span class="n">AnnotMatch</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph.core</span> <span class="kn">import</span> <span class="n">AnnotInference</span>
+    <span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="p">(</span>
         <span class="n">get_workdir</span><span class="p">,</span>
         <span class="n">set_workdir</span><span class="p">,</span>
         <span class="n">ensure_pz_mtest</span><span class="p">,</span>
@@ -118,19 +116,19 @@
         <span class="n">ensure_wilddogs</span><span class="p">,</span>
         <span class="n">list_dbs</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">main_helpers</span>
+    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
 
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">algo</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">algo</span>
 
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">expt</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">templates</span>
-    <span class="kn">from</span> <span class="nn">wbia.templates</span> <span class="k">import</span> <span class="n">generate_notebook</span>
-    <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">register_preprocs</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_images</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">expt</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">templates</span>
+    <span class="kn">from</span> <span class="nn">wbia.templates</span> <span class="kn">import</span> <span class="n">generate_notebook</span>
+    <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_images</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">postdoc</span>
+        <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">postdoc</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">pass</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -141,11 +139,11 @@
 <div class="viewcode-block" id="import_subs"><a class="viewcode-back" href="../wbia.html#wbia.import_subs">[docs]</a><span class="k">def</span> <span class="nf">import_subs</span><span class="p">():</span>
     <span class="c1"># Weird / Fancy loading.</span>
     <span class="c1"># I want to make this simpler</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">algo</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">viz</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">web</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">gui</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">templates</span></div>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">algo</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">viz</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">web</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">gui</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">templates</span></div>
 
 
 <div class="viewcode-block" id="run_experiment"><a class="viewcode-back" href="../wbia.html#wbia.run_experiment">[docs]</a><span class="k">def</span> <span class="nf">run_experiment</span><span class="p">(</span>
@@ -370,7 +368,8 @@
 <span class="c1"># }</span>
 <span class="c1"># )</span>
 
-<span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">main_helpers</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
 
 <span class="n">testdata_cm</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_cm</span>
 <span class="n">testdata_cmlist</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_cmlist</span>
@@ -383,6 +382,7 @@
 
 <span class="c1"># Utool generated init makeinit.py</span>
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../wbia.html#wbia.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -390,7 +390,7 @@
     <span class="n">import_subs</span><span class="p">()</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">constants</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">main_module</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">entry_points</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="nb">getattr</span><span class="p">(</span><span class="n">dbio</span><span class="p">,</span> <span class="s1">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
@@ -416,19 +416,8 @@
 
 <span class="sd">    cd /home/joncrall/code/wbia/wbia/other</span>
 <span class="sd">    makeinit.py -x web viz tests gui</span>
-<span class="sd">    makeinit.py -x constants params main_module other control dbio tests</span>
+<span class="sd">    makeinit.py -x constants params entry_points other control dbio tests</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Runs the unittests for the wbia codebase</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">from</span> <span class="nn">wbia.tests.run_tests</span> <span class="k">import</span> <span class="n">run_tests</span>
-
-    <span class="n">run_tests</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -462,17 +451,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -489,7 +476,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

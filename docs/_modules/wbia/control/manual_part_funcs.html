@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_part_funcs &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.control.manual_part_funcs &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,17 +40,18 @@
 <span class="sd">    sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_  # NOQA</span>
 <span class="sd">    sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">routes_ajax</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">routes_ajax</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -217,10 +217,10 @@
 <span class="sd">        URL:    /api/part/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># ut.embed()</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">geometry</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] adding parts&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] adding parts&#39;</span><span class="p">)</span>
     <span class="c1"># Prepare the SQL input</span>
     <span class="c1"># For import only, we can specify both by setting import_override to True</span>
     <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">bbox_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span>
@@ -250,8 +250,8 @@
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># nothing is being added</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] WARNING: 0 parts are being added!&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] WARNING: 0 parts are being added!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">return</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="n">detect_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -383,7 +383,7 @@
 <span class="sd">        part_rowid_list (int):  list of part ids</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> parts&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> parts&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
     <span class="c1"># delete parent rowid column if exists in part table</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">)</span></div>
 
@@ -626,7 +626,7 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/part/vert/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="k">import</span> <span class="n">preproc_part</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_part</span>
 
     <span class="n">vertstr_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_verts&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">preproc_part</span><span class="o">.</span><span class="n">postget_part_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
@@ -827,7 +827,7 @@
 <div class="viewcode-block" id="get_part_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_part_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; part_tags_list &lt;- part.part_tags[part_rowid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;part_tags_list &lt;- part.part_tags[part_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;part_tags&quot; in the &quot;part&quot; table</span>
 
@@ -981,7 +981,7 @@
 
 
 <div class="viewcode-block" id="update_part_rotate_90"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.update_part_rotate_90">[docs]</a><span class="k">def</span> <span class="nf">update_part_rotate_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="k">import</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
+    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -1048,7 +1048,7 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/part/bbox/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">geometry</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
 
     <span class="c1"># changing the bboxes also changes the bounding polygon</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_list_from_bboxes_list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
@@ -1130,7 +1130,7 @@
 <span class="c1">#         part_tags_list</span>
 
 <span class="c1">#     &quot;&quot;&quot;</span>
-<span class="c1">#     #print(&#39;[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r&#39; % (part_rowid_list, part_tags_list))</span>
+<span class="c1">#     #logger.info(&#39;[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r&#39; % (part_rowid_list, part_tags_list))</span>
 <span class="c1">#     id_iter = part_rowid_list</span>
 <span class="c1">#     colnames = (PART_TAG_TEXT,)</span>
 <span class="c1">#     ibs.db.set(const.PART_TABLE, colnames, part_tags_list,</span>
@@ -1166,7 +1166,7 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/part/vert/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">geometry</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
 
     <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
     <span class="c1"># Compute data to set</span>
@@ -1531,21 +1531,6 @@
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.control.manual_part_funcs</span>
-<span class="sd">        python -m wbia.control.manual_part_funcs --allexamples</span>
-<span class="sd">        python -m wbia.control.manual_part_funcs --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1583,17 +1568,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1610,7 +1593,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

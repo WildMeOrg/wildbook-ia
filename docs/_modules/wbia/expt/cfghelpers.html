@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.expt.cfghelpers &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.expt.cfghelpers &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -44,10 +43,11 @@
 <span class="sd">using bash brace expansion.</span>
 <span class="sd">http://www.linuxjournal.com/content/bash-brace-expansion</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="remove_prefix_hack"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.cfghelpers.remove_prefix_hack">[docs]</a><span class="k">def</span> <span class="nf">remove_prefix_hack</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">cfg_options</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">):</span>
@@ -254,7 +254,7 @@
                 <span class="k">if</span> <span class="n">expand_nested</span><span class="p">:</span>
                     <span class="n">cfg_combos</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># print(&#39;Appending: &#39; + str(ut.depth_profile(cfg_combo)))</span>
+                    <span class="c1"># logger.info(&#39;Appending: &#39; + str(ut.depth_profile(cfg_combo)))</span>
                     <span class="c1"># if ut.depth_profile(cfg_combo) == [1, 9]:</span>
                     <span class="c1">#    ut.embed()</span>
                     <span class="n">cfg_combos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">)</span>
@@ -292,13 +292,13 @@
             <span class="c1">#    cfg_combo = ut.take(cfg_combo, subx)</span>
             <span class="k">if</span> <span class="n">expand_nested</span><span class="p">:</span>
                 <span class="n">cfg_combos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg_combos</span><span class="p">)</span>
-        <span class="c1">#    print(&#39;Updated to: &#39; + str(ut.depth_profile(cfg_combos_list)))</span>
-        <span class="c1"># print(&#39;Returning len(cfg_combos_list) = %r&#39; % (len(cfg_combos_list),))</span>
+        <span class="c1">#    logger.info(&#39;Updated to: &#39; + str(ut.depth_profile(cfg_combos_list)))</span>
+        <span class="c1"># logger.info(&#39;Returning len(cfg_combos_list) = %r&#39; % (len(cfg_combos_list),))</span>
     <span class="k">return</span> <span class="n">cfg_combos_list</span></div>
 
 
 <div class="viewcode-block" id="parse_argv_cfg"><a class="viewcode-back" href="../../../wbia.expt.html#wbia.expt.cfghelpers.parse_argv_cfg">[docs]</a><span class="k">def</span> <span class="nf">parse_argv_cfg</span><span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">],</span> <span class="n">named_defaults_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; simple configs</span>
+    <span class="sd">&quot;&quot;&quot;simple configs</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        argname (?):</span>
@@ -336,21 +336,6 @@
     <span class="p">)</span>
     <span class="n">cfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">cfg_combos_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfg_list</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.expt.cfghelpers</span>
-<span class="sd">        python -m wbia.expt.cfghelpers --allexamples</span>
-<span class="sd">        python -m wbia.expt.cfghelpers --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -388,17 +373,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -415,7 +398,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

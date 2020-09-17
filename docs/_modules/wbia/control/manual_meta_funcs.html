@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_meta_funcs &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.control.manual_meta_funcs &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -37,16 +36,17 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">controller functions for contributors, versions, configs, and other metadata</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="k">import</span> <span class="n">Config</span>
-<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -89,7 +89,7 @@
         <span class="k">return</span> <span class="n">default</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))</span>
     <span class="c1"># Add contributors to database</span>
     <span class="k">if</span> <span class="n">name_first_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">name_first_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
@@ -223,8 +223,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name_first</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
     <span class="n">name_last</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_user_name</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default first name: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_first</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default last name:  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_last</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[collect_transfer_data] Contributor default first name: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_first</span><span class="p">,)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[collect_transfer_data] Contributor default last name:  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_last</span><span class="p">,)</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
         <span class="n">name_first</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
             <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change first name (Enter to use default): &#39;</span>
@@ -245,11 +249,21 @@
         <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Your location was be determined automatically.&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default city: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_city</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default state: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_state</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default zip: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_country</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default country: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_zip</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Your location was be determined automatically.&#39;</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[collect_transfer_data] Contributor default city: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_city</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[collect_transfer_data] Contributor default state: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_state</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[collect_transfer_data] Contributor default zip: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_country</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[collect_transfer_data] Contributor default country: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_zip</span><span class="p">,)</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
             <span class="n">location_city</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change default location city (Enter to use default): &#39;</span>
@@ -265,8 +279,8 @@
             <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[collect_transfer_data] Your location could not be determined automatically.&#39;</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
@@ -350,14 +364,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[ensure_contributor_rowids] Ensuring all images have contributors for dbname=</span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
         <span class="p">)</span>
     <span class="n">contributor_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contributor_rowids</span><span class="p">()</span>
     <span class="n">unassigned_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_uncontributed_images</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[ensure_contributor_rowids] </span><span class="si">%d</span><span class="s1"> Contributors exist. </span><span class="si">%d</span><span class="s1"> images are unassigned&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contributor_rowid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">))</span>
         <span class="p">)</span>
@@ -510,8 +524,7 @@
 
 
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_meta_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
@@ -862,7 +875,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: FIXME TESTME</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> contributors&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">contributor_rowid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> contributors&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">contributor_rowid_list</span><span class="p">))</span>
 
     <span class="c1"># Delete configs (UNSURE IF THIS IS CORRECT)</span>
     <span class="c1"># CONTRIBUTORS SHOULD NOT DELETE IMAGES</span>
@@ -1005,7 +1018,7 @@
 <span class="sd">        URL:    /api/metadata/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> metadata&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> metadata&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">))</span>
     <span class="c1"># Add imageset text names to database</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s1">&#39;metadata_value&#39;</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">metadata_value_list</span><span class="p">)</span>
@@ -1037,7 +1050,9 @@
         <span class="n">general_config</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">current_species</span> <span class="o">=</span> <span class="n">general_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;current_species&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[_init_config] general_config.current_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_species</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[_init_config] general_config.current_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_species</span><span class="p">,)</span>
+        <span class="p">)</span>
     <span class="c1"># &lt;/GENERAL CONFIG&gt;</span>
     <span class="c1">#####</span>
     <span class="c1"># species_list = ibs.get_database_species()</span>
@@ -1048,8 +1063,8 @@
         <span class="n">current_species</span> <span class="o">=</span> <span class="n">primary_species</span>
     <span class="n">cfgname</span> <span class="o">=</span> <span class="s1">&#39;cfg&#39;</span> <span class="k">if</span> <span class="n">current_species</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">current_species</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="c1"># print(&#39;[_init_config] Loading database with species_list = %r &#39; % (species_list,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[_init_config] Using cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+        <span class="c1"># logger.info(&#39;[_init_config] Loading database with species_list = %r &#39; % (species_list,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[_init_config] Using cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
     <span class="c1"># try to be intelligent about the default speceis</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_load_named_config</span><span class="p">(</span><span class="n">cfgname</span><span class="p">)</span>
 
@@ -1082,14 +1097,13 @@
         <span class="s1">&#39;PZ&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_code_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[_init_burned_in_species] Burned in mising species...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[_init_burned_in_species] Burned in mising species...&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@profile</span>
 <span class="k">def</span> <span class="nf">_load_named_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
     <span class="c1"># TODO: update cfgs between versions</span>
     <span class="c1"># Try to load previous config otherwise default</span>
     <span class="c1"># use_config_cache = not (ut.is_developer() and not ut.get_argflag((&#39;--nocache-pref&#39;,)))</span>
@@ -1154,21 +1168,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Config</span><span class="o">.</span><span class="n">update_query_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.control.manual_meta_funcs</span>
-<span class="sd">        python -m wbia.control.manual_meta_funcs --allexamples</span>
-<span class="sd">        python -m wbia.control.manual_meta_funcs --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1206,17 +1205,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1233,7 +1230,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.mixin_simulation &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.algo.graph.mixin_simulation &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -39,16 +38,17 @@
 <span class="sd">This includes recordings measures used to generate plots in JC&#39;s thesis.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">,</span> <span class="n">NULL</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span><span class="p">,</span> <span class="n">NULL</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="SimulationHelpers"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers">[docs]</a><span class="k">class</span> <span class="nc">SimulationHelpers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -103,7 +103,7 @@
         <span class="n">infr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;algo.max_outer_loops&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_outer_loops</span></div>
 
 <div class="viewcode-block" id="SimulationHelpers.init_test_mode"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.SimulationHelpers.init_test_mode">[docs]</a>    <span class="k">def</span> <span class="nf">init_test_mode</span><span class="p">(</span><span class="n">infr</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">nx_dynamic_graph</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">nx_dynamic_graph</span>
 
         <span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s1">&#39;init_test_mode&#39;</span><span class="p">)</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">test_mode</span> <span class="o">=</span> <span class="kc">True</span>
@@ -192,8 +192,8 @@
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">node_truth</span><span class="p">,</span> <span class="n">cc</span><span class="p">)):</span>
                             <span class="n">num_undetectable_fp</span> <span class="o">+=</span> <span class="mi">1</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num_undetectable_fn = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_undetectable_fn</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num_undetectable_fp = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_undetectable_fp</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num_undetectable_fn = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_undetectable_fn</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num_undetectable_fp = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_undetectable_fp</span><span class="p">,))</span>
 
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">n_error_edges2</span> <span class="o">=</span> <span class="mi">0</span>
@@ -328,9 +328,9 @@
         <span class="n">was_correct</span> <span class="o">=</span> <span class="n">prev_decision</span> <span class="o">==</span> <span class="n">true_decision</span>
 
         <span class="n">is_correct</span> <span class="o">=</span> <span class="n">true_decision</span> <span class="o">==</span> <span class="n">decision</span>
-        <span class="c1"># print(&#39;prev_decision = {!r}&#39;.format(prev_decision))</span>
-        <span class="c1"># print(&#39;decision = {!r}&#39;.format(decision))</span>
-        <span class="c1"># print(&#39;true_decision = {!r}&#39;.format(true_decision))</span>
+        <span class="c1"># logger.info(&#39;prev_decision = {!r}&#39;.format(prev_decision))</span>
+        <span class="c1"># logger.info(&#39;decision = {!r}&#39;.format(decision))</span>
+        <span class="c1"># logger.info(&#39;true_decision = {!r}&#39;.format(true_decision))</span>
 
         <span class="n">test_print</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">print</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
@@ -342,14 +342,14 @@
         <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">num</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">recover_graph</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span>
             <span class="n">old_data</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">get_nonvisual_edge_data</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
-            <span class="c1"># print(&#39;old_data = %s&#39; % (ut.repr4(old_data, stritems=True),))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_prev_reviews = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_data</span><span class="p">[</span><span class="s1">&#39;num_reviews&#39;</span><span class="p">],))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;prev_decision = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prev_decision</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;decision = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">decision</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;was_gt_pos = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">was_gt_pos</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;was_within_pred = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">was_within_pred</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;was_within_gt = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">was_within_gt</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num inconsistent = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,))</span>
+            <span class="c1"># logger.info(&#39;old_data = %s&#39; % (ut.repr4(old_data, stritems=True),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;n_prev_reviews = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_data</span><span class="p">[</span><span class="s1">&#39;num_reviews&#39;</span><span class="p">],))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;prev_decision = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prev_decision</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;decision = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">decision</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;was_gt_pos = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">was_gt_pos</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;was_within_pred = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">was_within_pred</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;was_within_gt = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">was_within_gt</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num inconsistent = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,))</span>
             <span class="c1"># is_recovering = infr.is_recovering()</span>
 
         <span class="k">if</span> <span class="n">decision</span> <span class="o">==</span> <span class="n">POSTV</span><span class="p">:</span>
@@ -357,13 +357,13 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">was_gt_pos</span><span class="p">:</span>
                     <span class="n">infr</span><span class="o">.</span><span class="n">test_gt_pos_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">was_gt_pos</span><span class="p">:</span>
-            <span class="n">test_print</span><span class="p">(</span><span class="s1">&#39;UNDID GOOD POSITIVE EDGE&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
+            <span class="n">test_print</span><span class="p">(</span><span class="s1">&#39;UNDID GOOD POSITIVE EDGE&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">test_gt_pos_graph</span><span class="o">.</span><span class="n">remove_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
             <span class="n">is_within_gt</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_gt_pos_graph</span><span class="o">.</span><span class="n">are_nodes_connected</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
 
         <span class="n">split_gt</span> <span class="o">=</span> <span class="n">is_within_gt</span> <span class="o">!=</span> <span class="n">was_within_gt</span>
         <span class="k">if</span> <span class="n">split_gt</span><span class="p">:</span>
-            <span class="n">test_print</span><span class="p">(</span><span class="s1">&#39;SPLIT A GOOD MERGE&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkred&#39;</span><span class="p">)</span>
+            <span class="n">test_print</span><span class="p">(</span><span class="s1">&#39;SPLIT A GOOD MERGE&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;n_true_merges&#39;</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
 
         <span class="n">confusion</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;confusion&#39;</span><span class="p">]</span>
@@ -397,30 +397,30 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">infr</span><span class="o">.</span><span class="n">mistake_edges</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
                     <span class="n">test_action</span> <span class="o">=</span> <span class="s1">&#39;correction&#39;</span>
-                    <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;darkgreen&#39;</span>
+                    <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
                     <span class="k">if</span> <span class="n">decision</span> <span class="o">==</span> <span class="n">POSTV</span><span class="p">:</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">was_within_gt</span><span class="p">:</span>
                             <span class="n">test_action</span> <span class="o">=</span> <span class="s1">&#39;correction redid merge&#39;</span>
-                            <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;darkgreen&#39;</span>
+                            <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
                             <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;n_true_merges&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">decision</span> <span class="o">==</span> <span class="n">POSTV</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">was_within_gt</span><span class="p">:</span>
                         <span class="n">test_action</span> <span class="o">=</span> <span class="s1">&#39;correct merge&#39;</span>
-                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;darkgreen&#39;</span>
+                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
                         <span class="n">infr</span><span class="o">.</span><span class="n">test_state</span><span class="p">[</span><span class="s1">&#39;n_true_merges&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">test_action</span> <span class="o">=</span> <span class="s1">&#39;correct redundant positive&#39;</span>
-                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;darkblue&#39;</span>
+                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">decision</span> <span class="o">==</span> <span class="n">NEGTV</span><span class="p">:</span>
                         <span class="n">test_action</span> <span class="o">=</span> <span class="s1">&#39;correct negative&#39;</span>
-                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;teal&#39;</span>
+                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;cyan&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">test_action</span> <span class="o">=</span> <span class="s1">&#39;correct uninferrable&#39;</span>
-                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;teal&#39;</span>
+                        <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;cyan&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;darkred&#39;</span>
+            <span class="n">action_color</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
             <span class="c1"># INCORRECT DECISION</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">mistake_edges</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">was_reviewed</span><span class="p">:</span>
@@ -458,7 +458,7 @@
 
 
 <div class="viewcode-block" id="UserOracle"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.mixin_simulation.UserOracle">[docs]</a><span class="k">class</span> <span class="nc">UserOracle</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">oracle</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">oracle</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="n">rng</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">ord</span><span class="p">,</span> <span class="n">rng</span><span class="p">))</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_rng</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="s1">&#39;python&#39;</span><span class="p">)</span>
@@ -522,20 +522,6 @@
             <span class="c1">#     &#39;ORACLE ERROR edge={}, truth={}, pred={}, rec={}, hardness={:.3f}&#39;.format(edge, truth, observed, is_recovering, hardness),</span>
             <span class="c1">#     2, color=&#39;red&#39;)</span>
         <span class="k">return</span> <span class="n">feedback</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.algo.graph.mixin_simulation</span>
-<span class="sd">        python -m wbia.algo.graph.mixin_simulation --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -575,17 +561,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -602,7 +586,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

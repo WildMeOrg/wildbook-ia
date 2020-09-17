@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.app &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.app &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -37,27 +36,27 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dependencies: flask, tornado</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">tornado.wsgi</span>
 <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">socket</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">apis_engine</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">job_engine</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
-<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">access_log</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">apis_engine</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">job_engine</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="kn">import</span> <span class="n">access_log</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">werkzeug.wsgi</span> <span class="k">import</span> <span class="n">DispatcherMiddleware</span>
+        <span class="kn">from</span> <span class="nn">werkzeug.wsgi</span> <span class="kn">import</span> <span class="n">DispatcherMiddleware</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">werkzeug.middleware.dispatcher</span> <span class="k">import</span> <span class="n">DispatcherMiddleware</span>
+        <span class="kn">from</span> <span class="nn">werkzeug.middleware.dispatcher</span> <span class="kn">import</span> <span class="n">DispatcherMiddleware</span>
     <span class="kn">import</span> <span class="nn">prometheus_client</span>
-    <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">prometheus</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">prometheus</span>  <span class="c1"># NOQA</span>
 
     <span class="n">PROMETHEUS</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -139,18 +138,18 @@
         <span class="n">app</span><span class="o">.</span><span class="n">server_port</span> <span class="o">=</span> <span class="n">port_</span>
         <span class="c1"># URL for the web instance</span>
         <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_domain</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,))</span>
         <span class="c1"># Launch the web browser to view the web interface and API</span>
         <span class="k">if</span> <span class="n">browser</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">+</span> <span class="n">url_suffix</span>
             <span class="kn">import</span> <span class="nn">webbrowser</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] opening browser with url = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] opening browser with url = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
             <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">PROMETHEUS</span><span class="p">:</span>
             <span class="c1"># Add prometheus wsgi middleware to route /metrics requests</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LOADING PROMETHEUS&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;LOADING PROMETHEUS&#39;</span><span class="p">)</span>
             <span class="n">app_</span> <span class="o">=</span> <span class="n">DispatcherMiddleware</span><span class="p">(</span>
                 <span class="n">app</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;/metrics&#39;</span><span class="p">:</span> <span class="n">prometheus_client</span><span class="o">.</span><span class="n">make_wsgi_app</span><span class="p">()}</span>
             <span class="p">)</span>
@@ -160,7 +159,7 @@
             <span class="n">app_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span>
             <span class="n">app</span> <span class="o">=</span> <span class="n">app_</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SKIPPING PROMETHEUS&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SKIPPING PROMETHEUS&#39;</span><span class="p">)</span>
 
         <span class="c1"># Start the tornado web handler</span>
         <span class="c1"># WSGI = Web Server Gateway Interface</span>
@@ -181,9 +180,12 @@
         <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
             <span class="n">fallback_port</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_open_port</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Port </span><span class="si">%s</span><span class="s1"> is unavailable, using fallback_port = </span><span class="si">%r</span><span class="s1">&#39;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">fallback_port</span><span class="p">,)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">port</span><span class="p">,</span>
+                        <span class="n">fallback_port</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="n">start_tornado</span><span class="p">(</span>
                     <span class="n">ibs</span><span class="p">,</span>
@@ -202,7 +204,11 @@
                 <span class="p">)</span>
 
         <span class="c1"># Add more verbose logging</span>
-        <span class="n">utool_logfile_handler</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_logging</span><span class="o">.</span><span class="n">__CURRENT_LOGFILE_HANDLER__</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">utool_logfile_handler</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_ROOT_LOGGER__</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">utool_logfile_handler</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="k">if</span> <span class="n">utool_logfile_handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">try</span><span class="p">:</span>
@@ -232,9 +238,9 @@
                 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;tornado.general&#39;</span><span class="p">),</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;websocket&#39;</span><span class="p">),</span>
             <span class="p">]</span>
-            <span class="k">for</span> <span class="n">logger</span> <span class="ow">in</span> <span class="n">logger_list</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">utool_logfile_handler</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">logger_</span> <span class="ow">in</span> <span class="n">logger_list</span><span class="p">:</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">utool_logfile_handler</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">start_web_loop</span><span class="p">:</span>
             <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
@@ -262,7 +268,7 @@
 <span class="sd">        python -m wbia --db PZ_MTEST --web</span>
 <span class="sd">        python -m wbia --db PZ_MTEST --web --browser</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] start_from_wbia()&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] start_from_wbia()&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">start_job_queue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--noengine&#39;</span><span class="p">):</span>
@@ -275,16 +281,16 @@
 
     <span class="k">if</span> <span class="n">precache</span><span class="p">:</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all image thumbnails (with annots)...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all image thumbnails (with annots)...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all image thumbnails (without annots)...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all image thumbnails (without annots)...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all annotation chips...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all annotation chips...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">check_chip_existence</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">compute_all_chips</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">start_job_queue</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] opening job manager&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] opening job manager&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">load_plugin_module</span><span class="p">(</span><span class="n">job_engine</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">load_plugin_module</span><span class="p">(</span><span class="n">apis_engine</span><span class="p">)</span>
         <span class="c1"># import time</span>
@@ -293,13 +299,13 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">initialize_job_manager</span><span class="p">()</span>
         <span class="c1"># time.sleep(10)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] starting tornado&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] starting tornado&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">browser</span><span class="p">,</span> <span class="n">url_suffix</span><span class="p">,</span> <span class="n">start_web_loop</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Caught ctrl+c in webserver. Gracefully exiting&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Caught ctrl+c in webserver. Gracefully exiting&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">start_web_loop</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] closing job manager&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] closing job manager&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">close_job_manager</span><span class="p">()</span></div>
 
 
@@ -337,21 +343,6 @@
     <span class="n">aid_strs</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)))</span>
     <span class="n">url_suffix</span> <span class="o">=</span> <span class="s1">&#39;/group_review/?aid_list=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_strs</span><span class="p">)</span>
     <span class="n">wbia</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">start_from_wbia</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="n">url_suffix</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.web.app</span>
-<span class="sd">        python -m wbia.web.app --allexamples</span>
-<span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -387,17 +378,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -414,7 +403,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

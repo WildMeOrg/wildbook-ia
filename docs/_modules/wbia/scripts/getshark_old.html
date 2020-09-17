@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts.getshark_old &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.scripts.getshark_old &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,11 +33,12 @@
             
   <h1>Source code for wbia.scripts.getshark_old</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_injured_sharks"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark_old.get_injured_sharks">[docs]</a><span class="k">def</span> <span class="nf">get_injured_sharks</span><span class="p">():</span>
@@ -83,10 +83,10 @@
 
     <span class="n">key_hist</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgs</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">imgs</span> <span class="ow">in</span> <span class="n">keyed_images</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">key_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">key_hist</span><span class="p">,</span> <span class="s1">&#39;vals&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">key_hist</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">key_hist</span><span class="p">))</span>
     <span class="n">nice_key_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">key_to_nice</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">key_hist</span><span class="p">)</span>
     <span class="n">nice_key_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">nice_key_hist</span><span class="p">,</span> <span class="s1">&#39;vals&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">nice_key_hist</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">nice_key_hist</span><span class="p">))</span>
 
     <span class="n">key_to_urls</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">keyed_images</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">overlaps</span> <span class="o">=</span> <span class="p">{}</span>
@@ -99,12 +99,12 @@
         <span class="n">overlaps</span><span class="p">[(</span><span class="n">k1</span><span class="p">,</span> <span class="n">k2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">num_overlap</span>
         <span class="n">overlaps</span><span class="p">[(</span><span class="n">k1</span><span class="p">,</span> <span class="n">k1</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_to_urls</span><span class="p">[</span><span class="n">k1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">num_overlap</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># print(&#39;[%s][%s], overlap=%r&#39; % (k1, k2, num_overlap))</span>
+            <span class="c1"># logger.info(&#39;[%s][%s], overlap=%r&#39; % (k1, k2, num_overlap))</span>
             <span class="n">overlap_img_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">overlap_imgs</span><span class="p">)</span>
 
     <span class="n">all_img_urls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">key_to_urls</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
     <span class="n">num_all</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_img_urls</span><span class="p">)</span>  <span class="c1"># NOQA</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num_all = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_all</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num_all = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_all</span><span class="p">,))</span>
 
     <span class="c1"># Determine super-categories</span>
     <span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;nicks&#39;</span><span class="p">,</span> <span class="s1">&#39;scar&#39;</span><span class="p">,</span> <span class="s1">&#39;trunc&#39;</span><span class="p">]</span>
@@ -138,8 +138,8 @@
         <span class="n">cat_urls</span><span class="p">[</span><span class="n">cat</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cat_urls</span><span class="p">[</span><span class="n">cat</span><span class="p">]))</span>
         <span class="n">cat_hist</span><span class="p">[</span><span class="n">cat</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat_urls</span><span class="p">[</span><span class="n">cat</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">cat_to_keys</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">cat_hist</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">cat_to_keys</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">cat_hist</span><span class="p">))</span>
 
     <span class="n">key_to_cat</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">cat_to_keys</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">])</span>
 
@@ -172,8 +172,8 @@
     <span class="c1"># # http://springbreak.wildbook.org/rest/org.ecocean.Encounter/1111</span>
     <span class="c1"># get_enc_url = &#39;http://www.whaleshark.org/rest/org.ecocean.Encounter/%s&#39; % (encid,)</span>
     <span class="c1"># resp = requests.get(get_enc_url)</span>
-    <span class="c1"># print(ut.repr3(encdict))</span>
-    <span class="c1"># print(ut.repr3(encounters))</span>
+    <span class="c1"># logger.info(ut.repr3(encdict))</span>
+    <span class="c1"># logger.info(ut.repr3(encounters))</span>
 
     <span class="c1"># Download the files to the local disk</span>
     <span class="c1"># fpath_list =</span>
@@ -188,7 +188,7 @@
     <span class="p">)</span>
 
     <span class="n">dldir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/tmpsharks&#39;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">commonprefix</span><span class="p">,</span> <span class="n">basename</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">commonprefix</span><span class="p">,</span> <span class="n">basename</span>  <span class="c1"># NOQA</span>
 
     <span class="n">prefix</span> <span class="o">=</span> <span class="n">commonprefix</span><span class="p">(</span><span class="n">all_urls</span><span class="p">)</span>
     <span class="n">suffix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">url_</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">url_</span> <span class="ow">in</span> <span class="n">all_urls</span><span class="p">]</span>
@@ -258,7 +258,7 @@
     <span class="c1">#    if len(x) &gt; 1:</span>
     <span class="c1">#        info = info.copy()</span>
     <span class="c1">#        del info[&#39;keys&#39;]</span>
-    <span class="c1">#        print(ut.repr3(info))</span>
+    <span class="c1">#        logger.info(ut.repr3(info))</span>
 
     <span class="n">flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">fpath_has_imgext</span><span class="p">,</span> <span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gpath&#39;</span><span class="p">])</span>
     <span class="n">clist</span> <span class="o">=</span> <span class="n">clist</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
@@ -271,7 +271,9 @@
     <span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gid_list</span>
 
     <span class="n">failed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# failed </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;# failed </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),</span>
+    <span class="p">)</span>
     <span class="n">passed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)</span>
     <span class="n">clist</span> <span class="o">=</span> <span class="n">clist</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">passed_flags</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">clist</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
@@ -288,7 +290,7 @@
         <span class="n">aid_list</span>
 
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">core_annots</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
 
     <span class="n">pt</span><span class="o">.</span><span class="n">qt4ensure</span><span class="p">()</span>
     <span class="c1"># annots = ibs.annots()</span>
@@ -307,16 +309,16 @@
         <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
-    <span class="c1"># print(len(groupxs))</span>
+    <span class="c1"># logger.info(len(groupxs))</span>
 
     <span class="c1"># if False:</span>
     <span class="c1"># groupxs = ut.find_duplicate_items(ut.lmap(basename, suffix_list)).values()</span>
-    <span class="c1"># print(ut.repr3(ut.apply_grouping(all_urls, groupxs)))</span>
+    <span class="c1"># logger.info(ut.repr3(ut.apply_grouping(all_urls, groupxs)))</span>
     <span class="c1">#    # FIX</span>
     <span class="c1">#    for fpath, fname in zip(fpath_list, fname_list):</span>
     <span class="c1">#        if ut.checkpath(fpath):</span>
     <span class="c1">#            ut.move(fpath, join(dirname(fpath), fname))</span>
-    <span class="c1">#            print(&#39;fpath = %r&#39; % (fpath,))</span>
+    <span class="c1">#            logger.info(&#39;fpath = %r&#39; % (fpath,))</span>
 
     <span class="c1"># import wbia</span>
     <span class="c1"># from wbia.dbio import ingest_dataset</span>
@@ -381,8 +383,8 @@
     <span class="k">class</span> <span class="nc">TmpImage</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
         <span class="k">pass</span>
 
-    <span class="kn">from</span> <span class="nn">skimage.feature</span> <span class="k">import</span> <span class="n">hog</span>
-    <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">data</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">exposure</span>
+    <span class="kn">from</span> <span class="nn">skimage.feature</span> <span class="kn">import</span> <span class="n">hog</span>
+    <span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">data</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">exposure</span>
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
     <span class="n">image2</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">rgb2gray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">astronaut</span><span class="p">())</span>  <span class="c1"># NOQA</span>
@@ -531,7 +533,7 @@
     <span class="c1">#    &#39;resize_dim&#39;: &#39;wh&#39;</span>
     <span class="c1"># }</span>
 
-    <span class="kn">from</span> <span class="nn">pydarknet</span> <span class="k">import</span> <span class="n">Darknet_YOLO_Detector</span>
+    <span class="kn">from</span> <span class="nn">pydarknet</span> <span class="kn">import</span> <span class="n">Darknet_YOLO_Detector</span>
 
     <span class="n">data_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">export_to_xml</span><span class="p">()</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;localizer&#39;</span><span class="p">)</span>
@@ -574,7 +576,7 @@
     <span class="c1"># Fix any empty images</span>
     <span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
     <span class="n">empty_images</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">num_annotations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;empty_images = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">empty_images</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;empty_images = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">empty_images</span><span class="p">,))</span>
     <span class="c1"># list(map(basename, map(dirname, images.uris_original)))</span>
 
     <span class="k">def</span> <span class="nf">VecPipe</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -622,8 +624,8 @@
     <span class="c1">#            (&#39;s1 - s2&#39;, len(set1.difference(set2))),</span>
     <span class="c1">#            (&#39;s2 - s1&#39;, len(set2.difference(set1))),</span>
     <span class="c1">#        ])</span>
-    <span class="c1">#    print(&#39;encounter overlap: &#39; + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))</span>
-    <span class="c1">#    print(&#39;url overlap: &#39; + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))</span>
+    <span class="c1">#    logger.info(&#39;encounter overlap: &#39; + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))</span>
+    <span class="c1">#    logger.info(&#39;url overlap: &#39; + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))</span>
 
     <span class="c1">#    url1 = list(url_to_parsed1.keys())</span>
     <span class="c1">#    url2 = list(url_to_parsed2.keys())</span>
@@ -635,7 +637,7 @@
     <span class="c1">#    #suffix2 = sorted([u[len(cp2):].lower() for u in url2])</span>
     <span class="c1">#    suffix1 = sorted([u[len(cp1):] for u in url1])</span>
     <span class="c1">#    suffix2 = sorted([u[len(cp2):] for u in url2])</span>
-    <span class="c1">#    print(&#39;suffix overlap: &#39; + ut.repr3(set_overlap(suffix1, suffix2)))</span>
+    <span class="c1">#    logger.info(&#39;suffix overlap: &#39; + ut.repr3(set_overlap(suffix1, suffix2)))</span>
     <span class="c1">#    set1 = set(suffix1)</span>
     <span class="c1">#    set2 = set(suffix2)</span>
     <span class="c1">#    only1 = list(set1 - set1.intersection(set2))</span>
@@ -647,10 +649,10 @@
     <span class="c1">#        idx = ut.argsort(dist)[0:3]</span>
     <span class="c1">#        if dist[idx][0] &lt; 3:</span>
     <span class="c1">#            close = ut.take(only1, idx)</span>
-    <span class="c1">#            print(&#39;---&#39;)</span>
-    <span class="c1">#            print(&#39;suf = %r&#39; % (join(cp2, suf),))</span>
-    <span class="c1">#            print(&#39;close = %s&#39; % (ut.repr3([join(cp1, c) for c in close]),))</span>
-    <span class="c1">#            print(&#39;---&#39;)</span>
+    <span class="c1">#            logger.info(&#39;---&#39;)</span>
+    <span class="c1">#            logger.info(&#39;suf = %r&#39; % (join(cp2, suf),))</span>
+    <span class="c1">#            logger.info(&#39;close = %s&#39; % (ut.repr3([join(cp1, c) for c in close]),))</span>
+    <span class="c1">#            logger.info(&#39;---&#39;)</span>
     <span class="c1">#            break</span>
 
     <span class="c1">#    # Associate keywords with original images</span>
@@ -677,17 +679,17 @@
     <span class="c1"># both_uuids = new_uuids.intersection(cur_uuids)</span>
     <span class="c1"># only_cur = cur_uuids - both_uuids</span>
     <span class="c1"># only_new = new_uuids - both_uuids</span>
-    <span class="c1"># print(&#39;len(cur_uuids) = %r&#39; % (len(cur_uuids)))</span>
-    <span class="c1"># print(&#39;len(new_uuids) = %r&#39; % (len(new_uuids)))</span>
-    <span class="c1"># print(&#39;len(both_uuids) = %r&#39; % (len(both_uuids)))</span>
-    <span class="c1"># print(&#39;len(only_cur) = %r&#39; % (len(only_cur)))</span>
-    <span class="c1"># print(&#39;len(only_new) = %r&#39; % (len(only_new)))</span>
+    <span class="c1"># logger.info(&#39;len(cur_uuids) = %r&#39; % (len(cur_uuids)))</span>
+    <span class="c1"># logger.info(&#39;len(new_uuids) = %r&#39; % (len(new_uuids)))</span>
+    <span class="c1"># logger.info(&#39;len(both_uuids) = %r&#39; % (len(both_uuids)))</span>
+    <span class="c1"># logger.info(&#39;len(only_cur) = %r&#39; % (len(only_cur)))</span>
+    <span class="c1"># logger.info(&#39;len(only_new) = %r&#39; % (len(only_new)))</span>
 
     <span class="c1"># Ensure that data in both sets are syncronized</span>
     <span class="c1"># images_both = []</span>
 
     <span class="c1"># if False:</span>
-    <span class="c1">#    print(&#39;Removing small images&#39;)</span>
+    <span class="c1">#    logger.info(&#39;Removing small images&#39;)</span>
     <span class="c1">#    import numpy as np</span>
     <span class="c1">#    import vtool as vt</span>
     <span class="c1">#    imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed[&#39;new_fpath&#39;]])</span>
@@ -729,17 +731,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -756,7 +756,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

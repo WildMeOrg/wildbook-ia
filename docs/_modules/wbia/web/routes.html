@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.routes &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.routes &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -37,21 +36,22 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dependencies: flask, tornado</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">simplejson</span> <span class="k">as</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">url_for</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="k">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">routes_ajax</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">routes_ajax</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
     <span class="vm">__name__</span>
@@ -175,8 +175,14 @@
                 <span class="s1">&#39;drew.blount&#39;</span><span class="p">,</span>
             <span class="p">],</span>
         <span class="p">),</span>
-        <span class="s1">&#39;kitware&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;Kitware&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.crall&#39;</span><span class="p">],),</span>
-        <span class="s1">&#39;ctrl-h&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CTRL-H&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jon.hannis&#39;</span><span class="p">,</span> <span class="s1">&#39;melinda.hannis&#39;</span><span class="p">],),</span>
+        <span class="s1">&#39;kitware&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">&#39;Kitware&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;jon.crall&#39;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="s1">&#39;ctrl-h&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">&#39;CTRL-H&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;jon.hannis&#39;</span><span class="p">,</span> <span class="s1">&#39;melinda.hannis&#39;</span><span class="p">],</span>
+        <span class="p">),</span>
     <span class="p">}</span>
     <span class="n">organization_dict_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">organization_dict</span><span class="p">)</span>
 
@@ -319,7 +325,7 @@
             <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
             <span class="k">assert</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">aid_list</span>
         <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_imgsetids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -336,7 +342,7 @@
             <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
             <span class="k">assert</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR IMAGE FILTERING&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR IMAGE FILTERING&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">gid_list</span>
         <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -353,7 +359,7 @@
             <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
             <span class="k">assert</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">nid_list</span>
         <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -571,7 +577,7 @@
     <span class="n">nid_list_count</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nid_list_count_dup</span><span class="p">))</span>
 
     <span class="c1"># Calculate the Petersen-Lincoln index form the last two days</span>
-    <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">dbinfo</span> <span class="k">as</span> <span class="n">dbinfo_</span>
+    <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">dbinfo</span> <span class="k">as</span> <span class="n">dbinfo_</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -784,7 +790,7 @@
         <span class="p">)</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">min_ages</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">max_ages</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># print(&#39;[web] Invalid name %r: Cannot have more than one age&#39; % (nid, ))</span>
+            <span class="c1"># logger.info(&#39;[web] Invalid name %r: Cannot have more than one age&#39; % (nid, ))</span>
             <span class="n">age_ambiguous</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">continue</span>
         <span class="n">min_age</span> <span class="o">=</span> <span class="kc">None</span>
@@ -795,7 +801,7 @@
             <span class="n">max_age</span> <span class="o">=</span> <span class="n">max_ages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c1"># Histogram</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">min_age</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-            <span class="c1"># print(&#39;[web] Unreviewded name %r: Specify the age for the name&#39; % (nid, ))</span>
+            <span class="c1"># logger.info(&#39;[web] Unreviewded name %r: Specify the age for the name&#39; % (nid, ))</span>
             <span class="n">age_unreviewed</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="n">sex</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
@@ -817,7 +823,10 @@
     <span class="n">age_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">age_total</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">age_total</span>
 
     <span class="k">def</span> <span class="nf">age_fmt_str</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">% 2.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">age_total</span><span class="p">,)</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">% 4d</span><span class="s1"> (</span><span class="si">% 2.02f%%</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span>
+            <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">age_total</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="n">age_str_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age</span><span class="p">)</span> <span class="k">for</span> <span class="n">age</span> <span class="ow">in</span> <span class="n">age_list_</span><span class="p">]</span> <span class="k">for</span> <span class="n">age_list_</span> <span class="ow">in</span> <span class="n">age_list</span><span class="p">]</span>
     <span class="n">age_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">age_fmt_str</span><span class="p">(</span><span class="n">age_unreviewed</span><span class="p">))</span>
@@ -1053,7 +1062,7 @@
             <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
             <span class="k">assert</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">aid_list</span>
         <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_imgsetids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -1229,7 +1238,7 @@
         <span class="n">bar_values_dict</span><span class="p">[</span><span class="n">dataset_tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
 
     <span class="k">for</span> <span class="n">dataset_tag</span> <span class="ow">in</span> <span class="n">contrib_dict</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">dataset_tag</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">dataset_tag</span><span class="p">)</span>
         <span class="n">total_cars</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">total_letters</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">total_images</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1240,11 +1249,11 @@
             <span class="k">for</span> <span class="n">letter</span> <span class="ow">in</span> <span class="n">contrib_dict</span><span class="p">[</span><span class="n">dataset_tag</span><span class="p">][</span><span class="n">car</span><span class="p">]:</span>
                 <span class="n">total_letters</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">total_images</span> <span class="o">+=</span> <span class="n">contrib_dict</span><span class="p">[</span><span class="n">dataset_tag</span><span class="p">][</span><span class="n">car</span><span class="p">][</span><span class="n">letter</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">total_cars</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">total_letters</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">total_images</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">total_cars</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">total_letters</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">total_images</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">skipped</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">skipped</span><span class="p">)</span>
 
     <span class="c1"># Get number of annotations per name as a histogram for each species</span>
     <span class="n">embedded</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
@@ -1317,10 +1326,10 @@
     <span class="c1">#     nids_list = ut.unflat_map(ibs.get_annot_nids, aids_list)</span>
     <span class="c1">#     gid_list_filtered = []</span>
     <span class="c1">#     for gid, nid_list in list(zip(gid_list, nids_list)):</span>
-    <span class="c1">#         print(gid)</span>
-    <span class="c1">#         print(nid_list)</span>
+    <span class="c1">#         logger.info(gid)</span>
+    <span class="c1">#         logger.info(nid_list)</span>
     <span class="c1">#         aids_list_ = ibs.get_name_aids(nid_list)</span>
-    <span class="c1">#         print(aids_list_)</span>
+    <span class="c1">#         logger.info(aids_list_)</span>
     <span class="c1">#         single = True</span>
     <span class="c1">#         for nid, aid_list in list(zip(nid_list, aids_list_)):</span>
     <span class="c1">#             if nid == const.UNKNOWN_NAME_ROWID or nid &lt; 0:</span>
@@ -1328,7 +1337,7 @@
     <span class="c1">#             if len(aid_list) &gt; 1:</span>
     <span class="c1">#                 single = False</span>
     <span class="c1">#                 break</span>
-    <span class="c1">#         print(single)</span>
+    <span class="c1">#         logger.info(single)</span>
     <span class="c1">#         if single:</span>
     <span class="c1">#             gid_list_filtered.append(gid)</span>
     <span class="c1">#     return gid_list_filtered</span>
@@ -1352,8 +1361,8 @@
     <span class="n">num_all_gzgc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">num_all_ggr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">num_all_gzgc</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">num_all_ggr</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">num_all_gzgc</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">num_all_ggr</span><span class="p">)</span>
 
     <span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_species_of_interest</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_species_of_interest</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
@@ -1361,8 +1370,8 @@
     <span class="n">num_species_gzgc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">num_species_ggr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">num_species_gzgc</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">num_species_ggr</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">num_species_gzgc</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">num_species_ggr</span><span class="p">)</span>
 
     <span class="n">allowed_viewpoint_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;GGR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;frontright&#39;</span><span class="p">,</span> <span class="s1">&#39;backright&#39;</span><span class="p">],</span>
@@ -1378,8 +1387,8 @@
     <span class="n">num_viewpoint_gzgc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">num_viewpoint_ggr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">num_viewpoint_gzgc</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">num_viewpoint_ggr</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">num_viewpoint_gzgc</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">num_viewpoint_ggr</span><span class="p">)</span>
 
     <span class="n">allowed_quality_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;GGR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;good&#39;</span><span class="p">,</span> <span class="s1">&#39;perfect&#39;</span><span class="p">],</span>
@@ -1395,8 +1404,8 @@
     <span class="n">num_quality_gzgc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">num_quality_ggr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;quality&#39;</span><span class="p">,</span> <span class="n">num_quality_gzgc</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;quality&#39;</span><span class="p">,</span> <span class="n">num_quality_ggr</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;quality&#39;</span><span class="p">,</span> <span class="n">num_quality_gzgc</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;quality&#39;</span><span class="p">,</span> <span class="n">num_quality_ggr</span><span class="p">)</span>
 
     <span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_bad_metadata</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_bad_metadata</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
@@ -1404,8 +1413,8 @@
     <span class="n">num_metadata_gzgc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GZGC&#39;</span><span class="p">])</span>
     <span class="n">num_metadata_ggr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_dict</span><span class="p">[</span><span class="s1">&#39;GGR&#39;</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="n">num_metadata_gzgc</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="n">num_metadata_ggr</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="n">num_metadata_gzgc</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="n">num_metadata_ggr</span><span class="p">)</span>
 
     <span class="c1"># dataset_dict[&#39;GZGC&#39;] = filter_singletons(dataset_dict[&#39;GZGC&#39;])</span>
     <span class="c1"># dataset_dict[&#39;GGR&#39;] = filter_singletons(dataset_dict[&#39;GGR&#39;])</span>
@@ -1413,8 +1422,8 @@
     <span class="c1"># num_named_gzgc = len(dataset_dict[&#39;GZGC&#39;])</span>
     <span class="c1"># num_named_ggr = len(dataset_dict[&#39;GGR&#39;])</span>
 
-    <span class="c1"># print(&#39;named&#39;, num_named_gzgc)</span>
-    <span class="c1"># print(&#39;named&#39;, num_named_ggr)</span>
+    <span class="c1"># logger.info(&#39;named&#39;, num_named_gzgc)</span>
+    <span class="c1"># logger.info(&#39;named&#39;, num_named_ggr)</span>
 
     <span class="n">stage_list_gzgc</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">num_all_gzgc</span><span class="p">,</span>
@@ -1634,7 +1643,7 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
 
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Delete nids: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Delete nids: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),))</span>
 
         <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span> <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">:</span>
@@ -1647,7 +1656,13 @@
             <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">num_pccs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">positive_components</span><span class="p">()))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">proposing PCCs for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">num_pccs</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">proposing PCCs for </span><span class="si">%r</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">species</span><span class="p">,</span>
+                    <span class="n">num_pccs</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
             <span class="n">infr</span><span class="o">.</span><span class="n">relabel_using_reviews</span><span class="p">(</span><span class="n">rectify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">write_wbia_staging_feedback</span><span class="p">()</span>
@@ -1656,7 +1671,7 @@
 
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final nids: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Final nids: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),))</span>
 
         <span class="c1"># Reset sex for new names from old names</span>
         <span class="n">nid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
@@ -1690,7 +1705,10 @@
 
             <span class="n">trace</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">graph_exception</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">)</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-            <span class="n">graph_exception</span> <span class="o">=</span> <span class="s1">&#39;Exception: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_exception</span><span class="p">,</span> <span class="n">trace</span><span class="p">,)</span>
+            <span class="n">graph_exception</span> <span class="o">=</span> <span class="s1">&#39;Exception: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">graph_exception</span><span class="p">,</span>
+                <span class="n">trace</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">graph_client</span><span class="o">.</span><span class="n">review_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">num_edges</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1769,6 +1787,7 @@
                 <span class="n">job</span><span class="p">[</span><span class="s1">&#39;time_completed&#39;</span><span class="p">],</span>
                 <span class="n">job</span><span class="p">[</span><span class="s1">&#39;time_runtime&#39;</span><span class="p">],</span>
                 <span class="n">job</span><span class="p">[</span><span class="s1">&#39;time_turnaround&#39;</span><span class="p">],</span>
+                <span class="n">job</span><span class="p">[</span><span class="s1">&#39;lane&#39;</span><span class="p">],</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -1824,9 +1843,15 @@
     <span class="n">page_previous</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_start</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">page</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">page_next</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_end</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="k">else</span> <span class="n">page</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">image_unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">datetime_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -1915,9 +1940,15 @@
     <span class="n">page_previous</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_start</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">page</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">page_next</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_end</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">else</span> <span class="n">page</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
         <span class="nb">zip</span><span class="p">(</span>
@@ -1990,9 +2021,15 @@
     <span class="n">page_next</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_end</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">)</span> <span class="k">else</span> <span class="n">page</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="n">pid_list</span> <span class="o">=</span> <span class="n">pid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">pid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 
     <span class="n">pid_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">pid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pid_list</span>
@@ -2077,9 +2114,15 @@
     <span class="n">page_previous</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_start</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">page</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">page_next</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">page_end</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="k">else</span> <span class="n">page</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">nid_list</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_end</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[web] Loading Page [ </span><span class="si">%d</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1"> ] (</span><span class="si">%d</span><span class="s1">), Prev: </span><span class="si">%s</span><span class="s1">, Next: </span><span class="si">%s</span><span class="s1">&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">page_start</span><span class="p">,</span> <span class="n">page_end</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="n">page_previous</span><span class="p">,</span> <span class="n">page_next</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">page_start</span><span class="p">,</span>
+            <span class="n">page_end</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
+            <span class="n">page_previous</span><span class="p">,</span>
+            <span class="n">page_next</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="n">annotations_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -2261,7 +2304,10 @@
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_WIDTH</span><span class="p">),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">appf</span><span class="o">.</span><span class="n">TARGET_HEIGHT</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_parallel_chips</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -2309,7 +2355,12 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">default_list</span>
     <span class="p">}</span>
     <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
     <span class="p">]</span>
     <span class="n">config_str</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config_str_list</span><span class="p">)</span>
 
@@ -2577,7 +2628,7 @@
                 <span class="n">throw_test_aoi_turking_mode</span><span class="p">,</span>
                 <span class="n">throw_test_aoi_turking_severity</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;throw_test_aoi_turking: </span><span class="si">%r</span><span class="s1"> mode with </span><span class="si">%r</span><span class="s1"> severity&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;throw_test_aoi_turking: </span><span class="si">%r</span><span class="s1"> mode with </span><span class="si">%r</span><span class="s1"> severity&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
 
             <span class="n">index_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annotation_list</span><span class="p">)))</span>
             <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">index_list</span><span class="p">)</span>
@@ -2695,7 +2746,7 @@
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid throw_test_aoi_turking_mode&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">THROW_TEST_AOI_TURKING_MANIFEST</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">THROW_TEST_AOI_TURKING_MANIFEST</span><span class="p">))</span>
 
     <span class="n">THROW_TEST_AOI_TURKING_MANIFEST</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">THROW_TEST_AOI_TURKING_MANIFEST</span><span class="p">)</span>
 
@@ -2714,16 +2765,15 @@
     <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_part_rowids</span><span class="p">()</span>
     <span class="n">part_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
     <span class="n">part_species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">part_aid_list</span><span class="p">)</span>
-    <span class="n">part_types_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
-    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">part_species_text_list</span><span class="p">,</span> <span class="n">part_types_list</span><span class="p">))</span>
+    <span class="n">part_type_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">part_species_text_list</span><span class="p">,</span> <span class="n">part_type_list</span><span class="p">))</span>
 
     <span class="n">species_part_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span> <span class="nb">set</span><span class="p">([])}</span>
-    <span class="k">for</span> <span class="n">part_species_text</span><span class="p">,</span> <span class="n">part_type_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">part_species_text</span><span class="p">,</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">part_species_text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_part_dict</span><span class="p">:</span>
             <span class="n">species_part_dict</span><span class="p">[</span><span class="n">part_species_text</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">part_type_list</span><span class="p">:</span>
-            <span class="n">species_part_dict</span><span class="p">[</span><span class="n">part_species_text</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">part_type</span><span class="p">)</span>
-            <span class="n">species_part_dict</span><span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">part_type</span><span class="p">)</span>
+        <span class="n">species_part_dict</span><span class="p">[</span><span class="n">part_species_text</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">part_type</span><span class="p">)</span>
+        <span class="n">species_part_dict</span><span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">part_type</span><span class="p">)</span>
 
     <span class="c1"># Add any images that did not get added because they aren&#39;t assigned any annotations</span>
     <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">:</span>
@@ -2754,7 +2804,10 @@
     <span class="k">if</span> <span class="n">is_canonical</span><span class="p">:</span>
         <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ia-detection-setting-parts-show&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span> <span class="n">imgsetid</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span>
+        <span class="n">imgsetid</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
         <span class="s1">&#39;detection&#39;</span><span class="p">,</span>
@@ -2837,7 +2890,7 @@
         <span class="n">previous</span><span class="p">,</span>
         <span class="n">previous_only_aid</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;CANONICAL IMAGESETID: </span><span class="si">%s</span><span class="s1"> GID: </span><span class="si">%s</span><span class="s1"> AID: </span><span class="si">%s</span><span class="s1"> (PROG = </span><span class="si">%s</span><span class="s1">, PREV GID = </span><span class="si">%s</span><span class="s1">, PREV AID = </span><span class="si">%s</span><span class="s1">)&#39;</span>
         <span class="o">%</span> <span class="n">args</span>
     <span class="p">)</span>
@@ -2889,7 +2942,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
 
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span> <span class="n">gid</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_detection&#39;</span><span class="p">),</span>
+        <span class="n">gid</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
         <span class="s1">&#39;detection_dynamic&#39;</span><span class="p">,</span>
@@ -3111,7 +3167,7 @@
         <span class="n">reviewed_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total len(reviewed_list) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reviewed_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Total len(reviewed_list) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reviewed_list</span><span class="p">),))</span>
         <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">reviewed_list</span><span class="p">),)</span>
     <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
         <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;100.0&#39;</span>
@@ -3153,7 +3209,13 @@
 
     <span class="n">finished</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
-    <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">highlighted_list_</span><span class="p">,</span> <span class="n">confidence_list_</span><span class="p">,))</span>
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">aid_list_</span><span class="p">,</span>
+            <span class="n">highlighted_list_</span><span class="p">,</span>
+            <span class="n">confidence_list_</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">aid_list_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">))</span>
 
     <span class="n">annotation_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -3191,7 +3253,11 @@
         <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
 
-        <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
+        <span class="n">annotation_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">aid_list</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">annotation_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_splits&#39;</span><span class="p">),)</span>
@@ -3220,7 +3286,12 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">default_list</span>
     <span class="p">}</span>
     <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
     <span class="p">]</span>
     <span class="n">config_str</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config_str_list</span><span class="p">)</span>
 
@@ -3273,7 +3344,10 @@
         <span class="k">for</span> <span class="p">(</span><span class="n">settings_key</span><span class="p">,</span> <span class="n">settings_default</span><span class="p">)</span> <span class="ow">in</span> <span class="n">settings_key_list</span>
     <span class="p">}</span>
 
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_contour&#39;</span><span class="p">),</span> <span class="n">imgsetid</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?imgsetid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_contour&#39;</span><span class="p">),</span>
+        <span class="n">imgsetid</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="s1">&#39;turk&#39;</span><span class="p">,</span>
         <span class="s1">&#39;contour&#39;</span><span class="p">,</span>
@@ -3328,7 +3402,7 @@
 
             <span class="n">species_rowids</span> <span class="o">=</span> <span class="n">previous_species_rowids</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error finding previous species rowid in existing list&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Error finding previous species rowid in existing list&#39;</span><span class="p">)</span>
             <span class="n">previous_species_rowids</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">previous_species_rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3344,7 +3418,7 @@
     <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_count</span><span class="p">,</span> <span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_rowids</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;REFRESHING!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REFRESHING!&#39;</span><span class="p">)</span>
         <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
 
     <span class="n">species_count_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">]</span>
@@ -3371,9 +3445,9 @@
             <span class="n">species_nice</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="n">hotkeys</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1">   : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1">   : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1"> * : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1"> * : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">hotkeys</span><span class="p">:</span>
         <span class="n">species_extended_list</span> <span class="o">=</span> <span class="n">species_list</span><span class="p">[</span><span class="n">hotkeys</span><span class="p">:]</span>
@@ -3498,7 +3572,7 @@
 
             <span class="n">all_part_types</span> <span class="o">=</span> <span class="n">previous_part_types</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error finding previous part_type in existing list&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Error finding previous part_type in existing list&#39;</span><span class="p">)</span>
             <span class="n">previous_part_types</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">previous_part_types</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3517,7 +3591,7 @@
     <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">all_part_type_count</span><span class="p">,</span> <span class="n">all_part_nices</span><span class="p">,</span> <span class="n">all_part_types</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;REFRESHING!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REFRESHING!&#39;</span><span class="p">)</span>
         <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
 
     <span class="n">part_type_count_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">]</span>
@@ -3542,9 +3616,9 @@
             <span class="n">part_nice</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="n">hotkeys</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1">   : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1">   : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1"> * : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% 5d</span><span class="s1"> * : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_type_option_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">hotkeys</span><span class="p">:</span>
         <span class="n">part_type_extended_list</span> <span class="o">=</span> <span class="n">part_type_option_list</span><span class="p">[</span><span class="n">hotkeys</span><span class="p">:]</span>
@@ -3815,7 +3889,7 @@
     <span class="n">global_feedback_limit</span><span class="o">=</span><span class="n">GLOBAL_FEEDBACK_LIMIT</span><span class="p">,</span>
     <span class="n">view_orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">apis_query</span>
+    <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">apis_query</span>
 
     <span class="n">review_aid1_list</span><span class="p">,</span> <span class="n">review_aid2_list</span> <span class="o">=</span> <span class="n">query_object</span><span class="o">.</span><span class="n">get_filtered_edges</span><span class="p">(</span>
         <span class="n">GLOBAL_FEEDBACK_CONFIG_DICT</span>
@@ -3928,7 +4002,7 @@
     <span class="n">query_object</span><span class="o">.</span><span class="n">ensure_mst</span><span class="p">()</span>
     <span class="n">query_object</span><span class="o">.</span><span class="n">apply_nondynamic_update</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Precomputing match images&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Precomputing match images&#39;</span><span class="p">)</span>
     <span class="c1"># view_orientation = request.args.get(&#39;view_orientation&#39;, &#39;vertical&#39;)</span>
     <span class="c1"># precompute_current_review_match_images(ibs, query_object,</span>
     <span class="c1">#                                        global_feedback_limit=global_feedback_limit,</span>
@@ -3965,7 +4039,7 @@
     <span class="n">query_object</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT</span>
     <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT_FEEDBACK_BUFFER</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">feedback</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT_FEEDBACK_BUFFER</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Popping </span><span class="si">%r</span><span class="s1"> out of QUERY_OBJECT_FEEDBACK_BUFFER&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feedback</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Popping </span><span class="si">%r</span><span class="s1"> out of QUERY_OBJECT_FEEDBACK_BUFFER&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feedback</span><span class="p">,))</span>
         <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">feedback</span>
         <span class="n">query_object</span><span class="o">.</span><span class="n">add_feedback</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">),</span> <span class="n">state</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
         <span class="n">query_object</span><span class="o">.</span><span class="n">GLOBAL_FEEDBACK_COUNTER</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -3997,7 +4071,7 @@
         <span class="c1"># import wbia</span>
         <span class="c1"># web_ibs = wbia.opendb_bg_web(dbdir=ibs.dbdir, port=6000)</span>
         <span class="c1"># query_object_jobid = web_ibs.send_wbia_request(&#39;/api/engine/query/graph/&#39;)</span>
-        <span class="c1"># print(&#39;query_object_jobid = %r&#39; % (query_object_jobid, ))</span>
+        <span class="c1"># logger.info(&#39;query_object_jobid = %r&#39; % (query_object_jobid, ))</span>
         <span class="c1"># current_app.QUERY_OBJECT_JOBID = query_object_jobid</span>
 
     <span class="n">query_object_status_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT_JOBID</span><span class="p">)</span>
@@ -4005,7 +4079,7 @@
         <span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT_JOBID</span><span class="p">,</span>
         <span class="n">query_object_status_dict</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;job id </span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;job id </span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">query_object_status_dict</span><span class="p">[</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;completed&#39;</span><span class="p">:</span>
         <span class="n">query_object_result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_job_result</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT_JOBID</span><span class="p">)</span>
@@ -4013,7 +4087,7 @@
             <span class="n">current_app</span><span class="o">.</span><span class="n">QUERY_OBJECT_JOBID</span><span class="p">,</span>
             <span class="n">query_object_result</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;job id </span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;job id </span><span class="si">%r</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">query_object_result</span><span class="p">[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;precomputed&#39;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
@@ -4045,7 +4119,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.render_html(resp.content)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">apis_query</span>
+    <span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">apis_query</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;[web.routes.turk_identification] Load query_object&#39;</span><span class="p">):</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
@@ -4089,15 +4163,18 @@
                     <span class="n">status_dict</span><span class="p">[</span><span class="s1">&#39;num_names_min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
                 <span class="c1"># status_remaining = status_dict[&#39;num_names_max&#39;] - status_dict[&#39;num_names_min&#39;]</span>
                 <span class="n">status_remaining</span> <span class="o">=</span> <span class="n">status_dict</span><span class="p">[</span><span class="s1">&#39;num_names_max&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">0</span>
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Feedback counter    = </span><span class="si">%r</span><span class="s1"> / </span><span class="si">%r</span><span class="s1">&#39;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="n">query_object</span><span class="o">.</span><span class="n">GLOBAL_FEEDBACK_COUNTER</span><span class="p">,</span> <span class="n">GLOBAL_FEEDBACK_LIMIT</span><span class="p">,)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">query_object</span><span class="o">.</span><span class="n">GLOBAL_FEEDBACK_COUNTER</span><span class="p">,</span>
+                        <span class="n">GLOBAL_FEEDBACK_LIMIT</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Status dict         = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_dict</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Raw list len        = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">raw_review_list</span><span class="p">),))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(query_aid_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">query_object</span><span class="o">.</span><span class="n">aids</span><span class="p">),))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Estimated remaining = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_remaining</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reviews list len    = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">review_aid1_list</span><span class="p">),))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Status dict         = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_dict</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Raw list len        = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">raw_review_list</span><span class="p">),))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;len(query_aid_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">query_object</span><span class="o">.</span><span class="n">aids</span><span class="p">),))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Estimated remaining = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status_remaining</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reviews list len    = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">review_aid1_list</span><span class="p">),))</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                         <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">status_remaining</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_object</span><span class="o">.</span><span class="n">aids</span><span class="p">))),</span>
@@ -4117,7 +4194,7 @@
                         <span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">choice</span><span class="p">:</span>
                             <span class="n">index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_aid1_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-                            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Picked random index = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Picked random index = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
                             <span class="n">aid1</span> <span class="o">=</span> <span class="n">review_aid1_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                             <span class="n">aid2</span> <span class="o">=</span> <span class="n">review_aid2_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
@@ -4193,8 +4270,8 @@
                         <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;;&#39;</span> <span class="ow">in</span> <span class="n">previous</span><span class="p">:</span>
                             <span class="n">previous</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">previous</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)))</span>
                             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
-                        <span class="c1"># print(&#39;Previous = %r&#39; % (previous, ))</span>
-                        <span class="c1"># print(&#39;replace_review_rowid  = %r&#39; % (replace_review_rowid, ))</span>
+                        <span class="c1"># logger.info(&#39;Previous = %r&#39; % (previous, ))</span>
+                        <span class="c1"># logger.info(&#39;replace_review_rowid  = %r&#39; % (replace_review_rowid, ))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">progress</span> <span class="o">=</span> <span class="mf">100.0</span>
@@ -4297,7 +4374,7 @@
     <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">current_aids</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">current_aids</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># print(aid)</span>
+            <span class="c1"># logger.info(aid)</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_dict</span><span class="p">:</span>
             <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -4451,7 +4528,7 @@
     <span class="c1"># current_nids = ibs.get_annot_nids(current_aids)</span>
 
     <span class="c1"># x = [current_nid for current_nid in current_nids if current_nid &lt;= 0]</span>
-    <span class="c1"># print(len(x))</span>
+    <span class="c1"># logger.info(len(x))</span>
 
     <span class="n">new_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_princeton_kaia_annot_filtering</span><span class="p">(</span><span class="n">current_aids</span><span class="p">,</span> <span class="n">desired_species</span><span class="p">)</span>
 
@@ -4514,7 +4591,7 @@
     <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">current_aids</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">current_aids</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># print(aid)</span>
+            <span class="c1"># logger.info(aid)</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_dict</span><span class="p">:</span>
             <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -4550,7 +4627,7 @@
 
     <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;ZEBRA_Kaia&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">tier</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">mixin_loops</span>
+            <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">mixin_loops</span>
 
             <span class="n">mixin_loops</span><span class="o">.</span><span class="n">PRINCETON_KAIA_EDGE_LIST</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_princeton_kaia_filtering</span><span class="p">(</span>
                 <span class="n">desired_species</span><span class="o">=</span><span class="s1">&#39;zebra&#39;</span><span class="p">,</span> <span class="n">tier</span><span class="o">=</span><span class="mi">4</span>
@@ -4750,10 +4827,10 @@
 <span class="sd">    Ignore:</span>
 <span class="sd">        import wbia</span>
 <span class="sd">        ibs, aids = wbia.testdata_aids(&#39;PZ_Master1&#39;, a=&#39;:species=zebra_plains&#39;)</span>
-<span class="sd">        print(len(aids))</span>
+<span class="sd">        logger.info(len(aids))</span>
 <span class="sd">        infr = wbia.AnnotInference(ibs, aids=aids, autoinit=&#39;staging&#39;)</span>
 <span class="sd">        infr.load_published()</span>
-<span class="sd">        print(ut.repr4(infr.status()))</span>
+<span class="sd">        logger.info(ut.repr4(infr.status()))</span>
 <span class="sd">        infr.qt_review_loop()</span>
 
 <span class="sd">        verifiers = infr.learn_evaluation_verifiers()</span>
@@ -4840,11 +4917,11 @@
 
                 <span class="n">graph_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">GRAPH_CLIENT_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
                 <span class="k">for</span> <span class="n">graph_uuid_</span> <span class="ow">in</span> <span class="n">graph_uuid_list</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_uuid_</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_uuid_</span><span class="p">,))</span>
 
                     <span class="n">graph_client</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">GRAPH_CLIENT_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">graph_uuid_</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">graph_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> ERROR: UNKNOWN graph_client&#39;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> ERROR: UNKNOWN graph_client&#39;</span><span class="p">)</span>
                         <span class="k">continue</span>
 
                     <span class="k">if</span> <span class="n">hogwild_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -4863,15 +4940,15 @@
                     <span class="n">progress_graph_uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">graph_uuid_</span><span class="p">)</span>
 
                     <span class="k">if</span> <span class="n">graph_client</span><span class="o">.</span><span class="n">review_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> ERROR: FINISHED&#39;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> ERROR: FINISHED&#39;</span><span class="p">)</span>
                         <span class="k">continue</span>
 
                     <span class="n">fallback_graph_uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">graph_uuid_</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> len(graph_client.futures)     = </span><span class="si">%d</span><span class="s1">&#39;</span>
                         <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_client</span><span class="o">.</span><span class="n">futures</span><span class="p">),)</span>
                     <span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> len(graph_client.review_dict) = </span><span class="si">%d</span><span class="s1">&#39;</span>
                         <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_client</span><span class="o">.</span><span class="n">review_dict</span><span class="p">),)</span>
                     <span class="p">)</span>
@@ -4885,16 +4962,16 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot go hogwild when all graphs are finished&#39;</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_graph_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;WARNING: candidate_graph_uuid_list was empty, picking random from fallback_graph_uuid_list&#39;</span>
                     <span class="p">)</span>
                     <span class="n">candidate_graph_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">fallback_graph_uuid_list</span><span class="p">)]</span>
 
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Using Hogwild fallback_graph_uuid_list  = </span><span class="si">%r</span><span class="s1">&#39;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">fallback_graph_uuid_list</span><span class="p">,)</span>
                 <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s1">&#39;Using Hogwild candidate_graph_uuid_list = </span><span class="si">%r</span><span class="s1">&#39;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">candidate_graph_uuid_list</span><span class="p">,)</span>
                 <span class="p">)</span>
@@ -4913,7 +4990,7 @@
                         <span class="n">progress</span> <span class="o">+=</span> <span class="n">cc_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_names_max&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="n">progress</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">progress</span><span class="p">)</span>
 
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using Hogwild graph_uuid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_uuid</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using Hogwild graph_uuid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_uuid</span><span class="p">,))</span>
             <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
                 <span class="n">hogwild</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">pass</span>
@@ -4925,13 +5002,13 @@
                 <span class="n">aids</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s1">&#39;:species=primary&#39;</span><span class="p">)</span>
                 <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span><span class="o">.</span><span class="n">uuids</span>
 
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[routes] Starting graph turk of </span><span class="si">{}</span><span class="s1"> annotations&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">hardcase</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[routes] Graph is in hardcase-mode&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[routes] Graph is in hardcase-mode&#39;</span><span class="p">)</span>
                 <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s1">&#39;ranking.enabled&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                     <span class="s1">&#39;autoreview.enabled&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -4940,7 +5017,7 @@
                     <span class="s1">&#39;algo.hardcase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="k">elif</span> <span class="n">kaia</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[routes] Graph is in Kaia-mode&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[routes] Graph is in Kaia-mode&#39;</span><span class="p">)</span>
                 <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s1">&#39;autoreview.enabled&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                     <span class="s1">&#39;autoreview.prioritize_nonpos&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -4953,12 +5030,14 @@
                     <span class="s1">&#39;redun.pos&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[routes] Graph is not in hardcase-mode&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[routes] Graph is not in hardcase-mode&#39;</span><span class="p">)</span>
                 <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
             <span class="n">query_config_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;query_config_dict&#39;</span><span class="p">,</span> <span class="p">{}))</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[routes] query_config_dict = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">query_config_dict</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;[routes] query_config_dict = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">query_config_dict</span><span class="p">))</span>
+            <span class="p">)</span>
 
             <span class="n">graph_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips_graph_v2</span><span class="p">(</span>
                 <span class="n">annot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">,</span>
@@ -4967,7 +5046,7 @@
                 <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
             <span class="p">)</span>
 
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Calculated graph_uuid </span><span class="si">{}</span><span class="s1"> from all </span><span class="si">{}</span><span class="s1"> annotations&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">graph_uuid</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
                 <span class="p">)</span>
@@ -4978,7 +5057,11 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">base</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;turk_identification_graph&#39;</span><span class="p">)</span>
             <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span> <span class="k">if</span> <span class="s1">&#39;?&#39;</span> <span class="ow">in</span> <span class="n">base</span> <span class="k">else</span> <span class="s1">&#39;?&#39;</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">graph_uuid</span><span class="p">),)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">base</span><span class="p">,</span>
+                <span class="n">sep</span><span class="p">,</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">graph_uuid</span><span class="p">),</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">hardcase</span><span class="p">:</span>
                 <span class="n">url</span> <span class="o">+=</span> <span class="s1">&#39;&amp;hardcase=True&#39;</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span>
@@ -5130,7 +5213,10 @@
         <span class="n">base</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_identification_v2_kaia&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">base</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;submit_identification_v2&#39;</span><span class="p">)</span>
-    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">graph_uuid_str</span><span class="p">,)</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">base</span><span class="p">,</span>
+        <span class="n">graph_uuid_str</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">hogwild_graph_uuid_str</span> <span class="o">=</span> <span class="s1">&#39;graph_uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">hogwild_graph_uuid</span><span class="p">),)</span>
     <span class="n">hogwild_graph_uuid_str</span> <span class="o">=</span> <span class="n">hogwild_graph_uuid_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span>
@@ -5411,13 +5497,19 @@
                     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
                     <span class="n">nid_list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">))</span>
                     <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nid_list</span><span class="p">))</span>
-                    <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Checking </span><span class="si">%d</span><span class="s1"> annotations for </span><span class="si">%d</span><span class="s1"> names&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">),)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">),</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> annotations for </span><span class="si">%d</span><span class="s1"> names&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),)</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="n">GLOBAL_KAIA_CACHE</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid_list</span>
                 <span class="n">aid_list</span> <span class="o">=</span> <span class="n">GLOBAL_KAIA_CACHE</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
@@ -5427,11 +5519,11 @@
             <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">imageset_annot_demographics_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
             <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;!&#39;</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Demographics Progress&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> reviewed_list.count(True) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">),))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> len(reviewed_list)        = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;!&#39;</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;!&#39;</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Demographics Progress&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> reviewed_list.count(True) = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> len(reviewed_list)        = </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;!&#39;</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),)</span>
@@ -5493,7 +5585,12 @@
             <span class="n">quality_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
             <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
             <span class="n">name_aid_combined_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-                <span class="nb">zip</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">,</span> <span class="n">quality_list</span><span class="p">,</span> <span class="n">quality_text_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,)</span>
+                <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">name_aid_list</span><span class="p">,</span>
+                    <span class="n">quality_list</span><span class="p">,</span>
+                    <span class="n">quality_text_list</span><span class="p">,</span>
+                    <span class="n">viewpoint_list</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
             <span class="c1"># name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -5603,11 +5700,16 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="c1"># if len(methods) &gt; 1:</span>
-            <span class="c1"># print(&#39;methods = %r&#39; % (methods,))</span>
+            <span class="c1"># logger.info(&#39;methods = %r&#39; % (methods,))</span>
             <span class="n">method</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">methods</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,))</span>
+            <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">method</span><span class="p">,</span>
+                    <span class="n">url</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
     <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/api/core/dbname/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,)</span>
@@ -5716,26 +5818,11 @@
 
     <span class="n">exception_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
     <span class="n">traceback_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exception_str</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">traceback_str</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exception_str</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">traceback_str</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
         <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;404&#39;</span><span class="p">,</span> <span class="n">exception_str</span><span class="o">=</span><span class="n">exception_str</span><span class="p">,</span> <span class="n">traceback_str</span><span class="o">=</span><span class="n">traceback_str</span>
     <span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.web.app</span>
-<span class="sd">        python -m wbia.web.app --allexamples</span>
-<span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -5771,17 +5858,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -5798,7 +5883,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.plottool.abstract_interaction &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.plottool.abstract_interaction &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -40,17 +39,16 @@
 <span class="sd">    pt.MultiImageInteraction</span>
 <span class="sd">    wbia.NameInteraction</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[abstract_iteract]&#39;</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">fig_presenter</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>  <span class="c1"># NOQA</span>
 
 <span class="c1"># (print, print_, printDBG, rrr, profile) = utool.inject(__name__,</span>
 <span class="c1"># &#39;[abstract_iteract]&#39;)</span>
@@ -107,7 +105,7 @@
         <span class="n">RIGHT_BUTTON</span><span class="p">:</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">debug</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">DEBUG</span> <span class="k">if</span> <span class="n">debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">debug</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
@@ -146,13 +144,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_pan</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbstractInteraction.enable_pan"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.enable_pan">[docs]</a>    <span class="k">def</span> <span class="nf">enable_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">PanEvents</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="kn">import</span> <span class="n">PanEvents</span>
 
         <span class="n">pan</span> <span class="o">=</span> <span class="n">PanEvents</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pan_event_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pan</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbstractInteraction.enable_zoom"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractInteraction.enable_zoom">[docs]</a>    <span class="k">def</span> <span class="nf">enable_zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="k">import</span> <span class="n">zoom_factory</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="kn">import</span> <span class="n">zoom_factory</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">zoom_event_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zoom_factory</span><span class="p">(</span><span class="n">ax</span><span class="p">))</span></div>
 
@@ -455,7 +453,7 @@
 
 
 <div class="viewcode-block" id="AbstractPagedInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.abstract_interaction.AbstractPagedInteraction">[docs]</a><span class="k">class</span> <span class="nc">AbstractPagedInteraction</span><span class="p">(</span><span class="n">AbstractInteraction</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nPages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">draw_hud</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nPages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">draw_hud</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">assert</span> <span class="n">nPages</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">=</span> <span class="n">nPages</span>
@@ -641,17 +639,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -668,7 +664,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

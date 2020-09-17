@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_annot_funcs &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.control.manual_annot_funcs &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,21 +40,22 @@
 <span class="sd">    sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_  # NOQA</span>
 <span class="sd">    sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 
 <span class="c1"># from collections import namedtuple</span>
-<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="k">import</span> <span class="n">routes_ajax</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">routes_ajax</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -159,7 +159,7 @@
     <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">geometry</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
 
     <span class="c1"># BBOXES / VERTS</span>
     <span class="c1"># For import only, we can specify both by setting import_override to True</span>
@@ -392,13 +392,13 @@
     <span class="k">assert</span> <span class="n">yaw_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;yaw is depricated&#39;</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] adding annotations&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] adding annotations&#39;</span><span class="p">)</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;gid_list&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># nothing is being added</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] WARNING: 0 annotations are beign added!&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] WARNING: 0 annotations are beign added!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">return</span> <span class="p">[]</span>
 
     <span class="n">preprocess_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">compute_annot_visual_semantic_uuids</span><span class="p">(</span>
@@ -677,7 +677,7 @@
 <span class="sd">        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">visual_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;visual_infotup = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">visual_infotup</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;visual_infotup = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">visual_infotup</span><span class="p">,))</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;len=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">),)</span>
     <span class="n">annot_visual_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="o">*</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">visual_infotup</span><span class="p">)]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
@@ -761,7 +761,8 @@
 <span class="sd">        URL:    /api/annot/</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # FIXME failing-test (22-Jul-2020) This test is failing and it&#39;s not clear how to fix it</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.control.manual_annot_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
@@ -927,7 +928,7 @@
 <div class="viewcode-block" id="get_annot_aid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.get_annot_aid">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annot_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; self verifier</span>
+    <span class="sd">&quot;&quot;&quot;self verifier</span>
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.control.IBEISControl import *  # NOQA</span>
@@ -1090,7 +1091,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
     <span class="c1"># FIXME: Need to reliabely delete thumbnails</span>
     <span class="c1"># config2_ = {&#39;draw_annots&#39;: True, &#39;thumbsize&#39;: 221}</span>
     <span class="c1"># MEGA HACK FOR QT</span>
@@ -1785,10 +1786,10 @@
 <span class="sd">        &gt;&gt;&gt; result += (&#39;semantic_uuid_hashid = &#39; + str(semantic_uuid_hashid))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [</span>
-<span class="sd">            UUID(&#39;9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9&#39;),</span>
-<span class="sd">            UUID(&#39;9b03e268-aaed-9341-25ee-733859629a3a&#39;),</span>
+<span class="sd">            UUID(&#39;...&#39;),</span>
+<span class="sd">            UUID(&#39;...&#39;),</span>
 <span class="sd">        ]</span>
-<span class="sd">        semantic_uuid_hashid = SUUIDS-13-tnvebtbaoyvqirwi</span>
+<span class="sd">        semantic_uuid_hashid = SUUIDS-13-...</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">semantic_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -1881,7 +1882,7 @@
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs._get_all_aids()[0:1]</span>
 <span class="sd">        &gt;&gt;&gt; annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(aid_list) == len(annot_semantic_uuid_list)</span>
-<span class="sd">        &gt;&gt;&gt; result = annot_semantic_uuid_list</span>
+<span class="sd">        &gt;&gt;&gt; print(annot_semantic_uuid_list)</span>
 <span class="sd">        [UUID(&#39;9acc1a8e-b35f-11b5-f844-9e8fd5dd7ad9&#39;)]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
@@ -1922,7 +1923,7 @@
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs._get_all_aids()[0:1]</span>
 <span class="sd">        &gt;&gt;&gt; annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(aid_list) == len(annot_visual_uuid_list)</span>
-<span class="sd">        &gt;&gt;&gt; result = annot_visual_uuid_list</span>
+<span class="sd">        &gt;&gt;&gt; print(annot_visual_uuid_list)</span>
 <span class="sd">        [UUID(&#39;8687dcb6-1f1f-fdd3-8b72-8f36f9f41905&#39;)]</span>
 
 <span class="sd">        [UUID(&#39;76de0416-7c92-e1b3-4a17-25df32e9c2b4&#39;)]</span>
@@ -1947,7 +1948,7 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/annot/vert/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="k">import</span> <span class="n">preproc_annot</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
 
     <span class="n">vertstr_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_verts&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">preproc_annot</span><span class="o">.</span><span class="n">postget_annot_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
@@ -2359,7 +2360,7 @@
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Could not purge CurvRankDorsal cache for viewpoint&#39;</span>
             <span class="c1"># raise RuntimeError(message)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">wbia_plugin_curvrank_delete_cache_optimized</span><span class="p">(</span>
                 <span class="n">update_aid_list</span><span class="p">,</span> <span class="s1">&#39;CurvRankFinfindrHybridDorsal&#39;</span>
@@ -2367,7 +2368,7 @@
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Could not purge CurvRankFinfindrHybridDorsal cache for viewpoint&#39;</span>
             <span class="c1"># raise RuntimeError(message)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
     <span class="c1"># oops didn&#39;t realize there was a structure already here for this</span>
     <span class="k">if</span> <span class="n">_code_update</span><span class="p">:</span>
@@ -2947,8 +2948,8 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;gid_list&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!get_annot_image_paths] aids=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!get_annot_image_paths] gids=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[!get_annot_image_paths] aids=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[!get_annot_image_paths] gids=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
         <span class="k">raise</span>
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="s1">&#39;gpath_list&#39;</span><span class="p">)</span>
@@ -3040,7 +3041,7 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/annot/bbox/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">geometry</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
 
     <span class="c1"># changing the bboxes also changes the bounding polygon</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_list_from_bboxes_list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
@@ -3385,7 +3386,7 @@
 
 
 <div class="viewcode-block" id="update_annot_rotate_90"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.update_annot_rotate_90">[docs]</a><span class="k">def</span> <span class="nf">update_annot_rotate_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="k">import</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
+    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -3442,7 +3443,7 @@
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;set_annot_verts&#39;</span><span class="p">):</span>
 
         <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;set_annot_verts...config&#39;</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">vtool</span> <span class="k">import</span> <span class="n">geometry</span>
+            <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
 
             <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="c1"># Compute data to set</span>
@@ -3972,7 +3973,11 @@
     <span class="n">annot_age_months_est_min_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_age_months_est_max_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_age_months_est_text_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">age_min_text</span><span class="p">,</span> <span class="n">age_max_text</span><span class="p">,)</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">age_min_text</span><span class="p">,</span>
+            <span class="n">age_max_text</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">age_min_text</span><span class="p">,</span> <span class="n">age_max_text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
             <span class="n">annot_age_months_est_min_text_list</span><span class="p">,</span> <span class="n">annot_age_months_est_max_text_list</span>
         <span class="p">)</span>
@@ -4138,21 +4143,21 @@
     <span class="c1">#    SELECT annot_rowid from ANNOTATIONS</span>
     <span class="c1">#    WHERE annot_visual_uuid LIKE ? || &#39;%&#39;</span>
     <span class="c1">#    &#39;&#39;&#39;, (bytes(partial_vuuid),))</span>
-    <span class="c1"># print(res.fetchall())</span>
+    <span class="c1"># logger.info(res.fetchall())</span>
 
     <span class="c1"># res = ibs.db.cur.execute(</span>
     <span class="c1">#    &#39;&#39;&#39;</span>
     <span class="c1">#    SELECT annot_rowid from ANNOTATIONS</span>
     <span class="c1">#    WHERE annot_visual_uuid LIKE ? || &#39;%&#39;</span>
     <span class="c1">#    &#39;&#39;&#39;, (partial_vuuid,))</span>
-    <span class="c1"># print(res.fetchall())</span>
+    <span class="c1"># logger.info(res.fetchall())</span>
 
     <span class="c1"># res = ibs.db.cur.execute(</span>
     <span class="c1">#    &#39;&#39;&#39;</span>
     <span class="c1">#    SELECT annot_rowid from ANNOTATIONS</span>
     <span class="c1">#    WHERE annot_visual_uuid LIKE ? || &#39;%&#39;</span>
     <span class="c1">#    &#39;&#39;&#39;, (bytes(partial_vuuid),))</span>
-    <span class="c1"># print(res.fetchall())</span>
+    <span class="c1"># logger.info(res.fetchall())</span>
 
     <span class="c1"># # || - is used to concat strings</span>
 
@@ -4161,14 +4166,14 @@
     <span class="c1">#    SELECT annot_rowid from ANNOTATIONS</span>
     <span class="c1">#    WHERE annot_note LIKE ? || &#39;%&#39;</span>
     <span class="c1">#    &#39;&#39;&#39;, (&#39;very&#39;,))</span>
-    <span class="c1"># print(res.fetchall())</span>
+    <span class="c1"># logger.info(res.fetchall())</span>
     <span class="c1"># pass</span>
 
 
 <div class="viewcode-block" id="get_annot_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.get_annot_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
 <span class="k">def</span> <span class="nf">get_annot_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annot_tags_list &lt;- annot.annot_tags[aid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annot_tags_list &lt;- annot.annot_tags[aid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annot_tags&quot; in the &quot;annot&quot; table</span>
 
@@ -4203,14 +4208,14 @@
 <div class="viewcode-block" id="set_annot_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_annot_funcs.set_annot_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
 <span class="k">def</span> <span class="nf">set_annot_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_tags_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; annot_tags_list -&gt; annot.annot_tags[aid_list]</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;annot_tags_list -&gt; annot.annot_tags[aid_list]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        aid_list</span>
 <span class="sd">        annot_tags_list</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># print(&#39;[ibs] set_annot_tag_text of aids=%r to tags=%r&#39; % (aid_list, annot_tags_list))</span>
+    <span class="c1"># logger.info(&#39;[ibs] set_annot_tag_text of aids=%r to tags=%r&#39; % (aid_list, annot_tags_list))</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_TAG_TEXT</span><span class="p">,)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
@@ -4508,21 +4513,6 @@
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.control.manual_annot_funcs</span>
-<span class="sd">        python -m wbia.control.manual_annot_funcs --allexamples</span>
-<span class="sd">        python -m wbia.control.manual_annot_funcs --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -4560,17 +4550,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -4587,7 +4575,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

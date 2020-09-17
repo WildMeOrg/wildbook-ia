@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.apis_sync &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.apis_sync &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -40,9 +39,9 @@
 <span class="sd">SeeAlso:</span>
 <span class="sd">    routes.turk_identification</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
@@ -51,6 +50,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
     <span class="vm">__name__</span>
@@ -81,7 +81,10 @@
         <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<span class="n">REMOTE_URL</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_DOMAIN</span><span class="p">,</span> <span class="n">REMOTE_PORT</span><span class="p">,)</span>
+<span class="n">REMOTE_URL</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+    <span class="n">REMOTE_DOMAIN</span><span class="p">,</span>
+    <span class="n">REMOTE_PORT</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="n">REMOTE_UUID</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">REMOTE_UUID</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">REMOTE_UUID</span><span class="p">)</span>
 
 
@@ -90,7 +93,10 @@
         <span class="n">route_rule</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">route_rule</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">route_rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
         <span class="n">route_rule</span> <span class="o">=</span> <span class="n">route_rule</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
-    <span class="n">route_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REMOTE_URL</span><span class="p">,</span> <span class="n">route_rule</span><span class="p">,)</span>
+    <span class="n">route_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">REMOTE_URL</span><span class="p">,</span>
+        <span class="n">route_rule</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">route_url</span>
 
 
@@ -153,13 +159,20 @@
     <span class="n">num_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">image_path_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_path_list</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">num_images</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">: </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">num_images</span><span class="p">,</span>
+                <span class="n">image_path</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">file_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span>
         <span class="p">}</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">file_dict</span><span class="p">)</span>
         <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -186,7 +199,7 @@
 <span class="k">def</span> <span class="nf">_detect_remote_push_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/annot/json/&#39;</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending...&#39;</span><span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
         <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
@@ -196,7 +209,7 @@
         <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
     <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -205,7 +218,13 @@
 <span class="p">):</span>
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">route_rule</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Setting </span><span class="si">%s</span><span class="s1"> metadata for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">route_rule</span><span class="p">,</span> <span class="n">uuid_str</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Setting </span><span class="si">%s</span><span class="s1"> metadata for </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">route_rule</span><span class="p">,</span>
+            <span class="n">uuid_str</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">uuid_str</span><span class="p">:</span> <span class="n">uuid_list</span><span class="p">,</span>
         <span class="n">value_str</span><span class="p">:</span> <span class="n">value_list</span><span class="p">,</span>
@@ -214,7 +233,7 @@
         <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
     <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...set&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...set&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -289,7 +308,7 @@
 <span class="k">def</span> <span class="nf">_detect_remote_push_parts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/part/json/&#39;</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Sending...&#39;</span><span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_annot_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">),</span>
         <span class="s1">&#39;part_uuid_list&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">),</span>
@@ -299,7 +318,7 @@
         <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">route_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
     <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">...sent&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -354,7 +373,7 @@
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="s1">&#39;/api/core/db/info/&#39;</span><span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">route_url</span><span class="p">)</span>
     <span class="n">_verify_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span>
 
 
@@ -473,9 +492,20 @@
 
 
 <span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_sync_get_remote_name_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">local_nids</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_sync_get_annot_endpoint</span><span class="p">(</span><span class="s1">&#39;/api/annot/name/rowid/&#39;</span><span class="p">,</span> <span class="n">local_nids</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_sync_get_annot_endpoint</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> aids from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">route_url</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> aids from </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+            <span class="n">route_url</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;aid_list&#39;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
     <span class="p">}</span>
@@ -488,14 +518,20 @@
     <span class="c1"># make sure auuid_list is correct format</span>
     <span class="n">working_list</span> <span class="o">=</span> <span class="n">auuid_list</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">working_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">working_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">uuid</span> <span class="k">import</span> <span class="n">UUID</span>
+        <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
 
         <span class="n">working_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">working_list</span><span class="p">]</span>
 
     <span class="n">serialized_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">working_list</span><span class="p">)</span>
 
     <span class="n">route_url</span> <span class="o">=</span> <span class="n">_construct_route_url</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> auuids from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">auuid_list</span><span class="p">),</span> <span class="n">route_url</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Getting info on </span><span class="si">%d</span><span class="s1"> auuids from </span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">auuid_list</span><span class="p">),</span>
+            <span class="n">route_url</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;uuid_list&#39;</span><span class="p">:</span> <span class="n">serialized_uuids</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">_get</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
 
@@ -550,14 +586,18 @@
 
     <span class="n">confirm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
     <span class="n">confirm_str</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">confirm_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;You are about to submit </span><span class="si">%d</span><span class="s1"> images to a remote DETECT database at </span><span class="si">%r</span><span class="s1"> with UUID=</span><span class="si">%r</span><span class="s1">.&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">REMOTE_URL</span><span class="p">,</span> <span class="n">REMOTE_UUID</span><span class="p">,)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+            <span class="n">REMOTE_URL</span><span class="p">,</span>
+            <span class="n">REMOTE_UUID</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.&#39;</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;In order to continue, please type exactly the confirmation string </span><span class="si">%r</span><span class="s1">&#39;</span>
         <span class="o">%</span> <span class="p">(</span><span class="n">confirm_str</span><span class="p">,)</span>
     <span class="p">)</span>
@@ -584,9 +624,9 @@
 
     <span class="n">num_missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_gid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> images...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> images...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_images</span><span class="p">(</span><span class="n">missing_gid_list</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
 
     <span class="c1"># Filter only missing</span>
     <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">missing_gid_list</span> <span class="k">if</span> <span class="n">only_sync_missing_images</span> <span class="k">else</span> <span class="n">gid_list</span>
@@ -595,9 +635,9 @@
     <span class="c1">############################################################################</span>
 
     <span class="c1"># Sync imageset</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Setting imageset...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting imageset...&#39;</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_imageset</span><span class="p">(</span><span class="n">image_uuid_list_</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...set&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...set&#39;</span><span class="p">)</span>
 
     <span class="c1">############################################################################</span>
 
@@ -614,17 +654,17 @@
 
     <span class="n">num_missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_aid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> annots...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> annots...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_annots</span><span class="p">(</span><span class="n">missing_aid_list</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
 
     <span class="c1">############################################################################</span>
 
     <span class="c1"># Sync annotation metadata</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Synching annotation metadata...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Synching annotation metadata...&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_annot_metadata</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...synched&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...synched&#39;</span><span class="p">)</span>
 
     <span class="c1">############################################################################</span>
 
@@ -641,32 +681,17 @@
 
     <span class="n">num_missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_part_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_missing</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> parts...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need to push </span><span class="si">%d</span><span class="s1"> parts...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_missing</span><span class="p">,))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_parts</span><span class="p">(</span><span class="n">missing_part_rowid_list</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...pushed&#39;</span><span class="p">)</span>
 
     <span class="c1">############################################################################</span>
 
     <span class="c1"># Sync part metadata</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Synching part metadata...&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Synching part metadata...&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">_detect_remote_push_part_metadata</span><span class="p">(</span><span class="n">part_uuid_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...synched&#39;</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.web.app</span>
-<span class="sd">        python -m wbia.web.app --allexamples</span>
-<span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...synched&#39;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -702,17 +727,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -729,7 +752,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.verif.vsone &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.algo.verif.vsone &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -45,18 +44,13 @@
 <span class="sd">    python -m wbia.algo.verif.vsone deploy --db GZ_Master1</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">absolute_import</span><span class="p">,</span>
-    <span class="n">division</span><span class="p">,</span>
-    <span class="n">print_function</span><span class="p">,</span>
-    <span class="n">unicode_literals</span><span class="p">,</span>
-<span class="p">)</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span> <span class="k">as</span> <span class="n">dt</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">copy</span>
@@ -66,14 +60,15 @@
 <span class="kn">import</span> <span class="nn">sklearn.model_selection</span>
 <span class="kn">import</span> <span class="nn">sklearn.multiclass</span>
 <span class="kn">import</span> <span class="nn">sklearn.ensemble</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">clf_helpers</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">deploy</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">pairfeat</span><span class="p">,</span> <span class="n">verifier</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">clf_helpers</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">deploy</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">pairfeat</span><span class="p">,</span> <span class="n">verifier</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="PairSampleConfig"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.PairSampleConfig">[docs]</a><span class="k">class</span> <span class="nc">PairSampleConfig</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
@@ -106,7 +101,7 @@
 <span class="sd">        python -m wbia.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; pblm.hyper_params[&#39;xval_kw&#39;][&#39;n_splits&#39;] = 10</span>
@@ -119,7 +114,7 @@
 
     <span class="n">appname</span> <span class="o">=</span> <span class="s1">&#39;vsone_rf_train&#39;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OneVsOneProblem</span><span class="p">,</span> <span class="n">pblm</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">verbose</span> <span class="o">=</span> <span class="mi">2</span>
@@ -184,7 +179,7 @@
         <span class="n">hyper_params</span><span class="p">[</span><span class="s1">&#39;vsone_kpts&#39;</span><span class="p">][</span><span class="s1">&#39;augment_orientation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="n">species</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;species = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;species = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="p">))</span>
 
         <span class="c1"># Parameters from manta matcher</span>
         <span class="n">hyper_params</span><span class="p">[</span><span class="s1">&#39;chip&#39;</span><span class="p">][</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;maxwh&#39;</span>
@@ -267,7 +262,7 @@
         <span class="n">multi_species</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
         <span class="c1"># if infr.ibs.has_species_detector(species):</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">multi_species</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;HACKING FGWEIGHTS OFF&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;HACKING FGWEIGHTS OFF&#39;</span><span class="p">)</span>
             <span class="n">hyper_params</span><span class="o">.</span><span class="n">vsone_match</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;fgweights&#39;</span>
             <span class="n">hyper_params</span><span class="o">.</span><span class="n">pairwise_feats</span><span class="p">[</span><span class="s1">&#39;sorters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
                 <span class="n">hyper_params</span><span class="o">.</span><span class="n">pairwise_feats</span><span class="p">[</span><span class="s1">&#39;sorters&#39;</span><span class="p">]</span>
@@ -299,9 +294,9 @@
         <span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span> <span class="o">=</span> <span class="n">hyper_params</span>
         <span class="n">updated</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span><span class="o">.</span><span class="n">update2</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;hyper_params: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;hyper_params: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">updated</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Externally updated params = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">updated</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Externally updated params = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">updated</span><span class="p">,))</span>
 
 <div class="viewcode-block" id="OneVsOneProblem.from_aids"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.from_aids">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_aids</span><span class="p">(</span><span class="n">OneVsOneProblem</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
@@ -415,7 +410,7 @@
         <span class="n">infr</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
         <span class="k">if</span> <span class="n">pblm</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pblm] gather lnbnn match-state cases&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[pblm] gather lnbnn match-state cases&#39;</span><span class="p">)</span>
 
         <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">min_pername</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">)</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">_make_lnbnn_qreq</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
@@ -445,7 +440,7 @@
         <span class="k">if</span> <span class="n">HACK_LOAD_STATIC_DATASET</span><span class="p">:</span>
             <span class="c1"># Just take anything, I dont care if it changed</span>
             <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;HACKING STATIC DATASET&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;HACKING STATIC DATASET&#39;</span><span class="p">)</span>
                 <span class="n">infos</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">cacher1</span><span class="o">.</span><span class="n">existing_versions</span><span class="p">():</span>
                     <span class="n">finfo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_file_info</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
@@ -457,12 +452,12 @@
                     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;owner&#39;</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="s1">&#39;last_accessed&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;last_modified&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reindex</span><span class="p">()</span>
                     <span class="n">fpath</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;fpath&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;HACKING STATIC DATASET&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;HACKING STATIC DATASET&#39;</span><span class="p">)</span>
                     <span class="n">data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using LNBNN to compute pairs&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using LNBNN to compute pairs&#39;</span><span class="p">)</span>
             <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">_set_vsmany_info</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>  <span class="c1"># hack</span>
 
@@ -472,9 +467,9 @@
             <span class="n">aid_pairs_</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">_cm_training_pairs</span><span class="p">(</span><span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span> <span class="o">**</span><span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span><span class="o">.</span><span class="n">pair_sample</span><span class="p">)</span>
             <span class="n">cacher1</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">aid_pairs_</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">aid_pairs_</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished using LNBNN to compute pairs&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished using LNBNN to compute pairs&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loaded previous LNBNN pairs&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loaded previous LNBNN pairs&#39;</span><span class="p">)</span>
         <span class="n">aid_pairs_</span> <span class="o">=</span> <span class="n">data</span>
         <span class="k">return</span> <span class="n">aid_pairs_</span></div>
 
@@ -484,7 +479,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">pblm</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pblm] Using randomized training pairs&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[pblm] Using randomized training pairs&#39;</span><span class="p">)</span>
         <span class="c1"># from wbia.algo.graph import nx_utils as nxu</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span>
         <span class="n">infr</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
@@ -493,8 +488,8 @@
 
         <span class="n">n_pos</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">pair_sample</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;top_gt&#39;</span><span class="p">,</span> <span class="s1">&#39;mid_gt&#39;</span><span class="p">,</span> <span class="s1">&#39;bot_gt&#39;</span><span class="p">,</span> <span class="s1">&#39;rand_gt&#39;</span><span class="p">]))</span>
         <span class="n">n_neg</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">pair_sample</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;top_gf&#39;</span><span class="p">,</span> <span class="s1">&#39;mid_gf&#39;</span><span class="p">,</span> <span class="s1">&#39;bot_gf&#39;</span><span class="p">,</span> <span class="s1">&#39;rand_gf&#39;</span><span class="p">]))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_neg = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_neg</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_pos = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_pos</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;n_neg = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_neg</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;n_pos = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_pos</span><span class="p">))</span>
 
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">pair_sample</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
@@ -526,7 +521,7 @@
 
             <span class="n">per_cc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_need</span> <span class="o">/</span> <span class="n">infr</span><span class="o">.</span><span class="n">pos_graph</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
             <span class="n">per_cc</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">per_cc</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;per_cc = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">per_cc</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;per_cc = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">per_cc</span><span class="p">))</span>
 
             <span class="n">rng</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_rng</span><span class="p">(</span><span class="mi">2039141610</span><span class="p">)</span>
 
@@ -575,7 +570,7 @@
 
 <span class="sd">        We can do the same for negatives.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">networkx.algorithms.connectivity</span> <span class="k">import</span> <span class="n">k_edge_subgraphs</span>
+        <span class="kn">from</span> <span class="nn">networkx.algorithms.connectivity</span> <span class="kn">import</span> <span class="n">k_edge_subgraphs</span>
 
         <span class="c1"># from wbia.algo.graph import nx_utils as nxu</span>
         <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
@@ -665,7 +660,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">infr</span>
         <span class="k">if</span> <span class="n">pblm</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pblm] gathering training pairs&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[pblm] gathering training pairs&#39;</span><span class="p">)</span>
 
         <span class="n">sample_method</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">hyper_params</span><span class="p">[</span><span class="s1">&#39;sample_method&#39;</span><span class="p">]</span>
 
@@ -765,7 +760,7 @@
         <span class="n">sample_hashid</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">sample_hashid</span><span class="p">()</span>
         <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">hyper_params</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">feat_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">sample_hashid</span> <span class="o">+</span> <span class="n">feat_cfgstr</span><span class="p">)</span>
-        <span class="c1"># print(&#39;features_hashid = %r&#39; % (features_hashid,))</span>
+        <span class="c1"># logger.info(&#39;features_hashid = %r&#39; % (features_hashid,))</span>
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;devcache&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">),</span> <span class="n">feat_hashid</span><span class="p">])</span>
 
         <span class="n">cacher</span> <span class="o">=</span> <span class="n">ub</span><span class="o">.</span><span class="n">Cacher</span><span class="p">(</span>
@@ -805,7 +800,8 @@
                 <span class="n">lnbnn_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lnbnn_score_list</span><span class="p">]</span>
 
                 <span class="n">simple_scores</span> <span class="o">=</span> <span class="n">simple_scores</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                    <span class="n">score_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_score_list</span><span class="p">,</span> <span class="n">rank_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_rank_list</span><span class="p">,</span>
+                    <span class="n">score_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_score_list</span><span class="p">,</span>
+                    <span class="n">rank_lnbnn_1vM</span><span class="o">=</span><span class="n">lnbnn_rank_list</span><span class="p">,</span>
                 <span class="p">)</span>
 
             <span class="n">simple_scores</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">simple_scores</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -873,7 +869,7 @@
         <span class="c1"># pblm.samples.print_info()</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[pblm] --- CURATING DATA ---&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">print_info</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------------&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;---------------&#39;</span><span class="p">)</span>
 
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[pblm] --- FEATURE INFO ---&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">build_feature_subsets</span><span class="p">()</span>
@@ -896,7 +892,7 @@
         <span class="c1"># Remove any tasks that cant be done</span>
         <span class="n">unsupported</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">task_keys</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">supported_tasks</span><span class="p">())</span>
         <span class="k">for</span> <span class="n">task_key</span> <span class="ow">in</span> <span class="n">unsupported</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No data to train task_key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task_key</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No data to train task_key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task_key</span><span class="p">,))</span>
             <span class="n">task_keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">task_key</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="OneVsOneProblem.setup_evaluation"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.setup_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">setup_evaluation</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">with_simple</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -910,8 +906,8 @@
             <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- EVALUTE SIMPLE SCORES ---&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>
             <span class="n">pblm</span><span class="o">.</span><span class="n">evaluate_simple_scores</span><span class="p">(</span><span class="n">task_keys</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no simple scores&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...skipping simple evaluation&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;no simple scores&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...skipping simple evaluation&#39;</span><span class="p">)</span>
 
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- LEARN CROSS-VALIDATED RANDOM FORESTS ---&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>
         <span class="n">pblm</span><span class="o">.</span><span class="n">learn_evaluation_classifiers</span><span class="p">(</span><span class="n">task_keys</span><span class="p">,</span> <span class="n">clf_keys</span><span class="p">,</span> <span class="n">data_keys</span><span class="p">)</span></div>
@@ -961,18 +957,18 @@
 <span class="sd">        clf_keys = [pblm.default_clf_key]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># selected_data_keys = ut.ddict(list)</span>
-        <span class="kn">from</span> <span class="nn">utool.experimental.pandas_highlight</span> <span class="k">import</span> <span class="n">to_string_monkey</span>
+        <span class="kn">from</span> <span class="nn">utool.experimental.pandas_highlight</span> <span class="kn">import</span> <span class="n">to_string_monkey</span>
 
         <span class="n">clf_keys</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">eval_clf_keys</span>
         <span class="n">data_keys</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">eval_data_keys</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;data_keys = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_keys</span><span class="p">,))</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;--- TASK = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">task_key</span><span class="p">),),</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;data_keys = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_keys</span><span class="p">,))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;--- TASK = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">task_key</span><span class="p">),),</span> <span class="s1">&#39;brightcyan&#39;</span><span class="p">)</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">subtasks</span><span class="p">[</span><span class="n">task_key</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="s1">&#39;simple_aucs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pblm</span><span class="o">.</span><span class="n">report_simple_scores</span><span class="p">(</span><span class="n">task_key</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">clf_key</span> <span class="ow">in</span> <span class="n">clf_keys</span><span class="p">:</span>
             <span class="c1"># Combine results over datasets</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clf_key = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">clf_key</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;clf_key = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">clf_key</span><span class="p">),))</span>
             <span class="n">data_combo_res</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">task_combo_res</span><span class="p">[</span><span class="n">task_key</span><span class="p">][</span><span class="n">clf_key</span><span class="p">]</span>
             <span class="n">df_auc_ovr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                 <span class="nb">dict</span><span class="p">(</span>
@@ -984,7 +980,7 @@
                 <span class="n">index</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">one_vs_rest_task_names</span><span class="p">(),</span>
             <span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] ROC-AUC(OVR) Scores&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf_key</span><span class="p">,),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_auc_ovr</span><span class="p">,</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_auc_ovr</span><span class="p">,</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="n">clf_key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;-OVR&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">labels</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="c1"># Report un-normalized ovr measures if they available</span>
@@ -992,13 +988,16 @@
                 <span class="n">df_auc_ovr_hat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                     <span class="nb">dict</span><span class="p">(</span>
                         <span class="p">[</span>
-                            <span class="p">(</span><span class="n">datakey</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_combo_res</span><span class="p">[</span><span class="n">datakey</span><span class="p">]</span><span class="o">.</span><span class="n">roc_scores_ovr_hat</span><span class="p">()),)</span>
+                            <span class="p">(</span>
+                                <span class="n">datakey</span><span class="p">,</span>
+                                <span class="nb">list</span><span class="p">(</span><span class="n">data_combo_res</span><span class="p">[</span><span class="n">datakey</span><span class="p">]</span><span class="o">.</span><span class="n">roc_scores_ovr_hat</span><span class="p">()),</span>
+                            <span class="p">)</span>
                             <span class="k">for</span> <span class="n">datakey</span> <span class="ow">in</span> <span class="n">data_keys</span>
                         <span class="p">]</span>
                     <span class="p">),</span>
                     <span class="n">index</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">one_vs_rest_task_names</span><span class="p">(),</span>
                 <span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_auc_ovr_hat</span><span class="p">,</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_auc_ovr_hat</span><span class="p">,</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
 
             <span class="n">roc_scores</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
                 <span class="p">[</span>
@@ -1008,7 +1007,7 @@
             <span class="p">)</span>
             <span class="n">df_auc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">roc_scores</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] ROC-AUC(MacroAve) Scores&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf_key</span><span class="p">,),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_auc</span><span class="p">,</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_auc</span><span class="p">,</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span>
 
             <span class="c1"># best_data_key = &#39;learn(sum,glob,3)&#39;</span>
             <span class="n">best_data_key</span> <span class="o">=</span> <span class="n">df_auc</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">df_auc</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
@@ -1016,7 +1015,14 @@
             <span class="c1"># selected_data_keys[task_key].append(best_data_key)</span>
 
             <span class="n">combo_res</span> <span class="o">=</span> <span class="n">data_combo_res</span><span class="p">[</span><span class="n">best_data_key</span><span class="p">]</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] BEST DataKey = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf_key</span><span class="p">,</span> <span class="n">best_data_key</span><span class="p">,),</span> <span class="s1">&#39;darkgreen&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
+                <span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] BEST DataKey = </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">clf_key</span><span class="p">,</span>
+                    <span class="n">best_data_key</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="s1">&#39;green&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">best_data_key</span><span class="p">,)):</span>
                 <span class="n">combo_res</span><span class="o">.</span><span class="n">extended_clf_report</span><span class="p">()</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">combo_res</span>
@@ -1035,8 +1041,8 @@
 
         <span class="c1"># ut.cprint(&#39;\n--- FEATURE INFO ---&#39;, &#39;blue&#39;)</span>
         <span class="c1"># for best_data_key in selected_data_keys:</span>
-        <span class="c1">#     print(&#39;data_key=(%s)&#39; % (best_data_key,))</span>
-        <span class="c1">#     print(ut.indent(vt.AnnotPairFeatInfo(</span>
+        <span class="c1">#     logger.info(&#39;data_key=(%s)&#39; % (best_data_key,))</span>
+        <span class="c1">#     logger.info(ut.indent(vt.AnnotPairFeatInfo(</span>
         <span class="c1">#           pblm.samples.X_dict[best_data_key]).get_infostr()))</span>
 
         <span class="c1"># TODO: view failure / success cases</span>
@@ -1071,8 +1077,8 @@
         <span class="n">y_true</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">encoded_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">probs</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">lookup_class_idx</span><span class="p">)</span>
         <span class="n">target_names</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">columns</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Want Photobomb Report&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Want Photobomb Report&#39;</span><span class="p">)</span>
         <span class="n">clf_helpers</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span><span class="p">)</span>
 
         <span class="c1"># Make labels for entire set</span>
@@ -1083,16 +1089,16 @@
         <span class="n">y_true</span> <span class="o">=</span> <span class="n">y_true_enc</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">primary_probs</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">primary_probs</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">primary_labels</span><span class="o">.</span><span class="n">lookup_class_idx</span><span class="p">)</span>
         <span class="n">target_names</span> <span class="o">=</span> <span class="n">primary_probs</span><span class="o">.</span><span class="n">columns</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Want Match Report&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Want Match Report&#39;</span><span class="p">)</span>
         <span class="n">clf_helpers</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Autoclassification Report&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Autoclassification Report&#39;</span><span class="p">)</span>
         <span class="n">auto_edges</span> <span class="o">=</span> <span class="n">is_auto</span><span class="p">[</span><span class="n">is_auto</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
         <span class="n">clf_helpers</span><span class="o">.</span><span class="n">classification_report2</span><span class="p">(</span>
             <span class="n">y_true</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">auto_edges</span><span class="p">],</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">auto_edges</span><span class="p">],</span> <span class="n">target_names</span><span class="o">=</span><span class="n">target_names</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;----------------------&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="OneVsOneProblem.auto_decisions_at_threshold"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.auto_decisions_at_threshold">[docs]</a>    <span class="k">def</span> <span class="nf">auto_decisions_at_threshold</span><span class="p">(</span>
         <span class="n">pblm</span><span class="p">,</span> <span class="n">primary_task</span><span class="p">,</span> <span class="n">task_probs</span><span class="p">,</span> <span class="n">task_thresh</span><span class="p">,</span> <span class="n">task_keys</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span> <span class="n">data_key</span>
@@ -1102,7 +1108,7 @@
         <span class="c1">#     metric, value = operating_points[task_key]</span>
         <span class="c1">#     res = pblm.task_combo_res[task_key][clf_key][data_key]</span>
         <span class="c1">#     task_thresh[task_key] = res.get_pos_threshes(metric, value)</span>
-        <span class="c1"># print(&#39;Using thresolds %s&#39; % (ut.repr3(task_thresh, precision=4)))</span>
+        <span class="c1"># logger.info(&#39;Using thresolds %s&#39; % (ut.repr3(task_thresh, precision=4)))</span>
 
         <span class="c1"># Find edges that pass positive thresh and have max liklihood</span>
         <span class="n">task_pos_flags</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1144,16 +1150,16 @@
         <span class="c1"># Automatic decisions are applied to positive and unconfounded samples</span>
         <span class="n">primary_auto_flags</span> <span class="o">=</span> <span class="n">primary_pos_flags</span><span class="o">.</span><span class="fm">__and__</span><span class="p">(</span><span class="o">~</span><span class="n">is_confounded</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="c1"># print(&#39;Autodecision info after pos threshold&#39;)</span>
-        <span class="c1"># print(&#39;Number positive-decisions\n%s&#39; % primary_pos_flags.sum(axis=0))</span>
-        <span class="c1"># # print(&#39;Percent positive-decisions\n%s&#39; % (</span>
+        <span class="c1"># logger.info(&#39;Autodecision info after pos threshold&#39;)</span>
+        <span class="c1"># logger.info(&#39;Number positive-decisions\n%s&#39; % primary_pos_flags.sum(axis=0))</span>
+        <span class="c1"># # logger.info(&#39;Percent positive-decisions\n%s&#39; % (</span>
         <span class="c1"># #     100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))</span>
-        <span class="c1"># # print(&#39;Total %s, Percent %.2f%%&#39; % (primary_pos_flags.sum(axis=0).sum(),</span>
+        <span class="c1"># # logger.info(&#39;Total %s, Percent %.2f%%&#39; % (primary_pos_flags.sum(axis=0).sum(),</span>
         <span class="c1"># #       100 * primary_pos_flags.sum(axis=0).sum() /</span>
         <span class="c1"># #       len(primary_pos_flags)))</span>
-        <span class="c1"># print(&#39;Revoked autodecisions based on confounders:\n%s&#39;  %</span>
+        <span class="c1"># logger.info(&#39;Revoked autodecisions based on confounders:\n%s&#39;  %</span>
         <span class="c1">#         primary_pos_flags.__and__(is_confounded, axis=0).sum())</span>
-        <span class="c1"># print(&#39;Making #auto-decisions %s&#39; % ut.map_dict_vals(</span>
+        <span class="c1"># logger.info(&#39;Making #auto-decisions %s&#39; % ut.map_dict_vals(</span>
         <span class="c1">#     sum, primary_auto_flags))</span>
         <span class="k">return</span> <span class="n">primary_auto_flags</span></div>
 
@@ -1313,12 +1319,12 @@
 
 <div class="viewcode-block" id="OneVsOneProblem.evaluate_simple_scores"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.evaluate_simple_scores">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_simple_scores</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
-<span class="sd">            &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.set_pandas_options()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.load_samples()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.load_features()</span>
-<span class="sd">            &gt;&gt;&gt; pblm.evaluate_simple_scores()</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.verif.vsone import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; pblm = OneVsOneProblem.from_empty()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.set_pandas_options()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.load_samples()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.load_features()</span>
+<span class="sd">        &gt;&gt;&gt; pblm.evaluate_simple_scores()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">task_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">task_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span><span class="p">]</span>
@@ -1369,7 +1375,7 @@
         <span class="n">pblm</span><span class="o">.</span><span class="n">simple_aucs</span> <span class="o">=</span> <span class="n">simple_aucs</span></div>
 
 <div class="viewcode-block" id="OneVsOneProblem.report_simple_scores"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.report_simple_scores">[docs]</a>    <span class="k">def</span> <span class="nf">report_simple_scores</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">utool.experimental.pandas_highlight</span> <span class="k">import</span> <span class="n">to_string_monkey</span>
+        <span class="kn">from</span> <span class="nn">utool.experimental.pandas_highlight</span> <span class="kn">import</span> <span class="n">to_string_monkey</span>
 
         <span class="k">if</span> <span class="n">task_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">task_key</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span>
@@ -1389,7 +1395,7 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
             <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[None] ROC-AUC of simple scoring measures for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task_key</span><span class="p">,),</span> <span class="s1">&#39;yellow&#39;</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_simple_auc</span><span class="p">[</span><span class="n">keep_cols</span><span class="p">],</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">to_string_monkey</span><span class="p">(</span><span class="n">df_simple_auc</span><span class="p">[</span><span class="n">keep_cols</span><span class="p">],</span> <span class="n">highlight_cols</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="OneVsOneProblem.feature_importance"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.OneVsOneProblem.feature_importance">[docs]</a>    <span class="k">def</span> <span class="nf">feature_importance</span><span class="p">(</span><span class="n">pblm</span><span class="p">,</span> <span class="n">task_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clf_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1431,7 +1437,7 @@
         <span class="c1"># ut.qtensure()</span>
         <span class="c1"># import wbia.plottool as pt  # NOQA</span>
         <span class="k">if</span> <span class="n">clf_key</span> <span class="o">!=</span> <span class="s1">&#39;RF&#39;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Can only report importance for RF not </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf_key</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Can only report importance for RF not </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clf_key</span><span class="p">,))</span>
             <span class="k">return</span>
 
         <span class="n">importances</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">feature_info</span><span class="p">(</span><span class="n">task_key</span><span class="p">,</span> <span class="n">clf_key</span><span class="p">,</span> <span class="n">data_key</span><span class="p">)</span>
@@ -1439,12 +1445,13 @@
 
         <span class="c1"># Take average feature importance</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span>
-            <span class="s1">&#39;MARGINAL IMPORTANCE INFO for </span><span class="si">%s</span><span class="s1"> on task </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,</span> <span class="n">task_key</span><span class="p">),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MARGINAL IMPORTANCE INFO for </span><span class="si">%s</span><span class="s1"> on task </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,</span> <span class="n">task_key</span><span class="p">),</span>
+            <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; Caption:&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * The NaN row ensures that `weight` always sums to 1&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * `num` indicates how many dimensions the row groups&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * `ave_w` is the average importance a single feature in the row&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; Caption:&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * The NaN row ensures that `weight` always sums to 1&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * `num` indicates how many dimensions the row groups&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * `ave_w` is the average importance a single feature in the row&#39;</span><span class="p">)</span>
         <span class="c1"># with ut.Indenter(&#39;[%s] &#39; % (data_key,)):</span>
 
         <span class="n">featinfo</span><span class="o">.</span><span class="n">print_margins</span><span class="p">(</span><span class="s1">&#39;feature&#39;</span><span class="p">)</span>
@@ -1497,7 +1504,7 @@
 <span class="sd">            &gt;&gt;&gt; pblm.setup_evaluation()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># from sklearn.feature_selection import SelectFromModel</span>
-        <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="k">import</span> <span class="n">clf_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.verif</span> <span class="kn">import</span> <span class="n">clf_helpers</span>
 
         <span class="n">task_key</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">primary_task_key</span>
         <span class="n">data_key</span> <span class="o">=</span> <span class="n">pblm</span><span class="o">.</span><span class="n">default_data_key</span>
@@ -1718,7 +1725,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">aid_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AnnotPairSamples</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span>
         <span class="n">samples</span><span class="o">.</span><span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span>
@@ -1988,23 +1995,9 @@
 
 <div class="viewcode-block" id="AnnotPairSamples.print_featinfo"><a class="viewcode-back" href="../../../../wbia.algo.verif.html#wbia.algo.verif.vsone.AnnotPairSamples.print_featinfo">[docs]</a>    <span class="k">def</span> <span class="nf">print_featinfo</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">data_key</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">X_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">INFO(samples.X_dict[</span><span class="si">%s</span><span class="s1">])&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">INFO(samples.X_dict[</span><span class="si">%s</span><span class="s1">])&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,))</span>
             <span class="n">featinfo</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">AnnotPairFeatInfo</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">X_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">featinfo</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">()))</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.algo.verif.vsone</span>
-<span class="sd">        python -m wbia.algo.verif.vsone --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">featinfo</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">()))</span></div></div>
 </pre></div>
 
           </div>
@@ -2044,17 +2037,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2071,7 +2062,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

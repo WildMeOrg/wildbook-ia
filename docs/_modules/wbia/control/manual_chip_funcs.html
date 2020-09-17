@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.control.manual_chip_funcs &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.control.manual_chip_funcs &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,16 +33,17 @@
             
   <h1>Source code for wbia.control.manual_chip_funcs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="k">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -124,7 +124,7 @@
 <span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
 <span class="sd">        &gt;&gt;&gt; chip_list = get_annot_chips(ibs, aid_list, config2_)</span>
 <span class="sd">        &gt;&gt;&gt; chip_sum_list = [chip.sum() for chip in chip_list]</span>
-<span class="sd">        &gt;&gt;&gt; target = [96053500, 65152954, 67223241, 109358624, 73995960]</span>
+<span class="sd">        &gt;&gt;&gt; target = [96053684, 65145316, 67223205, 109367378, 73995663]</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_almost_eq(chip_sum_list, target, 2000)</span>
 <span class="sd">        &gt;&gt;&gt; print(chip_sum_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -272,13 +272,15 @@
     <span class="n">thumb_gpaths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_thumbpath</span><span class="p">(</span>
         <span class="n">aid_list</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span>
     <span class="p">)</span>
-    <span class="c1"># print(thumb_gpaths)</span>
+    <span class="c1"># logger.info(thumb_gpaths)</span>
     <span class="n">chip_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="n">chipsize_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_sizes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="n">thumbtup_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">thumb_path</span><span class="p">,</span> <span class="n">chip_path</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[])</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">thumb_path</span><span class="p">,</span> <span class="n">chip_path</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-            <span class="n">thumb_gpaths</span><span class="p">,</span> <span class="n">chip_paths</span><span class="p">,</span> <span class="n">chipsize_list</span><span class="p">,</span>
+            <span class="n">thumb_gpaths</span><span class="p">,</span>
+            <span class="n">chip_paths</span><span class="p">,</span>
+            <span class="n">chipsize_list</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">]</span>
     <span class="c1"># if not isiterable:</span>
@@ -341,7 +343,7 @@
     <span class="c1"># FIXME: Should config2_ be passed down?</span>
     <span class="c1"># Not sure why it isn&#39;t currently</span>
     <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_thumbpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="c1"># print(thumbpath_list)</span>
+    <span class="c1"># logger.info(thumbpath_list)</span>
     <span class="c1"># ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl=&#39;chip_thumbs&#39;)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">remove_existing_fpaths</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;chip_thumbs&#39;</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -388,7 +390,7 @@
 <span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
 <span class="sd">        &gt;&gt;&gt; chip_list = get_part_chips(ibs, part_rowid_list, config2_)</span>
 <span class="sd">        &gt;&gt;&gt; chip_sum_list = [chip.sum() for chip in chip_list]</span>
-<span class="sd">        &gt;&gt;&gt; target = [86763970, 62020065, 61333964, 111418156, 63593594, 51404427, 139395045, 84060806, 41257586, 89658838]</span>
+<span class="sd">        &gt;&gt;&gt; target = [86765003, 62011328, 61333186, 111424764, 63590900, 51397198, 139395045, 84052373, 41251798, 89657450]</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_almost_eq(chip_sum_list, target, 2000)</span>
 <span class="sd">        &gt;&gt;&gt; print(chip_sum_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -413,28 +415,12 @@
 
 
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.control.manual_chip_funcs</span>
-<span class="sd">        python -m wbia.control.manual_chip_funcs --allexamples</span>
-<span class="sd">        python -m wbia.control.manual_chip_funcs --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -472,17 +458,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -499,7 +483,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

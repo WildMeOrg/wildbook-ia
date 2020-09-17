@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.guitool.guitool_tables &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.guitool.guitool_tables &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -35,22 +34,23 @@
   <h1>Source code for wbia.guitool.guitool_tables</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># DEPRICATE?</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtWidgets</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.guitool_delegates</span> <span class="k">import</span> <span class="n">ComboDelegate</span><span class="p">,</span> <span class="n">ButtonDelegate</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">qtype</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtWidgets</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.guitool_delegates</span> <span class="kn">import</span> <span class="n">ComboDelegate</span><span class="p">,</span> <span class="n">ButtonDelegate</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">qtype</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ColumnListTableView"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_tables.ColumnListTableView">[docs]</a><span class="k">class</span> <span class="nc">ColumnListTableView</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QTableView</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Table View for an AbstractItemModel &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ColumnListTableView</span><span class="p">,</span> <span class="n">view</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">view</span><span class="o">.</span><span class="n">setSortingEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">view</span><span class="o">.</span><span class="n">vertical_header</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span>
@@ -70,7 +70,7 @@
     <span class="c1">#</span>
     <span class="c1"># Non-Qt Init Functions</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="n">model</span><span class="p">,</span>
         <span class="n">col_data_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">col_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -271,7 +271,7 @@
             <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QVariant</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ColumnListItemModel.setData"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_tables.ColumnListItemModel.setData">[docs]</a>    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Sets the role data for the item at index to var.</span>
+        <span class="sd">&quot;&quot;&quot;Sets the role data for the item at index to var.</span>
 <span class="sd">        var is a QVariant (called data in documentation)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[model] setData: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qtype</span><span class="o">.</span><span class="n">qindexinfo</span><span class="p">(</span><span class="n">index</span><span class="p">))))</span>
@@ -291,7 +291,13 @@
                 <span class="n">type_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_coltype</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">column</span><span class="p">())</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">qtype</span><span class="o">.</span><span class="n">cast_from_qt</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
             <span class="c1"># Do actual setting of data</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * new_data = </span><span class="si">%s</span><span class="s1">(</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">type_str</span><span class="p">(</span><span class="n">type_</span><span class="p">),</span> <span class="n">data</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39; * new_data = </span><span class="si">%s</span><span class="s1">(</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">utool</span><span class="o">.</span><span class="n">type_str</span><span class="p">(</span><span class="n">type_</span><span class="p">),</span>
+                    <span class="n">data</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
             <span class="c1"># Emit that data was changed and return succcess</span>
             <span class="n">model</span><span class="o">.</span><span class="n">dataChanged</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
@@ -332,7 +338,7 @@
 <div class="viewcode-block" id="ColumnListTableWidget"><a class="viewcode-back" href="../../../wbia.guitool.html#wbia.guitool.guitool_tables.ColumnListTableWidget">[docs]</a><span class="k">class</span> <span class="nc">ColumnListTableWidget</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; ColumnList Table Main Widget &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="n">cltw</span><span class="p">,</span>
         <span class="n">col_data_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">col_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -479,20 +485,6 @@
 <span class="c1"># widget.show()</span>
 <span class="c1"># widget.raise_()</span>
 <span class="c1"># sys.exit(app.exec_())</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.guitool.guitool_tables</span>
-<span class="sd">        python -m wbia.guitool.guitool_tables --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -530,17 +522,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -557,7 +547,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

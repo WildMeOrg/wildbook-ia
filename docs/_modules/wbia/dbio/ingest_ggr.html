@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dbio.ingest_ggr &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.dbio.ingest_ggr &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -36,13 +35,14 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">#!/usr/bin/env python  # NOQA</span>
 <span class="sd">&quot;&quot;&quot;Converts a GGR-style raw data to IBEIS database.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">wbia.detecttools.directory</span> <span class="k">import</span> <span class="n">Directory</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.detecttools.directory</span> <span class="kn">import</span> <span class="n">Directory</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">wbia</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_fix_ggr2018_directory_structure</span><span class="p">(</span><span class="n">ggr_path</span><span class="p">):</span>
@@ -386,7 +386,7 @@
             <span class="k">assert</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">blacklist_filepath_set</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unresolved root file found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filepath</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Unresolved root file found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filepath</span><span class="p">,))</span>
             <span class="k">continue</span>
 
     <span class="c1">################################################################################</span>
@@ -404,19 +404,19 @@
     <span class="n">direct1_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">base</span><span class="p">()),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">direct1</span> <span class="ow">in</span> <span class="n">direct1_list</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
         <span class="n">base1</span> <span class="o">=</span> <span class="n">direct1</span><span class="o">.</span><span class="n">base</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="nb">int</span><span class="p">(</span><span class="n">base1</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Error found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
             <span class="k">continue</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">direct1</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Files found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Files found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
             <span class="k">continue</span>
 
         <span class="n">seen_letter_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -429,7 +429,13 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="n">base2</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">base1</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Folder name heredity conflict </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,</span> <span class="n">direct1</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;Folder name heredity conflict </span><span class="si">%r</span><span class="s1"> with </span><span class="si">%r</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">direct2</span><span class="p">,</span>
+                        <span class="n">direct1</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="k">try</span><span class="p">:</span>
@@ -443,10 +449,10 @@
                 <span class="k">assert</span> <span class="n">letter</span> <span class="ow">in</span> <span class="n">ALLOWED_LETTERS</span>
                 <span class="n">seen_letter_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">letter</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Error found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,))</span>
                 <span class="k">continue</span>
             <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Folder name format error found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Folder name format error found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,))</span>
                 <span class="k">continue</span>
 
             <span class="n">direct2_</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span>
@@ -455,7 +461,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">direct2_</span><span class="o">.</span><span class="n">directories</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Folders exist in file only level </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Folders exist in file only level </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct2</span><span class="p">,))</span>
                 <span class="k">continue</span>
 
             <span class="n">filepath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">direct2_</span><span class="o">.</span><span class="n">files</span><span class="p">())</span>
@@ -466,7 +472,10 @@
                     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
                     <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
 
-                    <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;GGR2,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">letter</span><span class="p">,)</span>
+                    <span class="n">imageset_text</span> <span class="o">=</span> <span class="s1">&#39;GGR2,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">number</span><span class="p">,</span>
+                        <span class="n">letter</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="n">note_list</span> <span class="o">=</span> <span class="p">[</span>
                         <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%05d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imageset_text</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -480,15 +489,19 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">seen_letter_set</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">seen_letter_list</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s1">&#39;Duplicate letters in </span><span class="si">%r</span><span class="s1"> with letters </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,</span> <span class="n">seen_letter_list</span><span class="p">,)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Duplicate letters in </span><span class="si">%r</span><span class="s1"> with letters </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">direct1</span><span class="p">,</span>
+                    <span class="n">seen_letter_list</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">continue</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">assert</span> <span class="s1">&#39;A&#39;</span> <span class="ow">in</span> <span class="n">seen_letter_set</span>
         <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: A camera not found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING: A camera not found in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">direct1</span><span class="p">,))</span>
             <span class="k">continue</span>
 
     <span class="k">return</span> <span class="n">ibs</span></div>
@@ -527,17 +540,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -554,7 +565,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

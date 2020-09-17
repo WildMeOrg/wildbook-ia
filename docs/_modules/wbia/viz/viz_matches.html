@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.viz.viz_matches &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.viz.viz_matches &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,13 +33,14 @@
             
   <h1>Source code for wbia.viz.viz_matches</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool.plot_helpers</span> <span class="k">as</span> <span class="nn">ph</span>
-<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="k">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_get_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -61,11 +61,11 @@
 <div class="viewcode-block" id="get_query_annot_pair_info"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_matches.get_query_annot_pair_info">[docs]</a><span class="k">def</span> <span class="nf">get_query_annot_pair_info</span><span class="p">(</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_fpath</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
-    <span class="c1"># print(&#39;!!! qqreq_ = %r&#39; % (qreq_,))</span>
+    <span class="c1"># logger.info(&#39;!!! qqreq_ = %r&#39; % (qreq_,))</span>
     <span class="n">query_config2_</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span>
     <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="c1"># print(&#39;!!! query_config2_ = %r&#39; % (query_config2_,))</span>
+    <span class="c1"># logger.info(&#39;!!! query_config2_ = %r&#39; % (query_config2_,))</span>
     <span class="k">if</span> <span class="p">(</span>
         <span class="ow">not</span> <span class="n">tblhack</span>
         <span class="ow">or</span> <span class="n">tblhack</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -108,10 +108,9 @@
     <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="n">scale_down</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_fpath</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
     <span class="n">data_config2_</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span>
-    <span class="c1"># print(&#39;!!! data_config2_ = %r&#39; % (data_config2_,))</span>
-    <span class="c1"># print(&#39;!!! dqreq_ = %r&#39; % (qreq_,))</span>
+    <span class="c1"># logger.info(&#39;!!! data_config2_ = %r&#39; % (data_config2_,))</span>
+    <span class="c1"># logger.info(&#39;!!! dqreq_ = %r&#39; % (qreq_,))</span>
     <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="p">(</span>
         <span class="ow">not</span> <span class="n">tblhack</span>
         <span class="ow">or</span> <span class="n">tblhack</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -226,10 +225,10 @@
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># print(&quot;SHOW NAME MATCHES&quot;)</span>
-    <span class="c1"># print(ut.repr2(kwargs, nl=True))</span>
+    <span class="c1"># logger.info(&quot;SHOW NAME MATCHES&quot;)</span>
+    <span class="c1"># logger.info(ut.repr2(kwargs, nl=True))</span>
     <span class="c1"># from wbia import constants as const</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">tag_funcs</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
 
     <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="n">rchip1</span><span class="p">,</span> <span class="n">kpts1</span> <span class="o">=</span> <span class="n">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">)</span>
@@ -239,7 +238,7 @@
 
     <span class="n">heatmask</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;heatmask&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">heatmask</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">vtool.coverage_kpts</span> <span class="k">import</span> <span class="n">make_kpts_heatmask</span>
+        <span class="kn">from</span> <span class="nn">vtool.coverage_kpts</span> <span class="kn">import</span> <span class="n">make_kpts_heatmask</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
@@ -364,7 +363,7 @@
     <span class="c1"># score         = kwargs.pop(&#39;score&#39;, None)</span>
     <span class="c1"># rawscore      = kwargs.pop(&#39;rawscore&#39;, None)</span>
     <span class="c1"># aid2_raw_rank = kwargs.pop(&#39;aid2_raw_rank&#39;, None)</span>
-    <span class="c1"># print(kwargs)</span>
+    <span class="c1"># logger.info(kwargs)</span>
     <span class="c1"># title = vh.get_query_text(ibs, None, aid2, truth, qaid=aid1, **kwargs)</span>
     <span class="c1"># Build xlbl</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
@@ -625,7 +624,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_matches] WARNING: qreq_ is None&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_matches] WARNING: qreq_ is None&#39;</span><span class="p">)</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">in_image</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_image&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
@@ -665,7 +664,7 @@
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;consider qr.remove_corrupted_queries&#39;</span><span class="p">,</span> <span class="s1">&#39;[viz_matches]&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="c1"># Moved the code into show_chipmatch</span>
     <span class="c1"># if len(sel_fm) &gt; 0:</span>
@@ -861,23 +860,6 @@
             <span class="n">pt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">flat_fs</span><span class="p">,</span> <span class="n">flat_colors</span><span class="p">)</span>
     <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">offset_list</span><span class="p">,</span> <span class="n">wh_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">offset_list</span><span class="p">,</span> <span class="n">sf_list</span><span class="p">,</span> <span class="n">bbox_list</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.viz.viz_matches --test-show_matches --show</span>
-
-<span class="sd">        python -m wbia.viz.viz_matches</span>
-<span class="sd">        python -m wbia.viz.viz_matches --allexamples</span>
-<span class="sd">        python -m wbia.viz.viz_matches --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -915,17 +897,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -942,7 +922,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

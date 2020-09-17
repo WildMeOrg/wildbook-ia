@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.hots.requery_knn &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.algo.hots.requery_knn &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -34,14 +33,15 @@
             
   <h1>Source code for wbia.algo.hots.requery_knn</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="c1"># DEBUG_REQUERY = True</span>
@@ -49,7 +49,7 @@
 
 
 <div class="viewcode-block" id="FinalResults"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.requery_knn.FinalResults">[docs]</a><span class="k">class</span> <span class="nc">FinalResults</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">final</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">final</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
         <span class="n">final</span><span class="o">.</span><span class="n">qfx2_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">final</span><span class="o">.</span><span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="n">final</span><span class="o">.</span><span class="n">qfx2_truek</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -66,7 +66,7 @@
 <div class="viewcode-block" id="TempQuery"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.requery_knn.TempQuery">[docs]</a><span class="k">class</span> <span class="nc">TempQuery</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; queries that are incomplete &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">invalid_axs</span><span class="p">,</span> <span class="n">get_neighbors</span><span class="p">,</span> <span class="n">get_axs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">invalid_axs</span><span class="p">,</span> <span class="n">get_neighbors</span><span class="p">,</span> <span class="n">get_axs</span><span class="p">):</span>
         <span class="c1"># Static attributes</span>
         <span class="n">query</span><span class="o">.</span><span class="n">invalid_axs</span> <span class="o">=</span> <span class="n">invalid_axs</span>
         <span class="n">query</span><span class="o">.</span><span class="n">get_neighbors</span> <span class="o">=</span> <span class="n">get_neighbors</span>
@@ -94,7 +94,7 @@
 
 
 <div class="viewcode-block" id="TempResults"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.requery_knn.TempResults">[docs]</a><span class="k">class</span> <span class="nc">TempResults</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cand</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">validflags</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cand</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">validflags</span><span class="p">):</span>
         <span class="n">cand</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
         <span class="n">cand</span><span class="o">.</span><span class="n">idxs</span> <span class="o">=</span> <span class="n">idxs</span>
         <span class="n">cand</span><span class="o">.</span><span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span>
@@ -235,14 +235,14 @@
     <span class="n">at_limit</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">count</span><span class="p">():</span>
-        <span class="c1"># print(&#39;count = %r&#39; % (count,))</span>
+        <span class="c1"># logger.info(&#39;count = %r&#39; % (count,))</span>
         <span class="n">cand</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">temp_K</span><span class="p">)</span>
         <span class="c1"># Find which query features have found enough neighbors</span>
         <span class="n">done_flags</span> <span class="o">=</span> <span class="n">cand</span><span class="o">.</span><span class="n">done_flags</span><span class="p">(</span><span class="n">num_neighbs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">DEBUG_REQUERY</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;count = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;count = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
             <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">cand</span><span class="o">.</span><span class="n">dists</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;done_flags = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">done_flags</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;done_flags = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">done_flags</span><span class="p">,))</span>
         <span class="c1"># Move any done queries into results and compress the query</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">done_flags</span><span class="p">):</span>
             <span class="c1"># Get the valid part of the results</span>
@@ -256,8 +256,8 @@
                 <span class="n">nanrow_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nanelem_flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">nanelem_flags</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="n">nanrow_flags</span><span class="p">]</span> <span class="o">==</span> <span class="n">num_neighbs</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">blocks</span><span class="p">[</span><span class="o">~</span><span class="n">nanrow_flags</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final.qfx2_dist&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">final</span><span class="o">.</span><span class="n">qfx2_dist</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;final.qfx2_dist&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">final</span><span class="o">.</span><span class="n">qfx2_dist</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">done_flags</span><span class="p">):</span>
                 <span class="c1"># If everything was found then we are done</span>
                 <span class="k">break</span>
@@ -274,7 +274,7 @@
                 <span class="kn">import</span> <span class="nn">utool</span>
 
                 <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;[knn] Hit limit=</span><span class="si">%r</span><span class="s1"> and found </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1">&#39;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">done_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">done_flags</span><span class="p">))</span>
             <span class="p">)</span>
@@ -284,15 +284,15 @@
         <span class="c1"># If over the limit, then we need to do the best with what we have</span>
         <span class="c1"># otherwise we would just return nan</span>
         <span class="n">best</span> <span class="o">=</span> <span class="n">cand</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="o">~</span><span class="n">done_flags</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[knn] Recover for </span><span class="si">%d</span><span class="s1"> features&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">best</span><span class="o">.</span><span class="n">index</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[knn] Recover for </span><span class="si">%d</span><span class="s1"> features&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">best</span><span class="o">.</span><span class="n">index</span><span class="p">)))</span>
         <span class="c1"># Simply override the last indices to be valid and use those</span>
         <span class="n">best</span><span class="o">.</span><span class="n">validflags</span><span class="p">[:,</span> <span class="o">-</span><span class="n">num_neighbs</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="c1"># Now we can find a valid part</span>
         <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">trueks</span> <span class="o">=</span> <span class="n">best</span><span class="o">.</span><span class="n">done_part</span><span class="p">(</span><span class="n">num_neighbs</span><span class="p">)</span>
         <span class="n">final</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">best</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">trueks</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">DEBUG_REQUERY</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final.qfx2_dist&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">final</span><span class="o">.</span><span class="n">qfx2_dist</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;final.qfx2_dist&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">final</span><span class="o">.</span><span class="n">qfx2_dist</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">final</span><span class="o">.</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">final</span><span class="o">.</span><span class="n">qfx2_dist</span></div>
 </pre></div>
 
@@ -333,17 +333,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -360,7 +358,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

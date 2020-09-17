@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.viz.viz_graph2 &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.viz.viz_graph2 &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -39,24 +38,25 @@
 <span class="sd">    wbia make_qt_graph_interface --show</span>
 <span class="sd">    wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="k">import</span> <span class="n">abstract_interaction</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="k">import</span> <span class="n">QtCore</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="k">import</span> <span class="n">Qt</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">mpl_widget</span>
-<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="k">import</span> <span class="n">PrefWidget2</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">mpl_widget</span>
+<span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">PrefWidget2</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">UNKWN</span>  <span class="c1"># NOQA</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="n">GRAPH_REVIEW_CFG_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
@@ -123,7 +123,7 @@
 <span class="sd">        #     standalone (bool):</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+        <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="n">infr</span>
 
@@ -230,9 +230,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">last_external</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.total = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.standalone = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;self.total = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;self.standalone = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">edge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_edge</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">info_text</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">:</span>
@@ -268,22 +268,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">continue_review</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="AnnotPairDialog.accept"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotPairDialog.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz] accept&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz] accept&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">was_confirmed</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">feedback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback_dict</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;feedback = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">feedback</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;feedback = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">feedback</span><span class="p">),))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">accept</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Edge feedback not recoreded&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Edge feedback not recoreded&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">goto_next</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">need_next</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.total = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.count = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;need_next = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">need_next</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.last_external = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_external</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;self.total = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;self.count = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;need_next = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">need_next</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;self.last_external = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_external</span><span class="p">))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_external</span><span class="p">:</span>
                 <span class="c1"># always request next even if external</span>
                 <span class="c1"># alg sent you back to rereview.</span>
@@ -296,9 +296,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">goto_next</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="AnnotPairDialog.continue_review"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotPairDialog.continue_review">[docs]</a>    <span class="k">def</span> <span class="nf">continue_review</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz] continue review&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz] continue review&#39;</span><span class="p">)</span>
         <span class="n">user_request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">continue_review</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;user_request = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_request</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;user_request = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_request</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">user_request</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">on_finished</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -310,7 +310,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">step_by</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotPairDialog.set_edge"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotPairDialog.set_edge">[docs]</a>    <span class="k">def</span> <span class="nf">set_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">info_text</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">external</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;set edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;set edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_external</span> <span class="o">=</span> <span class="n">external</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">edge</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span>
@@ -345,7 +345,7 @@
 
 <div class="viewcode-block" id="AnnotPairDialog.seek"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotPairDialog.seek">[docs]</a>    <span class="k">def</span> <span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;seek index = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;seek index = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
@@ -355,13 +355,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">request_review</span><span class="p">([</span><span class="n">edge</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;standalone&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}],</span> <span class="n">external</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">edge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;request edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request edge = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
             <span class="n">user_request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">emit_manual_review</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">request_review</span><span class="p">(</span><span class="n">user_request</span><span class="p">,</span> <span class="n">external</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotPairDialog.request_review"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotPairDialog.request_review">[docs]</a>    <span class="k">def</span> <span class="nf">request_review</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_request</span><span class="p">,</span> <span class="n">external</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">edge</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">edge_data</span> <span class="o">=</span> <span class="n">user_request</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Got request for edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Got request for edge=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">edge</span><span class="p">))</span>
         <span class="n">info_text</span> <span class="o">=</span> <span class="s1">&#39;edge=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,)</span>
         <span class="n">info_text</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">priority=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">priority</span><span class="p">,)</span>
         <span class="n">info_text</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">edge_data</span><span class="p">,</span> <span class="n">si</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -389,7 +389,7 @@
 <span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(qwin=self, freq=10)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># kwargs.pop(&#39;ori&#39;, kwargs.pop(&#39;ori&#39;, &#39;vert&#39;))</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ori&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;grid&#39;</span>
         <span class="c1"># kwargs[&#39;margin&#39;] = 1</span>
@@ -416,14 +416,22 @@
         <span class="n">row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row_counter</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">addNewLabel</span><span class="p">(</span><span class="s1">&#39;Quality:&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qual_combo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addNewComboBox</span><span class="p">(</span>
-            <span class="n">options</span><span class="o">=</span><span class="n">valid_quals</span><span class="p">,</span> <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">valid_quals</span><span class="p">,</span>
+            <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+            <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span>
+            <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">gt</span><span class="o">.</span><span class="n">adjustSizePolicy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qual_combo</span><span class="p">,</span> <span class="n">hStretch</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
         <span class="n">row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row_counter</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">addNewLabel</span><span class="p">(</span><span class="s1">&#39;Viewpoint:&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">view_combo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addNewComboBox</span><span class="p">(</span>
-            <span class="n">options</span><span class="o">=</span><span class="n">valid_views</span><span class="p">,</span> <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">valid_views</span><span class="p">,</span>
+            <span class="n">editor_mode</span><span class="o">=</span><span class="s1">&#39;hybrid&#39;</span><span class="p">,</span>
+            <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span>
+            <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">columnSpan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">gt</span><span class="o">.</span><span class="n">adjustSizePolicy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_combo</span><span class="p">,</span> <span class="n">hStretch</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
@@ -536,7 +544,7 @@
     <span class="c1">#     label.setObjectName(&#39;form_box_label_&#39; + text)</span>
     <span class="c1">#     gt.adjustSizePolicy(form_box, vStretch=1, vPolicy=&#39;Preferred&#39;)</span>
     <span class="c1">#     return form_box</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ori&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;grid&#39;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">EdgeReviewDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -653,7 +661,7 @@
         <span class="n">gt</span><span class="o">.</span><span class="n">set_qt_object_names</span><span class="p">(</span><span class="nb">locals</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="EdgeReviewDialog.keyPressEvent"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.EdgeReviewDialog.keyPressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyPressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Got event&#39;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">())</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Got event&#39;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">())</span>
         <span class="n">handled</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">==</span> <span class="n">gt</span><span class="o">.</span><span class="n">__PYQT__</span><span class="o">.</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_F</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">match_state_combo</span><span class="o">.</span><span class="n">setCurrentValue</span><span class="p">(</span><span class="n">NEGTV</span><span class="p">)</span>
@@ -682,7 +690,7 @@
             <span class="c1"># &#39;confidence&#39;: &#39;unspecified&#39;</span>
             <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE</span><span class="o">.</span><span class="n">NOT_SURE</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge_data = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">edge_data</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge_data = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">edge_data</span><span class="p">),))</span>
         <span class="k">if</span> <span class="n">edge_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Read edge state from edge_data</span>
             <span class="n">edge_state</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -695,12 +703,12 @@
         <span class="k">return</span> <span class="n">edge_state</span></div>
 
 <div class="viewcode-block" id="EdgeReviewDialog.set_edge"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.EdgeReviewDialog.set_edge">[docs]</a>    <span class="k">def</span> <span class="nf">set_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">edge_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Set Edge State: edge=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set Edge State: edge=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">edge</span><span class="p">,))</span>
         <span class="n">edge_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_edge_state</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">edge_data</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">edge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Edge must be 2 ints&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge_state = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">edge_state</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge_state = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">edge_state</span><span class="p">),))</span>
         <span class="c1"># set qt state</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edge</span> <span class="o">=</span> <span class="n">edge_state</span><span class="p">[</span><span class="s1">&#39;edge&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edge_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">edge_state</span><span class="p">[</span><span class="s1">&#39;edge&#39;</span><span class="p">]))</span>
@@ -845,7 +853,7 @@
         <span class="c1"># self.my_thread = QtCore.QThread()</span>
         <span class="c1"># self.my_thread.start()</span>
         <span class="c1"># self.graph_widget.moveToThread(self.my_thread)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph] draw_graph&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph] draw_graph&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
         <span class="n">graph_widget</span><span class="o">.</span><span class="n">mpl_needs_update</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">graph_widget</span><span class="o">.</span><span class="n">mpl_wgt</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
 
@@ -896,7 +904,7 @@
         <span class="k">return</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DevGraphWidget.show_selected"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.DevGraphWidget.show_selected">[docs]</a>    <span class="k">def</span> <span class="nf">show_selected</span><span class="p">(</span><span class="n">graph_widget</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph_widget] show_selected&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph_widget] show_selected&#39;</span><span class="p">)</span>
         <span class="c1"># old = getattr(graph_widget, &#39;_figscope&#39;, None)</span>
         <span class="c1"># if old is not None:</span>
         <span class="c1">#     old.close()</span>
@@ -909,7 +917,7 @@
             <span class="n">graph_widget</span><span class="o">.</span><span class="n">_figscope</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># fnum = pt.ensure_fnum(10)</span>
-            <span class="c1"># print(&#39;fnum = %r&#39; % (fnum,))</span>
+            <span class="c1"># logger.info(&#39;fnum = %r&#39; % (fnum,))</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">graph_widget</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">draw_aids</span><span class="p">(</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
             <span class="c1"># fig = pt.figure(fnum=fnum)</span>
             <span class="c1"># viz_chip.show_many_chips(</span>
@@ -944,12 +952,12 @@
         <span class="n">frame</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DevGraphWidget.deselect"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.DevGraphWidget.deselect">[docs]</a>    <span class="k">def</span> <span class="nf">deselect</span><span class="p">(</span><span class="n">graph_widget</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph_widget] deselect&#39;</span><span class="p">)</span>
-        <span class="c1"># print(&#39;graph_widget.selected_aids = %r&#39; % (graph_widget.selected_aids,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph_widget] deselect&#39;</span><span class="p">)</span>
+        <span class="c1"># logger.info(&#39;graph_widget.selected_aids = %r&#39; % (graph_widget.selected_aids,))</span>
         <span class="n">graph_widget</span><span class="o">.</span><span class="n">toggle_selected_aid</span><span class="p">(</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">[:])</span></div>
 
 <div class="viewcode-block" id="DevGraphWidget.toggle_selected_aid"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.DevGraphWidget.toggle_selected_aid">[docs]</a>    <span class="k">def</span> <span class="nf">toggle_selected_aid</span><span class="p">(</span><span class="n">graph_widget</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph_widget] toggle_selected_aid&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph_widget] toggle_selected_aid&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
             <span class="c1"># TODO: move to mpl widget</span>
             <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">:</span>
@@ -959,7 +967,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
                 <span class="n">graph_widget</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;graph_widget.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;graph_widget.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">graph_widget</span><span class="o">.</span><span class="n">mpl_wgt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">graph_widget</span><span class="o">.</span><span class="n">mpl_wgt</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
 
@@ -993,22 +1001,22 @@
                         <span class="n">all_node_data</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_node_attrs</span><span class="p">,</span> <span class="kc">None</span>
                     <span class="p">)</span>
                     <span class="n">node_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">all_node_data</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_node_attrs</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;visual_node_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">visual_node_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;node_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">node_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;node: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;visual_node_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">visual_node_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;node_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">node_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;node: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]))</span>
             <span class="k">elif</span> <span class="s1">&#39;edge&#39;</span> <span class="ow">in</span> <span class="n">plotdat</span><span class="p">:</span>
                 <span class="n">all_edge_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;edge_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
                 <span class="n">visual_edge_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span>
                     <span class="n">all_edge_data</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs</span><span class="p">,</span> <span class="kc">None</span>
                 <span class="p">)</span>
                 <span class="n">edge_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">all_edge_data</span><span class="p">,</span> <span class="n">infr</span><span class="o">.</span><span class="n">visual_edge_attrs</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;visual_edge_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">visual_edge_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">edge_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;edge: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;edge&#39;</span><span class="p">]))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;visual_edge_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">visual_edge_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge_data: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">edge_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;edge: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">[</span><span class="s1">&#39;edge&#39;</span><span class="p">]))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unknown artist &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;artist = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">artist</span><span class="p">,))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;event = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,))</span></div>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;unknown artist &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">plotdat</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;artist = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">artist</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;event = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,))</span></div>
 
 <div class="viewcode-block" id="DevGraphWidget.on_click_inside"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.DevGraphWidget.on_click_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="n">graph_widget</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">graph_widget</span><span class="o">.</span><span class="n">plotinfo</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
@@ -1028,7 +1036,7 @@
 
         <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context_shown</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;This funciton only work if exactly 2 are selected&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;This funciton only work if exactly 2 are selected&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">context_shown</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">graph_widget</span><span class="o">.</span><span class="n">selected_aids</span>
@@ -1044,13 +1052,15 @@
 
         <span class="k">if</span> <span class="n">annot_selected</span><span class="p">:</span>
             <span class="n">ibs</span> <span class="o">=</span> <span class="n">graph_widget</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_info</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gname</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_info</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gname</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">graph_widget</span><span class="o">.</span><span class="n">toggle_selected_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context_shown</span><span class="p">:</span>
                 <span class="c1"># right click</span>
-                <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="k">import</span> <span class="n">interact_chip</span>
+                <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
 
                 <span class="n">context_shown</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="c1"># refresh_func = functools.partial(viz.show_name, ibs, nid,</span>
@@ -1079,10 +1089,10 @@
 <div class="viewcode-block" id="AnnotGraphWidget.initialize"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">infr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_mode</span><span class="o">=</span><span class="s1">&#39;rereview&#39;</span><span class="p">,</span> <span class="n">review_cfg</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] initialize&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] initialize&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span> <span class="o">=</span> <span class="n">init_mode</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.init_mode = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;self.init_mode = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span><span class="p">,))</span>
 
         <span class="k">if</span> <span class="n">review_cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;filtered&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span> <span class="o">==</span> <span class="s1">&#39;split&#39;</span> <span class="k">else</span> <span class="s1">&#39;unfiltered&#39;</span>
@@ -1185,7 +1195,7 @@
         <span class="n">name_edge_view</span><span class="o">.</span><span class="n">connect_single_key_to_slot</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">ALT_KEY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_alt_pressed</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.populate_edge_model"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.populate_edge_model">[docs]</a>    <span class="k">def</span> <span class="nf">populate_edge_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] populate_edge_model&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] populate_edge_model&#39;</span><span class="p">)</span>
         <span class="c1"># if self.init_mode is None:</span>
         <span class="c1">#     self.review_cfg[&#39;show_match_thumb&#39;] = False</span>
         <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;edges&#39;</span>
@@ -1201,7 +1211,7 @@
         <span class="n">widget</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setDefaultSectionSize</span><span class="p">(</span><span class="mi">221</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.populate_node_model"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.populate_node_model">[docs]</a>    <span class="k">def</span> <span class="nf">populate_node_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] populate_node_model&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] populate_node_model&#39;</span><span class="p">)</span>
         <span class="n">api</span> <span class="o">=</span> <span class="n">make_node_api</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="p">)</span>
         <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;nodes&#39;</span>
         <span class="n">tab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_tabs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -1272,7 +1282,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.preset_config"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.preset_config">[docs]</a>    <span class="k">def</span> <span class="nf">preset_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;filtered&#39;</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph] preset_config mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph] preset_config mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">review_cfg</span> <span class="o">=</span> <span class="n">GRAPH_REVIEW_CFG_DEFAULTS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;unfiltered&#39;</span><span class="p">:</span>
@@ -1288,7 +1298,7 @@
         <span class="n">QtCore</span><span class="o">.</span><span class="n">QTimer</span><span class="o">.</span><span class="n">singleShot</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_inference</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.init_inference"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.init_inference">[docs]</a>    <span class="k">def</span> <span class="nf">init_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] init_inference mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] init_inference mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span> <span class="o">==</span> <span class="s1">&#39;split&#39;</span><span class="p">:</span>
@@ -1327,7 +1337,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">signal_state_update</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">structure_changed</span><span class="p">,</span> <span class="n">disable_global_update</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.update_state"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.update_state">[docs]</a>    <span class="k">def</span> <span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure_changed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_global_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] update_state mode=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] update_state mode=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span><span class="p">,))</span>
         <span class="c1"># if self.init_mode in [&#39;split&#39;, &#39;rereview&#39;]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">disable_global_update</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span> <span class="o">==</span> <span class="s1">&#39;split&#39;</span><span class="p">:</span>
@@ -1359,7 +1369,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">num_names_lbl</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Names: max=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;num_names_max&#39;</span><span class="p">]))</span>
 
-        <span class="c1"># print(&#39;[viz_graph] on_update_state mode=%s&#39; % (self.init_mode,))</span>
+        <span class="c1"># logger.info(&#39;[viz_graph] on_update_state mode=%s&#39; % (self.init_mode,))</span>
         <span class="k">if</span> <span class="n">structure_changed</span><span class="p">:</span>
             <span class="c1"># TODO: only make this API if the tab is clicked</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">populate_node_model</span><span class="p">()</span>
@@ -1406,7 +1416,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">repopulate</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.reset_review"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.reset_review">[docs]</a>    <span class="k">def</span> <span class="nf">reset_review</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_review&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_review&#39;</span><span class="p">)</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
         <span class="k">with</span> <span class="n">gt</span><span class="o">.</span><span class="n">GuiProgContext</span><span class="p">(</span><span class="s1">&#39;Reset Review&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prog_bar</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -1430,7 +1440,7 @@
             <span class="n">ctx</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.reset_annotmatch"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.reset_annotmatch">[docs]</a>    <span class="k">def</span> <span class="nf">reset_annotmatch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_rereview&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_rereview&#39;</span><span class="p">)</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
         <span class="k">with</span> <span class="n">gt</span><span class="o">.</span><span class="n">GuiProgContext</span><span class="p">(</span><span class="s1">&#39;Reset Review&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prog_bar</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -1441,7 +1451,7 @@
             <span class="n">ctx</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.reset_staging"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.reset_staging">[docs]</a>    <span class="k">def</span> <span class="nf">reset_staging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_rereview&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_rereview&#39;</span><span class="p">)</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
         <span class="k">with</span> <span class="n">gt</span><span class="o">.</span><span class="n">GuiProgContext</span><span class="p">(</span><span class="s1">&#39;Reset Review&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prog_bar</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -1459,7 +1469,7 @@
 <span class="sd">            You can change the state of those edges.</span>
 <span class="sd">            They are not filtered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_rereview&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] reset_rereview&#39;</span><span class="p">)</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_mode</span> <span class="o">=</span> <span class="s1">&#39;rereview&#39;</span>
         <span class="k">with</span> <span class="n">gt</span><span class="o">.</span><span class="n">GuiProgContext</span><span class="p">(</span><span class="s1">&#39;Reset Review&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prog_bar</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
@@ -1505,9 +1515,9 @@
         <span class="p">)</span>
         <span class="n">dlg</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
         <span class="n">dlg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
         <span class="n">updated_config</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">config</span>  <span class="c1"># NOQA</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;updated_config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">updated_config</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;updated_config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">updated_config</span><span class="p">,))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">review_cfg</span> <span class="o">=</span> <span class="n">updated_config</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">repopulate</span><span class="p">()</span></div>
 
@@ -1515,7 +1525,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        qtindex = qtindex = self.api_widgets[&#39;edges&#39;].view.get_row_and_qtindex_from_id(1)[0]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] DoubleClicked: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">qtype</span><span class="o">.</span><span class="n">qindexinfo</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] DoubleClicked: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gt</span><span class="o">.</span><span class="n">qtype</span><span class="o">.</span><span class="n">qindexinfo</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)))</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="n">aid1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
         <span class="n">aid2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s1">&#39;aid2&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
@@ -1608,7 +1618,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Context-menu options for annotation nodes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="k">import</span> <span class="n">interact_chip</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
 
         <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1649,7 +1659,7 @@
             <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">&#39;&amp;Custom Review&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_review</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)),</span>
             <span class="p">]</span>
-            <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">inspect_gui</span>
+            <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
 
             <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
             <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">aid_pairs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1699,7 +1709,7 @@
         <span class="k">return</span> <span class="n">options</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.vsone_subset"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.vsone_subset">[docs]</a>    <span class="k">def</span> <span class="nf">vsone_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph] vsone_subset&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph] vsone_subset&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">exec_vsone_subset</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span></div>
@@ -1709,8 +1719,8 @@
 
 <div class="viewcode-block" id="AnnotGraphWidget.edge_context"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.edge_context">[docs]</a>    <span class="nd">@gt</span><span class="o">.</span><span class="n">slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QPoint</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">edge_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;context&#39;</span><span class="p">)</span>
-        <span class="c1"># print(&#39;option_dict = %s&#39; % (ut.repr3(option_dict, nl=2),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;context&#39;</span><span class="p">)</span>
+        <span class="c1"># logger.info(&#39;option_dict = %s&#39; % (ut.repr3(option_dict, nl=2),))</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="n">view</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">view</span>
         <span class="n">aid_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_selection</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
@@ -1748,20 +1758,20 @@
                 <span class="n">handled</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">handled</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Key  not handled </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event_key</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Key  not handled </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event_key</span><span class="p">,))</span>
             <span class="k">return</span>
         <span class="k">return</span> <span class="n">handled</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.print_staging_table"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.print_staging_table">[docs]</a>    <span class="k">def</span> <span class="nf">print_staging_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">staging</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;reviews&#39;</span><span class="p">))</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;reviews&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.print_annotmatch_table"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.print_annotmatch_table">[docs]</a>    <span class="k">def</span> <span class="nf">print_annotmatch_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">))</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.commit_to_staging"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.commit_to_staging">[docs]</a>    <span class="k">def</span> <span class="nf">commit_to_staging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph] commit to staging&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph] commit to staging&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">write_wbia_staging_feedback</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.print_deltas"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.print_deltas">[docs]</a>    <span class="k">def</span> <span class="nf">print_deltas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1772,9 +1782,9 @@
             <span class="p">(</span><span class="s1">&#39;annotmatch&#39;</span><span class="p">,</span> <span class="s1">&#39;staging&#39;</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;old = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">match_state_delta</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;old = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">match_state_delta</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.use_wbia_names"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.use_wbia_names">[docs]</a>    <span class="k">def</span> <span class="nf">use_wbia_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Hack</span>
@@ -1813,7 +1823,7 @@
 <span class="sd">        staging and the the annotations node names as well as the annotmatch</span>
 <span class="sd">        edges. Then commit to staging, annotmatch, and the annotation table.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] accept&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz_graph] accept&#39;</span><span class="p">)</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
 
         <span class="c1"># Ensure internal state is up to date</span>
@@ -1866,11 +1876,11 @@
         <span class="n">pdkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">edge_delta_df</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;---DATAFRAME</span><span class="se">\n</span><span class="s1">edge_delta_df =</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">edge_delta_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="o">**</span><span class="n">pdkw</span><span class="p">))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">gt</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Cancel&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
 
         <span class="c1"># Write to staging then write to annotmatch and names</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">write_wbia_staging_feedback</span><span class="p">()</span>
@@ -1897,8 +1907,8 @@
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;aid1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;aid2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
         <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Edges&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Graph Edges&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
         <span class="n">db</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span>
         <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_single</span><span class="p">([</span><span class="n">aid</span><span class="p">]))</span>
@@ -1907,8 +1917,8 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="n">exclude_columns</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;annot_1_rowid&#39;</span><span class="p">:</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_2_rowid&#39;</span><span class="p">:</span> <span class="s1">&#39;aid2&#39;</span><span class="p">})</span>
         <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Staging&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Staging&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
         <span class="n">db</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span>
         <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid</span><span class="p">([</span><span class="n">aid</span><span class="p">]))</span>
@@ -1919,17 +1929,17 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_as_pandas</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="n">exclude_columns</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;annot_rowid1&#39;</span><span class="p">:</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;annot_rowid2&#39;</span><span class="p">:</span> <span class="s1">&#39;aid2&#39;</span><span class="p">})</span>
         <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Annot Match&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Annot Match&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.print_info"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.print_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[graph] print_info&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;external_feedback = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">external_feedback</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;internal_feedback = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">internal_feedback</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[graph] print_info&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;external_feedback = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">external_feedback</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;internal_feedback = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">internal_feedback</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;infr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;infr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">infr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">graph_info</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">simplify_graph</span><span class="p">())))</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">graph_info</span><span class="p">(</span><span class="n">infr</span><span class="o">.</span><span class="n">simplify_graph</span><span class="p">())))</span></div>
 
 <div class="viewcode-block" id="AnnotGraphWidget.embed"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.AnnotGraphWidget.embed">[docs]</a>    <span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">infr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span>  <span class="c1"># NOQA</span>
@@ -1955,7 +1965,7 @@
 
 
 <div class="viewcode-block" id="EdgeAPIHelper"><a class="viewcode-back" href="../../../wbia.viz.html#wbia.viz.viz_graph2.EdgeAPIHelper">[docs]</a><span class="k">class</span> <span class="nc">EdgeAPIHelper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infr</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="n">infr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">graph</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">ibs</span>
@@ -2240,7 +2250,7 @@
             <span class="n">cm</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">lookup_cm</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="k">import</span> <span class="n">id_review_api</span>
+        <span class="kn">from</span> <span class="nn">wbia.gui</span> <span class="kn">import</span> <span class="n">id_review_api</span>
 
         <span class="k">if</span> <span class="n">cm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># HACK: check if a PairwiseMatch exists</span>
@@ -2557,7 +2567,7 @@
     <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="o">.</span><span class="n">from_qreq_</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
 
     <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;infr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;infr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="p">,))</span>
     <span class="n">win</span> <span class="o">=</span> <span class="n">AnnotGraphWidget</span><span class="p">(</span><span class="n">infr</span><span class="o">=</span><span class="n">infr</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_mode</span><span class="o">=</span><span class="s1">&#39;review&#39;</span><span class="p">)</span>
     <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">register_interaction</span><span class="p">(</span><span class="n">win</span><span class="p">)</span>
     <span class="n">win</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -2612,10 +2622,10 @@
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; gt.qtapp_loop(qwin=win, freq=10)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt_graph] make_qt_graph_interface init()&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt_graph] nids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">nids</span><span class="p">),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt_graph] aids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[qt_graph] gids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">gids</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qt_graph] make_qt_graph_interface init()&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qt_graph] nids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">nids</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qt_graph] aids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[qt_graph] gids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">gids</span><span class="p">),))</span>
     <span class="k">if</span> <span class="n">gids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_nids</span><span class="p">(</span><span class="n">gids</span><span class="p">)))</span>
     <span class="k">if</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">aids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2632,7 +2642,7 @@
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
         <span class="n">aids</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;make_qt_graph_interface aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;make_qt_graph_interface aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids</span><span class="p">,))</span>
     <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">wbia</span>
 
@@ -2641,7 +2651,7 @@
     <span class="n">infr</span><span class="o">.</span><span class="n">initialize_graph</span><span class="p">()</span>
 
     <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;infr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;infr = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">infr</span><span class="p">,))</span>
     <span class="n">win</span> <span class="o">=</span> <span class="n">AnnotGraphWidget</span><span class="p">(</span><span class="n">infr</span><span class="o">=</span><span class="n">infr</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_mode</span><span class="o">=</span><span class="n">init_mode</span><span class="p">)</span>
     <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">register_interaction</span><span class="p">(</span><span class="n">win</span><span class="p">)</span>
     <span class="n">win</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -2649,14 +2659,14 @@
     <span class="k">if</span> <span class="n">graph_tab</span><span class="p">:</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">win</span><span class="o">.</span><span class="n">graph_tab_widget</span><span class="o">.</span><span class="n">indexOf</span><span class="p">(</span><span class="n">win</span><span class="o">.</span><span class="n">graph_tab</span><span class="p">)</span>
         <span class="n">win</span><span class="o">.</span><span class="n">graph_tab_widget</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;win.graph_widget.use_image_cb.setChecked = </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">win</span><span class="o">.</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">use_image_cb</span><span class="o">.</span><span class="n">setChecked</span><span class="p">,)</span>
         <span class="p">)</span>
         <span class="n">win</span><span class="o">.</span><span class="n">graph_widget</span><span class="o">.</span><span class="n">use_image_cb</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># match = ut.get_argval(&#39;--match&#39;, type_=list, default=None)</span>
-    <span class="c1"># print(&#39;match = %r&#39; % (match,))</span>
+    <span class="c1"># logger.info(&#39;match = %r&#39; % (match,))</span>
     <span class="c1"># if match:</span>
     <span class="c1">#     win.mark_pair_state([match], POSTV)</span>
 
@@ -2664,23 +2674,6 @@
         <span class="n">win</span><span class="o">.</span><span class="n">expand_image_and_names</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">win</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.viz.viz_graph2</span>
-<span class="sd">        python -m wbia.viz.viz_graph2 --allexamples</span>
-<span class="sd">        wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph</span>
-
-<span class="sd">        python -m wbia.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -2718,17 +2711,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2745,7 +2736,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

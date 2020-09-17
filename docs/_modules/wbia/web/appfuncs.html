@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.appfuncs &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.appfuncs &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,15 +33,15 @@
             
   <h1>Source code for wbia.web.appfuncs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">url_for</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">date</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">jinja2</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
@@ -52,6 +51,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">DEFAULT_WEB_API_PORT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--port&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
 <span class="n">TARGET_WIDTH</span> <span class="o">=</span> <span class="mf">1200.0</span>
@@ -87,7 +87,7 @@
 
 
 <div class="viewcode-block" id="NavbarClass"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.NavbarClass">[docs]</a><span class="k">class</span> <span class="nc">NavbarClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
         <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c1"># (&#39;root&#39;, &#39;Home&#39;),</span>
             <span class="p">(</span><span class="s1">&#39;upload&#39;</span><span class="p">,</span> <span class="s1">&#39;Upload&#39;</span><span class="p">),</span>
@@ -105,11 +105,11 @@
             <span class="c1"># (&#39;group_review&#39;,  &#39;Group Review&#39;),</span>
         <span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
         <span class="n">_link</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path</span>
         <span class="k">for</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span> <span class="ow">in</span> <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span><span class="p">:</span>
             <span class="n">active</span> <span class="o">=</span> <span class="n">_link</span> <span class="o">==</span> <span class="n">url_for</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
-            <span class="c1"># print(_link, link, url_for(link))</span>
+            <span class="c1"># logger.info(_link, link, url_for(link))</span>
             <span class="k">yield</span> <span class="n">active</span><span class="p">,</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span></div>
 
 
@@ -132,7 +132,7 @@
         <span class="n">_pix</span><span class="p">,</span>
         <span class="n">_per</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CHECKING RESIZING WITH </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1">, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1"> [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CHECKING RESIZING WITH </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1">, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1"> [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
     <span class="c1"># Check for nothing</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">w_pix</span> <span class="ow">or</span> <span class="n">h_pix</span> <span class="ow">or</span> <span class="n">w_per</span> <span class="ow">or</span> <span class="n">h_per</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">image</span>
@@ -156,7 +156,7 @@
 <div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="n">TARGET_WIDTH</span><span class="p">,</span> <span class="n">target_height</span><span class="o">=</span><span class="n">TARGET_HEIGHT</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Creates an image embedded in HTML base64 format. &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">cv2</span>
-    <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 
     <span class="k">if</span> <span class="n">target_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">target_width</span><span class="p">)</span>
@@ -165,7 +165,7 @@
     <span class="n">imgRGB</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
     <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">imgRGB</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cStringIO</span> <span class="k">as</span> <span class="n">StringIO</span>
+        <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cStringIO</span> <span class="k">as</span> <span class="n">StringIO</span>
 
         <span class="n">string_buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
         <span class="n">pil_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">string_buf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;jpeg&#39;</span><span class="p">)</span>
@@ -214,7 +214,7 @@
         <span class="s1">&#39;NAVBAR&#39;</span><span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
         <span class="s1">&#39;YEAR&#39;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
         <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
-        <span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">),</span>
         <span class="s1">&#39;__login__&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_rule</span><span class="o">.</span><span class="n">rule</span> <span class="o">==</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">),</span>
         <span class="s1">&#39;__wrapper__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
         <span class="s1">&#39;__wrapper_header__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -227,7 +227,7 @@
     <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_refer_url</span><span class="p">(</span><span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">])</span>
     <span class="k">if</span> <span class="s1">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;refer&#39;</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] REFER: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] REFER: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,))</span>
         <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refer</span>
         <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">template_directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -240,21 +240,23 @@
     <span class="c1"># Update global args with the template&#39;s args</span>
     <span class="n">_global_args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">global_args</span><span class="p">)</span>
     <span class="n">_global_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs] template()&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[appfuncs] template()&#39;</span><span class="p">)</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
     <span class="c1"># flask hates windows apparently</span>
     <span class="n">template_</span> <span class="o">=</span> <span class="n">template_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * app.template_folder = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_directory = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_directory</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_filename = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_filename</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * app.template_folder = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_directory = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_directory</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_filename = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_filename</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_</span><span class="p">,))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">template_</span><span class="p">,</span> <span class="o">**</span><span class="n">_global_args</span><span class="p">)</span>
         <span class="c1"># ret = flask.render_template(full_template_fpath, **_global_args)</span>
     <span class="k">except</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">TemplateNotFound</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error template not found&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Error template not found&#39;</span><span class="p">)</span>
         <span class="n">full_template_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,</span> <span class="n">template_</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * full_template_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[appfuncs.template] * full_template_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,)</span>
+        <span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Template error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">raise</span>
@@ -286,7 +288,7 @@
     <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;imgsetid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NOT GROUP_REVIEW&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NOT GROUP_REVIEW&#39;</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="o">=</span><span class="n">imgsetid</span><span class="p">)</span>
     <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">is_reviewed_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
 
@@ -307,7 +309,7 @@
 
     <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;previous&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;gid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">progress</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">previous</span></div>
 
 
@@ -330,7 +332,7 @@
 
     <span class="n">group_review_flag</span> <span class="o">=</span> <span class="n">src_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dst_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">group_review_flag</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NOT GROUP_REVIEW&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NOT GROUP_REVIEW&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">speed_hack</span><span class="p">:</span>
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -365,10 +367,10 @@
 
     <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;previous&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-    <span class="c1"># print(ut.repr2(ibs.get_annot_info(aid)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+    <span class="c1"># logger.info(ut.repr2(ibs.get_annot_info(aid)))</span>
     <span class="c1"># if aid is not None:</span>
-    <span class="c1">#     print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))</span>
+    <span class="c1">#     logger.info(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))</span>
     <span class="k">return</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">,</span> <span class="n">progress</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">previous</span></div>
 
 
@@ -378,7 +380,7 @@
     <span class="n">src_index</span> <span class="o">=</span> <span class="n">annotgroup_rowid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
     <span class="n">src_gar_rowid</span> <span class="o">=</span> <span class="n">gar_rowid_list</span><span class="p">[</span><span class="n">src_index</span><span class="p">]</span>
     <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">src_gar_rowid</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Moving aid: </span><span class="si">%s</span><span class="s1"> from src_ag: </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) to dst_ag: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Moving aid: </span><span class="si">%s</span><span class="s1"> from src_ag: </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) to dst_ag: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
     <span class="c1"># ibs.delete_gar([src_gar_rowid])</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">add_gar</span><span class="p">([</span><span class="n">dst_ag</span><span class="p">],</span> <span class="p">[</span><span class="n">aid</span><span class="p">])</span></div>
 
@@ -410,7 +412,7 @@
         <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">default_species</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[web] DEFAULT SPECIES: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default_species</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] DEFAULT SPECIES: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default_species</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">default_species</span></div>
 
 
@@ -530,17 +532,17 @@
 
 
 <div class="viewcode-block" id="imageset_annot_demographics_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_demographics_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_demographics_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Check </span><span class="si">%d</span><span class="s1"> total annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Check </span><span class="si">%d</span><span class="s1"> total annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
 
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
     <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> named annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> named annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
 
     <span class="n">sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
     <span class="n">sex_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">sex</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">sex</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">sex_list</span><span class="p">)}</span>
     <span class="n">value_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sex_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set sex annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set sex annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
 
     <span class="n">age_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">age_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -548,13 +550,13 @@
         <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">age</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">age_list</span><span class="p">)</span>
     <span class="p">}</span>
     <span class="n">value_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">age_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set age annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set age annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
 
     <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">sex_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">age_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
     <span class="p">]</span>
     <span class="n">value_list</span> <span class="o">=</span> <span class="n">annots_reviewed</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> reviewed annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> reviewed annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">annots_reviewed</span></div>
 
 
@@ -564,7 +566,7 @@
     <span class="n">year</span> <span class="o">=</span> <span class="mi">2000</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
     <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
     <span class="n">day</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">nmea_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
         <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">if</span> <span class="s1">&#39;@&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="s1">&#39;GPRMC&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -596,9 +598,11 @@
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_3_&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_4_&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
         <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_5_&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">viewpoint_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;Value </span><span class="si">%r</span><span class="s1"> not in acceptable </span><span class="si">%s</span><span class="s1">&#39;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_text</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">viewpoint_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span>
+        <span class="p">),</span> <span class="s1">&#39;Value </span><span class="si">%r</span><span class="s1"> not in acceptable </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">viewpoint_text</span><span class="p">,</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">viewpoint_text</span></div>
 
@@ -639,7 +643,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">cv2</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">t_width</span><span class="p">,</span>
+                <span class="n">t_height</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">image</span>
@@ -693,17 +703,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -720,7 +728,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

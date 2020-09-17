@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.algo.graph.refresh &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.algo.graph.refresh &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -34,12 +33,13 @@
             
   <h1>Source code for wbia.algo.graph.refresh</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span><span class="p">,</span> <span class="n">UNREV</span><span class="p">,</span> <span class="n">NULL</span>  <span class="c1"># NOQA</span>
 
 <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="RefreshCriteria"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.refresh.RefreshCriteria">[docs]</a><span class="k">class</span> <span class="nc">RefreshCriteria</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -58,7 +58,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;binomial&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;binomial&#39;</span><span class="p">):</span>
         <span class="n">refresh</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
         <span class="n">refresh</span><span class="o">.</span><span class="n">_patience</span> <span class="o">=</span> <span class="n">patience</span>
         <span class="n">refresh</span><span class="o">.</span><span class="n">_prob_any_remain_thresh</span> <span class="o">=</span> <span class="n">thresh</span>
@@ -79,8 +79,7 @@
         <span class="k">return</span> <span class="n">refresh</span><span class="o">.</span><span class="n">prob_any_remain</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">refresh</span><span class="o">.</span><span class="n">_prob_any_remain_thresh</span></div>
 
 <div class="viewcode-block" id="RefreshCriteria.prob_any_remain"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.refresh.RefreshCriteria.prob_any_remain">[docs]</a>    <span class="k">def</span> <span class="nf">prob_any_remain</span><span class="p">(</span><span class="n">refresh</span><span class="p">,</span> <span class="n">n_remain_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
         <span class="n">prob_no_event_in_range</span> <span class="o">=</span> <span class="n">refresh</span><span class="o">.</span><span class="n">_prob_none_remain</span><span class="p">(</span><span class="n">n_remain_edges</span><span class="p">)</span>
         <span class="n">prob_event_in_range</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">prob_no_event_in_range</span>
         <span class="k">return</span> <span class="n">prob_event_in_range</span></div>
@@ -253,7 +252,7 @@
 <span class="sd">        &gt;&gt;&gt; demo_refresh()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="k">import</span> <span class="n">demo</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">demo</span>
 
     <span class="n">demokw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">({</span><span class="s1">&#39;num_pccs&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
     <span class="n">refreshkw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_funckw</span><span class="p">(</span><span class="n">RefreshCriteria</span><span class="p">)</span>
@@ -287,7 +286,7 @@
     <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 
     <span class="n">pt</span><span class="o">.</span><span class="n">qtensure</span><span class="p">()</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="k">import</span> <span class="n">TMP_RC</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts.thesis</span> <span class="kn">import</span> <span class="n">TMP_RC</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 
     <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">TMP_RC</span><span class="p">)</span>
@@ -411,16 +410,16 @@
     <span class="n">poisson_thresh</span> <span class="o">=</span> <span class="n">poisson_i</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">a</span><span class="p">})</span>
     <span class="n">binom_thresh</span> <span class="o">=</span> <span class="n">binom_i</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">a</span><span class="p">})</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Poisson thresh&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">latex</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">poisson_thresh</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">latex</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">sym</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">poisson_thresh</span><span class="p">))))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poisson thresh&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">latex</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">poisson_thresh</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">latex</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">sym</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">poisson_thresh</span><span class="p">))))</span>
 
     <span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">a</span><span class="p">:</span> <span class="mi">115</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="mi">30</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
 
     <span class="n">sym</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">poisson_thresh</span><span class="p">))</span>
     <span class="n">sym</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">Eq</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">sym</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">poisson_thresh</span><span class="p">)))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Binomial thresh&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Binomial thresh&#39;</span><span class="p">)</span>
     <span class="n">sym</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">binom_thresh</span><span class="p">))</span>
 
     <span class="n">sym</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">sym</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">a</span><span class="p">})))</span>
@@ -543,9 +542,9 @@
         <span class="n">a1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fixed</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">a1</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="c1"># Numeric measurments of thie line</span>
@@ -696,25 +695,13 @@
         <span class="n">slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">aval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">sval</span> <span class="o">*</span> <span class="n">slope</span><span class="p">))</span>
         <span class="n">thresh</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">poisson_thresh</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="n">sval</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">aval</span><span class="p">})</span><span class="o">.</span><span class="n">evalf</span><span class="p">())</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aval=</span><span class="si">{}</span><span class="s1">, sval=</span><span class="si">{}</span><span class="s1">, thresh=</span><span class="si">{}</span><span class="s1">, target=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aval</span><span class="p">,</span> <span class="n">sval</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;aval=</span><span class="si">{}</span><span class="s1">, sval=</span><span class="si">{}</span><span class="s1">, thresh=</span><span class="si">{}</span><span class="s1">, target=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aval</span><span class="p">,</span> <span class="n">sval</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">target</span><span class="p">,</span> <span class="n">dat</span> <span class="ow">in</span> <span class="n">target_binom_plots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">aval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">sval</span> <span class="o">*</span> <span class="n">slope</span><span class="p">))</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.algo.graph.refresh</span>
-<span class="sd">        python -m wbia.algo.graph.refresh --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -754,17 +741,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -781,7 +766,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

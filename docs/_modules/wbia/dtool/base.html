@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dtool.base &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.dtool.base &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,7 +33,7 @@
             
   <h1>Source code for wbia.dtool.base</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">operator</span> <span class="k">as</span> <span class="nn">op</span>
@@ -44,6 +43,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depbase]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="StackedConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.StackedConfig">[docs]</a><span class="k">class</span> <span class="nc">StackedConfig</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">DictLike</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">HashComparable</span><span class="p">):</span>
@@ -51,7 +51,7 @@
 <span class="sd">    Manages a list of configurations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_list</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_orig_config_list</span> <span class="o">=</span> <span class="n">config_list</span>
         <span class="c1"># Cast all inputs to config classes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_new_config_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -79,7 +79,7 @@
 <div class="viewcode-block" id="StackedConfig.keys"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.StackedConfig.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Needed for comparison operators &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
 
@@ -111,7 +111,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -128,15 +128,15 @@
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_name</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; hash comparable broke in python3 &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">lt</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; hash comparable broke in python3 &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Needed for comparison operators &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
 
@@ -299,7 +299,7 @@
 
 <div class="viewcode-block" id="Config.initialize_params"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.initialize_params">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Initializes config class attributes based on params info list &quot;&quot;&quot;</span>
-        <span class="c1"># print(&quot;INIT PARAMS&quot;)</span>
+        <span class="c1"># logger.info(&quot;INIT PARAMS&quot;)</span>
         <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
 
@@ -345,7 +345,9 @@
                 <span class="n">name</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">parse_items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span>
+                        <span class="p">)</span>
                     <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
                     <span class="c1"># Incorporate namespace</span>
                     <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
@@ -353,7 +355,9 @@
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span>
+                    <span class="p">)</span>
                 <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
                 <span class="c1"># Incorporate namespace</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
@@ -427,14 +431,14 @@
 
 <div class="viewcode-block" id="Config.assert_self_types"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.assert_self_types">[docs]</a>    <span class="k">def</span> <span class="nf">assert_self_types</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Assert self types of cfg=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfg</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Assert self types of cfg=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfg</span><span class="p">,))</span>
         <span class="n">pi_dict</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">pi</span> <span class="o">=</span> <span class="n">pi_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="n">pi</span><span class="o">.</span><span class="n">error_if_invalid_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... checks passed&#39;</span><span class="p">)</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... checks passed&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Config.getinfo"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.getinfo">[docs]</a>    <span class="k">def</span> <span class="nf">getinfo</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">pass</span></div>
@@ -560,7 +564,7 @@
         <span class="k">return</span> <span class="n">dlg</span></div>
 
 <div class="viewcode-block" id="Config.getstate_todict_recursive"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.getstate_todict_recursive">[docs]</a>    <span class="k">def</span> <span class="nf">getstate_todict_recursive</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 
         <span class="n">_dict</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
         <span class="n">_dict2</span> <span class="o">=</span> <span class="p">{}</span>
@@ -657,7 +661,7 @@
 
 
 <div class="viewcode-block" id="from_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.from_param_info_list">[docs]</a><span class="k">def</span> <span class="nf">from_param_info_list</span><span class="p">(</span><span class="n">param_info_list</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;Unnamed&#39;</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 
     <span class="k">class</span> <span class="nc">UnnamedConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
         <span class="n">_param_info_list</span> <span class="o">=</span> <span class="n">param_info_list</span>
@@ -704,13 +708,13 @@
     <span class="c1"># def get_external_data_config2(request):</span>
     <span class="c1">#    # HACK</span>
     <span class="c1">#    #return None</span>
-    <span class="c1">#    #print(&#39;[d] request.params = %r&#39; % (request.params,))</span>
+    <span class="c1">#    #logger.info(&#39;[d] request.params = %r&#39; % (request.params,))</span>
     <span class="c1">#    return request.params</span>
 
     <span class="c1"># def get_external_query_config2(request):</span>
     <span class="c1">#    # HACK</span>
     <span class="c1">#    #return None</span>
-    <span class="c1">#    #print(&#39;[q] request.params = %r&#39; % (request.params,))</span>
+    <span class="c1">#    #logger.info(&#39;[q] request.params = %r&#39; % (request.params,))</span>
     <span class="c1">#    return request.params</span>
 
 
@@ -849,9 +853,13 @@
         <span class="n">dependency_levels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">longest_levels</span><span class="p">(</span><span class="n">dependency_levels_</span><span class="p">)</span>
 
         <span class="n">true_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dependency_levels</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c1"># print(&#39;[req] Ensuring %s request dependencies: %r&#39; % (request, true_order,))</span>
+        <span class="c1"># logger.info(&#39;[req] Ensuring %s request dependencies: %r&#39; % (request, true_order,))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span>
-            <span class="s1">&#39;[req] Ensuring request </span><span class="si">%s</span><span class="s1"> dependencies: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">true_order</span><span class="p">,),</span>
+            <span class="s1">&#39;[req] Ensuring request </span><span class="si">%s</span><span class="s1"> dependencies: </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="n">true_order</span><span class="p">,</span>
+            <span class="p">),</span>
             <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">true_order</span><span class="p">:</span>
@@ -888,7 +896,7 @@
         <span class="c1"># Load all results</span>
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">postprocess</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;postprocess_execute&#39;</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Converting results&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Converting results&#39;</span><span class="p">)</span>
             <span class="n">result_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">postprocess_execute</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">result_list</span></div>
@@ -984,7 +992,7 @@
             <span class="c1"># previously defined in execute subset</span>
             <span class="c1"># subparent_rowids = request.make_parent_rowids(</span>
             <span class="c1"># qaids, request.daids)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;given </span><span class="si">%d</span><span class="s1"> specific parent_rowids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;given </span><span class="si">%d</span><span class="s1"> specific parent_rowids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">),))</span>
 
         <span class="c1"># vsone hack (i,j) same as (j,i)</span>
         <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">_symmetric</span><span class="p">:</span>
@@ -1009,7 +1017,7 @@
             <span class="n">result_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="n">inverse_idx</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">postprocess</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;postprocess_execute&#39;</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Converting results&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Converting results&#39;</span><span class="p">)</span>
             <span class="n">result_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">postprocess_execute</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">result_list</span></div>
@@ -1143,7 +1151,7 @@
 
 
 <div class="viewcode-block" id="MatchResult"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.MatchResult">[docs]</a><span class="k">class</span> <span class="nc">MatchResult</span><span class="p">(</span><span class="n">AlgoResult</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">qaid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1173,20 +1181,6 @@
 
     <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39; qaid=</span><span class="si">%s</span><span class="s1"> nD=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">num_daids</span><span class="p">)</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m dtool.base</span>
-<span class="sd">        python -m dtool.base --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1222,17 +1216,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1249,7 +1241,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

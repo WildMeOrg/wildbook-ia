@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts._thesis_helpers &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.scripts._thesis_helpers &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,22 +33,18 @@
             
   <h1>Source code for wbia.scripts._thesis_helpers</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">absolute_import</span><span class="p">,</span>
-    <span class="n">division</span><span class="p">,</span>
-    <span class="n">print_function</span><span class="p">,</span>
-    <span class="n">unicode_literals</span><span class="p">,</span>
-<span class="p">)</span>  <span class="c1"># NOQA</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isdir</span><span class="p">,</span> <span class="n">islink</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isdir</span><span class="p">,</span> <span class="n">islink</span><span class="p">,</span> <span class="n">abspath</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="k">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span>  <span class="c1"># NOQA</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">DPI</span> <span class="o">=</span> <span class="mi">300</span>
 
@@ -104,7 +99,7 @@
 
 <div class="viewcode-block" id="DBInputs"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts._thesis_helpers.DBInputs">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
 <span class="k">class</span> <span class="nc">DBInputs</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expt_results</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">isdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span> <span class="ow">or</span> <span class="n">islink</span><span class="p">(</span><span class="n">dbname</span><span class="p">):</span>
@@ -134,7 +129,7 @@
 <span class="sd">        Then force the link in the basic directory to point to abs_dpath.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Setup directory</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">expanduser</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">expanduser</span>
 
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
@@ -218,7 +213,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_precollect</span><span class="p">()</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;Checking new fpath&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
                 <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">),</span> <span class="n">expt_name</span> <span class="o">+</span> <span class="s1">&#39;.pkl&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;Results still missing need to re-measure&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
                     <span class="c1"># assert False</span>
@@ -227,7 +222,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;Re-setup fixed it&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Experiment results </span><span class="si">{}</span><span class="s1"> exist&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expt_name</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Experiment results </span><span class="si">{}</span><span class="s1"> exist&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expt_name</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">expt_results</span><span class="p">[</span><span class="n">expt_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">expt_results</span><span class="p">[</span><span class="n">expt_name</span><span class="p">]</span></div>
 
@@ -248,9 +243,9 @@
 <span class="sd">        #     &gt;&gt;&gt; dbnames = ut.get_argval((&#39;--dbs&#39;, &#39;--db&#39;), type_=list, default=[])</span>
 <span class="sd">        #     &gt;&gt;&gt; ChapX.measure(expt_name, dbnames)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;expt_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expt_name</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dbnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbnames</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;expt_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expt_name</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dbnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbnames</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
         <span class="n">dbnames</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">dbnames</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="n">dbnames</span><span class="p">:</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">ChapX</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
@@ -284,14 +279,14 @@
 <span class="sd">        #     &gt;&gt;&gt; dbnames = ut.get_argval((&#39;--dbs&#39;, &#39;--db&#39;), type_=list, default=[])</span>
 <span class="sd">        #     &gt;&gt;&gt; Chap3.draw(expt_name, dbnames)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;expt_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expt_name</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dbnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbnames</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;expt_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expt_name</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dbnames = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbnames</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;args = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
         <span class="n">dbnames</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">dbnames</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbnames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># parallelize drawing tasks</span>
-            <span class="kn">from</span> <span class="nn">concurrent</span> <span class="k">import</span> <span class="n">futures</span>
+            <span class="kn">from</span> <span class="nn">concurrent</span> <span class="kn">import</span> <span class="n">futures</span>
 
             <span class="n">multi_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
             <span class="k">with</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
@@ -303,7 +298,7 @@
                         <span class="p">]</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> Completed multiple tasks&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> Completed multiple tasks&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ChapX</span><span class="o">.</span><span class="n">draw_serial</span><span class="p">(</span><span class="n">expt_name</span><span class="p">,</span> <span class="n">dbnames</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
 
@@ -361,7 +356,7 @@
 <span class="sd">            &gt;&gt;&gt; self._precollect()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">wbia</span>
-        <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="k">import</span> <span class="n">main_helpers</span>
+        <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">lookup_dbdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dbdir</span><span class="p">)</span>
@@ -373,7 +368,10 @@
             <span class="c1"># PZ_Master is too big to run in full.  Select a smaller sample.</span>
             <span class="c1"># Be sure to include photobomb and incomparable cases.</span>
             <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span>
-                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
+                <span class="n">require_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">species</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span>
+                <span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">infr</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
             <span class="n">infr</span><span class="o">.</span><span class="n">reset_feedback</span><span class="p">(</span><span class="s1">&#39;staging&#39;</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -414,7 +412,7 @@
 
         <span class="c1"># ibs.print_annot_stats(aids, prefix=&#39;P&#39;)</span>
         <span class="n">main_helpers</span><span class="o">.</span><span class="n">monkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">minutes</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;post monkey patch&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;post monkey patch&#39;</span><span class="p">)</span>
         <span class="c1"># if False:</span>
         <span class="c1">#     ibs.print_annot_stats(aids, prefix=&#39;P&#39;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
@@ -428,8 +426,8 @@
         <span class="c1">#     nid_to_enc = ut.group_items(encounters, nids)</span>
         <span class="c1">#     nenc_list = ut.lmap(len, nid_to_enc.values())</span>
         <span class="c1">#     hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])</span>
-        <span class="c1">#     print(&#39;enc per name hist:&#39;)</span>
-        <span class="c1">#     print(ut.repr2(hist))</span>
+        <span class="c1">#     logger.info(&#39;enc per name hist:&#39;)</span>
+        <span class="c1">#     logger.info(ut.repr2(hist))</span>
 
         <span class="c1">#     # singletons = [a for a in encounters if len(a) == 1]</span>
         <span class="c1">#     multitons = [a for a in encounters if len(a) &gt; 1]</span>
@@ -500,7 +498,7 @@
     <span class="c1">#     self = ExpandingSample(qaids, dname_encs, confusor_pool)</span>
     <span class="c1">#     query_samples.append(self)</span>
     <span class="c1"># return query_samples</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">dname_encs</span><span class="p">,</span> <span class="n">confusor_pool</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">dname_encs</span><span class="p">,</span> <span class="n">confusor_pool</span><span class="p">):</span>
         <span class="n">sample</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
         <span class="n">sample</span><span class="o">.</span><span class="n">dname_encs</span> <span class="o">=</span> <span class="n">dname_encs</span>
         <span class="n">sample</span><span class="o">.</span><span class="n">confusor_pool</span> <span class="o">=</span> <span class="n">confusor_pool</span>
@@ -574,10 +572,10 @@
 
         <span class="n">verbose</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">info_list</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;#qaids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">qaids</span><span class="p">),))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;num_need = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_need</span><span class="p">,))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;max_dsize = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">max_dsize</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">info_list</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;#qaids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">qaids</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;num_need = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_need</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;max_dsize = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">max_dsize</span><span class="p">,))</span>
         <span class="k">return</span> <span class="n">sample</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">info_list</span></div></div>
 
 
@@ -596,17 +594,17 @@
     <span class="n">header</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">mid</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">body1</span> <span class="o">+</span> <span class="n">body2</span><span class="p">]</span>
     <span class="n">bot</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="c1"># print(top)</span>
-    <span class="c1"># print(header)</span>
-    <span class="c1"># print(body)</span>
-    <span class="c1"># print(bot)</span>
+    <span class="c1"># logger.info(top)</span>
+    <span class="c1"># logger.info(header)</span>
+    <span class="c1"># logger.info(body)</span>
+    <span class="c1"># logger.info(bot)</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span> <span class="n">bot</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">parts</span></div>
 
 
 <div class="viewcode-block" id="Tabular"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts._thesis_helpers.Tabular">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
 <span class="k">class</span> <span class="nc">Tabular</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colfmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
@@ -827,20 +825,6 @@
     <span class="n">fmtstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ffmt</span><span class="p">,</span> <span class="s1">&#39;±&#39;</span><span class="p">,</span> <span class="n">ffmt</span><span class="p">])</span>
     <span class="n">str_</span> <span class="o">=</span> <span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">str_</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.scripts._thesis_helpers</span>
-<span class="sd">        python -m wbia.scripts._thesis_helpers --allexamples</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -876,17 +860,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -903,7 +885,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

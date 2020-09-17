@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.dbio.ingest_database &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.dbio.ingest_database &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -65,18 +64,19 @@
 <span class="sd">    &gt;&gt;&gt; ibs.set_image_imagesettext(gid_list_, occur_text_list)</span>
 <span class="sd">    &gt;&gt;&gt; ibs.append_annot_case_tags(aid_list, &#39;&lt;annotation tags&gt;&#39;)</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
 <span class="kn">import</span> <span class="nn">wbia</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">realpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">abspath</span>
-<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="k">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">realpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">parse</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -92,7 +92,7 @@
 <span class="sd">    Temporary structure representing how to ingest a databases</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dbname</span><span class="p">,</span>
         <span class="n">img_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -115,7 +115,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">images_as_annots</span> <span class="o">=</span> <span class="n">images_as_annots</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ensure_feasibility</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Ingestable.ensure_feasibility"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.ingest_database.Ingestable.ensure_feasibility">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_feasibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -140,7 +140,7 @@
 
 
 <div class="viewcode-block" id="Ingestable2"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.ingest_database.Ingestable2">[docs]</a><span class="k">class</span> <span class="nc">Ingestable2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dbdir</span><span class="p">,</span>
         <span class="n">imgpath_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -156,7 +156,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">imgpath_list</span> <span class="o">=</span> <span class="n">imgpath_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">postingest_func</span> <span class="o">=</span> <span class="n">postingest_func</span>
 
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">dtool</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
 
         <span class="c1"># valid_species = None</span>
         <span class="n">valid_species</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;____&#39;</span><span class="p">]</span>
@@ -176,7 +176,9 @@
                     <span class="n">valid_values</span><span class="o">=</span><span class="n">valid_species</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
-                    <span class="s1">&#39;adjust_percent&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;images_as_annots&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;adjust_percent&#39;</span><span class="p">,</span>
+                    <span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;images_as_annots&#39;</span><span class="p">],</span>
                 <span class="p">),</span>
             <span class="p">]</span>
 
@@ -185,7 +187,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ingest_config</span> <span class="o">=</span> <span class="n">IngestConfig</span><span class="p">(</span><span class="o">**</span><span class="n">updatekw</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Ingestable2.execute"><a class="viewcode-back" href="../../../wbia.dbio.html#wbia.dbio.ingest_database.Ingestable2.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest_rawdata] Ingestable&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest_rawdata] Ingestable&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
         <span class="n">unzipped_file_base_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s1">&#39;unzipped_files&#39;</span><span class="p">)</span>
@@ -251,14 +253,14 @@
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
 
         <span class="c1"># &lt;DEBUG&gt;</span>
-        <span class="c1"># print(&#39;added: &#39; + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
+        <span class="c1"># logger.info(&#39;added: &#39; + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
         <span class="n">unique_gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] Length gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] Length unique gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_gids</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] Length gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] Length unique gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_gids</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list_</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] big fat warning&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] big fat warning&#39;</span><span class="p">)</span>
         <span class="c1"># &lt;/DEBUG&gt;</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
         <span class="n">unique_gids</span><span class="p">,</span> <span class="n">unique_names</span><span class="p">,</span> <span class="n">unique_notes</span> <span class="o">=</span> <span class="n">resolve_name_conflicts</span><span class="p">(</span>
@@ -341,7 +343,7 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;gid_list = %s&#39; % (str(gid_list),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest_rawdata] Ingestable&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ingestable</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest_rawdata] Ingestable&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ingestable</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">zipfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">zipfile_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">zipfile</span><span class="p">))</span>
@@ -353,7 +355,7 @@
     <span class="n">adjust_percent</span> <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">adjust_percent</span>
     <span class="n">species_text</span> <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">species</span>
     <span class="n">postingest_func</span> <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">postingest_func</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;[ingest] ingesting rawdata: img_dir=</span><span class="si">%r</span><span class="s1">, injest_type=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">ingest_type</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="c1"># Get images in the image directory</span>
@@ -366,7 +368,7 @@
         <span class="n">zipfile_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">ingestable</span><span class="o">.</span><span class="n">img_dir</span><span class="p">,</span> <span class="s1">&#39;*.zip&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zipfile_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found zipfile_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">zipfile_list</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found zipfile_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">zipfile_list</span><span class="p">,))</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">unzipped_file_base_dir</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">zipfile</span> <span class="ow">in</span> <span class="n">zipfile_list</span><span class="p">:</span>
                 <span class="n">unziped_file_relpath</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span>
@@ -443,22 +445,22 @@
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--dry&#39;</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> names&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_list</span><span class="p">))))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_list</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dry Run&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> names&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_list</span><span class="p">))))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dry Run&#39;</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
 
     <span class="c1"># &lt;DEBUG&gt;</span>
-    <span class="c1"># print(&#39;added: &#39; + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
+    <span class="c1"># logger.info(&#39;added: &#39; + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
     <span class="n">unique_gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] Length gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] Length unique gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_gids</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] Length gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] Length unique gid list: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_gids</span><span class="p">))</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list_</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] big fat warning&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] big fat warning&#39;</span><span class="p">)</span>
     <span class="c1"># &lt;/DEBUG&gt;</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
     <span class="n">unique_gids</span><span class="p">,</span> <span class="n">unique_names</span><span class="p">,</span> <span class="n">unique_notes</span> <span class="o">=</span> <span class="n">resolve_name_conflicts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
@@ -484,7 +486,7 @@
         <span class="n">annot_orig_uris</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">parent_gids</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">parse_turtle_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span>
+            <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span>
 
             <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">uril</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -666,7 +668,7 @@
     <span class="n">anyfailed</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">for</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">parsed</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">parsed_list</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">parsed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAILED TO PARSE: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">gpath</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;FAILED TO PARSE: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">gpath</span><span class="p">)</span>
             <span class="n">anyfailed</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">anyfailed</span><span class="p">:</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;FAILED REGEX: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">regex_list</span>
@@ -739,13 +741,13 @@
 <span class="sd">        &gt;&gt;&gt; ut.delete(TESTDB1, ignore_errors=False)</span>
 <span class="sd">        &gt;&gt;&gt; result = ingest_testdb1(dbname)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">demodata</span>  <span class="c1"># TODO: remove and use utool appdir</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">demodata</span>  <span class="c1"># TODO: remove and use utool appdir</span>
 
     <span class="k">def</span> <span class="nf">postingest_tesdb1_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;postingest_tesdb1_func&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;postingest_tesdb1_func&#39;</span><span class="p">)</span>
         <span class="c1"># Adjust data as we see fit</span>
 
         <span class="c1"># gid_list = np.array(ibs.images()._rowids)</span>
@@ -769,7 +771,7 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
 
             <span class="k">def</span> <span class="nf">print2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[post_testdb1] &#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[post_testdb1] &#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
 
             <span class="n">print2</span><span class="p">(</span><span class="s1">&#39;aid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">aid_list</span><span class="p">)</span>
             <span class="n">print2</span><span class="p">(</span><span class="s1">&#39;nid_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nid_list</span><span class="p">)</span>
@@ -850,7 +852,7 @@
         <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aidgroups</span><span class="p">:</span>
             <span class="k">pass</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;finish postingest_tesdb1_func&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;finish postingest_tesdb1_func&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span>
@@ -1009,9 +1011,9 @@
 <span class="sd">        &gt;&gt;&gt; result = ingest_standard_database(dbname, force_delete)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">IBEISControl</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ingest] Ingest Standard Database: dbname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ingest] Ingest Standard Database: dbname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
     <span class="n">ingestable</span> <span class="o">=</span> <span class="n">get_standard_ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">ingestable</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1054,7 +1056,7 @@
 <span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        #&gt;&gt;&gt; wbia.dbio.convert_db.ingest_oxford_style_db(dbdir)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading Oxford Style Images from: &#39;</span> <span class="o">+</span> <span class="n">dbdir</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading Oxford Style Images from: &#39;</span> <span class="o">+</span> <span class="n">dbdir</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_parse_oxsty_gtfname</span><span class="p">(</span><span class="n">gt_fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; parse gtfname for: (gt_name, quality_lbl, num) &quot;&quot;&quot;</span>
@@ -1120,13 +1122,13 @@
         <span class="k">assert</span> <span class="n">ignore</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gname_list</span>
 
     <span class="c1"># Read the Oxford Style Groundtruth files</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading Oxford Style Names and Annots&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading Oxford Style Names and Annots&#39;</span><span class="p">)</span>
     <span class="n">gt_fname_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">gt_dpath</span><span class="p">)</span>
     <span class="n">num_gt_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_fname_list</span><span class="p">)</span>
     <span class="n">query_annots</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">gname2_annots_raw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">name_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * num_gt_files = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">num_gt_files</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * num_gt_files = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">num_gt_files</span><span class="p">)</span>
     <span class="c1">#</span>
     <span class="c1"># Iterate over each groundtruth file</span>
     <span class="k">for</span> <span class="n">gtx</span><span class="p">,</span> <span class="n">gt_fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">gt_fname_list</span><span class="p">,</span> <span class="s1">&#39;parsed oxsty gtfile: &#39;</span><span class="p">)):</span>
@@ -1145,7 +1147,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">gname</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span> <span class="ow">in</span> <span class="n">oxsty_annot_info_sublist</span><span class="p">:</span>
                 <span class="n">gname2_annots_raw</span><span class="p">[</span><span class="n">gname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">quality</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * num_query images = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annots</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * num_query images = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annots</span><span class="p">))</span>
     <span class="c1">#</span>
     <span class="c1"># Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -&gt; (*.txt)</span>
     <span class="n">gname2_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -1165,10 +1167,12 @@
     <span class="n">gname_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">gname_list</span><span class="p">)</span>
     <span class="n">query_gname_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">query_gname_list</span><span class="p">)</span>
     <span class="n">gname_without_groundtruth_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gname_set</span> <span class="o">-</span> <span class="n">gname_with_groundtruth_set</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * num_images = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gname_list</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * images with groundtruth    = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gname_with_groundtruth_list</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * images without groundtruth = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gname_without_groundtruth_list</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * images with multi-groundtruth = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">multinamed_gname_list</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * num_images = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gname_list</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * images with groundtruth    = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gname_with_groundtruth_list</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39; * images without groundtruth = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gname_without_groundtruth_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * images with multi-groundtruth = </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">multinamed_gname_list</span><span class="p">))</span>
     <span class="c1"># make sure all queries have ground truth and there are no duplicate queries</span>
     <span class="c1">#</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_gname_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
@@ -1180,7 +1184,7 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;adding to table: &#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;adding to table: &#39;</span><span class="p">)</span>
         <span class="c1"># Add images to wbia</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">img_dpath</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">]</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1219,9 +1223,9 @@
             <span class="n">dgid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="o">=</span><span class="n">dbbox_list</span><span class="p">,</span> <span class="n">name_list</span><span class="o">=</span><span class="n">dname_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="o">=</span><span class="n">dnote_list</span>
         <span class="p">)</span>
         <span class="n">uaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">ugid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="o">=</span><span class="n">ubbox_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="o">=</span><span class="n">unote_list</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%d</span><span class="s1"> query annototations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%d</span><span class="s1"> database annototations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%d</span><span class="s1"> distractor annototations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">uaid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%d</span><span class="s1"> query annototations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%d</span><span class="s1"> database annototations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%d</span><span class="s1"> distractor annototations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">uaid_list</span><span class="p">))</span>
 
     <span class="n">update</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
@@ -1243,7 +1247,7 @@
         <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">[</span><span class="n">note</span><span class="p">]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;distractor&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">notes_list</span>
         <span class="p">]</span>
-        <span class="kn">from</span> <span class="nn">wbia</span> <span class="k">import</span> <span class="n">tag_funcs</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
 
         <span class="n">tag_funcs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">tags_list</span><span class="p">)</span>
         <span class="c1"># ibs._set</span>
@@ -1308,9 +1312,9 @@
         <span class="n">new_bboxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">query_df4</span><span class="p">[</span><span class="s1">&#39;bbox&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
         <span class="n">new_ar</span> <span class="o">=</span> <span class="n">new_bboxes</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">new_bboxes</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">old_ar</span> <span class="o">=</span> <span class="n">old_bboxes</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">old_bboxes</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">new_ar</span> <span class="o">==</span> <span class="n">old_ar</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">new_ar</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">old_ar</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">new_ar</span> <span class="o">==</span> <span class="n">old_ar</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">new_ar</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">old_ar</span><span class="p">)</span>
 
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_bboxes</span><span class="p">(</span><span class="n">qannots4</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">new_bboxes</span><span class="p">)</span>
 
@@ -1344,7 +1348,7 @@
     <span class="kn">import</span> <span class="nn">simplejson</span> <span class="k">as</span> <span class="nn">json</span>
     <span class="kn">import</span> <span class="nn">datetime</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading PASCAL VOC Style Images from: &#39;</span> <span class="o">+</span> <span class="n">dbdir</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading PASCAL VOC Style Images from: &#39;</span> <span class="o">+</span> <span class="n">dbdir</span><span class="p">)</span>
 
     <span class="n">annot_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;annotations&#39;</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">annot_path</span><span class="p">)</span>
@@ -1361,8 +1365,8 @@
     <span class="n">lic_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">image_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">dataset_name</span> <span class="ow">in</span> <span class="n">dataset_name_list</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing Dataset </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset_name</span><span class="p">,))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Instances JSON...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing Dataset </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset_name</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Instances JSON...&#39;</span><span class="p">)</span>
         <span class="n">inst_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annot_path</span><span class="p">,</span> <span class="s1">&#39;instances_</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset_name</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">inst_filepath</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inst_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">inst_file</span><span class="p">:</span>
@@ -1370,7 +1374,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">inst_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Captions JSON...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Captions JSON...&#39;</span><span class="p">)</span>
         <span class="n">capt_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annot_path</span><span class="p">,</span> <span class="s1">&#39;captions_</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset_name</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">capt_filepath</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">capt_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">capt_file</span><span class="p">:</span>
@@ -1378,7 +1382,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">capt_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Info JSON...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Info JSON...&#39;</span><span class="p">)</span>
         <span class="n">info_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annot_path</span><span class="p">,</span> <span class="s1">&#39;image_info_</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset_name</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">info_filepath</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">info_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">info_file</span><span class="p">:</span>
@@ -1387,7 +1391,7 @@
             <span class="n">info_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">dataset_name</span> <span class="o">==</span> <span class="s1">&#39;test2014&#39;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Test 2014&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Test 2014&#39;</span><span class="p">)</span>
             <span class="n">image_list</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">inst_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="p">[])</span>
                 <span class="o">+</span> <span class="n">capt_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -1401,7 +1405,7 @@
             <span class="c1"># Skip remaining processing to prevent duplicates</span>
             <span class="k">continue</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Licenses JSON...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Licenses JSON...&#39;</span><span class="p">)</span>
         <span class="n">lic_list</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">inst_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;licenses&#39;</span><span class="p">,</span> <span class="p">[])</span>
             <span class="o">+</span> <span class="n">capt_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;licenses&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -1420,7 +1424,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">lic_dict</span><span class="p">[</span><span class="n">lic_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">lic_dict_</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Categories JSON...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Categories JSON...&#39;</span><span class="p">)</span>
         <span class="n">cat_list</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">inst_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;categories&#39;</span><span class="p">,</span> <span class="p">[])</span>
             <span class="o">+</span> <span class="n">capt_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;categories&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -1439,7 +1443,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">cat_dict</span><span class="p">[</span><span class="n">cat_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">cat_dict_</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Images...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Loading Images...&#39;</span><span class="p">)</span>
         <span class="n">image_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
 
@@ -1448,7 +1452,7 @@
             <span class="k">if</span> <span class="n">image_filepath</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">image_dict</span><span class="p">:</span>
                 <span class="n">image_dict</span><span class="p">[</span><span class="n">image_filepath</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Images&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Images&#39;</span><span class="p">)</span>
         <span class="n">image_list</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">inst_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="p">[])</span>
             <span class="o">+</span> <span class="n">capt_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -1491,7 +1495,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">image_dict</span><span class="p">[</span><span class="n">image_filename</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Captions&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Captions&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">caption</span> <span class="ow">in</span> <span class="n">capt_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotations&#39;</span><span class="p">,</span> <span class="p">[]):</span>
             <span class="n">capt_id</span> <span class="o">=</span> <span class="n">caption</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="n">capt_str</span> <span class="o">=</span> <span class="n">caption</span><span class="p">[</span><span class="s1">&#39;caption&#39;</span><span class="p">]</span>
@@ -1505,7 +1509,7 @@
                 <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">capt_id</span><span class="p">,</span> <span class="s1">&#39;str&#39;</span><span class="p">:</span> <span class="n">capt_str</span><span class="p">}</span>
             <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Annotations&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Associate Annotations&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">annotation</span> <span class="ow">in</span> <span class="n">inst_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotations&#39;</span><span class="p">,</span> <span class="p">[]):</span>
             <span class="n">annot_id</span> <span class="o">=</span> <span class="n">annotation</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="n">annot_bbox</span> <span class="o">=</span> <span class="n">annotation</span><span class="p">[</span><span class="s1">&#39;bbox&#39;</span><span class="p">]</span>
@@ -1515,7 +1519,10 @@
                 <span class="n">annot_vert_list</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annot_seg</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
                     <span class="n">annot_vert_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="p">(</span><span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span> <span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],)</span>
+                        <span class="p">(</span>
+                            <span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span>
+                            <span class="n">annot_seg</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
 
                 <span class="n">annot_verts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annot_vert_list</span><span class="p">)</span>
@@ -1547,7 +1554,7 @@
     <span class="n">image_annot_species_list_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">image_annot_metadata_list_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">image_filename</span> <span class="ow">in</span> <span class="n">image_filename_list</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_filename</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_filename</span><span class="p">,))</span>
         <span class="n">image</span> <span class="o">=</span> <span class="n">image_dict</span><span class="p">[</span><span class="n">image_filename</span><span class="p">]</span>
         <span class="n">image_filepath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">[</span><span class="s1">&#39;filepath&#39;</span><span class="p">])</span>
         <span class="n">image_original_url_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">[</span><span class="s1">&#39;coco_url&#39;</span><span class="p">])</span>
@@ -1625,7 +1632,7 @@
         <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">:</span>
             <span class="n">flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_set</span><span class="p">)</span>
             <span class="n">seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Duplicates: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">False</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Duplicates: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">False</span><span class="p">),))</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
 
         <span class="c1"># Filter</span>
@@ -1644,21 +1651,21 @@
             <span class="n">image_annot_metadata_list_list</span><span class="p">,</span> <span class="n">flag_list</span>
         <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding Metadata&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding Metadata&#39;</span><span class="p">)</span>
         <span class="c1"># Set image metadata</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris_original</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_original_url_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_unixtime_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_metadata</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_metadata_list</span><span class="p">)</span>
 
         <span class="c1"># Add images to imagesets</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding Imagesets&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding Imagesets&#39;</span><span class="p">)</span>
         <span class="n">len_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">image_imagesets_list</span><span class="p">)</span>
         <span class="n">gids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="n">len_</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">len_list</span><span class="p">)]</span>
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gids_list</span><span class="p">)</span>
         <span class="n">image_imageset_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">image_imagesets_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imagesettext</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">image_imageset_list</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding Annotations&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding Annotations&#39;</span><span class="p">)</span>
         <span class="n">len_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">image_annot_bbox_list_list</span><span class="p">)</span>
         <span class="n">gids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="n">len_</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">len_list</span><span class="p">)]</span>
         <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gids_list</span><span class="p">)</span>
@@ -1674,10 +1681,10 @@
         <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">:</span>
             <span class="n">flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_set</span><span class="p">)</span>
             <span class="n">seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Duplicates: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">False</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Duplicates: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">False</span><span class="p">),))</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding Metadata&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding Metadata&#39;</span><span class="p">)</span>
         <span class="n">image_annot_metadata_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">image_annot_metadata_list_list</span><span class="p">)</span>
         <span class="n">image_annot_metadata_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">image_annot_metadata_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_metadata</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">image_annot_metadata_list</span><span class="p">)</span></div>
@@ -1731,13 +1738,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">serengeti_sepcies</span> <span class="o">=</span> <span class="n">species</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;serengeti_sepcies = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">serengeti_sepcies</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;serengeti_sepcies = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">serengeti_sepcies</span><span class="p">,))</span>
 
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">code</span> <span class="o">+</span> <span class="s1">&#39;_Serengeti&#39;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dbname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dbname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">wbia</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="n">dbname</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dbdir = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbdir</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dbdir = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbdir</span><span class="p">,))</span>
     <span class="n">image_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">))</span>
 
     <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://datadryad.org/bitstream/handle/10255&#39;</span>
@@ -1753,17 +1760,17 @@
     <span class="n">search_effort_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">search_effort_url</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">)</span>
     <span class="n">gold_standard_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">gold_standard_url</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;all_images_fpath         = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">all_images_fpath</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;consensus_metadata_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">consensus_metadata_fpath</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;search_effort_fpath      = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">search_effort_fpath</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gold_standard_fpath      = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gold_standard_fpath</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;all_images_fpath         = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">all_images_fpath</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;consensus_metadata_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">consensus_metadata_fpath</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;search_effort_fpath      = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">search_effort_fpath</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;gold_standard_fpath      = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gold_standard_fpath</span><span class="p">,))</span>
 
     <span class="k">def</span> <span class="nf">read_csv</span><span class="p">(</span><span class="n">csv_fpath</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 
         <span class="n">csv_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">csv_fpath</span><span class="p">)</span>
         <span class="n">csv_lines</span> <span class="o">=</span> <span class="n">csv_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">csv_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">csv_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]))</span>
         <span class="n">csv_data</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csv_lines</span>
@@ -1775,20 +1782,20 @@
 
     <span class="k">def</span> <span class="nf">download_image_urls</span><span class="p">(</span><span class="n">image_url_info_list</span><span class="p">):</span>
         <span class="c1"># Find ones that we already have</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Requested </span><span class="si">%d</span><span class="s1"> downloaded images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Requested </span><span class="si">%d</span><span class="s1"> downloaded images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list</span><span class="p">)))</span>
         <span class="n">full_gpath_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">join</span><span class="p">(</span><span class="n">image_dir</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">gpath</span><span class="p">))</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">image_url_info_list</span>
         <span class="p">]</span>
         <span class="n">exists_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">full_gpath_list</span><span class="p">]</span>
         <span class="n">image_url_info_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">image_url_info_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">exists_list</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Already have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> downloaded images&#39;</span>
             <span class="o">%</span> <span class="p">(</span>
                 <span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list_</span><span class="p">),</span>
                 <span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Need to download </span><span class="si">%d</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list_</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need to download </span><span class="si">%d</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_url_info_list_</span><span class="p">)))</span>
         <span class="c1"># import sys</span>
         <span class="c1"># sys.exit(0)</span>
         <span class="c1"># Download the rest</span>
@@ -1812,11 +1819,11 @@
 
     <span class="c1"># Find the zebra events</span>
     <span class="n">serengeti_sepcies_set</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_class_species_list</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;serengeti_sepcies_hist = </span><span class="si">%s</span><span class="s1">&#39;</span>
         <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">species_class_species_list</span><span class="p">),</span> <span class="n">key_order_metric</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="c1"># print(&#39;serengeti_sepcies_set = %s&#39; % (ut.repr2(serengeti_sepcies_set),))</span>
+    <span class="c1"># logger.info(&#39;serengeti_sepcies_set = %s&#39; % (ut.repr2(serengeti_sepcies_set),))</span>
 
     <span class="k">assert</span> <span class="n">serengeti_sepcies</span> <span class="ow">in</span> <span class="n">serengeti_sepcies_set</span><span class="p">,</span> <span class="s1">&#39;not a known  seregeti species&#39;</span>
     <span class="n">species_class_chosen_idx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span>
@@ -1826,12 +1833,12 @@
         <span class="n">species_class_eventid_list</span><span class="p">,</span> <span class="n">species_class_chosen_idx_list</span>
     <span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of chosen species:&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Number of chosen species:&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39; * len(species_class_chosen_idx_list) = </span><span class="si">%r</span><span class="s1">&#39;</span>
         <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_class_chosen_idx_list</span><span class="p">),)</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * len(chosen_eventid_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chosen_eventid_list</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * len(chosen_eventid_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chosen_eventid_list</span><span class="p">),))</span>
 
     <span class="c1"># Read info about which events have which images</span>
     <span class="n">images_csv_data</span><span class="p">,</span> <span class="n">image_csv_header</span> <span class="o">=</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">all_images_fpath</span><span class="p">)</span>
@@ -1871,8 +1878,8 @@
 <span class="sd">        &gt;&gt;&gt; from wbia.dbio.ingest_database import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; injest_main()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;__main__ = ingest_database.py&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;__main__ = ingest_database.py&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        usage:</span>
@@ -1885,21 +1892,11 @@
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">force_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--force_delete&#39;</span><span class="p">,</span> <span class="s1">&#39;--force-delete&#39;</span><span class="p">))</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_standard_database</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">force_delete</span><span class="p">)</span>  <span class="c1"># NOQA</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;finished db injest&#39;</span><span class="p">)</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;finished db injest&#39;</span><span class="p">)</span></div>
     <span class="c1"># img_dir = join(wbia.sysres.get_workdir(), &#39;polar_bears&#39;)</span>
     <span class="c1"># main_locals = wbia.main(dbdir=img_dir, gui=False)</span>
     <span class="c1"># ibs = main_locals[&#39;ibs&#39;]</span>
     <span class="c1"># ingest_rawdata(ibs, img_dir)</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        xdoctest -m wbia.dbio.ingest_database</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">xdoctest</span>
-
-    <span class="n">xdoctest</span><span class="o">.</span><span class="n">doctest_module</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 </pre></div>
 
           </div>
@@ -1935,17 +1932,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1962,7 +1957,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

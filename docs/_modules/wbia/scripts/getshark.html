@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.scripts.getshark &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.scripts.getshark &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -35,12 +34,13 @@
   <h1>Source code for wbia.scripts.getshark</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">commonprefix</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">commonprefix</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[getshark]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="sync_wildbook"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.sync_wildbook">[docs]</a><span class="k">def</span> <span class="nf">sync_wildbook</span><span class="p">():</span>
@@ -56,7 +56,7 @@
 
 <span class="sd">    &gt;&gt;&gt; from wbia.scripts.getshark import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="c1"># Prepare the output directory for writing, if it doesn&#39;t exist</span>
 
@@ -127,14 +127,17 @@
     <span class="n">is_miss</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)</span>
     <span class="n">hit_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_hit</span><span class="p">)</span>  <span class="c1"># NOQA</span>
     <span class="n">miss_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_miss</span><span class="p">)</span>  <span class="c1"># NOQA</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),))</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> images not from this downloaded set&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">num_ia_unique</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_ia_unique</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Missing </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Missing </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
 
     <span class="c1"># Add new info</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
@@ -142,19 +145,22 @@
             <span class="n">add_new_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">miss_info</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
 
     <span class="c1"># REFIND Existing</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Redoing exist check&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Redoing exist check&#39;</span><span class="p">)</span>
     <span class="n">info_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;uuid&#39;</span><span class="p">])</span>
     <span class="n">is_hit</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_not_None_items</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)</span>
     <span class="n">is_miss</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)</span>
     <span class="n">hit_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_hit</span><span class="p">)</span>  <span class="c1"># NOQA</span>
     <span class="n">miss_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_miss</span><span class="p">)</span>  <span class="c1"># NOQA</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),))</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;The IA database has </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> images not from this downloaded set&#39;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">num_ia_unique</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),)</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">num_ia_unique</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">all_images</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Missing </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Have </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Missing </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> parsed images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">info_gid_list</span><span class="p">)))</span>
 
     <span class="c1"># Sync existing info</span>
     <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
@@ -162,7 +168,7 @@
 
 
 <div class="viewcode-block" id="sync_existing_images"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.sync_existing_images">[docs]</a><span class="k">def</span> <span class="nf">sync_existing_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">hit_info</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">DRY</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Syncing existing images&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Syncing existing images&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
     <span class="c1"># Get info for items already in database</span>
@@ -170,7 +176,7 @@
     <span class="n">hit_images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">hit_info</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
 
     <span class="c1"># Sync original_uris</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking uris_original&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking uris_original&#39;</span><span class="p">)</span>
     <span class="n">ia_prop_list</span> <span class="o">=</span> <span class="n">hit_images</span><span class="o">.</span><span class="n">uris_original</span>
     <span class="n">wb_prop_list</span> <span class="o">=</span> <span class="n">hit_info</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span>
     <span class="n">dirty_flags</span> <span class="o">=</span> <span class="p">[]</span>
@@ -183,9 +189,9 @@
         <span class="n">dirty_flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
     <span class="c1"># Use the wildbook urls as original uris</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...All </span><span class="si">%d</span><span class="s1"> original uris do not need fixing&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">hit_images</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...All </span><span class="si">%d</span><span class="s1"> original uris do not need fixing&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">hit_images</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;...There are </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> original uris that need fixing&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">))</span>
         <span class="p">)</span>
@@ -195,10 +201,10 @@
             <span class="s1">&#39;img_url&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">v</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...Fixing </span><span class="si">%d</span><span class="s1"> original uris&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">),))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...Fixing </span><span class="si">%d</span><span class="s1"> original uris&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">),))</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris_original</span><span class="p">(</span><span class="n">dirty_gids</span><span class="p">,</span> <span class="n">dirty_wb_props</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hit_images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">)</span><span class="o">.</span><span class="n">uris_original</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hit_images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_flags</span><span class="p">)</span><span class="o">.</span><span class="n">uris_original</span><span class="p">))</span>
             <span class="n">dirty_info</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="s1">&#39;img_url&#39;</span><span class="p">)</span>
 
     <span class="c1"># Sync info in annotations</span>
@@ -216,19 +222,19 @@
     <span class="n">multi_hit_info</span> <span class="o">=</span> <span class="n">hit_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_multi</span><span class="p">)</span>
     <span class="n">multi_hit_images</span> <span class="o">=</span> <span class="n">hit_images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_multi</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Syncing annot info in images. Checking annots/per/image&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * is_empty = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_empty</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * is_single = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_single</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; * is_multi = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_multi</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Syncing annot info in images. Checking annots/per/image&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * is_empty = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_empty</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * is_single = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_single</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * is_multi = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">is_multi</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
 
     <span class="c1"># We exepect an image to be empty if it has junk in the notes</span>
     <span class="n">nonjunk_empty</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="o">!=</span> <span class="s1">&#39;junk&#39;</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">empty_hit_images</span><span class="o">.</span><span class="n">notes</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;empty_hit_images = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">empty_hit_images</span><span class="o">.</span><span class="n">gids</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;empty_hit_images = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">empty_hit_images</span><span class="o">.</span><span class="n">gids</span><span class="p">,))</span>
     <span class="n">review_empty</span> <span class="o">=</span> <span class="n">empty_hit_images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nonjunk_empty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;need to review </span><span class="si">%r</span><span class="s1"> empty images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">review_empty</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;need to review </span><span class="si">%r</span><span class="s1"> empty images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">review_empty</span><span class="p">),))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_empty</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">empty_hit_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nonjunk_empty</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Please manually review empty images </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">review_empty</span><span class="o">.</span><span class="n">gids</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Please manually review empty images </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">review_empty</span><span class="o">.</span><span class="n">gids</span><span class="p">,))</span>
 
     <span class="c1"># We expect multi images to be tagged with primary / secondary</span>
     <span class="n">multi_annots</span> <span class="o">=</span> <span class="n">multi_hit_images</span><span class="o">.</span><span class="n">_annot_groups</span>
@@ -237,10 +243,10 @@
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">multi_annots</span><span class="o">.</span><span class="n">case_tags</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">nontagged</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reviewing untagged multi images&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reviewing untagged multi images&#39;</span><span class="p">)</span>
         <span class="n">review_multi</span> <span class="o">=</span> <span class="n">multi_hit_images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nontagged</span><span class="p">)</span>
         <span class="n">review_annots</span> <span class="o">=</span> <span class="n">review_multi</span><span class="o">.</span><span class="n">_annot_groups</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;review_multi = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">review_multi</span><span class="o">.</span><span class="n">gids</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;review_multi = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">review_multi</span><span class="o">.</span><span class="n">gids</span><span class="p">,))</span>
         <span class="n">multi_hit_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nontagged</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
             <span class="n">ignore</span><span class="o">=</span><span class="p">[</span>
                 <span class="s1">&#39;img_url&#39;</span><span class="p">,</span>
@@ -257,7 +263,7 @@
         <span class="p">)</span>
         <span class="c1"># Determine the primary annotation</span>
         <span class="c1"># Check if any are the entire image</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Attempting to handle automatically&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Attempting to handle automatically&#39;</span><span class="p">)</span>
         <span class="n">img_areas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">review_multi</span><span class="o">.</span><span class="n">sizes</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">bbox_area_rat</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">areas</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span> <span class="k">for</span> <span class="n">areas</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">review_annots</span><span class="o">.</span><span class="n">bbox_area</span><span class="p">,</span> <span class="n">img_areas</span><span class="p">)</span>
@@ -265,7 +271,7 @@
         <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">areas</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_area_rat</span><span class="p">,</span> <span class="n">review_multi</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">areas</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;PLEASE CHECK image </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">g</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;PLEASE CHECK image </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">g</span><span class="p">,))</span>
                 <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">flag</span><span class="p">,</span> <span class="s1">&#39;need to remove bad annots or change code&#39;</span>
         <span class="c1"># assert False, &#39;Need to finish/review this code. Stopped in development&#39;</span>
@@ -324,7 +330,7 @@
     <span class="n">isbadmark</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterflags_general_tags</span><span class="p">(</span>
         <span class="n">single_annots</span><span class="o">.</span><span class="n">case_tags</span><span class="p">,</span> <span class="n">any_startswith</span><span class="o">=</span><span class="s1">&#39;injur-&#39;</span><span class="p">,</span> <span class="n">has_all</span><span class="o">=</span><span class="s1">&#39;healthy&#39;</span><span class="p">,</span> <span class="n">logic</span><span class="o">=</span><span class="s1">&#39;and&#39;</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Marked </span><span class="si">%r</span><span class="s1"> as both healthy and injured&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">isbadmark</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Marked </span><span class="si">%r</span><span class="s1"> as both healthy and injured&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">isbadmark</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">isbadmark</span><span class="p">):</span>
         <span class="n">bad_fixme</span> <span class="o">=</span> <span class="n">single_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isbadmark</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
@@ -339,7 +345,7 @@
 
     <span class="c1"># info_injur_tags = parse_injury_categories(single_info[&#39;tags&#39;])</span>
     <span class="c1"># annot_injur_tags = parse_injury_categories(single_annots.case_tags)</span>
-    <span class="c1"># print(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))</span>
+    <span class="c1"># logger.info(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))</span>
 
     <span class="c1"># info_injur_tags = [t if len(t) &gt; 0 else [&#39;healthy&#39;] for t in info_injur_tags]</span>
     <span class="c1"># info_injur_tags = [ut.setdiff(t, [&#39;healthy&#39;]) for t in info_injur_tags]</span>
@@ -357,7 +363,7 @@
             <span class="p">(</span><span class="s1">&#39;injur-trtruunc&#39;</span><span class="p">,</span> <span class="s1">&#39;injur-trunc&#39;</span><span class="p">),</span>
         <span class="p">],</span>
     <span class="p">)</span>
-    <span class="c1"># print(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))</span>
+    <span class="c1"># logger.info(ut.repr4(ut.dict_hist(ut.flatten(cleaned_tags))))</span>
     <span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;orig_case_tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">sorted</span><span class="p">,</span> <span class="n">single_annots</span><span class="o">.</span><span class="n">case_tags</span><span class="p">)</span>
     <span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;clean_case_tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">sorted</span><span class="p">,</span> <span class="n">cleaned_tags</span><span class="p">)</span>
 
@@ -376,7 +382,7 @@
         <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;orig_case_tags&#39;</span><span class="p">],</span> <span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;clean_case_tags&#39;</span><span class="p">])</span>
     <span class="p">]</span>
     <span class="n">dirty_info</span> <span class="o">=</span> <span class="n">single_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isdirty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;removing redundant info from </span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;removing redundant info from </span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">),))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
         <span class="c1"># dirty_info[&#39;orig_case_tags&#39;]</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">overwrite_annot_case_tags</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">],</span> <span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;clean_case_tags&#39;</span><span class="p">])</span>
@@ -405,8 +411,10 @@
     <span class="p">]</span>
     <span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;new_injurtags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_injurtags</span>
     <span class="n">dirty_info</span> <span class="o">=</span> <span class="n">single_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isdirty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new injur tags&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">new_injurtags</span><span class="p">))))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unioning new injur tags into </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">isdirty</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">isdirty</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new injur tags&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">new_injurtags</span><span class="p">))))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;unioning new injur tags into </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">isdirty</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">isdirty</span><span class="p">))</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">],</span> <span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;new_injurtags&#39;</span><span class="p">])</span>
 
@@ -417,10 +425,12 @@
     <span class="p">]</span>
     <span class="n">isdirty</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;new_keywords&#39;</span><span class="p">]]</span>
     <span class="n">dirty_info</span> <span class="o">=</span> <span class="n">single_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isdirty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;new_keywords&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;new_keywords&#39;</span><span class="p">])))</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unioning new_keywords into </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">isdirty</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;unioning new_keywords into </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">isdirty</span><span class="p">))</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">],</span> <span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;new_keywords&#39;</span><span class="p">])</span>
 
@@ -431,8 +441,8 @@
     <span class="p">]</span>
     <span class="n">isdirty</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">]]</span>
     <span class="n">dirty_info</span> <span class="o">=</span> <span class="n">single_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isdirty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_tags&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">]))))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unioning new_tags into </span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new_tags&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">single_info</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">]))))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;unioning new_tags into </span><span class="si">%r</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">),))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;aid&#39;</span><span class="p">],</span> <span class="n">dirty_info</span><span class="p">[</span><span class="s1">&#39;new_tags&#39;</span><span class="p">])</span>
 
@@ -465,7 +475,7 @@
     <span class="c1"># Fix Species</span>
     <span class="n">bad_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;____&#39;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">single_annots</span><span class="o">.</span><span class="n">species</span><span class="p">]</span>
     <span class="n">_annots</span> <span class="o">=</span> <span class="n">single_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bad_flags</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> annots need fixed species&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">bad_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">single_annots</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> annots need fixed species&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">bad_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">single_annots</span><span class="p">)))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
         <span class="n">_annots</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">_annots</span><span class="p">)</span>
 
@@ -474,15 +484,15 @@
     <span class="n">untagged</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">injur_tags</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="n">untagged_annots</span> <span class="o">=</span> <span class="n">single_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">untagged</span><span class="p">)</span>
     <span class="n">untagged_info</span> <span class="o">=</span> <span class="n">single_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">untagged</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> annots have no tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">untagged_annots</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">single_annots</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> annots have no tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">untagged_annots</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">single_annots</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Tags from WB imgnames:&#39;</span>
         <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">untagged_info</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">])))</span>
     <span class="p">)</span>
     <span class="n">untagged_images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">untagged_annots</span><span class="o">.</span><span class="n">gids</span><span class="p">)</span>
     <span class="c1"># Add healthy tag to anything without an injured tag</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding healthy tag to sharked not taged as injured&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding healthy tag to sharked not taged as injured&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span>
             <span class="n">untagged_annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;healthy&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">untagged_annots</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
         <span class="p">)</span>
@@ -497,7 +507,7 @@
     <span class="p">)</span>
     <span class="n">num_have</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">xor_lists</span><span class="p">(</span><span class="n">healthy_flags</span><span class="p">,</span> <span class="n">injured_flags</span><span class="p">))</span>
     <span class="n">num_miss</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">single_annots</span><span class="p">)</span> <span class="o">-</span> <span class="n">num_have</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;missing </span><span class="si">%d</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_miss</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;missing </span><span class="si">%d</span><span class="s1"> annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_miss</span><span class="p">,))</span>
 
     <span class="n">injured_annots</span> <span class="o">=</span> <span class="n">single_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">healthy_flags</span><span class="p">)</span>
     <span class="n">injured_images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">injured_annots</span><span class="o">.</span><span class="n">gids</span><span class="p">))</span>
@@ -561,30 +571,34 @@
             <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">info_prop</span><span class="p">,</span> <span class="n">annot_prop</span><span class="p">,</span> <span class="n">disagree</span><span class="p">)</span>
         <span class="p">]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- RECTIFY prop=</span><span class="si">%r</span><span class="s1"> --- &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key1</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- RECTIFY prop=</span><span class="si">%r</span><span class="s1"> --- &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key1</span><span class="p">,))</span>
 
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;Prop=</span><span class="si">%r</span><span class="s1"> has </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> out of sync items&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">out_of_sync</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">out_of_sync</span><span class="p">))</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WB has populated info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ia_empty</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ia_empty</span><span class="p">),</span> <span class="n">key1</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IA has populated info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">wb_empty</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">wb_empty</span><span class="p">),</span> <span class="n">key1</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;WB has populated info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ia_empty</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ia_empty</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;IA has populated info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">wb_empty</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">wb_empty</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="s1">&#39;IA and WB disagree on info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">disagree</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">disagree</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">is_set</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;IA is subset of WB info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ia_is_subset</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ia_is_subset</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;WB is subset of IA info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">wb_is_subset</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">wb_is_subset</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;WB and IA partial overlap info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">some_isect</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">some_isect</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;IA and WB total disagree on info for </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">total_disagree</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">total_disagree</span><span class="p">),</span> <span class="n">key1</span><span class="p">)</span>
         <span class="p">)</span>
@@ -592,27 +606,27 @@
     <span class="n">sub_info</span> <span class="o">=</span> <span class="n">single_info</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">)</span>
     <span class="n">sub_info</span><span class="o">.</span><span class="n">_meta</span><span class="p">[</span><span class="s1">&#39;ignore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- DISAGREE DETAILS ---&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- DISAGREE DETAILS ---&#39;</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IA POPULATED (updates on IA side?)&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;IA POPULATED (updates on IA side?)&#39;</span><span class="p">)</span>
     <span class="c1"># Do nothing about these</span>
     <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">wb_empty</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WB POPULATED: (can give)&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WB POPULATED: (can give)&#39;</span><span class="p">)</span>
     <span class="c1"># Pull info from wildbook</span>
     <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ia_empty</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">is_set</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IA subset WB (can give)&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;IA subset WB (can give)&#39;</span><span class="p">)</span>
         <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ia_is_subset</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WB subset IA (updates on IA side?)&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WB subset IA (updates on IA side?)&#39;</span><span class="p">)</span>
         <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">wb_is_subset</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SOME OVERLAP&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SOME OVERLAP&#39;</span><span class="p">)</span>
         <span class="c1"># Have to manually fix</span>
         <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">some_isect</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TOTAL DISAGREE&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TOTAL DISAGREE&#39;</span><span class="p">)</span>
         <span class="c1"># Have to manually fix</span>
         <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">total_disagree</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DISAGREE&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DISAGREE&#39;</span><span class="p">)</span>
         <span class="c1"># Have to manually fix</span>
         <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">disagree</span><span class="p">)</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
 
@@ -631,7 +645,7 @@
         <span class="n">isambiguous</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_info</span><span class="p">[</span><span class="n">key1</span><span class="p">]]</span>
         <span class="n">notok</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">isambiguous</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">notok</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> ambiguous properties from wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">notok</span><span class="p">,))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> ambiguous properties from wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">notok</span><span class="p">,))</span>
         <span class="n">new_info</span> <span class="o">=</span> <span class="n">new_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isambiguous</span><span class="p">)</span>
         <span class="n">old_annots</span> <span class="o">=</span> <span class="n">old_annots</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isambiguous</span><span class="p">)</span>
         <span class="n">new_info</span> <span class="o">=</span> <span class="n">sub_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
@@ -639,14 +653,14 @@
 
     <span class="n">new_prop</span> <span class="o">=</span> <span class="n">new_info</span><span class="p">[</span><span class="n">key1</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_set</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">new_prop</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new prop hist&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">new_prop</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new prop hist&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">new_prop</span><span class="p">)))</span>
     <span class="k">elif</span> <span class="n">is_set</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">new_prop</span><span class="p">)))</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new prop hist&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">tag_hist</span><span class="p">(</span><span class="n">new_prop</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;new prop hist&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">tag_hist</span><span class="p">(</span><span class="n">new_prop</span><span class="p">)))</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">DRY</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MODIFYING PROPERTEIS&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;MODIFYING PROPERTEIS&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_annots</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">is_set</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="n">prop2</span> <span class="ow">is</span> <span class="kc">None</span>
@@ -655,7 +669,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">old_annots</span><span class="p">,</span> <span class="n">prop2</span><span class="p">,</span> <span class="n">new_prop</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dryrun&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dryrun&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_injured_tags"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.get_injured_tags">[docs]</a><span class="k">def</span> <span class="nf">get_injured_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="n">include_healthy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -692,8 +706,8 @@
 
 <div class="viewcode-block" id="get_injur_categories"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.get_injur_categories">[docs]</a><span class="k">def</span> <span class="nf">get_injur_categories</span><span class="p">(</span><span class="n">single_annots</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1"># if verbose:</span>
-    <span class="c1">#    print(&#39;Original tags&#39;)</span>
-    <span class="c1">#    print(ut.repr3(ut.tag_hist(injur_tags)))</span>
+    <span class="c1">#    logger.info(&#39;Original tags&#39;)</span>
+    <span class="c1">#    logger.info(ut.repr3(ut.tag_hist(injur_tags)))</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">single_annots</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">case_tags</span> <span class="o">=</span> <span class="n">single_annots</span>
@@ -747,7 +761,13 @@
         <span class="n">injured</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;injur-&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">injured</span><span class="p">:</span>
             <span class="k">if</span> <span class="s1">&#39;healthy&#39;</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;shark aid=</span><span class="si">%r</span><span class="s1"> labeled as injured and healty </span><span class="si">%r</span><span class="s1">!!!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">tags</span><span class="p">,))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;shark aid=</span><span class="si">%r</span><span class="s1"> labeled as injured and healty </span><span class="si">%r</span><span class="s1">!!!&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">aid</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tags</span>
         <span class="n">tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;injur-other&#39;</span><span class="p">])</span>
@@ -763,41 +783,41 @@
     <span class="n">cleaned_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">fixinjur</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">cleaned_tags</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
 
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;mapping: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">alias_map</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">alias_map</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unmapped = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">unmapped</span><span class="p">),))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;unmapped = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">unmapped</span><span class="p">),))</span>
 
         <span class="n">given_tags</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">injur_tags</span><span class="p">))</span>
         <span class="n">alias_map_used</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">alias_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">given_tags</span><span class="p">:</span>
                 <span class="n">alias_map_used</span><span class="p">[</span><span class="n">val</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;used_mapping: &#39;</span>
             <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">alias_map_used</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">alias_map_used</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cleaned tags&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Cleaned tags&#39;</span><span class="p">)</span>
         <span class="n">hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tag_hist</span><span class="p">(</span><span class="n">cleaned_tags</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">hist</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">hist</span><span class="p">))</span>
 
         <span class="c1"># Get tag co-occurrence</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Freq&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Freq&#39;</span><span class="p">)</span>
         <span class="n">co_occur</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tag_coocurrence</span><span class="p">(</span><span class="n">cleaned_tags</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur</span><span class="p">))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Percent&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Co-Occurrence Percent&#39;</span><span class="p">)</span>
         <span class="n">co_occur_percent</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span> <span class="o">*</span> <span class="n">val</span> <span class="o">/</span> <span class="n">hist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">keys</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">co_occur</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">]</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur_percent</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur_percent</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
     <span class="c1"># other_annots = single_annots.compress(ut.filterflags_general_tags(cleaned_tags, has_any=[&#39;injur-other&#39;]))</span>
-    <span class="c1"># print(&#39;other_annots.case_tags = %s&#39; % (ut.repr4(list(zip(other_annots.gids, other_annots.aids, other_annots.case_tags)), nl=1),))</span>
+    <span class="c1"># logger.info(&#39;other_annots.case_tags = %s&#39; % (ut.repr4(list(zip(other_annots.gids, other_annots.aids, other_annots.case_tags)), nl=1),))</span>
 
     <span class="k">return</span> <span class="n">cleaned_tags</span></div>
 
@@ -814,7 +834,9 @@
 
     <span class="c1"># Check to see if adding any images failed</span>
     <span class="n">failed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">miss_info</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# failed to add </span><span class="si">%s</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;# failed to add </span><span class="si">%s</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)),</span>
+    <span class="p">)</span>
 
     <span class="n">passed_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">failed_flags</span><span class="p">)</span>
     <span class="n">miss_info</span> <span class="o">=</span> <span class="n">miss_info</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">passed_flags</span><span class="p">)</span>
@@ -830,7 +852,7 @@
     <span class="n">orig_urls</span> <span class="o">=</span> <span class="n">miss_info</span><span class="o">.</span><span class="n">map_column</span><span class="p">(</span><span class="s1">&#39;img_url&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">v</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris_original</span><span class="p">(</span><span class="n">miss_info</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">],</span> <span class="n">orig_urls</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Add new images to temporary imagesets&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Add new images to temporary imagesets&#39;</span><span class="p">)</span>
     <span class="n">images_new</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">miss_info</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">])</span>
     <span class="n">new_imgsettext</span> <span class="o">=</span> <span class="s1">&#39;New Images &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
     <span class="n">images_new</span><span class="o">.</span><span class="n">append_to_imageset</span><span class="p">(</span><span class="n">new_imgsettext</span><span class="p">)</span>
@@ -844,20 +866,22 @@
     <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">other_keywords</span> <span class="o">=</span> <span class="n">get_injured_tags</span><span class="p">(</span><span class="n">miss_info</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">],</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%r</span><span class="s1"> new images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had injured tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">hasinjur_kw</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had other tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">other_keywords</span><span class="p">))))</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Added </span><span class="si">%r</span><span class="s1"> new images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had injured tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">hasinjur_kw</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had other tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">other_keywords</span><span class="p">)))</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had no injured tags&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miss_info</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">injured_keywords</span><span class="p">)))</span>
         <span class="p">)</span>
         <span class="c1"># injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)</span>
         <span class="c1"># other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)</span>
-        <span class="c1"># print(&#39;&#39;)</span>
-        <span class="c1"># print(&#39;Injured Keyword histogram:\n&#39; + &#39;, &#39;.join(</span>
+        <span class="c1"># logger.info(&#39;&#39;)</span>
+        <span class="c1"># logger.info(&#39;Injured Keyword histogram:\n&#39; + &#39;, &#39;.join(</span>
         <span class="c1">#    [&#39;*%s*: %s&#39; % (k, v) for k, v in injured_keyhist.items()][::-1]))</span>
-        <span class="c1"># print(&#39;&#39;)</span>
-        <span class="c1"># print(&#39;Other Keyword histogram:\n&#39; + &#39;, &#39;.join(</span>
+        <span class="c1"># logger.info(&#39;&#39;)</span>
+        <span class="c1"># logger.info(&#39;Other Keyword histogram:\n&#39; + &#39;, &#39;.join(</span>
         <span class="c1">#    [&#39;*%s*: %s&#39; % (k, v) for k, v in other_keyhist.items()][::-1]))</span>
 
     <span class="n">is_empty_annots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images_new</span><span class="o">.</span><span class="n">num_annotations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
@@ -892,7 +916,7 @@
         <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
             <span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
         <span class="p">)</span>  <span class="c1"># NOQA</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished running localizations&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished running localizations&#39;</span><span class="p">)</span>
 
         <span class="n">results_list2</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">multi_gids</span> <span class="o">=</span> <span class="p">[]</span>
@@ -911,9 +935,13 @@
                 <span class="n">res2</span> <span class="o">=</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">theta_list</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
                 <span class="n">results_list2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res2</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> have localizations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results_list2</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> are missing localizations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> had multiple localizations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">multi_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> have localizations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results_list2</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> are missing localizations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> had multiple localizations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">multi_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">))</span>
+        <span class="p">)</span>
 
         <span class="c1"># Add these to an imageset for fixing</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">failed_gids</span><span class="p">)</span><span class="o">.</span><span class="n">append_to_imageset</span><span class="p">(</span><span class="s1">&#39;NoLocs&#39;</span> <span class="o">+</span> <span class="n">new_imgsettext</span><span class="p">)</span>
@@ -953,7 +981,7 @@
         <span class="n">name_list</span><span class="o">=</span><span class="n">annot_names</span><span class="p">,</span>
         <span class="n">species_list</span><span class="o">=</span><span class="n">annot_species</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished adding new info&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished adding new info&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">aid_list</span></div>
 
@@ -977,20 +1005,20 @@
 
 <span class="sd">    &gt;&gt;&gt; from wbia.scripts.getshark import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="n">parsed1</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">parse_whaleshark_org_old</span><span class="p">()</span>
     <span class="c1"># Also parse using the keyword method</span>
     <span class="n">parsed2</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">parse_whaleshark_org_keywords</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from XML jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed1</span><span class="p">),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from keywords&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed2</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from XML jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed1</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from keywords&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed2</span><span class="p">),))</span>
 
     <span class="c1"># Apply keywords to existing images</span>
     <span class="c1"># raise NotImplementedError(&#39;suffix is now unreliable for comparing encounters&#39;)</span>
 
     <span class="c1"># Use suffix as a key to create a merger mapping between indices</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merging keyword and XML jsp results&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Merging keyword and XML jsp results&#39;</span><span class="p">)</span>
     <span class="n">suffix_to_idx1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="n">parsed1</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">])</span>
     <span class="n">suffix_to_idx2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="n">parsed2</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">])</span>
     <span class="n">idx1_to_idx2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">suffix_to_idx2</span><span class="p">,</span> <span class="n">parsed1</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
@@ -999,8 +1027,8 @@
     <span class="c1"># Find the items that are unique to each set</span>
     <span class="n">unmatched_idx1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">idx1_to_idx2</span><span class="p">))</span>
     <span class="n">unmatched_idx2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">idx2_to_idx1</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique entries in the XML results&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unmatched_idx1</span><span class="p">),))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique entries in the jsp results&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unmatched_idx2</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique entries in the XML results&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unmatched_idx1</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique entries in the jsp results&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unmatched_idx2</span><span class="p">),))</span>
 
     <span class="c1"># nonmatching1 = parsed1.take(unmatched_idx1)</span>
     <span class="c1"># nonmatching2 = parsed2.take(unmatched_idx2)</span>
@@ -1012,7 +1040,7 @@
     <span class="c1"># matching1 = parsed1.take(match_idx1)</span>
     <span class="c1"># matching2 = parsed2.take(match_idx2)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">match_idx1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">match_idx2</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> items in common&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">match_idx1</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> items in common&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">match_idx1</span><span class="p">),))</span>
 
     <span class="c1"># Make columns agree between parsed1 and parsed2</span>
     <span class="k">del</span> <span class="n">parsed1</span><span class="p">[</span><span class="s1">&#39;localid&#39;</span><span class="p">]</span>
@@ -1044,7 +1072,7 @@
     <span class="c1">#    parsed1[&#39;keywords&#39;][idx1].extend(keys)</span>
 
     <span class="c1"># parsed = parsed2 + nonmatching1</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> total urls&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> total urls&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">parsed</span></div>
 
 
@@ -1070,21 +1098,21 @@
 <span class="sd">        &gt;&gt;&gt; images_url = &#39;http://www.whaleshark.org/listImages.jsp&#39;</span>
 <span class="sd">        &gt;&gt;&gt; keyword_url = &#39;http://www.whaleshark.org/getKeywordImages.jsp&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="n">parsed1</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">parse_wildbook_images</span><span class="p">(</span><span class="n">images_url</span><span class="p">)</span>
     <span class="c1"># Also parse using the keyword method</span>
     <span class="c1"># parsed2 = getshark.parse_wildbook_keywords(keyword_url)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from XML jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed1</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from XML jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed1</span><span class="p">),))</span>
     <span class="c1"># if keyword_url:</span>
-    <span class="c1">#     print(&#39;Parsed %d urls from keywords&#39; % (len(parsed2),))</span>
+    <span class="c1">#     logger.info(&#39;Parsed %d urls from keywords&#39; % (len(parsed2),))</span>
 
     <span class="c1"># Apply keywords to existing images</span>
     <span class="c1"># raise NotImplementedError(&#39;suffix is now unreliable for comparing encounters&#39;)</span>
 
     <span class="c1"># Use suffix as a key to create a merger mapping between indices</span>
-    <span class="c1"># print(&#39;Merging keyword and XML jsp results&#39;)</span>
+    <span class="c1"># logger.info(&#39;Merging keyword and XML jsp results&#39;)</span>
     <span class="c1"># suffix_to_idx1 = ut.make_index_lookup(parsed1[&#39;suffix&#39;])</span>
     <span class="c1"># suffix_to_idx2 = ut.make_index_lookup(parsed2[&#39;suffix&#39;])</span>
     <span class="c1"># idx1_to_idx2 = ut.dict_take(suffix_to_idx2, parsed1[&#39;suffix&#39;], None)</span>
@@ -1093,8 +1121,8 @@
     <span class="c1"># Find the items that are unique to each set</span>
     <span class="c1"># unmatched_idx1 = ut.where(ut.not_list(idx1_to_idx2))</span>
     <span class="c1"># unmatched_idx2 = ut.where(ut.not_list(idx2_to_idx1))</span>
-    <span class="c1"># print(&#39;There are %d unique entries in the XML results&#39; % (len(unmatched_idx1),))</span>
-    <span class="c1"># print(&#39;There are %d unique entries in the jsp results&#39; % (len(unmatched_idx2),))</span>
+    <span class="c1"># logger.info(&#39;There are %d unique entries in the XML results&#39; % (len(unmatched_idx1),))</span>
+    <span class="c1"># logger.info(&#39;There are %d unique entries in the jsp results&#39; % (len(unmatched_idx2),))</span>
 
     <span class="c1"># nonmatching1 = parsed1.take(unmatched_idx1)</span>
     <span class="c1"># nonmatching2 = parsed2.take(unmatched_idx2)</span>
@@ -1104,7 +1132,7 @@
     <span class="c1"># match_idx2 = ut.filter_Nones(idx1_to_idx2)</span>
 
     <span class="c1"># assert len(match_idx1) == len(match_idx2)</span>
-    <span class="c1"># print(&#39;There are %d items in common&#39; % (len(match_idx1),))</span>
+    <span class="c1"># logger.info(&#39;There are %d items in common&#39; % (len(match_idx1),))</span>
 
     <span class="c1"># Make columns agree between parsed1 and parsed2</span>
     <span class="k">del</span> <span class="n">parsed1</span><span class="p">[</span><span class="s1">&#39;localid&#39;</span><span class="p">]</span>
@@ -1134,7 +1162,7 @@
     <span class="c1">#    parsed1[&#39;keywords&#39;][idx1].extend(keys)</span>
 
     <span class="c1"># parsed = parsed2 + nonmatching1</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> total urls&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> total urls&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">parsed</span></div>
 
 
@@ -1146,14 +1174,14 @@
 <span class="sd">        &gt;&gt;&gt; url = images_url = &#39;http://www.mantamatcher.org/listImages.jsp&#39;</span>
 <span class="sd">        &gt;&gt;&gt; parse_wildbook_images(url)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">xml.dom.minidom</span> <span class="k">import</span> <span class="n">parseString</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">xml.dom.minidom</span> <span class="kn">import</span> <span class="n">parseString</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="n">number</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="n">cache_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;utool&#39;</span><span class="p">,</span> <span class="s1">&#39;sharkinfo&#39;</span><span class="p">)</span>
     <span class="n">cache_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">hash_data</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cache_fpath = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cache_fpath</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;cache_fpath = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cache_fpath</span><span class="p">))</span>
 
     <span class="c1"># redownload every 30 days or so</span>
     <span class="k">if</span> <span class="n">getshark</span><span class="o">.</span><span class="n">_needs_redownload</span><span class="p">(</span><span class="n">cache_fpath</span><span class="p">,</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">30</span><span class="p">):</span>
@@ -1169,7 +1197,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">maxCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s1">&#39;img&#39;</span><span class="p">))</span>
     <span class="n">parsed_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reading XML information from </span><span class="si">%d</span><span class="s1"> images...&#39;</span> <span class="o">%</span> <span class="n">maxCount</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading XML information from </span><span class="si">%d</span><span class="s1"> images...&#39;</span> <span class="o">%</span> <span class="n">maxCount</span><span class="p">)</span>
     <span class="n">shark_elements</span> <span class="o">=</span> <span class="n">dom</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s1">&#39;shark&#39;</span><span class="p">)</span>
     <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span><span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">shark</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">shark_elements</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;parsing shark elements&#39;</span><span class="p">):</span>
@@ -1192,12 +1220,12 @@
 
                 <span class="n">parsed_info</span><span class="p">[</span><span class="s1">&#39;encounter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encounter</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">))</span>
 
-                <span class="c1"># print(&#39;Parsed %i / %i files.&#39; % (len(parsed_info[&#39;orig_fname&#39;]), maxCount))</span>
+                <span class="c1"># logger.info(&#39;Parsed %i / %i files.&#39; % (len(parsed_info[&#39;orig_fname&#39;]), maxCount))</span>
                 <span class="k">if</span> <span class="n">number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s1">&#39;orig_fname&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">number</span><span class="p">:</span>
                     <span class="k">break</span>
 
     <span class="n">parsed_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ColumnLists</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from XML jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed_</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsed </span><span class="si">%d</span><span class="s1"> urls from XML jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed_</span><span class="p">),))</span>
 
     <span class="c1"># Fix trivial (all non-keyword entries are the same) duplicates</span>
     <span class="n">parsed_</span><span class="o">.</span><span class="n">cast_column</span><span class="p">(</span><span class="s1">&#39;localid&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">oset</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
@@ -1218,14 +1246,14 @@
     <span class="c1">#    can_fix = True</span>
     <span class="c1">#    for key, vals in dupinfo.asdict().items():</span>
     <span class="c1">#        if not ut.allsame(vals):</span>
-    <span class="c1">#            print(dupinfo.to_csv())</span>
-    <span class="c1">#            print((&#39;Duplicate items have different values&#39;))</span>
+    <span class="c1">#            logger.info(dupinfo.to_csv())</span>
+    <span class="c1">#            logger.info((&#39;Duplicate items have different values&#39;))</span>
     <span class="c1">#            # May need to fix a case when annoations happen in WB</span>
     <span class="c1">#            assert False, &#39;cant have this happen&#39;</span>
     <span class="c1">#            can_fix = False</span>
     <span class="c1">#    if can_fix:</span>
     <span class="c1">#        toremove += idxs[1:]</span>
-    <span class="c1"># print(&#39;Removing %d duplicate urls&#39; % (len(toremove),))</span>
+    <span class="c1"># logger.info(&#39;Removing %d duplicate urls&#39; % (len(toremove),))</span>
     <span class="c1"># flags = ut.not_list(ut.index_to_boolmask(toremove))</span>
     <span class="c1"># parsed1 = parsed_.compress(flags)</span>
 
@@ -1238,7 +1266,7 @@
     <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[keywords] Parsing whaleshark.org keywords&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[keywords] Parsing whaleshark.org keywords&#39;</span><span class="p">)</span>
 
     <span class="c1"># if False:</span>
     <span class="c1">#    key_url = &#39;http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&amp;maxSize=2&#39;</span>
@@ -1255,7 +1283,7 @@
     <span class="c1">#    #resp = requests.get(url)</span>
     <span class="c1">#    #resp.json()</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.whaleshark.org/getKeywordImages.jsp&#39;</span>
 
@@ -1266,9 +1294,9 @@
 
         <span class="n">cache_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s1">&#39;req_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">key_url</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.json&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">getshark</span><span class="o">.</span><span class="n">_needs_redownload</span><span class="p">(</span><span class="n">cache_fpath</span><span class="p">,</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">3000</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Execute request </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_url</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Execute request </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_url</span><span class="p">,))</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_url</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Got Response&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Got Response&#39;</span><span class="p">)</span>
             <span class="k">assert</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
             <span class="n">dict_</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">cache_fpath</span><span class="p">,</span> <span class="n">dict_</span><span class="p">)</span>
@@ -1280,8 +1308,8 @@
     <span class="n">keywords</span> <span class="o">=</span> <span class="n">cached_json_request</span><span class="p">(</span><span class="n">url</span><span class="p">)[</span><span class="s1">&#39;keywords&#39;</span><span class="p">]</span>
     <span class="n">key_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">keywords</span><span class="p">,</span> <span class="s1">&#39;indexName&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[keywords] Keyword indexName:&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">key_list</span><span class="p">)),</span> <span class="s1">&#39;* &#39;</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[keywords] Keyword indexName:&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">key_list</span><span class="p">)),</span> <span class="s1">&#39;* &#39;</span><span class="p">))</span>
 
     <span class="c1"># Request all images belonging to each keyword</span>
     <span class="n">request_results</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1317,42 +1345,44 @@
         <span class="n">other_keywords</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">get_injured_tags</span><span class="p">(</span><span class="n">parsed2</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">],</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">injured_keyhist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">injured_keywords</span><span class="p">),</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">other_keyhist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">other_keywords</span><span class="p">),</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Scraped </span><span class="si">%r</span><span class="s1"> images with keywords&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed2</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Scraped </span><span class="si">%r</span><span class="s1"> images with keywords&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed2</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had injured tags&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">injured_keywords</span><span class="p">)))</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had other tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">other_keywords</span><span class="p">))))</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had other tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">other_keywords</span><span class="p">)))</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Of these, </span><span class="si">%r</span><span class="s1"> images had no injured tags&#39;</span>
             <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">injured_keywords</span><span class="p">)))</span>
         <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Injured Keyword histogram:</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">*: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">injured_keyhist</span><span class="o">.</span><span class="n">items</span><span class="p">()][::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Other Keyword histogram:</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">*: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">other_keyhist</span><span class="o">.</span><span class="n">items</span><span class="p">()][::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="p">)</span>
 
         <span class="c1"># Get tag co-occurrence</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Injur Keywords Co-Occurrence Freq&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Injur Keywords Co-Occurrence Freq&#39;</span><span class="p">)</span>
         <span class="n">co_occur</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tag_coocurrence</span><span class="p">(</span><span class="n">injured_keywords</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Num co-occurrences: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">co_occur</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Num co-occurrences: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">co_occur</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Injur Keywords Co-Occurrence Percent&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Injur Keywords Co-Occurrence Percent&#39;</span><span class="p">)</span>
         <span class="n">co_occur_percent</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span> <span class="o">*</span> <span class="n">val</span> <span class="o">/</span> <span class="n">injured_keyhist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">keys</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">co_occur</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">]</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur_percent</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">co_occur_percent</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
         <span class="n">_</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">get_injur_categories</span><span class="p">(</span><span class="n">injured_keywords</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># NOQA</span>
 
@@ -1367,7 +1397,7 @@
 
 
 <div class="viewcode-block" id="postprocess_filenames"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.postprocess_filenames">[docs]</a><span class="k">def</span> <span class="nf">postprocess_filenames</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">commonprefix</span><span class="p">,</span> <span class="n">basename</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">commonprefix</span><span class="p">,</span> <span class="n">basename</span>  <span class="c1"># NOQA</span>
 
     <span class="c1"># Create a new filename</span>
     <span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;new_fpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">_fname</span><span class="p">)</span> <span class="k">for</span> <span class="n">_fname</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;new_fname&#39;</span><span class="p">]]</span>
@@ -1388,9 +1418,9 @@
     <span class="n">invalid_exts</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">ext_flags</span><span class="p">))[</span><span class="s1">&#39;ext&#39;</span><span class="p">]</span>
     <span class="n">parsed</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ext_flags</span><span class="p">)</span>
     <span class="n">num_removed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">ext_flags</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid Extensions: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">invalid_exts</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Valid Extensions: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">])))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Removed </span><span class="si">%d</span><span class="s1"> images based on extensions&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_removed</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Invalid Extensions: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">invalid_exts</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Valid Extensions: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">])))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removed </span><span class="si">%d</span><span class="s1"> images based on extensions&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_removed</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">parsed</span></div>
 
 
@@ -1414,7 +1444,7 @@
         <span class="n">parsed</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">and_lists</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;fname_tags&#39;</span><span class="p">],</span> <span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
 
     <span class="c1"># Filter to only images matching the appropriate tags</span>
-    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="k">import</span> <span class="n">getshark</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">getshark</span>
 
     <span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;fname_tags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">getshark</span><span class="o">.</span><span class="n">parse_shark_fname_tags</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;orig_fname&#39;</span><span class="p">])</span>
 
@@ -1448,34 +1478,36 @@
         <span class="c1"># none_match=[&#39;qual.*&#39;, &#39;view-top&#39;, &#39;part-.*&#39;, &#39;cropped&#39;],</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">tag_flags</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Tags histogram:&#39;</span>
             <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]),</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Tags before choosing:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">])))</span>
         <span class="p">)</span>
         <span class="n">parsed</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">tag_flags</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Tags after choosing:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]))))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Tags after choosing:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">])))</span>
+        <span class="p">)</span>
     <span class="n">num_removed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">tag_flags</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Removed </span><span class="si">%d</span><span class="s1"> images based on tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_removed</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removed </span><span class="si">%d</span><span class="s1"> images based on tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_removed</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">parsed</span></div>
 
 
 <div class="viewcode-block" id="download_missing_images"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.download_missing_images">[docs]</a><span class="k">def</span> <span class="nf">download_missing_images</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">exist_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">parsed</span><span class="p">[</span><span class="s1">&#39;new_fpath&#39;</span><span class="p">])</span>
     <span class="n">missing_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nExist = </span><span class="si">%r</span><span class="s1"> / </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nMissing = </span><span class="si">%r</span><span class="s1"> / </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">missing_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;nExist = </span><span class="si">%r</span><span class="s1"> / </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;nMissing = </span><span class="si">%r</span><span class="s1"> / </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">missing_flags</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">exist_flags</span><span class="p">)))</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">missing_flags</span><span class="p">):</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">missing_flags</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Downloading missing subset&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Downloading missing subset&#39;</span><span class="p">)</span>
         <span class="n">_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">missing</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">],</span> <span class="n">missing</span><span class="p">[</span><span class="s1">&#39;new_fpath&#39;</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">num</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Only downloading </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Only downloading </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
 
-        <span class="kn">from</span> <span class="nn">concurrent</span> <span class="k">import</span> <span class="n">futures</span>
+        <span class="kn">from</span> <span class="nn">concurrent</span> <span class="kn">import</span> <span class="n">futures</span>
 
         <span class="n">ex</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
         <span class="n">fs</span> <span class="o">=</span> <span class="p">[</span>
@@ -1516,7 +1548,7 @@
     <span class="c1"># Remove corrupted or ill-formatted images</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking for corrupted images&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking for corrupted images&#39;</span><span class="p">)</span>
     <span class="n">fpaths</span> <span class="o">=</span> <span class="n">parsed_dl</span><span class="p">[</span><span class="s1">&#39;new_fpath&#39;</span><span class="p">]</span>
     <span class="n">valid_flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">filterflags_valid_images</span><span class="p">(</span><span class="n">fpaths</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">parsed_dl</span> <span class="o">=</span> <span class="n">parsed_dl</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">valid_flags</span><span class="p">)</span>
@@ -1526,7 +1558,7 @@
 <div class="viewcode-block" id="postprocess_uuids"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.postprocess_uuids">[docs]</a><span class="k">def</span> <span class="nf">postprocess_uuids</span><span class="p">(</span><span class="n">parsed_dl</span><span class="p">):</span>
     <span class="c1"># Assign uuids based on image content.</span>
     <span class="c1"># Stride of 1 is what IA uses internally</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Assigning file based UUID&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Assigning file based UUID&#39;</span><span class="p">)</span>
     <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span><span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">parsed_dl</span><span class="p">[</span><span class="s1">&#39;uuid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">get_file_uuid</span><span class="p">(</span><span class="n">fpath_</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1537,14 +1569,14 @@
 
 <div class="viewcode-block" id="postprocess_rectify_duplicates"><a class="viewcode-back" href="../../../wbia.scripts.html#wbia.scripts.getshark.postprocess_rectify_duplicates">[docs]</a><span class="k">def</span> <span class="nf">postprocess_rectify_duplicates</span><span class="p">(</span><span class="n">unmerged</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Rectify duplicate uuid information &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking for duplicate information&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking for duplicate information&#39;</span><span class="p">)</span>
     <span class="c1"># Find rows that have unique uuids</span>
     <span class="n">singles</span> <span class="o">=</span> <span class="n">unmerged</span><span class="o">.</span><span class="n">get_singles</span><span class="p">(</span><span class="s1">&#39;uuid&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique images that appear once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">singles</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique images that appear once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">singles</span><span class="p">)))</span>
 
     <span class="c1"># Find rows with duplicate uuid entries</span>
     <span class="n">multis</span> <span class="o">=</span> <span class="n">unmerged</span><span class="o">.</span><span class="n">get_multis</span><span class="p">(</span><span class="s1">&#39;uuid&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> images that appear more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">multis</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> images that appear more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">multis</span><span class="p">)))</span>
     <span class="c1"># Map other attributes to ordered-sets to join them</span>
     <span class="n">multi_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">unmerged</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="p">[</span><span class="s1">&#39;uuid&#39;</span><span class="p">])</span>
     <span class="n">multis</span><span class="o">.</span><span class="n">cast_column</span><span class="p">(</span><span class="n">multi_keys</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">oset</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
@@ -1552,7 +1584,7 @@
     <span class="n">merged</span> <span class="o">=</span> <span class="n">multis</span><span class="o">.</span><span class="n">merge_rows</span><span class="p">(</span><span class="s1">&#39;uuid&#39;</span><span class="p">)</span>
     <span class="c1"># Cast sets into lists</span>
     <span class="n">merged</span><span class="o">.</span><span class="n">cast_column</span><span class="p">(</span><span class="n">multi_keys</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique images that have duplicates&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">merged</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> unique images that have duplicates&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">merged</span><span class="p">)))</span>
 
     <span class="c1"># Rectify the duplicate information in the multi columns.</span>
     <span class="c1"># Tags/Keywords are simply unioned, leave them as is</span>
@@ -1572,7 +1604,7 @@
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mustfix_keys</span><span class="p">:</span>
         <span class="n">merged</span><span class="o">.</span><span class="n">cast_column</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">v</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking for ambiguous columns&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking for ambiguous columns&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">takeone_keys</span><span class="p">:</span>
         <span class="n">isambiguous</span> <span class="o">=</span> <span class="n">merged</span><span class="o">.</span><span class="n">map_column</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">)</span>
         <span class="n">num</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">isambiguous</span><span class="p">)</span>
@@ -1608,7 +1640,7 @@
 
     <span class="c1"># Combine and return the rectifyied information</span>
     <span class="n">info</span> <span class="o">=</span> <span class="n">singles</span> <span class="o">+</span> <span class="n">merged</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merged duplicates into </span><span class="si">%d</span><span class="s1"> truely unique images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Merged duplicates into </span><span class="si">%d</span><span class="s1"> truely unique images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">info</span></div>
 
 
@@ -1866,7 +1898,7 @@
     <span class="n">invalid_tag_patterns</span> <span class="o">=</span> <span class="n">apply_regex_endings</span><span class="p">(</span><span class="n">invalid_tag_patterns</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">parse_all_fname_tags</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
 
         <span class="n">base</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
         <span class="c1"># base.replace(&#39;(&#39;, &#39;&#39;)</span>
@@ -1904,13 +1936,13 @@
             <span class="p">[(</span><span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">taghist</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_tags</span><span class="p">]</span>
         <span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">unknown_taghist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">unknown_taghist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Known&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">known_taghist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Known&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">known_taghist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
-        <span class="nb">print</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">known_img_tag_list</span><span class="p">)),</span> <span class="n">key_order_metric</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span>
             <span class="p">)</span>
@@ -1953,18 +1985,18 @@
 <span class="c1">#        XMLdata = ut.url_read(url)</span>
 <span class="c1">#        #with open(&#39;XMLData.xml&#39;, &#39;w&#39;) as file_:</span>
 <span class="c1">#        #    file_.write(XMLdata)</span>
-<span class="c1">#    print(&#39;Downloading&#39;)</span>
+<span class="c1">#    logger.info(&#39;Downloading&#39;)</span>
 <span class="c1">#    download_sharks(XMLdata, number)</span>
 <span class="c1">#    #download_sharks(XMLdata, number)</span>
 
 
 <span class="c1"># def usage():</span>
-<span class="c1">#    print(&#39;Fetches a number of images from the ECOCEAN shark database.&#39;)</span>
-<span class="c1">#    print(&#39;Options:&#39;)</span>
-<span class="c1">#    print(&#39;  -f &lt;FILENAME&gt; - Reads XML data from a file, rather than a URL.&#39;)</span>
-<span class="c1">#    print(&#39;  -u &lt;URL&gt; - Reads XML data from the given URL.&#39;)</span>
-<span class="c1">#    print(&#39;  -n &lt;NUMBER&gt; - Number of images to read; if omitted, reads all of them.&#39;)</span>
-<span class="c1">#    print(&#39;  -h - Prints this help text.&#39;)</span>
+<span class="c1">#    logger.info(&#39;Fetches a number of images from the ECOCEAN shark database.&#39;)</span>
+<span class="c1">#    logger.info(&#39;Options:&#39;)</span>
+<span class="c1">#    logger.info(&#39;  -f &lt;FILENAME&gt; - Reads XML data from a file, rather than a URL.&#39;)</span>
+<span class="c1">#    logger.info(&#39;  -u &lt;URL&gt; - Reads XML data from the given URL.&#39;)</span>
+<span class="c1">#    logger.info(&#39;  -n &lt;NUMBER&gt; - Number of images to read; if omitted, reads all of them.&#39;)</span>
+<span class="c1">#    logger.info(&#39;  -h - Prints this help text.&#39;)</span>
 
 
 <span class="c1"># if __name__ == &#39;__main__&#39;:</span>
@@ -2004,17 +2036,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -2031,7 +2061,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

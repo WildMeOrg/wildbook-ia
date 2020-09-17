@@ -1,19 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>wbia.web.apis_microsoft &#8212; wbia 3.0.2 documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.apis_microsoft &#8212; wbia 3.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -35,18 +34,19 @@
   <h1>Source code for wbia.web.apis_microsoft</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;Dependencies: flask, tornado.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="k">import</span> <span class="n">controller_inject</span>
-<span class="kn">from</span> <span class="nn">flask_swagger</span> <span class="k">import</span> <span class="n">swagger</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">flask_swagger</span> <span class="kn">import</span> <span class="n">swagger</span>
 <span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">current_app</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">jsonify</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">current_app</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">jsonify</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
     <span class="vm">__name__</span>
@@ -58,7 +58,10 @@
 
 
 <span class="k">def</span> <span class="nf">_prefix</span><span class="p">(</span><span class="n">route</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-    <span class="n">rule</span> <span class="o">=</span> <span class="s1">&#39;/</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">PREFIX</span><span class="p">,</span> <span class="n">route</span><span class="p">,)</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="s1">&#39;/</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">PREFIX</span><span class="p">,</span>
+        <span class="n">route</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">while</span> <span class="s1">&#39;//&#39;</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">:</span>
         <span class="n">rule</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;//&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rule</span>
@@ -322,7 +325,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">swag</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="n">current_app</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
         <span class="c1"># ut.embed()</span>
 
     <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wild Me - IA (Image Analysis)&#39;</span>
@@ -427,7 +430,7 @@
 <span class="sd">      415:</span>
 <span class="sd">        description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">wbia.web.apis</span> <span class="k">import</span> <span class="n">image_upload</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.apis</span> <span class="kn">import</span> <span class="n">image_upload</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">gid</span> <span class="o">=</span> <span class="n">image_upload</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -527,9 +530,10 @@
         <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;Viewpoint must be a string&#39;</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Viewpoint cannot be empty&#39;</span>
-            <span class="k">assert</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;Invalid viewpoint provided.  Must be one of: </span><span class="si">%s</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="o">.</span><span class="n">keys</span><span class="p">()),)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span>
+            <span class="p">),</span> <span class="s1">&#39;Invalid viewpoint provided.  Must be one of: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -560,7 +564,7 @@
     <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span></div>
 
 
@@ -743,7 +747,7 @@
 
 
 <div class="viewcode-block" id="microsoft_detect_input_validation"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_detect_input_validation">[docs]</a><span class="k">def</span> <span class="nf">microsoft_detect_input_validation</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">,</span> <span class="n">use_nms</span><span class="p">,</span> <span class="n">nms_threshold</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">wbia.algo.detect.lightnet</span> <span class="k">import</span> <span class="n">CONFIG_URL_DICT</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect.lightnet</span> <span class="kn">import</span> <span class="n">CONFIG_URL_DICT</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;model&#39;</span>
@@ -798,7 +802,7 @@
         <span class="c1">#     # Do not commit results, return them outright</span>
         <span class="c1">#     aids_list = ibs.commit_localization_results(gid_list, results_list)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
         <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebException</span><span class="p">(</span>
             <span class="s1">&#39;Detection process failed for an unknown reason&#39;</span>
         <span class="p">)</span>
@@ -899,7 +903,7 @@
             <span class="n">ibs</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">,</span> <span class="n">use_nms</span><span class="p">,</span> <span class="n">nms_threshold</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
         <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebException</span><span class="p">(</span>
             <span class="s1">&#39;Detection process failed for an unknown reason&#39;</span>
         <span class="p">)</span>
@@ -908,7 +912,7 @@
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">detections_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="n">detections</span> <span class="o">=</span> <span class="n">detections_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">detections</span></div>
 
 
@@ -1313,7 +1317,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
 
-    <span class="kn">from</span> <span class="nn">wbia.web.apis_query</span> <span class="k">import</span> <span class="n">query_chips_graph_match_thumb</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.apis_query</span> <span class="kn">import</span> <span class="n">query_chips_graph_match_thumb</span>
 
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">query_annotation</span><span class="p">)</span>
     <span class="n">daid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">database_annotation</span><span class="p">)</span>
@@ -1551,21 +1555,6 @@
         <span class="n">response</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">response</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m wbia.web.app</span>
-<span class="sd">        python -m wbia.web.app --allexamples</span>
-<span class="sd">        python -m wbia.web.app --allexamples --noface --nosrc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">multiprocessing</span>
-
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
-
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -1601,17 +1590,15 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1628,7 +1615,7 @@
       &copy;2020, Wild Me.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
