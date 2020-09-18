@@ -18,7 +18,6 @@ wbia - Wildbook IA
    wbia.plottool
    wbia.scripts
    wbia.templates
-   wbia.tests
    wbia.viz
    wbia.web
 
@@ -130,14 +129,6 @@ wbia.images
 -----------
 
 .. automodule:: wbia.images
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-wbia.main\_module
------------------
-
-.. automodule:: wbia.main_module
    :members:
    :undoc-members:
    :show-inheritance:

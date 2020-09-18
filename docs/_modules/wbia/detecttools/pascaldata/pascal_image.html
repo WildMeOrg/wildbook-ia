@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.detecttools.pascaldata.pascal_image &#8212; wbia 3.3.0 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for wbia.detecttools.pascaldata.pascal_image</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">xml</span>
+
+<span class="kn">from</span> <span class="nn">wbia.detecttools.pascaldata</span> <span class="kn">import</span> <span class="n">common</span> <span class="k">as</span> <span class="n">com</span>
+<span class="kn">from</span> <span class="nn">wbia.detecttools.pascaldata.pascal_object</span> <span class="kn">import</span> <span class="n">PASCAL_Object</span>
+
+
+<div class="viewcode-block" id="PASCAL_Image"><a class="viewcode-back" href="../../../../wbia.detecttools.pascaldata.html#wbia.detecttools.pascaldata.pascal_image.PASCAL_Image">[docs]</a><span class="k">class</span> <span class="nc">PASCAL_Image</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">pascali</span><span class="p">,</span> <span class="n">filename_xml</span><span class="p">,</span> <span class="n">absolute_dataset_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename_xml</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">_xml</span><span class="p">:</span>
+            <span class="n">_xml</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">XML</span><span class="p">(</span><span class="n">_xml</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+            <span class="n">pascali</span><span class="o">.</span><span class="n">folder</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_xml</span><span class="p">,</span> <span class="s1">&#39;folder&#39;</span><span class="p">)</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">absolute_dataset_path</span> <span class="o">=</span> <span class="n">absolute_dataset_path</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_xml</span><span class="p">,</span> <span class="s1">&#39;filename&#39;</span><span class="p">)</span>
+
+            <span class="n">source</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_xml</span><span class="p">,</span> <span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">source_database</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s1">&#39;database&#39;</span><span class="p">)</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">source_annotation</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s1">&#39;annotation&#39;</span><span class="p">)</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">source_image</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">)</span>
+
+            <span class="n">size</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_xml</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">))</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">))</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">))</span>
+
+            <span class="n">pascali</span><span class="o">.</span><span class="n">segmented</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="s1">&#39;segmented&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span>
+
+            <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">objects_patches</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">objects_invalid</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">com</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_xml</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">singularize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">PASCAL_Object</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">temp</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;object_min_width&#39;</span><span class="p">]</span>
+                    <span class="ow">and</span> <span class="n">temp</span><span class="o">.</span><span class="n">height</span> <span class="o">&gt;</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;object_min_height&#39;</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pascali</span><span class="o">.</span><span class="n">objects_invalid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+            <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">categories</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_exclude_categories&#39;</span><span class="p">]:</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_negatives&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">flag</span><span class="p">:</span>
+                <span class="n">negatives</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_max_attempts&#39;</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">negatives</span> <span class="o">&gt;=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_max_keep&#39;</span><span class="p">]:</span>
+                        <span class="k">break</span>
+
+                    <span class="n">width</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">randInt</span><span class="p">(</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_width_min&#39;</span><span class="p">],</span>
+                        <span class="nb">min</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_width_max&#39;</span><span class="p">]),</span>
+                    <span class="p">)</span>
+                    <span class="n">height</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">randInt</span><span class="p">(</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_height_min&#39;</span><span class="p">],</span>
+                        <span class="nb">min</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_height_max&#39;</span><span class="p">]),</span>
+                    <span class="p">)</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">randInt</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">randInt</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+                    <span class="n">obj</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;xmax&#39;</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">width</span><span class="p">,</span>
+                        <span class="s1">&#39;xmin&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+                        <span class="s1">&#39;ymax&#39;</span><span class="p">:</span> <span class="n">y</span> <span class="o">+</span> <span class="n">height</span><span class="p">,</span>
+                        <span class="s1">&#39;ymin&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
+                    <span class="p">}</span>
+
+                    <span class="n">overlap_names</span> <span class="o">=</span> <span class="n">pascali</span><span class="o">.</span><span class="n">_overlaps</span><span class="p">(</span>
+                        <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_overlap_margin&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlap_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">PASCAL_Object</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;MINED&#39;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">negatives</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_patches&#39;</span><span class="p">]:</span>
+                <span class="n">patch_width</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_patch_width&#39;</span><span class="p">]</span>
+                <span class="n">patch_height</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_patch_height&#39;</span><span class="p">]</span>
+                <span class="n">x_length</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">patch_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">y_length</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="n">patch_height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">x_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x_length</span> <span class="o">/</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_patch_stride_suggested&#39;</span><span class="p">])</span>
+                <span class="n">y_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y_length</span> <span class="o">/</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_patch_stride_suggested&#39;</span><span class="p">])</span>
+
+                <span class="n">x_bins</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_bins</span><span class="p">)</span>
+                <span class="n">y_bins</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">)</span>
+                <span class="n">patch_stride_x</span> <span class="o">=</span> <span class="n">x_length</span> <span class="o">/</span> <span class="n">x_bins</span>
+                <span class="n">patch_stride_y</span> <span class="o">=</span> <span class="n">y_length</span> <span class="o">/</span> <span class="n">y_bins</span>
+                <span class="c1"># pascali.show()</span>
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">y_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">x_min</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">patch_stride_x</span><span class="p">)</span>
+                        <span class="n">y_min</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">patch_stride_y</span><span class="p">)</span>
+                        <span class="n">x_max</span> <span class="o">=</span> <span class="n">x_min</span> <span class="o">+</span> <span class="n">patch_width</span>
+                        <span class="n">y_max</span> <span class="o">=</span> <span class="n">y_min</span> <span class="o">+</span> <span class="n">patch_height</span>
+                        <span class="k">assert</span> <span class="p">(</span>
+                            <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x_min</span>
+                            <span class="ow">and</span> <span class="n">x_max</span> <span class="o">&lt;</span> <span class="n">pascali</span><span class="o">.</span><span class="n">width</span>
+                            <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">y_min</span>
+                            <span class="ow">and</span> <span class="n">y_max</span> <span class="o">&lt;</span> <span class="n">pascali</span><span class="o">.</span><span class="n">height</span>
+                        <span class="p">)</span>
+                        <span class="c1"># Add patch</span>
+                        <span class="n">obj</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="s1">&#39;xmax&#39;</span><span class="p">:</span> <span class="n">x_max</span><span class="p">,</span>
+                            <span class="s1">&#39;xmin&#39;</span><span class="p">:</span> <span class="n">x_min</span><span class="p">,</span>
+                            <span class="s1">&#39;ymax&#39;</span><span class="p">:</span> <span class="n">y_max</span><span class="p">,</span>
+                            <span class="s1">&#39;ymin&#39;</span><span class="p">:</span> <span class="n">y_min</span><span class="p">,</span>
+                        <span class="p">}</span>
+                        <span class="n">overlap_names</span> <span class="o">=</span> <span class="n">pascali</span><span class="o">.</span><span class="n">_overlaps</span><span class="p">(</span>
+                            <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mine_patch_overlap_margin&#39;</span><span class="p">]</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlap_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">overlap_name</span> <span class="ow">in</span> <span class="n">overlap_names</span><span class="p">:</span>
+                                <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">overlap_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                                <span class="n">pascali</span><span class="o">.</span><span class="n">objects_patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                    <span class="n">PASCAL_Object</span><span class="p">(</span>
+                                        <span class="n">obj</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span>
+                                    <span class="p">)</span>
+                                <span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">pascali</span><span class="o">.</span><span class="n">objects_patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="n">PASCAL_Object</span><span class="p">(</span>
+                                    <span class="n">obj</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;NEGATIVE&#39;</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="n">pascali</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;IBEIS Image Object | </span><span class="si">%s</span><span class="s1"> | </span><span class="si">%d</span><span class="s1"> objects&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">pascali</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="n">pascali</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;IBEIS Image Object | </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="n">pascali</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_distance</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+        <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">p1</span>
+        <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">p2</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_overlaps</span><span class="p">(</span>
+        <span class="n">pascali</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mf">0.50</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+            <span class="n">x_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;xmax&#39;</span><span class="p">],</span> <span class="n">_obj</span><span class="o">.</span><span class="n">xmax</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;xmin&#39;</span><span class="p">],</span> <span class="n">_obj</span><span class="o">.</span><span class="n">xmin</span><span class="p">))</span>
+            <span class="n">y_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;ymax&#39;</span><span class="p">],</span> <span class="n">_obj</span><span class="o">.</span><span class="n">ymax</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;ymin&#39;</span><span class="p">],</span> <span class="n">_obj</span><span class="o">.</span><span class="n">ymin</span><span class="p">))</span>
+            <span class="n">area_overlap</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x_overlap</span> <span class="o">*</span> <span class="n">y_overlap</span><span class="p">)</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;xmax&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;xmin&#39;</span><span class="p">]</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;ymax&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;ymin&#39;</span><span class="p">]</span>
+            <span class="n">area_total</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">height</span><span class="p">,</span> <span class="n">_obj</span><span class="o">.</span><span class="n">area</span><span class="p">)</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">area_overlap</span> <span class="o">/</span> <span class="n">area_total</span>
+            <span class="c1"># print(score)</span>
+            <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="n">margin</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_obj</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">_obj</span><span class="o">.</span><span class="n">pose_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">))</span>
+
+<div class="viewcode-block" id="PASCAL_Image.image_path"><a class="viewcode-back" href="../../../../wbia.detecttools.pascaldata.html#wbia.detecttools.pascaldata.pascal_image.PASCAL_Image.image_path">[docs]</a>    <span class="k">def</span> <span class="nf">image_path</span><span class="p">(</span><span class="n">pascali</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">absolute_dataset_path</span><span class="p">,</span> <span class="s1">&#39;JPEGImages&#39;</span><span class="p">,</span> <span class="n">pascali</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PASCAL_Image.categories"><a class="viewcode-back" href="../../../../wbia.detecttools.pascaldata.html#wbia.detecttools.pascaldata.pascal_image.PASCAL_Image.categories">[docs]</a>    <span class="k">def</span> <span class="nf">categories</span><span class="p">(</span><span class="n">pascali</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">patches</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">[</span><span class="n">_object</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">patches</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">+=</span> <span class="p">[</span><span class="n">_object</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects_patches</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">unique</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PASCAL_Image.bounding_boxes"><a class="viewcode-back" href="../../../../wbia.detecttools.pascaldata.html#wbia.detecttools.pascaldata.pascal_image.PASCAL_Image.bounding_boxes">[docs]</a>    <span class="k">def</span> <span class="nf">bounding_boxes</span><span class="p">(</span><span class="n">pascali</span><span class="p">,</span> <span class="n">parts</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_object</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_accuracy_match</span><span class="p">(</span><span class="n">pascali</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">object_list</span><span class="p">):</span>
+
+        <span class="c1"># For this non-supressed prediction, compute and assign to the closest bndbox</span>
+        <span class="n">centerx</span><span class="p">,</span> <span class="n">centery</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">supressed</span> <span class="o">=</span> <span class="n">prediction</span>
+
+        <span class="n">index_best</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">score_best</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">_object</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">object_list</span><span class="p">):</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="n">maxx</span> <span class="o">-</span> <span class="n">minx</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="n">maxy</span> <span class="o">-</span> <span class="n">miny</span>
+
+            <span class="n">x_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">maxx</span><span class="p">,</span> <span class="n">_object</span><span class="o">.</span><span class="n">xmax</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">minx</span><span class="p">,</span> <span class="n">_object</span><span class="o">.</span><span class="n">xmin</span><span class="p">))</span>
+            <span class="n">y_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">maxy</span><span class="p">,</span> <span class="n">_object</span><span class="o">.</span><span class="n">ymax</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">miny</span><span class="p">,</span> <span class="n">_object</span><span class="o">.</span><span class="n">ymin</span><span class="p">))</span>
+            <span class="n">area_overlap</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x_overlap</span> <span class="o">*</span> <span class="n">y_overlap</span><span class="p">)</span>
+            <span class="n">area_total</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span> <span class="o">+</span> <span class="n">_object</span><span class="o">.</span><span class="n">area</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">area_overlap</span> <span class="o">/</span> <span class="p">(</span><span class="n">area_total</span> <span class="o">-</span> <span class="n">area_overlap</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="n">score_best</span><span class="p">:</span>
+                <span class="c1"># Wooo! Found a (probably) better candidate, but...</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">==</span> <span class="n">score_best</span><span class="p">:</span>
+                    <span class="c1"># Well, this is awkward?</span>
+                    <span class="k">assert</span> <span class="n">index_best</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>  <span class="c1"># Just to be sure</span>
+                    <span class="n">_object_best</span> <span class="o">=</span> <span class="n">object_list</span><span class="p">[</span><span class="n">index_best</span><span class="p">]</span>
+
+                    <span class="n">a</span> <span class="o">=</span> <span class="n">pascali</span><span class="o">.</span><span class="n">_distance</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">centerx</span><span class="p">,</span> <span class="n">centery</span><span class="p">),</span> <span class="p">(</span><span class="n">_object_best</span><span class="o">.</span><span class="n">xcenter</span><span class="p">,</span> <span class="n">_object_best</span><span class="o">.</span><span class="n">ycenter</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">b</span> <span class="o">=</span> <span class="n">pascali</span><span class="o">.</span><span class="n">_distance</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">centerx</span><span class="p">,</span> <span class="n">centery</span><span class="p">),</span> <span class="p">(</span><span class="n">_object</span><span class="o">.</span><span class="n">xcenter</span><span class="p">,</span> <span class="n">_object</span><span class="o">.</span><span class="n">ycenter</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">:</span>
+                        <span class="c1"># Not a better candidate based on distance</span>
+                        <span class="k">continue</span>
+                    <span class="k">elif</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">:</span>
+                        <span class="c1"># First come, first serve</span>
+                        <span class="k">continue</span>
+                <span class="c1"># Save new best</span>
+                <span class="n">score_best</span> <span class="o">=</span> <span class="n">score</span>
+                <span class="n">index_best</span> <span class="o">=</span> <span class="n">index</span>
+
+        <span class="k">return</span> <span class="n">index_best</span><span class="p">,</span> <span class="n">score_best</span>
+
+<div class="viewcode-block" id="PASCAL_Image.accuracy"><a class="viewcode-back" href="../../../../wbia.detecttools.pascaldata.html#wbia.detecttools.pascaldata.pascal_image.PASCAL_Image.accuracy">[docs]</a>    <span class="k">def</span> <span class="nf">accuracy</span><span class="p">(</span><span class="n">pascali</span><span class="p">,</span> <span class="n">prediction_list</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="c1"># PASCAL ACCURACY MEASUREMENT</span>
+        <span class="n">object_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span> <span class="o">+</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects_invalid</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_object</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">category</span><span class="p">:</span>
+                <span class="n">object_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_object</span><span class="p">)</span>
+
+        <span class="c1"># Trivial case</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">prediction_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+
+        <span class="n">true_positive</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">false_positive</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">counters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">prediction_list</span><span class="p">:</span>
+            <span class="n">centerx</span><span class="p">,</span> <span class="n">centery</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">confidence</span><span class="p">,</span> <span class="n">supressed</span> <span class="o">=</span> <span class="n">prediction</span>
+            <span class="k">if</span> <span class="n">supressed</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">index_best</span><span class="p">,</span> <span class="n">score_best</span> <span class="o">=</span> <span class="n">pascali</span><span class="o">.</span><span class="n">_accuracy_match</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">object_list</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">score_best</span> <span class="o">&gt;=</span> <span class="n">alpha</span><span class="p">:</span>
+                    <span class="n">counters</span><span class="p">[</span><span class="n">index_best</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">true_positive</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">false_positive</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">false_negative</span> <span class="o">=</span> <span class="n">counters</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">true_positive</span><span class="p">)</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="n">true_positive</span> <span class="o">+</span> <span class="n">false_positive</span> <span class="o">+</span> <span class="n">false_negative</span>
+        <span class="k">assert</span> <span class="n">recall</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">precision</span> <span class="o">/</span> <span class="n">recall</span><span class="p">,</span> <span class="n">true_positive</span><span class="p">,</span> <span class="n">false_positive</span><span class="p">,</span> <span class="n">false_negative</span></div>
+
+<div class="viewcode-block" id="PASCAL_Image.show"><a class="viewcode-back" href="../../../../wbia.detecttools.pascaldata.html#wbia.detecttools.pascaldata.pascal_image.PASCAL_Image.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span>
+        <span class="n">pascali</span><span class="p">,</span>
+        <span class="n">objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">parts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">display</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">prediction_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">category</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_draw_box</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">stroke</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">font</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">FONT_HERSHEY_SIMPLEX</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getTextSize</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">font</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="n">color</span><span class="p">,</span> <span class="n">stroke</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">top</span><span class="p">:</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">-</span> <span class="n">height</span><span class="p">),</span> <span class="p">(</span><span class="n">xmin</span> <span class="o">+</span> <span class="n">width</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">color</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">putText</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="p">(</span><span class="n">xmin</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">font</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">height</span><span class="p">),</span> <span class="p">(</span><span class="n">xmin</span> <span class="o">+</span> <span class="n">width</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="n">color</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">putText</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="p">(</span><span class="n">xmin</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="n">font</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+
+        <span class="n">original</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">openImage</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">image_path</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">color_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">randColor</span><span class="p">()</span>
+            <span class="n">color_dict</span><span class="p">[</span><span class="n">_object</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+            <span class="n">_draw_box</span><span class="p">(</span>
+                <span class="n">original</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">ymax</span><span class="p">,</span>
+                <span class="n">color</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">parts</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">_object</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+                    <span class="n">_draw_box</span><span class="p">(</span>
+                        <span class="n">original</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">ymax</span><span class="p">,</span>
+                        <span class="n">color</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects_invalid</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">color_dict</span><span class="p">[</span><span class="n">_object</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+            <span class="n">_draw_box</span><span class="p">(</span>
+                <span class="n">original</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">ymax</span><span class="p">,</span>
+                <span class="n">color</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">parts</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">_object</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+                    <span class="n">_draw_box</span><span class="p">(</span>
+                        <span class="n">original</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">ymax</span><span class="p">,</span>
+                        <span class="n">color</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects_patches</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_object</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">]</span>
+            <span class="n">color_dict</span><span class="p">[</span><span class="n">_object</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+            <span class="n">_draw_box</span><span class="p">(</span>
+                <span class="n">original</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span>
+                <span class="n">_object</span><span class="o">.</span><span class="n">ymax</span><span class="p">,</span>
+                <span class="n">color</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">parts</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">_object</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+                    <span class="n">_draw_box</span><span class="p">(</span>
+                        <span class="n">original</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span>
+                        <span class="n">part</span><span class="o">.</span><span class="n">ymax</span><span class="p">,</span>
+                        <span class="n">color</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">prediction_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">category</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">object_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">_object</span> <span class="ow">in</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects</span> <span class="o">+</span> <span class="n">pascali</span><span class="o">.</span><span class="n">objects_invalid</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">_object</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">category</span><span class="p">:</span>
+                    <span class="n">object_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_object</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">prediction_list</span><span class="p">:</span>
+                <span class="p">(</span>
+                    <span class="n">centerx</span><span class="p">,</span>
+                    <span class="n">centery</span><span class="p">,</span>
+                    <span class="n">minx</span><span class="p">,</span>
+                    <span class="n">miny</span><span class="p">,</span>
+                    <span class="n">maxx</span><span class="p">,</span>
+                    <span class="n">maxy</span><span class="p">,</span>
+                    <span class="n">confidence</span><span class="p">,</span>
+                    <span class="n">supressed</span><span class="p">,</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="n">prediction</span>
+                <span class="k">if</span> <span class="n">supressed</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">index_best</span><span class="p">,</span> <span class="n">score_best</span> <span class="o">=</span> <span class="n">pascali</span><span class="o">.</span><span class="n">_accuracy_match</span><span class="p">(</span>
+                            <span class="n">prediction</span><span class="p">,</span> <span class="n">object_list</span>
+                        <span class="p">)</span>
+                        <span class="n">_object_best</span> <span class="o">=</span> <span class="n">object_list</span><span class="p">[</span><span class="n">index_best</span><span class="p">]</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="n">color_dict</span><span class="p">[</span><span class="n">_object_best</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">score_best</span> <span class="o">&gt;=</span> <span class="n">alpha</span><span class="p">:</span>
+                            <span class="n">annotation</span> <span class="o">=</span> <span class="s1">&#39;DETECT [TRUE POS </span><span class="si">%.2f</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">score_best</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">annotation</span> <span class="o">=</span> <span class="s1">&#39;DETECT [FALSE POS </span><span class="si">%.2f</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">score_best</span>
+                        <span class="n">cv2</span><span class="o">.</span><span class="n">line</span><span class="p">(</span>
+                            <span class="n">original</span><span class="p">,</span>
+                            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">minx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">miny</span><span class="p">)),</span>
+                            <span class="p">(</span><span class="n">_object_best</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span> <span class="n">_object_best</span><span class="o">.</span><span class="n">ymin</span><span class="p">),</span>
+                            <span class="n">color</span><span class="p">,</span>
+                            <span class="mi">1</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">cv2</span><span class="o">.</span><span class="n">line</span><span class="p">(</span>
+                            <span class="n">original</span><span class="p">,</span>
+                            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">minx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxy</span><span class="p">)),</span>
+                            <span class="p">(</span><span class="n">_object_best</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span> <span class="n">_object_best</span><span class="o">.</span><span class="n">ymax</span><span class="p">),</span>
+                            <span class="n">color</span><span class="p">,</span>
+                            <span class="mi">1</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">cv2</span><span class="o">.</span><span class="n">line</span><span class="p">(</span>
+                            <span class="n">original</span><span class="p">,</span>
+                            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">maxx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">miny</span><span class="p">)),</span>
+                            <span class="p">(</span><span class="n">_object_best</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span> <span class="n">_object_best</span><span class="o">.</span><span class="n">ymin</span><span class="p">),</span>
+                            <span class="n">color</span><span class="p">,</span>
+                            <span class="mi">1</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">cv2</span><span class="o">.</span><span class="n">line</span><span class="p">(</span>
+                            <span class="n">original</span><span class="p">,</span>
+                            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">maxx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxy</span><span class="p">)),</span>
+                            <span class="p">(</span><span class="n">_object_best</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span> <span class="n">_object_best</span><span class="o">.</span><span class="n">ymax</span><span class="p">),</span>
+                            <span class="n">color</span><span class="p">,</span>
+                            <span class="mi">1</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">annotation</span> <span class="o">=</span> <span class="s1">&#39;DETECT [FALSE POS]&#39;</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">]</span>
+                    <span class="n">_draw_box</span><span class="p">(</span>
+                        <span class="n">original</span><span class="p">,</span>
+                        <span class="n">annotation</span><span class="p">,</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">minx</span><span class="p">),</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">miny</span><span class="p">),</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">maxx</span><span class="p">),</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">maxy</span><span class="p">),</span>
+                        <span class="n">color</span><span class="p">,</span>
+                        <span class="n">stroke</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">pascali</span><span class="o">.</span><span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39; with Bounding Boxes&#39;</span><span class="p">,</span> <span class="n">original</span><span class="p">)</span>
+            <span class="n">cont</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">destroyAllWindows</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">cont</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">original</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wbia.html">wbia - Wildbook IA</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../../wbia.html">wbia</a><ul>
+  <li><a href="../pascaldata.html">wbia.detecttools.pascaldata</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
