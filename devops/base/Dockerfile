@@ -2,7 +2,9 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
+ENV LC_ALL C.UTF-8
 
+ENV LANG C.UTF-8
 
 # Install requirements
 RUN apt-get update \
