@@ -28,11 +28,6 @@ FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
 LABEL autoheal=true
 
-# Create runtime user "wbia" (aka WildBook IA)
-RUN set -x \
- && addgroup --system wbia \
- && adduser --system --group wbia
-
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
@@ -42,6 +37,9 @@ ADD ./_config/theanorc /root/.theanorc
 
 # Add embed script for python development
 ADD ./_config/embed.sh /bin/embed
+
+# Add embed script for python development
+ADD ./_config/shell.sh /bin/shell
 
 # Add Python health check
 ADD ./_config/healthcheck.py /bin/healthcheck.py
