@@ -25,7 +25,7 @@ class OrigAnnotInference(object):
         python -m wbia.unstable.orig_graph_iden OrigAnnotInference:2 --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.unstable.orig_graph_iden import *  # NOQA
         >>> import wbia
         >>> #qreq_ = wbia.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
