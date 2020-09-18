@@ -31,8 +31,11 @@ import utool as ut
 import ubelt as ub
 from six.moves import zip, range
 
+from wbia.dtool import sqlite3 as lite
 from wbia.dtool.sql_control import SQLDatabaseController
 from wbia.dtool.types import TYPE_TO_SQLTYPE
+
+import time
 
 
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
@@ -2029,7 +2032,7 @@ class DependencyCacheTable(
 
     # @profile
     def ensure_rows(
-        table, parent_ids_, preproc_args, config=None, verbose=True, _debug=None
+        table, parent_ids_, preproc_args, config=None, verbose=True, _debug=None, retry=3, retry_delay=5
     ):
         """
         Lazy addition
@@ -2052,93 +2055,105 @@ class DependencyCacheTable(
             >>> result = ('rowids = %r' % (rowids,))
             >>> print(result)
         """
-        _debug = table.depc._debug if _debug is None else _debug
-        # Get requested configuration id
-        config_rowid = table.get_config_rowid(config)
+        try:
+            _debug = table.depc._debug if _debug is None else _debug
+            # Get requested configuration id
+            config_rowid = table.get_config_rowid(config)
 
-        # Check which rows are already computed
-        initial_rowid_list = table._get_rowid(parent_ids_, config=config)
-        initial_rowid_list = list(initial_rowid_list)
+            # Check which rows are already computed
+            initial_rowid_list = table._get_rowid(parent_ids_, config=config)
+            initial_rowid_list = list(initial_rowid_list)
 
-        if table.depc._debug:
-            logger.info(
-                '[deptbl.ensure] initial_rowid_list = %s'
-                % (ut.trunc_repr(initial_rowid_list),)
-            )
-            logger.info('[deptbl.ensure] config_rowid = %r' % (config_rowid,))
-
-        # Get corresponding "dirty" parent rowids
-        isdirty_list = ut.flag_None_items(initial_rowid_list)
-        num_dirty = sum(isdirty_list)
-        num_total = len(parent_ids_)
-
-        if num_dirty > 0:
-            with ut.Indenter('[ADD]', enabled=_debug):
-                if verbose or _debug:
-                    logger.info(
-                        'Add %d / %d new rows to %r'
-                        % (
-                            num_dirty,
-                            num_total,
-                            table.tablename,
-                        )
-                    )
-                    logger.info(
-                        '[deptbl.add]  * config_rowid = {}, config={}'.format(
-                            config_rowid, str(config)
-                        )
-                    )
-
-                dirty_parent_ids_ = ut.compress(parent_ids_, isdirty_list)
-                dirty_preproc_args_ = ut.compress(preproc_args, isdirty_list)
-
-                # Process only unique items
-                unique_flags = ut.flag_unique_items(dirty_parent_ids_)
-                dirty_parent_ids = ut.compress(dirty_parent_ids_, unique_flags)
-                dirty_preproc_args = ut.compress(dirty_preproc_args_, unique_flags)
-
-                # Break iterator into chunks
-                if False and verbose:
-                    # check parent configs we are working with
-                    for x, parname in enumerate(table.parents()):
-                        if parname == table.depc.root:
-                            continue
-                        parent_table = table.depc[parname]
-                        ut.take_column(parent_ids_, x)
-                        rowid_list = ut.take_column(parent_ids_, x)
-                        try:
-                            parent_history = parent_table.get_config_history(rowid_list)
-                            logger.info('parent_history = %r' % (parent_history,))
-                        except KeyError:
-                            logger.info(
-                                '[depcache_table] WARNING: config history is having troubles... says Jon'
-                            )
-
-                # Gives the function a hacky cache to use between chunks
-                table._hack_chunk_cache = {}
-                gen = table._chunk_compute_dirty_rows(
-                    dirty_parent_ids, dirty_preproc_args, config_rowid, config
+            if table.depc._debug:
+                logger.info(
+                    '[deptbl.ensure] initial_rowid_list = %s'
+                    % (ut.trunc_repr(initial_rowid_list),)
                 )
-                """
-                colnames, dirty_params_iter, nChunkInput = next(gen)
-                """
-                for colnames, dirty_params_iter, nChunkInput in gen:
-                    table.db._add(
-                        table.tablename, colnames, dirty_params_iter, nInput=nChunkInput
-                    )
+                logger.info('[deptbl.ensure] config_rowid = %r' % (config_rowid,))
 
-                # Remove cache when main add is done
-                table._hack_chunk_cache = None
-                if verbose or _debug:
-                    logger.info('[deptbl.add] finished add')
-                #
-                # The requested data is clean and must now exist in the parent
-                # database, do a lookup to ensure the correct order.
-                rowid_list = table._get_rowid(parent_ids_, config=config)
-        else:
-            rowid_list = initial_rowid_list
-        if _debug:
-            logger.info('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
+            # Get corresponding "dirty" parent rowids
+            isdirty_list = ut.flag_None_items(initial_rowid_list)
+            num_dirty = sum(isdirty_list)
+            num_total = len(parent_ids_)
+
+            if num_dirty > 0:
+                with ut.Indenter('[ADD]', enabled=_debug):
+                    if verbose or _debug:
+                        logger.info(
+                            'Add %d / %d new rows to %r'
+                            % (
+                                num_dirty,
+                                num_total,
+                                table.tablename,
+                            )
+                        )
+                        logger.info(
+                            '[deptbl.add]  * config_rowid = {}, config={}'.format(
+                                config_rowid, str(config)
+                            )
+                        )
+
+                    dirty_parent_ids_ = ut.compress(parent_ids_, isdirty_list)
+                    dirty_preproc_args_ = ut.compress(preproc_args, isdirty_list)
+
+                    # Process only unique items
+                    unique_flags = ut.flag_unique_items(dirty_parent_ids_)
+                    dirty_parent_ids = ut.compress(dirty_parent_ids_, unique_flags)
+                    dirty_preproc_args = ut.compress(dirty_preproc_args_, unique_flags)
+
+                    # Break iterator into chunks
+                    if False and verbose:
+                        # check parent configs we are working with
+                        for x, parname in enumerate(table.parents()):
+                            if parname == table.depc.root:
+                                continue
+                            parent_table = table.depc[parname]
+                            ut.take_column(parent_ids_, x)
+                            rowid_list = ut.take_column(parent_ids_, x)
+                            try:
+                                parent_history = parent_table.get_config_history(rowid_list)
+                                logger.info('parent_history = %r' % (parent_history,))
+                            except KeyError:
+                                logger.info(
+                                    '[depcache_table] WARNING: config history is having troubles... says Jon'
+                                )
+
+                    # Gives the function a hacky cache to use between chunks
+                    table._hack_chunk_cache = {}
+                    gen = table._chunk_compute_dirty_rows(
+                        dirty_parent_ids, dirty_preproc_args, config_rowid, config
+                    )
+                    """
+                    colnames, dirty_params_iter, nChunkInput = next(gen)
+                    """
+                    for colnames, dirty_params_iter, nChunkInput in gen:
+                        table.db._add(
+                            table.tablename, colnames, dirty_params_iter, nInput=nChunkInput
+                        )
+
+                    # Remove cache when main add is done
+                    table._hack_chunk_cache = None
+                    if verbose or _debug:
+                        logger.info('[deptbl.add] finished add')
+                    #
+                    # The requested data is clean and must now exist in the parent
+                    # database, do a lookup to ensure the correct order.
+                    rowid_list = table._get_rowid(parent_ids_, config=config)
+            else:
+                rowid_list = initial_rowid_list
+            if _debug:
+                logger.info('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
+        except lite.IntegrityError:
+            if retry <= 0:
+                raise
+
+            logger.error('DEPC ENSURE_ROWS FOR TABLE %r FAILED DUE TO INTEGRITY ERROR (RETRY %d)!' % (table, retry, ))
+            logger.error('\t WAITING %d SECONDS THEN RETRYING' % (retry_delay, ))
+            time.sleep(retry_delay)
+
+            retry_ = retry - 1
+            rowid_list = table.ensure_rows(parent_ids_, preproc_args, config=config, verbose=verbose, _debug=_debug, retry=retry_, retry_delay=retry_delay)
+
         return rowid_list
 
     def _rectify_ids(table, parent_rowids):

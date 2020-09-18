@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtGui as QtWidgets
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets
 
 # from wbia.guitool import guitool_components
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)

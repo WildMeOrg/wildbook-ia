@@ -28,14 +28,6 @@ wbia.guitool.PreferenceWidget module
     :undoc-members:
     :show-inheritance:
 
-wbia.guitool.\_api\_tree\_node\_cython module
----------------------------------------------
-
-.. automodule:: wbia.guitool._api_tree_node_cython
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 wbia.guitool.api\_button\_delegate module
 -----------------------------------------
 

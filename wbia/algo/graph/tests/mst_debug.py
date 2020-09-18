@@ -5,9 +5,12 @@ import networkx as nx
 import utool as ut
 import pandas as pd
 import numpy as np
+from wbia.algo.graph.nx_utils import connected_component_subgraphs
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
+
 
 edges = {
     2234: {5383: {'decision': 'match', 'reviewed_tags': ['needswork']}},
@@ -159,7 +162,7 @@ except Exception:
         values={edge: 10.0 + _randint() for edge in candidate_mst_edges},
     )
 new_edges = []
-for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+for cc_sub_graph in connected_component_subgraphs(aug_graph):
     mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
     # Only add edges not in the original graph
     for edge in mst_sub_graph.edges():

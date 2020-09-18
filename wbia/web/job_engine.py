@@ -1713,8 +1713,14 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('Exiting engine loop')
 
 
-def on_engine_request(ibs, jobid, action, args, kwargs):
+def on_engine_request(ibs, jobid, action, args, kwargs, attempts=3, retry_delay=60):
     """ Run whenever the engine recieves a message """
+    assert attempts > 0
+    attempts = int(attempts)
+
+    assert 0 <= retry_delay and retry_delay <= 60 * 60
+    retry_delay = int(retry_delay)
+
     # Start working
     if VERBOSE_JOBS:
         logger.info('starting job=%r' % (jobid,))
@@ -1738,7 +1744,19 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
     exec_status = None
     while exec_status is None:
         try:
-            result = action_func(*args, **kwargs)
+            attempt = 0
+            while attempt < 10:  # Global max attempts of 10
+                attempt += 1
+                try:
+                    result = action_func(*args, **kwargs)
+                    break  # success, no exception, break out of the loop
+                except Exception:
+                    if attempt < attempts:
+                        logger.error('JOB %r FAILED (attempt %d of %d)!' % (jobid, attempt, attempts, ))
+                        logger.error('\t WAITING %d SECONDS THEN RETRYING' % (retry_delay, ))
+                        time.sleep(retry_delay)
+                    else:
+                        raise
             exec_status = 'completed'
         except Exception as ex:
             # Remove __jobid__ from kwargs if it's not accepted by the action_func

@@ -18,6 +18,7 @@ from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__.QtCore import Qt
 from wbia.plottool import fig_presenter
 import wbia.guitool as gt
+from wbia.algo.graph.nx_utils import connected_component_subgraphs
 
 # import six
 import utool as ut
@@ -551,7 +552,7 @@ class QueryResultsWidget(gt.APIItemWidget):
 
             graph = nx.Graph()
             graph.add_edges_from(list(zip(aids1, aids2)), {'user_thresh_match': True})
-            review_groups = list(nx.connected_component_subgraphs(graph))
+            review_groups = list(connected_component_subgraphs(graph))
 
             changing_aids = list(graph.nodes())
             nids = ibs.get_annot_nids(changing_aids)
@@ -560,7 +561,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 # Connect all original names in the database to denote merges
                 for u, v in ut.itertwo(aids):
                     graph.add_edge(u, v)
-            dbside_groups = list(nx.connected_component_subgraphs(graph))
+            dbside_groups = list(connected_component_subgraphs(graph))
 
             options = [
                 'Accept',

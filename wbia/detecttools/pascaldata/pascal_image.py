@@ -6,8 +6,8 @@ import os
 import math
 import xml.etree.ElementTree as xml
 
-from . import common as com
-from .pascal_object import PASCAL_Object
+from wbia.detectools.pascaldata import common as com
+from wbia.detectools.pascaldata.pascal_object import PASCAL_Object
 
 
 class PASCAL_Image(object):  # NOQA

@@ -19,7 +19,8 @@ pydot-ng
 pyfiglet
 
 pytesseract
-tensorflow==1.8
+tensorflow==1.15.3
+tensorboard_logger
 
 # pygpu
 Theano
