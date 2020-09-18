@@ -926,8 +926,13 @@ class JobInterface(object):
                     [jobiface.id_] * num_records,
                 )
             )
-            values_list = ut.util_parallel.generate2(initialize_process_record, arg_iter,)
-            values_list = list(values_list)
+            if len(arg_iter) > 0:
+                values_list = ut.util_parallel.generate2(
+                    initialize_process_record, arg_iter,
+                )
+                values_list = list(values_list)
+            else:
+                values_list = []
 
             restart_jobcounter_list = []
             restart_jobid_list = []
@@ -1640,8 +1645,19 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('Exiting engine loop')
 
 
-def on_engine_request(ibs, jobid, action, args, kwargs):
+def on_engine_request(
+    ibs, jobid, action, args, kwargs, attempts=3, retry_delay_min=1, retry_delay_max=60
+):
     """ Run whenever the engine recieves a message """
+    assert attempts > 0
+    attempts = int(attempts)
+
+    assert 0 <= retry_delay_min and retry_delay_min <= 60 * 60
+    retry_delay_min = int(retry_delay_min)
+    assert 0 <= retry_delay_max and retry_delay_max <= 60 * 60
+    retry_delay_max = int(retry_delay_max)
+    assert retry_delay_min < retry_delay_max
+
     # Start working
     if VERBOSE_JOBS:
         logger.info('starting job=%r' % (jobid,))
@@ -1665,7 +1681,25 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
     exec_status = None
     while exec_status is None:
         try:
-            result = action_func(*args, **kwargs)
+            attempt = 0
+            while attempt < 10:  # Global max attempts of 10
+                attempt += 1
+                try:
+                    result = action_func(*args, **kwargs)
+                    break  # success, no exception, break out of the loop
+                except Exception:
+                    if attempt < attempts:
+                        logger.error(
+                            'JOB %r FAILED (attempt %d of %d)!'
+                            % (jobid, attempt, attempts,)
+                        )
+                        retry_delay = random.uniform(retry_delay_min, retry_delay_max)
+                        logger.error(
+                            '\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,)
+                        )
+                        time.sleep(retry_delay)
+                    else:
+                        raise
             exec_status = 'completed'
         except Exception as ex:
             # Remove __jobid__ from kwargs if it's not accepted by the action_func
