@@ -65,8 +65,6 @@ RUN mkdir -p /wbia
 # Create virtualenv location
 RUN mkdir -p /virtualenv
 
-# Install cmake and ninja
-RUN /usr/bin/pip3 install cmake ninja
 # Install Python Virtual Environments
 RUN set -ex \
  && /usr/bin/pip3 install virtualenv
@@ -74,6 +72,23 @@ RUN set -ex \
 # Create virtualenvs for Python3
 RUN set -ex \
  && virtualenv -p $(which python3.7) /virtualenv/env3
+
+# Install PyPI packages
+RUN set -ex \
+ && /virtualenv/env3/bin/pip install --upgrade \
+        pip \
+ && /virtualenv/env3/bin/pip install --upgrade \
+        # Install build requirements
+        cmake!=3.18.2 \
+        ninja \
+        scikit-build \
+        setuptools>=42 \
+        setuptools_scm[toml]>=3.4 \
+        cython \
+        # Install OpenCV dependencies
+        numpy \
+        # Install handy developer tools
+        ipython
 
 # Install CNMeM
 RUN set -ex \

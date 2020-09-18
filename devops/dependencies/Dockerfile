@@ -5,11 +5,6 @@ RUN git clone https://github.com/Theano/libgpuarray.git                   /wbia/
  && git clone https://github.com/Theano/Theano.git                        /wbia/Theano \
  && git clone https://github.com/networkx/networkx.git                    /wbia/networkx
 
-# Install basic Python3 dependencies (and ones that were missing in IBEIS install)
-RUN /virtualenv/env3/bin/pip install \
-    numpy==1.17.0 \
-    ipython==5.5.0
-
 ARG OPENCV_VERSION=3.4.10
 
 # Install OpenCV
@@ -86,8 +81,6 @@ RUN ln -s /virtualenv/env3/lib/python3.7/site-packages/cv2/python-3.7/cv2.cpytho
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate && python3 -c "import cv2; print(cv2.getBuildInformation())"'
 
-RUN /virtualenv/env3/bin/pip install \
-    cython==0.28.1
 
 # Install libgpuarray (pygpu)
 RUN set -ex \
