@@ -149,7 +149,7 @@ def _init_transforms(**kwargs):
         phase: torchvision.transforms.Compose(
             [
                 AUGMENTATION[phase](**kwargs),
-                lambda array: PIL.Image.fromarray(array),
+                torchvision.transforms.Lambda(PIL.Image.fromarray),
                 torchvision.transforms.ToTensor(),
                 torchvision.transforms.Normalize(
                     [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
@@ -436,6 +436,7 @@ def train(
     class_weights={},
     multi=PARALLEL,
     sample_multiplier=2.0,
+    allow_missing_validation_classes=False,
     **kwargs,
 ):
     # Detect if we have a GPU available
@@ -472,7 +473,8 @@ def train(
     train_classes = datasets['train'].classes
     val_classes = datasets['val'].classes
 
-    assert len(train_classes) == len(val_classes)
+    if not allow_missing_validation_classes:
+        assert len(train_classes) == len(val_classes)
     num_classes = len(train_classes)
 
     logger.info('Initializing Model...')
