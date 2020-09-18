@@ -57,21 +57,13 @@ RUN . /virtualenv/env3/bin/activate \
 
 # Build Python repositories with external codebases
 RUN set -ex \
-    && apt-get update \
-    && apt-get install -y \
-        liblz4-dev \
     && /bin/bash -xc '. /virtualenv/env3/bin/activate \
         && cd /wbia/flann \
         && /bin/bash run_developer_setup.sh' \
-    && rm -rf /var/lib/apt/lists/*
 RUN set -ex \
-    && apt-get update \
-    && apt-get install -y \
-        libhdf5-serial-dev \
     && /bin/bash -xc '. /virtualenv/env3/bin/activate \
         && cd /wbia/hesaff \
         && /bin/bash run_developer_setup.sh' \
-    && rm -rf /var/lib/apt/lists/*
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/brambox \
  && /virtualenv/env3/bin/pip install -e .'

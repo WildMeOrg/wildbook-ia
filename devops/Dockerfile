@@ -27,13 +27,6 @@ COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
 
-RUN apt-get update \
-    && apt-get install -y \
-        libgtk-3-dev \
-        libtbb-dev \
-        libdc1394-22-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 

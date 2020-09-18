@@ -1,31 +1,5 @@
 FROM wildme/wbia-base:latest as org.wildme.wbia.dependencies
 
-# Install OpenCV requirements
-RUN apt-get update \
-    && apt-get install -y \
-        build-essential \
-        cmake \
-        git \
-        pkg-config \
-        libgtk-3-dev \
-        # libavcodec-dev \
-        # libavformat-dev \
-        libswscale-dev \
-        # libv4l-dev \
-        # libxvidcore-dev \
-        # libx264-dev \
-        libjpeg-dev \
-        libpng-dev \
-        libtiff-dev \
-        gfortran \
-        openexr \
-        libatlas-base-dev \
-        python3-dev \
-        libtbb2 \
-        libtbb-dev \
-        libdc1394-22-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Clone other Github repositories
 RUN git clone https://github.com/Theano/libgpuarray.git                   /wbia/libgpuarray \
  && git clone https://github.com/Theano/Theano.git                        /wbia/Theano \
@@ -138,10 +112,7 @@ RUN set -ex \
 
 # Install pygraphviz (for developer use)
 RUN set -ex \
- && apt-get update \
- && apt-get install -y libgraphviz-dev \
- && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/" \
- && rm -rf /var/lib/apt/lists/*
+ && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
 # Install Python dependencies
 RUN set -ex \

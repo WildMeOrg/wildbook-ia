@@ -6,9 +6,15 @@ ENV LC_ALL C.UTF-8
 
 ENV LANG C.UTF-8
 
-# Install requirements
-RUN apt-get update \
- && apt-get install -y \
+USER root
+
+# Install package updates and dependencies
+RUN set -ex \
+ && apt update \
+ && apt upgrade -y \
+ && apt dist-upgrade -y \
+ && apt install -y \
+        # Install build requirements
         ca-certificates \
         build-essential \
         pkg-config \
@@ -17,32 +23,42 @@ RUN apt-get update \
         python3.7-dev \
         python3.7-gdbm \
         python3-pip \
- && rm -rf /var/lib/apt/lists/*
-
-# Install developer tools
-RUN apt-get update \
- && apt-get install -y \
-        git \
-        tmux \
-        htop \
-        ipython \
-        ipython3 \
-        python3-gdbm \
+        # Install dependencies for NVTOP
+        libncurses5-dev \
+        libncursesw5-dev \
+        # Install dependencies for OpenCV
+        libgflags-dev \
+        libeigen3-dev \
+        libgtk2.0-dev \
+        # Install dependencies for PyHesaff
+        libhdf5-serial-dev \
+        # Install dependencies for PyFLANN
+        liblz4-dev \
+        # Install dependencies for pygraphviz
         graphviz \
-        vim \
-        unzip \
+        libgraphviz-dev \
+        # Install run-time tools
+        gosu \
         xvfb \
+        # Install handy developer tools
+        curl \
+        git \
+        htop \
+        locate \
+        tmux \
+        unzip \
+        vim \
+        wget \
+ && apt clean \
+ && apt autoclean \
+ && apt autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Docker CE
 RUN set -ex \
- && apt-get update \
- && apt-get install -y curl \
  && curl -fsSL https://get.docker.com -o get-docker.sh \
- && sh get-docker.sh \
- && apt-get purge -y curl \
- && rm -rf /var/lib/apt/lists/*
- 
+ && sh get-docker.sh
+
 # Create wbia source location
 RUN mkdir -p /wbia
 
@@ -60,17 +76,31 @@ RUN set -ex \
  && virtualenv -p $(which python3.7) /virtualenv/env3
 
 # Install CNMeM
-RUN git clone https://github.com/NVIDIA/cnmem.git /wbia/cnmem \
- && cd /wbia/cnmem/ \
+RUN set -ex \
+ && . /virtualenv/env3/bin/activate \
+ && git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
+ && cd /tmp/cnmem/ \
  && git checkout v1.0.0 \
- && mkdir -p /wbia/cnmem/build \
- && cd /wbia/cnmem/build \
+ && mkdir -p /tmp/cnmem/build \
+ && cd /tmp/cnmem/build \
  && cmake .. \
  && make -j4 \
  && make install \
  && cd .. \
- && rm -rf /wbia/cnmem
+ && rm -rf /tmp/cnmem
 
+# Install NVTOP
+RUN set -ex \
+ && . /virtualenv/env3/bin/activate \
+ && git clone https://github.com/Syllo/nvtop.git /tmp/nvtop \
+ && cd /tmp/nvtop/ \
+ && mkdir -p /tmp/nvtop/build \
+ && cd /tmp/nvtop/build \
+ && cmake .. \
+ && make -j4 \
+ && make install \
+ && cd .. \
+ && rm -rf /tmp/nvtop
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"
