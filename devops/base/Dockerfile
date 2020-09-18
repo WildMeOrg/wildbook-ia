@@ -12,8 +12,10 @@ RUN apt-get update \
         ca-certificates \
         build-essential \
         pkg-config \
-        python3 \
-        python3-dev \
+        # Install Python 3.7 - Pegged to Version 3.7 to support TensorFlow 1.15.3
+        python3.7 \
+        python3.7-dev \
+        python3.7-gdbm \
         python3-pip \
  && rm -rf /var/lib/apt/lists/*
 
@@ -49,6 +51,13 @@ RUN mkdir -p /virtualenv
 
 # Install cmake and ninja
 RUN /usr/bin/pip3 install cmake ninja
+# Install Python Virtual Environments
+RUN set -ex \
+ && /usr/bin/pip3 install virtualenv
+
+# Create virtualenvs for Python3
+RUN set -ex \
+ && virtualenv -p $(which python3.7) /virtualenv/env3
 
 # Install CNMeM
 RUN git clone https://github.com/NVIDIA/cnmem.git /wbia/cnmem \
@@ -62,16 +71,10 @@ RUN git clone https://github.com/NVIDIA/cnmem.git /wbia/cnmem \
  && cd .. \
  && rm -rf /wbia/cnmem
 
-# Install virtualenv PyPI package
-RUN /usr/bin/pip3 install \
-    virtualenv==15.2.0
-
-# Create virtualenvs for Python3
-RUN virtualenv -p $(which python3) /virtualenv/env3
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"
 
-ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
 
 ENV CUDA_HOME "/usr/local/cuda"

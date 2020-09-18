@@ -34,10 +34,6 @@ RUN apt-get update \
         libdc1394-22-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
- && ln -s /virtualenv/env3/lib/libgpuarray.so.3   /usr/lib/libgpuarray.so.3 \
- && ln -s /virtualenv/env3/lib/libgpuarray.so.3.0 /usr/lib/libgpuarray.so.3.0
-
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 
