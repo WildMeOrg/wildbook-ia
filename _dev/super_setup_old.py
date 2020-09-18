@@ -475,7 +475,7 @@ def define_custom_scripts(tpl_rman, wbia_rman, PY2, PY3):
     DEVICE="cuda" python -c "import pygpu;pygpu.test()"
     python -c "import theano; print(theano.__file__)"
     # python -c "import pylearn2; print(pylearn2.__file__)"
-    python -c "import wbia_cnn.__LASAGNE__ as lasagne; print(lasagne.__file__)"
+    python -c "import lasagne; print(lasagne.__file__)"
     python -c "import wbia_cnn; print(wbia_cnn.__file__)"
     python -c "import detecttools; print(detecttools.__file__)"
 
@@ -1447,7 +1447,7 @@ def main():
 
     try:
         import theano  # NOQA
-        import wbia_cnn.__LASAGNE__ as lasagne  # NOQA
+        import lasagne  # NOQA
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')

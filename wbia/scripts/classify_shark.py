@@ -162,7 +162,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     """
 
     def def_lenet(model):
-        import wbia_cnn.__LASAGNE__ as lasange
+        import lasange
         from wbia_cnn import custom_layers
 
         logger.info('[model] init_arch')
@@ -200,7 +200,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         return network_layers_def
 
     def def_resnet(model):
-        import wbia_cnn.__LASAGNE__ as lasange
+        import lasange
         from wbia_cnn import custom_layers
 
         logger.info('[model] init_arch')
@@ -239,7 +239,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
         return network_layers_def
 
     def def_inception(model):
-        import wbia_cnn.__LASAGNE__ as lasange
+        import lasange
         from wbia_cnn import custom_layers
 
         logger.info('[model] init_arch')
@@ -340,7 +340,7 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
     #    output_injur1 = output_activations[:, 0]
     #    output_injur2 = output_activations[:, 1]
     #    output_healthy = (1 - ((1 - output_injur1) * (1 - output_injur2))
-    #    import wbia_cnn.__LASAGNE__ as lasange
+    #    import lasange
     #    lasange.objectives.binary_crossentropy(output_injur1)
     #    lasange.objectives.binary_crossentropy(output_injur2)
 
