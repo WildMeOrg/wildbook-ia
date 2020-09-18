@@ -426,9 +426,9 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         # CNN Dependencies
         tpl_rman.add_repos(
             [
-                'https://github.com/Theano/Theano.git',
+                # 'https://github.com/Theano/Theano.git',
                 # 'https://github.com/lisa-lab/pylearn2.git',
-                'https://github.com/Lasagne/Lasagne.git',
+                # 'https://github.com/Lasagne/Lasagne.git',
             ]
         )
 
