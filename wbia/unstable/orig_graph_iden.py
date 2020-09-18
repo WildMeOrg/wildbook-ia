@@ -25,7 +25,7 @@ class OrigAnnotInference(object):
         python -m wbia.unstable.orig_graph_iden OrigAnnotInference:2 --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.unstable.orig_graph_iden import *  # NOQA
         >>> import wbia
         >>> #qreq_ = wbia.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -47,7 +47,7 @@ class OrigAnnotInference(object):
         >>> graph2 = self2.make_graph(show=True)
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.unstable.orig_graph_iden import *  # NOQA
         >>> import wbia
         >>> a='default:dsize=20,excluderef=True,qnum_names=2,min_pername=3,qsample_per_name=1,dsample_per_name=2',
@@ -68,7 +68,7 @@ class OrigAnnotInference(object):
         >>> ut.show_if_requested()
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.unstable.orig_graph_iden import *  # NOQA
         >>> import wbia
         >>> a='default:dsize=20,excluderef=True,qnum_names=2,min_pername=3,qsample_per_name=1,dsample_per_name=2',
