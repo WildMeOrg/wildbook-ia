@@ -39,16 +39,16 @@ RUN ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
  && ln -s /virtualenv/env3/lib/libgpuarray.so.3.0 /usr/lib/libgpuarray.so.3.0
 
 # Add theano configuration file
-ADD ./provision/_config/theanorc /root/.theanorc
+ADD ./_config/theanorc /root/.theanorc
 
 # Add Boto configuration file for access to AWS S3 storage with this container
-ADD ./provision/_config/boto.cfg /etc/boto.cfg
+ADD ./_config/boto.cfg /etc/boto.cfg
 
 # Add embed script for python development
-ADD ./provision/_config/embed.sh /bin/embed
+ADD ./_config/embed.sh /bin/embed
 
 # Add Python health check
-ADD ./provision/_config/healthcheck.py /bin/healthcheck.py
+ADD ./_config/healthcheck.py /bin/healthcheck.py
 
 RUN mkdir /data
 
