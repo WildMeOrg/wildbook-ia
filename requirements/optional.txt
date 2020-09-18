@@ -8,6 +8,19 @@ Flask-CAS
 flask-cors
 flask-swagger
 jupyter
+# Lasagne
+
+keras>=2.2
+line-profiler
+
+prometheus-client
 pydot
 pydot-ng
 pyfiglet
+
+pytesseract
+tensorboard_logger
+tensorflow==1.15.3
+
+# pygpu
+Theano
