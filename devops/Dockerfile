@@ -2,12 +2,6 @@ FROM wildme/wbia-provision:latest as org.wildme.wbia.build
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-ARG BRANCH=next
-ARG AZURE_DEVOPS_CACHEBUSTER=0
-
-RUN echo "ARGS BRANCH=${BRANCH}"
-RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
-
 RUN git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me Development Nightly Build (Azure CI)"
 
