@@ -28,6 +28,24 @@ FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
 LABEL autoheal=true
 
+ARG VERSION="3.3.0"
+
+ARG VCS_URL="https://github.com/WildbookOrg/wildbook-ia"
+
+ARG VCS_REF="develop"
+
+ARG BUILD_DATE="2020"
+
+LABEL org.wildme.vendor="Wild Me" \
+      org.wildme.url="https://wildme.org" \
+      org.wildme.name="Wildbook IA" \
+      org.wildme.description="Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation" \
+      org.wildme.version=$VERSION \
+      org.wildme.vcs-url=$VCS_URL \
+      org.wildme.vcs-ref=$VCS_REF \
+      org.wildme.build-date=$BUILD_DATE \
+      org.wildme.docker.schema-version="1.0"
+
 ENV HOST_USER root
 
 ENV HOST_UID 0
@@ -36,6 +54,8 @@ ENV AWS_ACCESS_KEY_ID ACCESS_KEY
 
 ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
+WORKDIR /wbia
+
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
@@ -43,14 +63,14 @@ COPY --from=org.wildme.wbia.build /wbia /wbia
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 
+# Add setup script for python development
+ADD ./_config/setup.sh /bin/setup
+
 # Add embed script for python development
 ADD ./_config/embed.sh /bin/embed
 
-# Add embed script for python development
+# Add (non-root) bash shell script for python development
 ADD ./_config/shell.sh /bin/shell
-
-# Add Python health check
-ADD ./_config/healthcheck.py /bin/healthcheck.py
 
 # Add entrypoint
 ADD ./_config/entrypoint.sh /bin/entrypoint
@@ -60,15 +80,16 @@ RUN set -x \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
 
-WORKDIR /wbia
-
-# Port for the web server
-EXPOSE 5000
+# Add Python health check
+ADD ./_config/healthcheck.py /bin/healthcheck.py
 
 HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
 
 STOPSIGNAL SIGTERM
+
+# Port for the web server
+EXPOSE 5000
 
 ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
 
