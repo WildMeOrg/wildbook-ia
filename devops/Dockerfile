@@ -10,7 +10,8 @@ RUN set -ex \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
- && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
+ && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
+ && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
 # Run smoke tests
 RUN set -ex \
@@ -18,10 +19,12 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;   main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie;        from wbia_pie.__main__ import main;   main()" \
  && /virtualenv/env3/bin/python -c "import wbia_flukematch; from wbia_flukematch.plugin import *" \
- && /virtualenv/env3/bin/python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *"\
+ && /virtualenv/env3/bin/python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *" \
  && /virtualenv/env3/bin/python -c "import wbia_finfindr;   from wbia_finfindr._plugin  import *" \
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;    from wbia_kaggle7._plugin   import *" \
- && /virtualenv/env3/bin/python -c "import wbia_deepsense;  from wbia_deepsense._plugin import *"
+ && /virtualenv/env3/bin/python -c "import wbia_deepsense;  from wbia_deepsense._plugin import *" \
+ && find /wbia/wbia* -name '*.a' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wbia* -name '*.so' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}'
 
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
