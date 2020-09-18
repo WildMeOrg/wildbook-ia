@@ -19,6 +19,7 @@ import itertools
 from wbia.plottool.abstract_interaction import AbstractInteraction
 import wbia.plottool as pt
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+from wbia.algo.graph.nx_utils import connected_component_subgraphs
 
 # import sys
 # from os.path import join
@@ -110,7 +111,7 @@ def ensure_names_are_connected(graph, aids_list):
     nx.set_edge_attributes(
         aug_graph, name='weight', values=dict([(edge, 0.1) for edge in orig_edges])
     )
-    for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+    for cc_sub_graph in connected_component_subgraphs(aug_graph):
         mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
         for edge in mst_sub_graph.edges():
             redge = edge[::-1]
@@ -288,7 +289,7 @@ def augment_graph_mst(ibs, graph):
     # Determine which edges need to be added to
     # make original graph connected by name
     aug_graph = aug_digraph.to_undirected()
-    for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+    for cc_sub_graph in connected_component_subgraphs(aug_graph):
         mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
         mst_edges = mst_sub_graph.edges()
         for edge in mst_edges:

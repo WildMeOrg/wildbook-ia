@@ -17,6 +17,11 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+def connected_component_subgraphs(G):
+    for c in nx.connected_components(G):
+        yield G.subgraph(c)
+
+
 def _dz(a, b):
     a = a.tolist() if isinstance(a, np.ndarray) else list(a)
     b = b.tolist() if isinstance(b, np.ndarray) else list(b)
