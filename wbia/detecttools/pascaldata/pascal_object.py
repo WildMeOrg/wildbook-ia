@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
-from . import common as com
-from .pascal_part import PASCAL_Part
+from wbia.detecttools.pascaldata import common as com
+from wbia.detecttools.pascaldata.pascal_part import PASCAL_Part
 
 
 BINS = [

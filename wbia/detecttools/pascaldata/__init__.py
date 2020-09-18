@@ -3,12 +3,13 @@
 
 import os
 from wbia.detecttools.directory import Directory
-from . import common as com
-from pascal_image import PASCAL_Image
+from wbia.detecttools.pascaldata import common as com
+from wbia.detecttools.pascaldata.pascal_image import PASCAL_Image
 
 
 class PASCAL_Data(object):
     def __init__(pascald, dataset_path, **kwargs):
+
         com._kwargs(kwargs, 'object_min_width', 32)
         com._kwargs(kwargs, 'object_min_height', 32)
         com._kwargs(kwargs, 'mine_patches', True)
