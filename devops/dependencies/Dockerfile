@@ -1,10 +1,5 @@
 FROM wildme/wbia-base:latest as org.wildme.wbia.dependencies
 
-# Clone other Github repositories
-RUN git clone https://github.com/Theano/libgpuarray.git                   /wbia/libgpuarray \
- && git clone https://github.com/Theano/Theano.git                        /wbia/Theano \
- && git clone https://github.com/networkx/networkx.git                    /wbia/networkx
-
 ARG OPENCV_VERSION=3.4.10
 
 # Install OpenCV
@@ -84,6 +79,8 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate && python3 -c "import cv2; pr
 
 # Install libgpuarray (pygpu)
 RUN set -ex \
+ && . /virtualenv/env3/bin/activate \
+ && git clone https://github.com/Theano/libgpuarray.git /wbia/libgpuarray \
  && cd /wbia/libgpuarray \
  && git checkout 04c2892 \
  && mkdir -p /wbia/libgpuarray/build \
@@ -99,17 +96,6 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install -e . \
  && rm -rf /wbia/libgpuarray/build
 
-RUN set -ex \
- && /virtualenv/env3/bin/pip install git+https://github.com/aleju/imgaug \
- && /virtualenv/env3/bin/pip install git+https://github.com/pwaller/pyfiglet.git@6dabdb0e720b5a61d81ff819faf0ad86127275fc
-
 # Install pygraphviz (for developer use)
 RUN set -ex \
  && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
-
-# Install Python dependencies
-RUN set -ex \
- && cd /wbia/Theano \
- && /virtualenv/env3/bin/pip install -e . \
- && cd /wbia/networkx \
- && /virtualenv/env3/bin/pip install -e .
