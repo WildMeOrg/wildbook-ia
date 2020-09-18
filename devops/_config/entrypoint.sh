@@ -2,6 +2,8 @@
 
 set -ex
 
+mkdir -p /data/db
+
 chown wbia:wbia /data
 
 chown wbia:wbia /data/db
