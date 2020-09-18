@@ -2,9 +2,9 @@
 
 set -ex
 
-chown wbia:wbia /data 
+chown wbia:wbia /data
 
-chown wbia:wbia /data/db 
+chown wbia:wbia /data/db
 
 chmod 755 /data
 
