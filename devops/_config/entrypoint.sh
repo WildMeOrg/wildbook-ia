@@ -2,15 +2,6 @@
 
 set -ex
 
-mkdir -p /data/db
+adduser --uid ${HOST_UID} --system --no-create-home --group ${HOST_USER}
 
-chown wbia:wbia /data
-
-chown wbia:wbia /data/db
-
-chmod 755 /data
-
-chmod 755 /data/db
-
-# Executes as `wbia` with PID 1
-exec gosu wbia:wbia $@
+exec gosu ${HOST_USER}:${HOST_USER} $@
