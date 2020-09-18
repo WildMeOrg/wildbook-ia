@@ -1,17 +1,17 @@
 FROM wildme/wbia-provision:latest as org.wildme.wbia.build
 
-MAINTAINER Wild Me <dev@wildme.org>
-
-RUN git config --global user.email "dev@wildme.org" \
- && git config --global user.name "Wild Me Development Nightly Build (Azure CI)"
-
-# TODO Temporarily disabled: Checkout latest version of all other repos
-#RUN cd /wbia/wbia \
-# && /virtualenv/env3/bin/python super_setup.py pull \
-# && /virtualenv/env3/bin/python super_setup.py pull
-
-# Remove all git association from the code
-RUN find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf
+# Grab latest code and remove all Git histories from code repositories
+RUN set -ex \
+ && git config --global user.email "dev@wildme.org" \
+ && git config --global user.name "Wild Me" \
+ && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
+    'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
+ && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
+ && git stash && git pull && git stash pop || git reset --hard origin/develop \
+ && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git stash && git pull && git stash pop || git reset --hard origin/develop \
+ && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
+ && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
 RUN /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-python-headless
 
