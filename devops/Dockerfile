@@ -41,9 +41,6 @@ RUN ln -s /virtualenv/env3/lib/libgpuarray.so     /usr/lib/libgpuarray.so \
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 
-# Add Boto configuration file for access to AWS S3 storage with this container
-ADD ./_config/boto.cfg /etc/boto.cfg
-
 # Add embed script for python development
 ADD ./_config/embed.sh /bin/embed
 
