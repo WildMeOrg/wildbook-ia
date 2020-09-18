@@ -12,7 +12,7 @@ on:
 
 jobs:
   devops:
-    name: DevOps container image build
+    name: DevOps nightly image build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -28,17 +28,17 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
 
-      # Build containers
-      - name: Build containers
+      # Build images
+      - name: Build images
         run: bash devops/build.sh ${{ matrix.images }}
 
-      # Log into container registries
+      # Log into image registries
       - name: Log into Docker Hub
         run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
       - name: Log into GitHub Packages
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
-      # Push containers out to container registries
+      # Push images out to image registries
       - name: Push to GitHub Packages
         run: bash devops/publish.sh -t nightly -r docker.pkg.github.com ${{ matrix.images }}
       - name: Push to Docker Hub
