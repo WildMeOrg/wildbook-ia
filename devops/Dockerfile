@@ -21,6 +21,8 @@ RUN /virtualenv/env3/bin/pip uninstall -y dtool-ibeis guitool-ibeis plottool-ibe
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
+LABEL autoheal=true
+
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
@@ -62,10 +64,8 @@ ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wildbook-ia/wbia/dev.py", "--d
 # Ports for the frontend web server
 EXPOSE 5000
 
-HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h  \
+HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
-
-LABEL autoheal=true
 
 STOPSIGNAL SIGTERM
 

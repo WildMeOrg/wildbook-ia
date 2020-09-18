@@ -2,6 +2,9 @@ FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
 MAINTAINER Wild Me <dev@wildme.org>
 
+# Set up xvfb for running gui doctests
+ENV DISPLAY :1
+
 # Clone IBEIS VSTS repositories
 RUN git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-brambox          /wbia/brambox \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann          /wbia/flann \
@@ -130,7 +133,5 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-2d-orientation \
  && pip install -e .'
 
-# Set up xvfb for running gui doctests
-ENV DISPLAY :1
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]
