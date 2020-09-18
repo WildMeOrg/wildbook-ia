@@ -236,7 +236,7 @@ class SQLExecutionContext(object):
 
     # @profile
     def _results_gen(context):
-        """ HELPER - Returns as many results as there are.
+        """HELPER - Returns as many results as there are.
         Careful. Overwrites the results once you call it.
         Basically: Dont call this twice.
         """
@@ -1119,7 +1119,7 @@ class SQLDatabaseController(object):
         op='AND',
         **kwargs,
     ):
-        """ hacked in function for nicer templates
+        """hacked in function for nicer templates
 
         unpack_scalars = True
         kwargs = {}
@@ -1195,8 +1195,7 @@ class SQLDatabaseController(object):
         eager=True,
         **kwargs,
     ):
-        """
-        """
+        """"""
         assert isinstance(colnames, tuple), 'colnames must be a tuple'
 
         if where_clause is None:
@@ -1283,7 +1282,7 @@ class SQLDatabaseController(object):
         assume_unique=False,
         **kwargs,
     ):
-        """ getter
+        """getter
 
         Args:
             tblname (str): table name to get from
@@ -2150,7 +2149,7 @@ class SQLDatabaseController(object):
             ut.writeto(table_fpath, table_csv)
 
     def get_schema_current_autogeneration_str(self, autogen_cmd=''):
-        """ Convenience: Autogenerates the most up-to-date database schema
+        """Convenience: Autogenerates the most up-to-date database schema
 
         CommandLine:
             python -m dtool.sql_control --exec-get_schema_current_autogeneration_str

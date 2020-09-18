@@ -798,8 +798,7 @@ def show_image_time_distributions(ibs, gid_list):
 
 
 def show_time_distributions(ibs, unixtime_list):
-    r"""
-    """
+    r""""""
     # import vtool as vt
     import wbia.plottool as pt
 
@@ -1127,7 +1126,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
 
 def get_short_infostr(ibs):
-    """ Returns printable database information
+    """Returns printable database information
 
     Args:
         ibs (IBEISController):  wbia controller object

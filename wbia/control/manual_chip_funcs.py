@@ -379,8 +379,7 @@ def delete_part_chips(ibs, part_rowid_list, config2_=None):
 
 
 def testdata_ibs():
-    r"""
-    """
+    r""""""
     import wbia
 
     ibs = wbia.opendb('testdb1')

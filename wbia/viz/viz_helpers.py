@@ -200,7 +200,7 @@ def get_timedelta_str(ibs, aid1, aid2):
 
 
 def get_annot_texts(ibs, aid_list, **kwargs):
-    """ Add each type of text_list to the strings list
+    """Add each type of text_list to the strings list
 
     Args:
         ibs (IBEISController):  wbia controller object

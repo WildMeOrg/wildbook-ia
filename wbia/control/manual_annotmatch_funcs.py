@@ -57,7 +57,7 @@ ANNOT_ROWID2 = 'annot_rowid2'
 
 @register_ibs_method
 def _get_all_annotmatch_rowids(ibs):
-    r""" all_annotmatch_rowids <- annotmatch.get_all_rowids()
+    r"""all_annotmatch_rowids <- annotmatch.get_all_rowids()
 
     Returns:
         list_ (list): unfiltered annotmatch_rowids
@@ -144,7 +144,7 @@ def add_annotmatch(
 
 @register_ibs_method
 def delete_annotmatch(ibs, annotmatch_rowid_list):
-    r""" annotmatch.delete(annotmatch_rowid_list)
+    r"""annotmatch.delete(annotmatch_rowid_list)
 
     delete annotmatch rows
 
@@ -182,7 +182,7 @@ def delete_annotmatch(ibs, annotmatch_rowid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annotmatch_aid1(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" aid1_list <- annotmatch.aid1[annotmatch_rowid_list]
+    r"""aid1_list <- annotmatch.aid1[annotmatch_rowid_list]
 
     gets data from the "native" column "aid1" in the "annotmatch" table
 
@@ -222,7 +222,7 @@ def get_annotmatch_aid1(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annotmatch_aid2(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" aid2_list <- annotmatch.aid2[annotmatch_rowid_list]
+    r"""aid2_list <- annotmatch.aid2[annotmatch_rowid_list]
 
     gets data from the "native" column "aid2" in the "annotmatch" table
 
@@ -262,7 +262,7 @@ def get_annotmatch_aid2(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annotmatch_confidence(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" annotmatch_confidence_list <- annotmatch.annotmatch_confidence[annotmatch_rowid_list]
+    r"""annotmatch_confidence_list <- annotmatch.annotmatch_confidence[annotmatch_rowid_list]
 
     gets data from the "native" column "annotmatch_confidence" in the "annotmatch" table
 
@@ -304,7 +304,7 @@ def get_annotmatch_confidence(ibs, annotmatch_rowid_list, eager=True, nInput=Non
 def get_annotmatch_posixtime_modified(
     ibs, annotmatch_rowid_list, eager=True, nInput=None
 ):
-    r""" annotmatch_posixtime_modified_list <- annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]
+    r"""annotmatch_posixtime_modified_list <- annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]
 
     gets data from the "native" column "annotmatch_posixtime_modified" in the "annotmatch" table
 
@@ -344,7 +344,7 @@ def get_annotmatch_posixtime_modified(
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annotmatch_reviewer(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" annotmatch_reviewer_list <- annotmatch.annotmatch_reviewer[annotmatch_rowid_list]
+    r"""annotmatch_reviewer_list <- annotmatch.annotmatch_reviewer[annotmatch_rowid_list]
 
     gets data from the "native" column "annotmatch_reviewer" in the "annotmatch" table
 
@@ -384,7 +384,7 @@ def get_annotmatch_reviewer(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annotmatch_rowid(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" annotmatch_rowid_list <- annotmatch.annotmatch_rowid[annotmatch_rowid_list]
+    r"""annotmatch_rowid_list <- annotmatch.annotmatch_rowid[annotmatch_rowid_list]
 
     gets data from the "native" column "annotmatch_rowid" in the "annotmatch" table
 
@@ -425,7 +425,7 @@ def get_annotmatch_rowid(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 def get_annotmatch_rowid_from_superkey(
     ibs, aid1_list, aid2_list, eager=True, nInput=None
 ):
-    r""" annotmatch_rowid_list <- annotmatch[aid1_list, aid2_list]
+    r"""annotmatch_rowid_list <- annotmatch[aid1_list, aid2_list]
 
     Args:
         superkey lists: aid1_list, aid2_list
@@ -455,7 +455,7 @@ def get_annotmatch_rowid_from_superkey(
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annotmatch_tag_text(ibs, annotmatch_rowid_list, eager=True, nInput=None):
-    r""" annotmatch_tag_text_list <- annotmatch.annotmatch_tag_text[annotmatch_rowid_list]
+    r"""annotmatch_tag_text_list <- annotmatch.annotmatch_tag_text[annotmatch_rowid_list]
 
     gets data from the "native" column "annotmatch_tag_text" in the "annotmatch" table
 
@@ -569,7 +569,7 @@ def get_annotmatch_count(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 def set_annotmatch_confidence(
     ibs, annotmatch_rowid_list, annotmatch_confidence_list, duplicate_behavior='error'
 ):
-    r""" annotmatch_confidence_list -> annotmatch.annotmatch_confidence[annotmatch_rowid_list]
+    r"""annotmatch_confidence_list -> annotmatch.annotmatch_confidence[annotmatch_rowid_list]
 
     Args:
         annotmatch_rowid_list
@@ -598,7 +598,7 @@ def set_annotmatch_posixtime_modified(
     annotmatch_posixtime_modified_list,
     duplicate_behavior='error',
 ):
-    r""" annotmatch_posixtime_modified_list -> annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]
+    r"""annotmatch_posixtime_modified_list -> annotmatch.annotmatch_posixtime_modified[annotmatch_rowid_list]
 
     Args:
         annotmatch_rowid_list
@@ -626,7 +626,7 @@ def set_annotmatch_posixtime_modified(
 def set_annotmatch_reviewer(
     ibs, annotmatch_rowid_list, annotmatch_reviewer_list, duplicate_behavior='error'
 ):
-    r""" annotmatch_reviewer_list -> annotmatch.annotmatch_reviewer[annotmatch_rowid_list]
+    r"""annotmatch_reviewer_list -> annotmatch.annotmatch_reviewer[annotmatch_rowid_list]
 
     Args:
         annotmatch_rowid_list
@@ -654,7 +654,7 @@ def set_annotmatch_reviewer(
 def set_annotmatch_tag_text(
     ibs, annotmatch_rowid_list, annotmatch_tag_text_list, duplicate_behavior='error'
 ):
-    r""" annotmatch_tag_text_list -> annotmatch.annotmatch_tag_text[annotmatch_rowid_list]
+    r"""annotmatch_tag_text_list -> annotmatch.annotmatch_tag_text[annotmatch_rowid_list]
 
     Args:
         annotmatch_rowid_list

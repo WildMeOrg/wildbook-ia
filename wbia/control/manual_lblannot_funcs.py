@@ -68,7 +68,7 @@ def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, alr_confidence_li
 def add_lblannots(
     ibs, lbltype_rowid_list, value_list, note_list=None, lblannot_uuid_list=None
 ):
-    """ Adds new lblannots (labels of annotations)
+    """Adds new lblannots (labels of annotations)
     creates a new uuid for any new pair(type, value)
     #TODO: reverse order of rowid_list value_list in input
     """
@@ -145,7 +145,7 @@ def get_alr_annot_rowids(ibs, alrid_list):
     """
     Args:
         alrid_list (list of rowids): annot + label relationship rows
-    get the annot_rowid belonging to each relationship """
+    get the annot_rowid belonging to each relationship"""
     annot_rowids_list = ibs.db.get(const.AL_RELATION_TABLE, ('annot_rowid',), alrid_list)
     return annot_rowids_list
 
@@ -421,7 +421,7 @@ def set_lblannot_values(ibs, lblannot_rowid_list, value_list):
 @register_ibs_method
 @getter_1toM
 def get_annot_alrids(ibs, aid_list):
-    """ FIXME: __name__
+    """FIXME: __name__
     Get all the relationship ids belonging to the input annotations
     if lblannot lbltype is specified the relationship ids are filtered to
     be only of a specific lbltype/category/type
@@ -481,7 +481,7 @@ def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid):
 def get_annot_lblannot_rowids(ibs, aid_list):
     """
     Returns:
-        list_ (list): the name id of each annotation. """
+        list_ (list): the name id of each annotation."""
     # Get all the annotation lblannot relationships
     # filter out only the ones which specify names
     alrids_list = ibs.get_annot_alrids(aid_list)
@@ -494,7 +494,7 @@ def get_annot_lblannot_rowids(ibs, aid_list):
 def get_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype=None):
     """
     Returns:
-        list_ (list): the name id of each annotation. """
+        list_ (list): the name id of each annotation."""
     # Get all the annotation lblannot relationships
     # filter out only the ones which specify names
     assert _lbltype is not None, 'should be using lbltype_rowids anyway'

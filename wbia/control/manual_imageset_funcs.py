@@ -1636,8 +1636,7 @@ def set_imageset_smart_xml_fnames(
 
 
 def testdata_ibs():
-    r"""
-    """
+    r""""""
     import wbia
 
     ibs = wbia.opendb('testdb1')

@@ -30,7 +30,7 @@ def get_standard_ext(gpath):
 
 @profile
 def parse_imageinfo(gpath):
-    """ Worker function: gpath must be in UNIX-PATH format!
+    """Worker function: gpath must be in UNIX-PATH format!
 
     Args:
         gpath (str): image path

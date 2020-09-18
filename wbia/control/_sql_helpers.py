@@ -123,7 +123,7 @@ def revert_to_backup(ibs):
     db_path_ = '%s_revert.sqlite3' % (fname,)
     ut.move(db_path, db_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,)))
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,),))
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, db_path)
@@ -133,7 +133,7 @@ def revert_to_backup(ibs):
     staging_path_ = '%s_revert.sqlite3' % (fname,)
     ut.move(staging_path, staging_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,)))
+    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext,),))
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, staging_path)

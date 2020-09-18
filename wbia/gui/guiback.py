@@ -77,7 +77,7 @@ def backreport(func):
 
 
 def backblock(func):
-    """ BLOCKING DECORATOR
+    """BLOCKING DECORATOR
     TODO: This decorator has to be specific to either front or back. Is there a
     way to make it more general?
     """
@@ -1483,7 +1483,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def delete_annot(back, aid_list=None):
-        """ Action -> Delete Annotation
+        """Action -> Delete Annotation
 
         CommandLine:
             python -m wbia.gui.guiback --test-delete_annot --show
@@ -3282,7 +3282,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def new_database(back, new_dbdir=None):
-        """ File -> New Database
+        """File -> New Database
 
         Args:
             new_dbdir (None): (default = None)
@@ -3545,7 +3545,7 @@ class MainWindowBackend(GUIBACK_BASE):
         smart_xml_fpath=None,
         defaultdir=None,
     ):
-        """ File -> Import Images From Directory with smart
+        """File -> Import Images From Directory with smart
 
         Args:
             dir_ (None): (default = None)
@@ -3787,7 +3787,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def import_images_from_encounters_1(
         back, dir_list=None, size_filter=None, refresh=True, defaultdir=None
     ):
-        """ File -> Import Images From Encounters (1 level)
+        """File -> Import Images From Encounters (1 level)
 
         Args:
             dir_ (None): (default = None)
@@ -3812,7 +3812,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def import_images_from_encounters_2(
         back, dir_list=None, size_filter=None, refresh=True, defaultdir=None
     ):
-        """ File -> Import Images From Encounters (2 levels)
+        """File -> Import Images From Encounters (2 levels)
 
         Args:
             dir_ (None): (default = None)

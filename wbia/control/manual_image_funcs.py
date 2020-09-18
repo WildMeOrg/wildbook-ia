@@ -185,7 +185,7 @@ def image_base64_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_image_gid(ibs, gid_list, eager=True, nInput=None):
-    """ self verifier
+    """self verifier
 
     CommandLine:
         python -m wbia.control.manual_image_funcs --exec-get_image_gid
@@ -2899,8 +2899,7 @@ def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
 
 
 def testdata_ibs():
-    r"""
-    """
+    r""""""
     import wbia
 
     ibs = wbia.opendb('testdb1')

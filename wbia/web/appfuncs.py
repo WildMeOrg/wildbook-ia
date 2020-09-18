@@ -566,7 +566,7 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         viewpoint_text = viewpoint_text.replace('_5_', 'right')
         assert viewpoint_text in const.VIEW.CODE_TO_INT, (
             'Value %r not in acceptable %s'
-            % (viewpoint_text, ut.repr3(const.VIEW.CODE_TO_INT))
+            % (viewpoint_text, ut.repr3(const.VIEW.CODE_TO_INT),)
         )
         return viewpoint_text
 

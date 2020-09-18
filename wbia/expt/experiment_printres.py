@@ -15,7 +15,7 @@ logger = logging.getLogger('wbia')
 
 
 def get_diffranks(rank_mat, qaids):
-    """ Find rows which scored differently over the various configs
+    """Find rows which scored differently over the various configs
     FIXME: duplicated
     """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]

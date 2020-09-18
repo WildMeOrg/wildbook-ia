@@ -133,7 +133,7 @@ class Neighbors(ut.NiceRepr):
 
 # @profile
 def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
-    r""" Driver logic of query pipeline
+    r"""Driver logic of query pipeline
 
     Note:
         Make sure _pipeline_helpres.testrun_pipeline_upto reflects what happens

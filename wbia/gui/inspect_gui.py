@@ -81,7 +81,7 @@ class CustomFilterModel(gt.FilterProxyModel):
 
 
 class QueryResultsWidget(gt.APIItemWidget):
-    """ Window for gui inspection
+    """Window for gui inspection
 
     CommandLine:
         python -m wbia.gui.inspect_gui --test-QueryResultsWidget --show
@@ -801,7 +801,7 @@ def review_match(
 def get_aidpair_context_menu_options(
     ibs, aid1, aid2, cm, qreq_=None, aid_list=None, **kwargs
 ):
-    """ assert that the ampersand cannot have duplicate keys
+    """assert that the ampersand cannot have duplicate keys
 
     Args:
         ibs (wbia.IBEISController):  wbia controller object

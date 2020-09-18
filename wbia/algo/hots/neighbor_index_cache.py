@@ -807,7 +807,7 @@ def can_request_background_nnindexer():
 
 
 def request_background_nnindexer(qreq_, daid_list):
-    r""" FIXME: Duplicate code
+    r"""FIXME: Duplicate code
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters

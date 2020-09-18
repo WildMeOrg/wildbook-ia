@@ -2644,7 +2644,9 @@ def classifier_cameratrap_precision_recall_algo_display(
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10)
+    plt.title(
+        'ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10,
+    )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
         loc=3,
@@ -3711,7 +3713,9 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10)
+    plt.title(
+        'ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10,
+    )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
         loc=3,
@@ -4349,7 +4353,7 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None, output_pa
 
         canvas = np.hstack((chip, mask, blended))
         output_filepath = join(
-            output_path, 'background.%s.%d.%d.png' % (species, gid, aid,)
+            output_path, 'background.%s.%d.%d.png' % (species, gid, aid,),
         )
         cv2.imwrite(output_filepath, canvas)
 
@@ -4585,7 +4589,9 @@ def aoi2_precision_recall_algo_display(
     best_color2 = color_list[index]
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
-    plt.title('ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10)
+    plt.title(
+        'ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10,
+    )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
         loc=3,

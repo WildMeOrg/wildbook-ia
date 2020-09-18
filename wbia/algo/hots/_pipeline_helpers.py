@@ -199,7 +199,7 @@ def testdata_pre_baselinefilter(
 
 def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     """
-        >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
+    >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
     """
     # TODO: testdata_pre('sver')
     # from wbia.algo import Config
@@ -221,7 +221,7 @@ def testdata_post_sver(
     defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None,
 ):
     """
-        >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
+    >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA
     """
     # TODO: testdata_pre('end')
     # from wbia.algo import Config

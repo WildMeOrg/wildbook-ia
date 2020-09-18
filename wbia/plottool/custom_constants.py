@@ -18,7 +18,7 @@ LARGER = 18
 
 
 def FontProp(*args, **kwargs):
-    r""" overwrite fontproperties with custom settings
+    r"""overwrite fontproperties with custom settings
 
     Kwargs:
         fname=u'',

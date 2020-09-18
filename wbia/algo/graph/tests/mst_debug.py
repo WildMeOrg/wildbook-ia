@@ -9,6 +9,7 @@ import numpy as np
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
+
 edges = {
     2234: {5383: {'decision': 'match', 'reviewed_tags': ['needswork']}},
     2265: {},

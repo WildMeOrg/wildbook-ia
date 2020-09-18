@@ -445,19 +445,19 @@ class QueryRequest(ut.NiceRepr):
 
     @staticmethod
     def _make_anygroup_hashes(annots, nids):
-        """ helper function
+        """helper function
 
-            import wbia
-            qreq_ = wbia.testdata_qreq_(
-                defaultdb='PZ_MTEST',
-                qaid_override=[1, 2, 3, 4, 5, 6, 10, 11],
-                daid_override=[2, 3, 5, 6, 20, 21, 22, 23, 24],
-                )
+        import wbia
+        qreq_ = wbia.testdata_qreq_(
+            defaultdb='PZ_MTEST',
+            qaid_override=[1, 2, 3, 4, 5, 6, 10, 11],
+            daid_override=[2, 3, 5, 6, 20, 21, 22, 23, 24],
+            )
 
-            import wbia
-            qreq_ = wbia.testdata_qreq_(defaultdb='PZ_Master1')
-            %timeit qreq_._make_namegroup_data_hashes()
-            %timeit qreq_._make_namegroup_data_uuids()
+        import wbia
+        qreq_ = wbia.testdata_qreq_(defaultdb='PZ_Master1')
+        %timeit qreq_._make_namegroup_data_hashes()
+        %timeit qreq_._make_namegroup_data_uuids()
 
         """
         # make sure items are sorted to ensure same assignment
@@ -668,7 +668,7 @@ class QueryRequest(ut.NiceRepr):
         return bc_info
 
     def get_full_cfgstr(qreq_):
-        """ main cfgstring used to identify the 'querytype'
+        """main cfgstring used to identify the 'querytype'
         FIXME: name
         params + data + query
         """
@@ -828,8 +828,8 @@ class QueryRequest(ut.NiceRepr):
     # --- Internal Annotation ID Masks ----
 
     def set_internal_masked_daids(qreq_, masked_daid_list):
-        """ used by the pipeline to execute a subset of the query request
-        without modifying important state """
+        """used by the pipeline to execute a subset of the query request
+        without modifying important state"""
         if masked_daid_list is None or len(masked_daid_list) == 0:
             qreq_.internal_daids_mask = None
         else:
@@ -1020,7 +1020,7 @@ class QueryRequest(ut.NiceRepr):
     def get_pipe_cfgstr(qreq_):
         """
         FIXME: name
-        params only """
+        params only"""
         pipe_cfgstr = qreq_.qparams.query_cfgstr
         return pipe_cfgstr
 
@@ -1173,7 +1173,7 @@ class QueryRequest(ut.NiceRepr):
 
     @profile
     def ensure_features(qreq_, verbose=ut.NOT_QUIET, prog_hook=None):
-        r""" ensure features are computed
+        r"""ensure features are computed
         Args:
             verbose (bool):  verbosity flag(default = True)
 

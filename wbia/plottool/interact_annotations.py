@@ -553,8 +553,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.mpl_callback_ids = {}
 
     def connect_mpl_callbacks(self, canvas):
-        """ disconnects matplotlib callbacks specified in the
-        self.mpl_callback_ids dict """
+        """disconnects matplotlib callbacks specified in the
+        self.mpl_callback_ids dict"""
         # http://matplotlib.org/1.3.1/api/backend_bases_api.html
         # Create callback ids
         self.disconnect_mpl_callbacks(canvas)

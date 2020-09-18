@@ -261,7 +261,7 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
 def general_coverage_mask_generator(
     make_mask_func, qreq_, qaid, id_list, fm_list, fs_list, config, cov_cfg
 ):
-    """ agnostic to whether or not the id/fm/fs lists are name or annotation groups
+    """agnostic to whether or not the id/fm/fs lists are name or annotation groups
 
     DEPRICATE
     """
@@ -352,7 +352,7 @@ def get_masks(qreq_, cm, config={}):
 
 
 def evaluate_masks_iter(masks_iter):
-    """ save evaluation of a masks iter
+    """save evaluation of a masks iter
     DEPRICATE
     """
     masks_list = [

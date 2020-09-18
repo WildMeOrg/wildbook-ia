@@ -195,7 +195,7 @@ def dump_hots_tables(ibs):
 
 
 def get_hots_flat_table(ibs):
-    """ Dumps hotspotter flat tables
+    """Dumps hotspotter flat tables
 
     Args:
         ibs (IBEISController):  wbia controller object
@@ -219,7 +219,7 @@ def get_hots_flat_table(ibs):
     column_tups = [
         (int, 'aids', aid_list,),
         (str, 'names', ibs.get_annot_names(aid_list),),
-        (list, 'bbox', list(map(list, ibs.get_annot_bboxes(aid_list),))),
+        (list, 'bbox', list(map(list, ibs.get_annot_bboxes(aid_list),)),),
         (float, 'theta', ibs.get_annot_thetas(aid_list),),
         (str, 'gpaths', ibs.get_annot_image_paths(aid_list),),
         (str, 'notes', ibs.get_annot_notes(aid_list),),

@@ -209,7 +209,7 @@ def ensure_review_image(
     draw_heatmask=False,
     verbose=False,
 ):
-    r""""
+    r""" "
     Create the review image for a pair of annotations
 
     CommandLine:
@@ -1067,7 +1067,7 @@ def query_chips_graph(
         ]
         for summary_key, summary_score_list in summary_list:
             value_list = sorted(
-                list(zip(summary_score_list, cm.daid_list,)), reverse=True
+                list(zip(summary_score_list, cm.daid_list,)), reverse=True,
             )
             n_ = min(len(value_list), n)
             value_list = value_list[:n_]

@@ -2001,7 +2001,7 @@ class DependencyCacheTable(
 
     # @profile
     def ensure_rows(
-        table, parent_ids_, preproc_args, config=None, verbose=True, _debug=None
+        table, parent_ids_, preproc_args, config=None, verbose=True, _debug=None,
     ):
         """
         Lazy addition

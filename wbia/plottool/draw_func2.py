@@ -1920,7 +1920,7 @@ def parse_fontkw(**kwargs):
 
 
 def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
-    """ Base function for text
+    """Base function for text
 
     Kwargs:
         horizontalalignment in ['right', 'center', 'left'],

@@ -671,7 +671,7 @@ ProbchipImgType = dtool.ExternType(
     # isinteractive=True,
 )
 def compute_probchip(depc, aid_list, config=None):
-    """ Computes probability chips using pyrf
+    """Computes probability chips using pyrf
 
     CommandLine:
         python -m wbia.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST

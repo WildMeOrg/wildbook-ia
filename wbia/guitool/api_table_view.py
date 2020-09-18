@@ -48,7 +48,7 @@ class APITableView(API_VIEW_BASE):
     # ---------------
 
     def _init_table_behavior(view):
-        """ Table behavior
+        """Table behavior
 
         SeeAlso:
             api_item_view._init_itemview_behavior
@@ -60,7 +60,7 @@ class APITableView(API_VIEW_BASE):
         view.setIconSize(QtCore.QSize(64, 64))
 
     def _init_header_behavior(view):
-        """ Header behavior
+        """Header behavior
 
         CommandLine:
             python -m wbia.guitool.api_item_widget --test-simple_api_item_widget --show
