@@ -2032,7 +2032,14 @@ class DependencyCacheTable(
 
     # @profile
     def ensure_rows(
-        table, parent_ids_, preproc_args, config=None, verbose=True, _debug=None, retry=3, retry_delay=5
+        table,
+        parent_ids_,
+        preproc_args,
+        config=None,
+        verbose=True,
+        _debug=None,
+        retry=3,
+        retry_delay=5,
     ):
         """
         Lazy addition
@@ -2111,7 +2118,9 @@ class DependencyCacheTable(
                             ut.take_column(parent_ids_, x)
                             rowid_list = ut.take_column(parent_ids_, x)
                             try:
-                                parent_history = parent_table.get_config_history(rowid_list)
+                                parent_history = parent_table.get_config_history(
+                                    rowid_list
+                                )
                                 logger.info('parent_history = %r' % (parent_history,))
                             except KeyError:
                                 logger.info(
@@ -2128,7 +2137,10 @@ class DependencyCacheTable(
                     """
                     for colnames, dirty_params_iter, nChunkInput in gen:
                         table.db._add(
-                            table.tablename, colnames, dirty_params_iter, nInput=nChunkInput
+                            table.tablename,
+                            colnames,
+                            dirty_params_iter,
+                            nInput=nChunkInput,
                         )
 
                     # Remove cache when main add is done
@@ -2147,12 +2159,26 @@ class DependencyCacheTable(
             if retry <= 0:
                 raise
 
-            logger.error('DEPC ENSURE_ROWS FOR TABLE %r FAILED DUE TO INTEGRITY ERROR (RETRY %d)!' % (table, retry, ))
-            logger.error('\t WAITING %d SECONDS THEN RETRYING' % (retry_delay, ))
+            logger.error(
+                'DEPC ENSURE_ROWS FOR TABLE %r FAILED DUE TO INTEGRITY ERROR (RETRY %d)!'
+                % (
+                    table,
+                    retry,
+                )
+            )
+            logger.error('\t WAITING %d SECONDS THEN RETRYING' % (retry_delay,))
             time.sleep(retry_delay)
 
             retry_ = retry - 1
-            rowid_list = table.ensure_rows(parent_ids_, preproc_args, config=config, verbose=verbose, _debug=_debug, retry=retry_, retry_delay=retry_delay)
+            rowid_list = table.ensure_rows(
+                parent_ids_,
+                preproc_args,
+                config=config,
+                verbose=verbose,
+                _debug=_debug,
+                retry=retry_,
+                retry_delay=retry_delay,
+            )
 
         return rowid_list
 

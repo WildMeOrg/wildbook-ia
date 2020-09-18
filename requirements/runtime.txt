@@ -47,10 +47,10 @@ setproctitle
 
 shapely
 simplejson>=3.6.5
-sqlalchemy
 
 sip
 six>=1.10.0
+sqlalchemy
 statsmodels>=0.6.1
 
 torch

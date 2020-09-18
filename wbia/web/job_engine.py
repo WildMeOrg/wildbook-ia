@@ -1752,8 +1752,17 @@ def on_engine_request(ibs, jobid, action, args, kwargs, attempts=3, retry_delay=
                     break  # success, no exception, break out of the loop
                 except Exception:
                     if attempt < attempts:
-                        logger.error('JOB %r FAILED (attempt %d of %d)!' % (jobid, attempt, attempts, ))
-                        logger.error('\t WAITING %d SECONDS THEN RETRYING' % (retry_delay, ))
+                        logger.error(
+                            'JOB %r FAILED (attempt %d of %d)!'
+                            % (
+                                jobid,
+                                attempt,
+                                attempts,
+                            )
+                        )
+                        logger.error(
+                            '\t WAITING %d SECONDS THEN RETRYING' % (retry_delay,)
+                        )
                         time.sleep(retry_delay)
                     else:
                         raise

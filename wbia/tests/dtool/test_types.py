@@ -12,7 +12,10 @@ from wbia.dtool.types import Dict, Integer, List, NDArray, Number, UUID
 
 @pytest.fixture(autouse=True)
 def db():
-    engine = create_engine('sqlite:///:memory:', echo=False,)
+    engine = create_engine(
+        'sqlite:///:memory:',
+        echo=False,
+    )
     with engine.connect() as conn:
         yield conn
 
