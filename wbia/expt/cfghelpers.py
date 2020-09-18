@@ -264,7 +264,7 @@ def parse_cfgstr_list2(
 
 
 def parse_argv_cfg(argname, default=[''], named_defaults_dict=None, valid_keys=None):
-    """ simple configs
+    """simple configs
 
     Args:
         argname (?):

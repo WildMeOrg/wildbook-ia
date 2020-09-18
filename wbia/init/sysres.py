@@ -33,7 +33,7 @@ def _wbia_cache_dump():
 
 
 def _wbia_cache_write(key, val):
-    """ Writes to global IBEIS cache
+    """Writes to global IBEIS cache
     TODO: Use text based config file
     """
     logger.info('[sysres] set %s=%r' % (key, val))
@@ -96,7 +96,7 @@ def get_workdir(allow_gui=True):
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
-    """ Sets the workdirectory for this computer
+    """Sets the workdirectory for this computer
 
     Args:
         work_dir (None): (default = None)

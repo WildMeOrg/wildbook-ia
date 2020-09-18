@@ -1440,7 +1440,8 @@ def main():
         print('python super_setup.py --flann')
 
     try:
-        import theano, lasagne  # NOQA
+        import theano  # NOQA
+        import lasagne  # NOQA
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')

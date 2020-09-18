@@ -39,7 +39,7 @@ def show_sv(
     refine_method=None,
     **kwargs
 ):
-    """ Visualizes spatial verification
+    """Visualizes spatial verification
 
     CommandLine:
         python -m vtool.spatial_verification --test-spatially_verify_kpts --show

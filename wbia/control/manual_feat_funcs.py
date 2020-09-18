@@ -35,7 +35,7 @@ FEAT_NUM_FEAT = 'feature_num_feats'
 @register_ibs_method
 @deleter
 def delete_annot_feats(ibs, aid_list, config2_=None):
-    """ annot.feat.delete(aid_list)
+    """annot.feat.delete(aid_list)
 
     Args:
         aid_list

@@ -249,7 +249,7 @@ def agglomerative_cluster_occurrences(X_data, thresh_sec):
 
 
 def meanshift_cluster_occurrences(X_data, quantile):
-    """ Meanshift occurrence clustering algorithm
+    """Meanshift occurrence clustering algorithm
 
     Args:
         X_data (ndarray):  Length N array of data to cluster
@@ -474,7 +474,7 @@ def testdata_gps():
 
 
 def plot_gps_html(gps_list):
-    """ Plots gps coordinates on a map projection
+    """Plots gps coordinates on a map projection
 
     InstallBasemap:
         sudo apt-get install libgeos-dev

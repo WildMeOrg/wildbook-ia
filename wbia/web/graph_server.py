@@ -14,8 +14,7 @@ log = logging.getLogger('wbia')
 
 class ProcessActorExecutor(ProcessPoolExecutor):
     def __init__(self, actor_class, *args, **kwargs):
-        """Initializes a new ThreadPoolExecutor instance.
-        """
+        """Initializes a new ThreadPoolExecutor instance."""
         super(ProcessActorExecutor, self).__init__(*args, **kwargs)
         self.actor_instance = actor_class()
 
@@ -25,8 +24,7 @@ class ProcessActorExecutor(ProcessPoolExecutor):
 
 class ThreadedActorExecutor(ThreadPoolExecutor):
     def __init__(self, actor_class, *args, **kwargs):
-        """Initializes a new ThreadPoolExecutor instance.
-        """
+        """Initializes a new ThreadPoolExecutor instance."""
         super(ThreadedActorExecutor, self).__init__(*args, **kwargs)
         self.actor_instance = actor_class()
 

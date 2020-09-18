@@ -303,7 +303,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
 
 
 def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
-    """ cacher decorator
+    """cacher decorator
 
     Args:
         tablename (str): the table that the owns the underlying cache

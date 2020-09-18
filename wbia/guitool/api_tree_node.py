@@ -47,7 +47,7 @@ class TreeNode(TREE_NODE_BASE):
         """
         <CYTH returns="TreeNode">
         cdef long index
-         """
+        """
         return self.get_child(index)
 
     def set_children(self, child_nodes):
@@ -72,7 +72,7 @@ class TreeNode(TREE_NODE_BASE):
         """
         <CYTH returns="TreeNode">
         cdef long index
-         """
+        """
         self.lazy_checks()
         return self.child_nodes[index]
 
@@ -92,18 +92,17 @@ class TreeNode(TREE_NODE_BASE):
             raise
 
     def get_num_children(self):
-        """ <CYTH returns=long>
-        """
+        """<CYTH returns=long>"""
         self.lazy_checks()
         return len(self.child_nodes)
 
     def get_id(self):
-        """ Returns python internal id of this class
-        <CYTH returns="long"> """
+        """Returns python internal id of this class
+        <CYTH returns="long">"""
         return self.id_
 
     def get_row(self):
-        """ Returns the row_index of this node w.r.t its parent.
+        """Returns the row_index of this node w.r.t its parent.
 
         cdef list sibling_nodes
         cdef long row
@@ -136,7 +135,7 @@ class TreeNode(TREE_NODE_BASE):
 
 
 def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
-    """ makes a recrusive string representation of a treee
+    """makes a recrusive string representation of a treee
 
     HACK:if charids is 2  uses ordinals instead of characters
     if charirsd is True triesto use Numbers
@@ -186,7 +185,7 @@ def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
 
 
 def _populate_tree_iterative(root_node, num_levels, ider_list):
-    """ Iteratively builds the tree structure. I dont quite trust this yet
+    """Iteratively builds the tree structure. I dont quite trust this yet
     #@cython.boundscheck(False)
     #@cython.wraparound(False)
 

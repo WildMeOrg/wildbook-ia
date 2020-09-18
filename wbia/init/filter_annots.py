@@ -300,7 +300,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
 @profile
 def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
-    for main_helpers """
+    for main_helpers"""
     from wbia.expt import annotation_configs
 
     if verbose is None:

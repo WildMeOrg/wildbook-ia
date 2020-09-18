@@ -18,7 +18,7 @@ def _get_all_known_lblannot_rowids(ibs, _lbltype):
     """
     Returns:
         list_ (list): all nids of known animals
-        (does not include unknown names) """
+        (does not include unknown names)"""
     all_known_lblannot_rowids = ibs.db.get_all_rowids_where(
         const.LBLANNOT_TABLE, 'lbltype_rowid=?', (ibs.lbltype_ids[_lbltype],)
     )
@@ -28,7 +28,7 @@ def _get_all_known_lblannot_rowids(ibs, _lbltype):
 @register_ibs_method
 @adder
 def add_lbltype(ibs, text_list, default_list):
-    """ Adds a label type and its default value
+    """Adds a label type and its default value
     Should only be called at the begining of the program.
     """
     params_iter = zip(text_list, default_list)

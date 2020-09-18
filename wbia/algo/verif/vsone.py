@@ -977,7 +977,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # selected_data_keys[task_key].append(best_data_key)
 
             combo_res = data_combo_res[best_data_key]
-            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'green')
+            ut.cprint(
+                '[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'green',
+            )
             with ut.Indenter('[%s] ' % (best_data_key,)):
                 combo_res.extended_clf_report()
             res = combo_res
@@ -1274,12 +1276,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """
-            >>> from wbia.algo.verif.vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty()
-            >>> pblm.set_pandas_options()
-            >>> pblm.load_samples()
-            >>> pblm.load_features()
-            >>> pblm.evaluate_simple_scores()
+        >>> from wbia.algo.verif.vsone import *  # NOQA
+        >>> pblm = OneVsOneProblem.from_empty()
+        >>> pblm.set_pandas_options()
+        >>> pblm.load_samples()
+        >>> pblm.load_features()
+        >>> pblm.evaluate_simple_scores()
         """
         if task_keys is None:
             task_keys = [pblm.primary_task_key]

@@ -601,7 +601,7 @@ class NeighborIndex(object):
         return nnindexer.prefix1
 
     def get_cfgstr(nnindexer, noquery=False):
-        r""" returns string which uniquely identified configuration and support data
+        r"""returns string which uniquely identified configuration and support data
 
         Args:
             noquery (bool): if True cfgstr is only relevant to building the

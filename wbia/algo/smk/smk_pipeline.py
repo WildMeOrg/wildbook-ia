@@ -186,10 +186,10 @@ class SMKRequest(mc5.EstimatorRequest):
 
     def ensure_data(qreq_):
         """
-            >>> import wbia
-            qreq_ = wbia.testdata_qreq_(
-                defaultdb='Oxford', a='oxford',
-                p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
+        >>> import wbia
+        qreq_ = wbia.testdata_qreq_(
+            defaultdb='Oxford', a='oxford',
+            p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
         logger.info('Ensure data for %s' % (qreq_,))
 

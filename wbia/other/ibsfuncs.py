@@ -197,7 +197,7 @@ def use_images_as_annotations(
     adjust_percent=0.0,
     tags_list=None,
 ):
-    """ Adds an annotation the size of the entire image to each image.
+    """Adds an annotation the size of the entire image to each image.
     adjust_percent - shrinks the ANNOTATION by percentage on each side
     """
     pct = adjust_percent  # Alias
@@ -293,8 +293,7 @@ def assert_singleton_relationship(ibs, alrids_list):
 
 @register_ibs_method
 def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
-    r"""
-    """
+    r""""""
     isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
     try:
         assert not any(isinvalid_list), 'invalid gids: %r' % (
@@ -1486,7 +1485,7 @@ def fix_zero_features(ibs):
 
 @register_ibs_method
 def fix_and_clean_database(ibs):
-    """ Function to run all database cleanup scripts
+    """Function to run all database cleanup scripts
 
     Rename to run_cleanup_scripts
 
@@ -1518,7 +1517,7 @@ def fix_and_clean_database(ibs):
 
 @register_ibs_method
 def fix_exif_data(ibs, gid_list):
-    """ TODO CALL SCRIPT
+    """TODO CALL SCRIPT
 
     Args:
         ibs (IBEISController):  wbia controller object
@@ -1541,7 +1540,7 @@ def fix_exif_data(ibs, gid_list):
 
     gpath_list = ibs.get_image_paths(gid_list)
 
-    pil_img_gen = (Image.open(gpath, 'r') for gpath in gpath_list)  # NOQA
+    pil_img_gen = [Image.open(gpath, 'r') for gpath in gpath_list]  # NOQA
 
     exif_dict_list = [
         vt.get_exif_dict(pil_img)
@@ -2676,7 +2675,7 @@ def print_config_table(ibs, **kwargs):
 
 @register_ibs_method
 def print_imageset_table(ibs, **kwargs):
-    """ Dumps imageset table to stdout
+    """Dumps imageset table to stdout
 
     Kwargs:
         exclude_columns (list):
@@ -2969,7 +2968,7 @@ def make_next_nids(ibs, num=None, str_format=2, species_text=None, location_text
 
 @register_ibs_method
 def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text=None):
-    """ Creates a number of names which are not in the database, but does not
+    """Creates a number of names which are not in the database, but does not
     add them
 
     Args:
@@ -3627,7 +3626,7 @@ def get_dbinfo_str(ibs):
 
 @register_ibs_method
 def get_infostr(ibs):
-    """ Returns sort printable database information
+    """Returns sort printable database information
 
     Args:
         ibs (IBEISController):  wbia controller object
@@ -5396,7 +5395,7 @@ def parse_annot_stats_filter_kws(ibs):
 def get_annot_stats_dict(
     ibs, aids, prefix='', forceall=False, old=True, use_hist=False, **kwargs
 ):
-    """ stats for a set of annots
+    """stats for a set of annots
 
     Args:
         ibs (wbia.IBEISController):  wbia controller object
@@ -6453,7 +6452,7 @@ def get_annot_encounter_text(ibs, aids):
 
 @register_ibs_method
 def get_annot_occurrence_text(ibs, aids):
-    """ Occurrence identifier for annotations
+    """Occurrence identifier for annotations
 
     Args:
         ibs (wbia.IBEISController):  image analysis api

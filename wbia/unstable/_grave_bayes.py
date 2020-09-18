@@ -523,7 +523,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
 
     def trimatch_pmf(match_ab, match_bc, match_ca):
         lookup = {
-            'same': {'same': {'same': 1, 'diff': 0,}, 'diff': {'same': 0, 'diff': 1,}},
+            'same': {'same': {'same': 1, 'diff': 0,}, 'diff': {'same': 0, 'diff': 1,},},
             'diff': {
                 'same': {'same': 0, 'diff': 1,},
                 'diff': {'same': 0.5, 'diff': 0.5,},

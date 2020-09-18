@@ -154,8 +154,8 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
 
     @report_thread_error
     def data(self, qtindex, role=Qt.DisplayRole):
-        """ Returns the data stored under the given role
-        for the item referred to by the qtindex. """
+        """Returns the data stored under the given role
+        for the item referred to by the qtindex."""
         if not qtindex.isValid():
             return QVariantHack()
         # Specify CheckState Role:

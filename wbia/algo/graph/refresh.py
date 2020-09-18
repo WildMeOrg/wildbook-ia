@@ -45,8 +45,7 @@ class RefreshCriteria(object):
         return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
 
     def prob_any_remain(refresh, n_remain_edges=None):
-        """
-        """
+        """"""
         prob_no_event_in_range = refresh._prob_none_remain(n_remain_edges)
         prob_event_in_range = 1 - prob_no_event_in_range
         return prob_event_in_range

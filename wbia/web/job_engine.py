@@ -1518,12 +1518,14 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
         assert dbdir is not None
 
         engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
-        engine_send_sock.setsockopt_string(zmq.IDENTITY, 'engine.%s.%s' % (lane, id_,))
+        engine_send_sock.setsockopt_string(
+            zmq.IDENTITY, 'engine.%s.%s' % (lane, id_,),
+        )
         engine_send_sock.connect(interface_engine_push)
 
         collect_recieve_socket = ctx.socket(zmq.DEALER)
         collect_recieve_socket.setsockopt_string(
-            zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_,)
+            zmq.IDENTITY, 'engine.%s.%s.collect.DEALER' % (lane, id_,),
         )
         collect_recieve_socket.connect(interface_collect_pull)
 
@@ -1532,7 +1534,9 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('engine is initialized')
 
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
-        update_proctitle('engine_loop.%s.%s' % (lane, id_,), dbname=ibs.dbname)
+        update_proctitle(
+            'engine_loop.%s.%s' % (lane, id_,), dbname=ibs.dbname,
+        )
 
         try:
             while True:

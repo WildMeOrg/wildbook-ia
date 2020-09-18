@@ -894,7 +894,7 @@ def filter_annotation_set(
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
-    """ self verifier
+    """self verifier
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.IBEISControl import *  # NOQA
@@ -4135,7 +4135,7 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
-    r""" annot_tags_list <- annot.annot_tags[aid_list]
+    r"""annot_tags_list <- annot.annot_tags[aid_list]
 
     gets data from the "native" column "annot_tags" in the "annot" table
 
@@ -4170,7 +4170,7 @@ def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.setter
 def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error'):
-    r""" annot_tags_list -> annot.annot_tags[aid_list]
+    r"""annot_tags_list -> annot.annot_tags[aid_list]
 
     Args:
         aid_list

@@ -106,7 +106,7 @@ def _set_review_uuids(ibs, review_rowid_list, review_uuid_list):
 def get_review_rowid_from_superkey(
     ibs, aid_1_list, aid_2_list, count_list, eager=False, nInput=None
 ):
-    """ Returns review_rowid_list
+    """Returns review_rowid_list
 
     Args:
         superkey lists: review_rowid_list, aid_list

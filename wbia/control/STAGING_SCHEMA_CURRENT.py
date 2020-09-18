@@ -30,10 +30,10 @@ def update_current(db, ibs=None):
             ('metadata_key', 'TEXT'),
             ('metadata_value', 'TEXT'),
         ],
-        docstr='''
+        docstr="""
         The table that stores permanently all of the metadata about the
         database (tables, etc)
-        ''',
+        """,
         superkeys=[('metadata_key',)],
     )
 
@@ -56,9 +56,9 @@ def update_current(db, ibs=None):
             ('review_meta_decision', 'INTEGER'),
             ('review_metadata_json', 'TEXT'),
         ],
-        docstr='''
+        docstr="""
         Used to store completed user review states of two matched annotations
-        ''',
+        """,
         superkeys=[('annot_1_rowid', 'annot_2_rowid', 'review_count')],
     )
 
@@ -76,9 +76,9 @@ def update_current(db, ibs=None):
                 "INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))",
             ),
         ],
-        docstr='''
+        docstr="""
         Used to store tests given to the user, their responses, and their
         results
-        ''',
+        """,
         superkeys=[('test_uuid',)],
     )

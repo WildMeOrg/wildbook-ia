@@ -1024,7 +1024,7 @@ def update_1_3_4(db, ibs=None):
     TAU = const.TAU
 
     def convert_old_viewpoint_to_yaw(angle):
-        """ we initially had viewpoint coordinates inverted
+        """we initially had viewpoint coordinates inverted
 
         Example:
             >>> # DISABLE_DOCTEST

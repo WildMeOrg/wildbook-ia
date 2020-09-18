@@ -121,7 +121,7 @@ def show_chip(
     config2_=None,
     **kwargs
 ):
-    r""" Driver function to show chips
+    r"""Driver function to show chips
 
     Args:
         ibs (wbia.IBEISController):

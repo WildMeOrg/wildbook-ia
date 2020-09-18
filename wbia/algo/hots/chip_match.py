@@ -140,7 +140,7 @@ def safe_check_nested_lens_eq(arr1, arr2):
         for count, (x, y) in enumerate(zip(arr1, arr2)):
             assert len(x) == len(y), (
                 'inner lengths at position=%r do not correspond (%r != %r)'
-                % (count, len(x), len(y))
+                % (count, len(x), len(y),)
             )
 
 
@@ -919,8 +919,7 @@ class _ChipMatchScorers(object):
 
 
 class MatchBaseIO(object):
-    """
-    """
+    """"""
 
     @classmethod
     def load_from_fpath(cls, fpath, verbose=ut.VERBOSE):
@@ -2700,7 +2699,7 @@ class ChipMatch(
         return out
 
     def shortlist_subset(cm, top_aids):
-        """ returns a new cmtup_old with only the requested daids
+        """returns a new cmtup_old with only the requested daids
         TODO: rectify with take_feature_matches
         """
         idx_list = ut.dict_take(cm.daid2_idx, top_aids)

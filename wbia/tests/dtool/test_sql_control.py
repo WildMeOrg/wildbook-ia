@@ -91,7 +91,10 @@ class TestMetadataProperty:
 
         # Check setting of a value by key, of list type
         key = 'superkeys'
-        value = [('a',), ('b', 'c',)]
+        value = [
+            ('a',),
+            ('b', 'c',),
+        ]
         setattr(self.ctrlr.metadata.foo, key, value)
 
         new_value = getattr(self.ctrlr.metadata.foo, key)
@@ -204,7 +207,10 @@ class TestMetadataProperty:
 
         # Check setting of a value by key, of list type
         key = 'superkeys'
-        value = [('a',), ('b', 'c',)]
+        value = [
+            ('a',),
+            ('b', 'c',),
+        ]
         self.ctrlr.metadata.foo[key] = value
 
         new_value = getattr(self.ctrlr.metadata.foo, key)

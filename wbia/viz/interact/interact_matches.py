@@ -218,9 +218,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
     def sv_view(self, dodraw=True):
-        """ spatial verification view
-
-        """
+        """spatial verification view"""
         # fnum = viz.FNUMS['special']
         aid = self.daid
         fnum = pt.next_fnum()

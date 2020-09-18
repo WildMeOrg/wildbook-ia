@@ -1080,7 +1080,7 @@ def newLineEdit(
     verticalStretch=0,
     fontkw={},
 ):
-    """ This is a text line
+    """This is a text line
 
     Example:
         >>> # DISABLE_DOCTEST
