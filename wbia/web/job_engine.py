@@ -1711,13 +1711,18 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             logger.info('Exiting engine loop')
 
 
-def on_engine_request(ibs, jobid, action, args, kwargs, attempts=3, retry_delay=60):
+def on_engine_request(
+    ibs, jobid, action, args, kwargs, attempts=3, retry_delay_min=15, retry_delay_max=60
+):
     """ Run whenever the engine recieves a message """
     assert attempts > 0
     attempts = int(attempts)
 
-    assert 0 <= retry_delay and retry_delay <= 60 * 60
-    retry_delay = int(retry_delay)
+    assert 0 <= retry_delay_min and retry_delay_min <= 60 * 60
+    retry_delay_min = int(retry_delay_min)
+    assert 0 <= retry_delay_max and retry_delay_max <= 60 * 60
+    retry_delay_max = int(retry_delay_max)
+    assert retry_delay_min < retry_delay_max
 
     # Start working
     if VERBOSE_JOBS:
@@ -1758,8 +1763,9 @@ def on_engine_request(ibs, jobid, action, args, kwargs, attempts=3, retry_delay=
                                 attempts,
                             )
                         )
+                        retry_delay = random.uniform(retry_delay_min, retry_delay_max)
                         logger.error(
-                            '\t WAITING %d SECONDS THEN RETRYING' % (retry_delay,)
+                            '\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,)
                         )
                         time.sleep(retry_delay)
                     else:

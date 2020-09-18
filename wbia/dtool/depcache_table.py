@@ -36,6 +36,7 @@ from wbia.dtool.sql_control import SQLDatabaseController
 from wbia.dtool.types import TYPE_TO_SQLTYPE
 
 import time
+import random
 
 
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
@@ -2039,7 +2040,8 @@ class DependencyCacheTable(
         verbose=True,
         _debug=None,
         retry=3,
-        retry_delay=5,
+        retry_delay_min=1,
+        retry_delay_max=5,
     ):
         """
         Lazy addition
@@ -2166,7 +2168,8 @@ class DependencyCacheTable(
                     retry,
                 )
             )
-            logger.error('\t WAITING %d SECONDS THEN RETRYING' % (retry_delay,))
+            retry_delay = random.uniform(retry_delay_min, retry_delay_max)
+            logger.error('\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,))
             time.sleep(retry_delay)
 
             retry_ = retry - 1
