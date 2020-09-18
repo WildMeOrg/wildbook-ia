@@ -2,9 +2,6 @@ FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-ENV LC_ALL C.UTF-8
-ENV LANG C.UTF-8
-
 # Clone IBEIS VSTS repositories
 RUN git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-brambox          /wbia/brambox \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann          /wbia/flann \
