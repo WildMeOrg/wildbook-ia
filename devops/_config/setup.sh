@@ -11,5 +11,6 @@ if [ ! -d "/data/db" ]; then
    chmod 750 /data/db
 fi
 
+rm -rf /config
 ln -s ${HOME}/.config/ /config
 chown ${HOST_USER}:${HOST_USER} /config
