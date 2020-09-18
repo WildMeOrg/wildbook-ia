@@ -490,8 +490,8 @@ def get_image_exif_original(ibs, gid_list):
 
     exif_dict_list = []
     for gpath in gpath_list:
-        pil_img = Image.open(gpath, 'r')
-        exif_dict = vtexif.get_exif_dict(pil_img)
+        with Image.open(gpath, 'r') as pil_img:
+            exif_dict = vtexif.get_exif_dict(pil_img)
         exif_dict_list.append(exif_dict)
 
     return exif_dict_list

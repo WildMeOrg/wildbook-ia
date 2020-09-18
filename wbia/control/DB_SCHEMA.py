@@ -1753,8 +1753,8 @@ def post_1_5_2(db, ibs=None, verbose=False):
         def _parse_orient(gpath):
             if verbose:
                 logger.info('[db_update (1.5.2)]     Parsing: %r' % (gpath,))
-            pil_img = Image.open(gpath, 'r')  # NOQA
-            time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
+            with Image.open(gpath, 'r') as pil_img:
+                time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
             return orient
 
         # Get images without orientations and add to the database

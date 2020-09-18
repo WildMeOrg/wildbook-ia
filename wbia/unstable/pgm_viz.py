@@ -32,8 +32,8 @@ def print_ascii_graph(model_):
     sio = StringIO()
     sio.write(png_str)
     sio.seek(0)
-    pil_img = Image.open(sio)  # NOQA
-    logger.info('pil_img.size = %r' % (pil_img.size,))
+    with Image.open(sio) as pil_img:  # NOQA
+        logger.info('pil_img.size = %r' % (pil_img.size,))
     # def print_ascii_image(pil_img):
     #    img2txt = ut.import_module_from_fpath('/home/joncrall/venv/bin/img2txt.py')
     #    import sys

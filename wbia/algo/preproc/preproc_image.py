@@ -174,6 +174,7 @@ def parse_imageinfo(gpath):
     # Parse out the data
     width, height = pil_img.size  # Read width, height
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
+    pil_img.close()
     if orient in [6, 8]:
         width, height = height, width
     # orig_gpath = gpath
