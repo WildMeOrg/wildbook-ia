@@ -22,13 +22,40 @@ CMD = ub.argflag('--cmd')
 
 # FIXME (27-Jul-12020) This is currently used by CI to verify installation.
 #       Either make this the main function or move to location that makes sense.
+
+
 def smoke_test():  # nocover
+
     import wbia
 
-    logger.info('Looks like the imports worked')
-    logger.info('wbia = {!r}'.format(wbia))
-    logger.info('wbia.__file__ = {!r}'.format(wbia.__file__))
-    logger.info('wbia.__version__ = {!r}'.format(wbia.__version__))
+    print('Looks like the imports worked')
+    print('wbia = {!r}'.format(wbia))
+    print('wbia.__file__ = {!r}'.format(wbia.__file__))
+    print('wbia.__version__ = {!r}'.format(wbia.__version__))
+
+    from utool.__main__ import main as utool_main
+    from vtool.__main__ import main as vtool_main
+
+    utool_main()
+    vtool_main()
+
+    from pyhesaff.__main__ import main as pyhesaff_main
+    from pyflann.__main__ import main as pyflann_main
+    from pydarknet.__main__ import main as pydarknet_main
+    from pyrf.__main__ import main as pyrf_main
+
+    pyhesaff_main()
+    pyflann_main()
+    pydarknet_main()
+    pyrf_main()
+
+    import brambox
+
+    print('Brambox: %r, %r' % (brambox.__version__, brambox.__file__,))
+
+    import lightnet
+
+    print('Lightnet: %r, %r' % (lightnet.__version__, lightnet.__file__,))
 
 
 def run_wbia():
