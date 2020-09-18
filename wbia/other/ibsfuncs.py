@@ -688,6 +688,7 @@ def check_image_loadable_worker(gpath, orient):
         cv2.imwrite(gpath, img)
         img = Image.open(gpath, 'r')
         assert img is not None
+        img.close()
         img = io.imread(gpath)
         assert img is not None
         img = vt.imread(gpath, orient=orient)
@@ -987,6 +988,7 @@ def check_exif_data(ibs, gid_list):
         gpath = gpath_list[ix]
         pil_img = Image.open(gpath, 'r')  # NOQA
         exif_dict = exif.get_exif_dict(pil_img)
+        pil_img.close()
         exif_dict_list.append(exif_dict)
         # if len(exif_dict) > 0:
         #    break
@@ -1548,6 +1550,9 @@ def fix_exif_data(ibs, gid_list):
             pil_img_gen, length=len(gpath_list), lbl='reading exif: ', adjust=True
         )
     ]
+
+    for pil_img in pil_img_gen:
+        pil_img.close()
 
     def fix_property(
         exif_getter, ibs_getter, ibs_setter, dirty_ibs_val, propname='property'

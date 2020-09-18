@@ -131,6 +131,7 @@ if __name__ == '__main__':
                     (int(np.round(w / r)), int(np.round(h / r))), Image.ANTIALIAS
                 )
                 img.save(dst_img)
+                img.close()
 
                 annotation = pypascalmarkup.PascalVOC_Markup_Annotation(
                     dst_img, 'IBEIS', new_img_name, **info
