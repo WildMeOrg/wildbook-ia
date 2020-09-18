@@ -2,9 +2,7 @@ FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
-ARG AZURE_DEVOPS_CACHEBUSTER=0
 
-RUN echo "ARGS AZURE_DEVOPS_CACHEBUSTER=${AZURE_DEVOPS_CACHEBUSTER}"
 
 # Install requirements
 RUN apt-get update \
