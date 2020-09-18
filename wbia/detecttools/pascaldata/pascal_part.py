@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from wbia.detectools.pascaldata import common as com
+from wbia.detecttools.pascaldata import common as com
 
 
 class PASCAL_Part(object):

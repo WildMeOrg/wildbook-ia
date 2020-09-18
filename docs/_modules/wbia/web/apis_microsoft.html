@@ -1,0 +1,1627 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wbia.web.apis_microsoft &#8212; wbia 3.3.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for wbia.web.apis_microsoft</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Dependencies: flask, tornado.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">flask_swagger</span> <span class="kn">import</span> <span class="n">swagger</span>
+<span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">current_app</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">jsonify</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+
+<span class="n">PREFIX</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">MICROSOFT_API_PREFIX</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_route</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_prefix</span><span class="p">(</span><span class="n">route</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="s1">&#39;/</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">PREFIX</span><span class="p">,</span>
+        <span class="n">route</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">while</span> <span class="s1">&#39;//&#39;</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">:</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;//&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rule</span>
+
+
+<span class="k">def</span> <span class="nf">_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid</span><span class="p">)),</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_uuids</span><span class="p">(</span><span class="n">nid</span><span class="p">)),</span>
+    <span class="p">}</span>
+
+
+<span class="c1"># DEPRICATE</span>
+<span class="c1">#     def _detection(ibs, aid):</span>
+<span class="c1">#         gid = ibs.get_annot_gids(aid)</span>
+<span class="c1">#         bbox = ibs.get_annot_bboxes(aid)</span>
+<span class="c1">#         return {</span>
+<span class="c1">#             &#39;_image&#39;      : _image(ibs, gid),</span>
+<span class="c1">#             &#39;_annotation&#39; : _annotation(ibs, aid),</span>
+<span class="c1">#             &#39;xtl&#39;         : bbox[0],</span>
+<span class="c1">#             &#39;ytl&#39;         : bbox[1],</span>
+<span class="c1">#             &#39;width&#39;       : bbox[2],</span>
+<span class="c1">#             &#39;height&#39;      : bbox[3],</span>
+<span class="c1">#             &#39;theta&#39;       : ibs.get_annot_thetas(aid),</span>
+<span class="c1">#             &#39;label&#39;       : ibs.get_annot_species_texts(aid),</span>
+<span class="c1">#             &#39;score&#39;       : ibs.get_annot_detect_confidence(aid),</span>
+<span class="c1">#         }</span>
+
+
+<span class="k">def</span> <span class="nf">_detection</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+    <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">result</span>
+    <span class="n">detection</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">),</span>
+        <span class="s1">&#39;bbox&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">,</span>
+        <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="s1">&#39;xbr&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s1">&#39;ybr&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+        <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+        <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+        <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">detection</span>
+
+
+<span class="k">def</span> <span class="nf">_task</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taskid</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">taskid</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_ensure_general</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">rowid_from_uuid_func</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">models</span><span class="p">]</span>
+
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+    <span class="n">single</span> <span class="o">=</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">rowid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">models</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">single</span><span class="p">:</span>
+                <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;models&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;models:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+
+            <span class="k">assert</span> <span class="s1">&#39;uuid&#39;</span> <span class="ow">in</span> <span class="n">model</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Model provided is invalid, missing UUID key&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tag</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">uuid_</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;uuid&#39;</span><span class="p">])</span>
+            <span class="k">assert</span> <span class="n">uuid_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Model&#39;s UUID is invalid&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,)</span>
+
+            <span class="n">rowid</span> <span class="o">=</span> <span class="n">rowid_from_uuid_func</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">rowid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Model is unrecognized, please upload&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+        <span class="n">rowid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">single</span> <span class="ow">and</span> <span class="n">unpack</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rowid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rowid_list</span>
+
+
+<span class="k">def</span> <span class="nf">_ensure_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_ensure_general</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="s1">&#39;Image&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotations</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_ensure_general</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">annotations</span><span class="p">,</span> <span class="s1">&#39;Annotation&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_ensure_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_ensure_general</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_uuid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="microsoft_core_specification_swagger"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_core_specification_swagger">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;swagger&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_core_specification_swagger</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.</span>
+
+<span class="sd">    The Swagger API specification (https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) provides a standardized method to export REST API documentation and examples.  Our documentation is built on-demand with the help of the Python package flask-swagger (https://github.com/gangverk/flask-swagger).</span>
+
+<span class="sd">    The API specification includes GET, POST, PUT, and DELETE methods and Model definitions.</span>
+<span class="sd">    ---</span>
+<span class="sd">    definitions:</span>
+<span class="sd">    - schema:</span>
+<span class="sd">        id: Image</span>
+<span class="sd">        description: An Image is a semantic construct that represents an uploaded image.  Images can be uploaded for later processing or be used immediately for detection.  Object detection will create Annotation models, which have a required Image parent.  An Image can have multiple detections (i.e. Annotation models).</span>
+<span class="sd">        required:</span>
+<span class="sd">          - uuid</span>
+<span class="sd">        properties:</span>
+<span class="sd">          uuid:</span>
+<span class="sd">            description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.</span>
+<span class="sd">            type: string</span>
+<span class="sd">            format: uuid</span>
+<span class="sd">    - schema:</span>
+<span class="sd">        id: Annotation</span>
+<span class="sd">        description: An Annotation is a semantic construct that represents a *committed* detection, with a bounding box and species classification assigned as stored attributes.  An Annotation is required to have a parent Image.  All bounding box coordinates are relative to the size of the parent Image that was uploaded.</span>
+<span class="sd">        required:</span>
+<span class="sd">          - uuid</span>
+<span class="sd">          - bbox</span>
+<span class="sd">        properties:</span>
+<span class="sd">          uuid:</span>
+<span class="sd">            description: a deterministically-derived UUID based on the parent image&#39;s UUID and the bounding box coordinate (xtl, ytl, width, height) and orientation (theta), which can be used to identify duplicate Annotations.</span>
+<span class="sd">            type: string</span>
+<span class="sd">            format: uuid</span>
+<span class="sd">          bbox:</span>
+<span class="sd">            description: a 4-tuple of coordinates that defines a rectangle in the format (x-axis top left corner, y-axis top left corner, width, height) in pixels.  These values are expected to be bounded by the size of the parent image.</span>
+<span class="sd">            type: array</span>
+<span class="sd">          theta:</span>
+<span class="sd">            description: a rotation around the center of the annotation, in radians</span>
+<span class="sd">            type: number</span>
+<span class="sd">          species:</span>
+<span class="sd">            description: a user-defined string to specify the species of the annotation (e.g. &#39;zebra&#39; or &#39;massai_giraffe&#39;).  This value is used to filter matches and run-time models for ID.</span>
+<span class="sd">            type: string</span>
+<span class="sd">          viewpoint:</span>
+<span class="sd">            description: a user-defined string to specify the viewpoint of the annotation (e.g. &#39;right&#39; or &#39;front_left&#39;).  This value is used to filter matches and run-time models for ID.</span>
+<span class="sd">            type: string</span>
+<span class="sd">          name:</span>
+<span class="sd">            description: the name of the individual</span>
+<span class="sd">            format: uuid</span>
+<span class="sd">            type: string</span>
+<span class="sd">    - schema:</span>
+<span class="sd">        id: Detection</span>
+<span class="sd">        description: A Detection is a semantic constrict that represents an *un-committed* detection.  A Detection can be committed to an Annotation to be stored permanently on the parent Image.</span>
+<span class="sd">        required:</span>
+<span class="sd">          - _image</span>
+<span class="sd">          - score</span>
+<span class="sd">          - bbox</span>
+<span class="sd">          - xtl</span>
+<span class="sd">          - ytl</span>
+<span class="sd">          - xbr</span>
+<span class="sd">          - ybr</span>
+<span class="sd">          - width</span>
+<span class="sd">          - height</span>
+<span class="sd">          - theta</span>
+<span class="sd">          - label</span>
+<span class="sd">        properties:</span>
+<span class="sd">          image:</span>
+<span class="sd">            description: The Image that this Detection was found in</span>
+<span class="sd">            $ref: &quot;#/definitions/Image&quot;</span>
+<span class="sd">          score:</span>
+<span class="sd">            description: The detection&#39;s classification score</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          bbox:</span>
+<span class="sd">            description: The bounding box for this annotation, represented in the format (xtl, ytl, width, height)</span>
+<span class="sd">            type: array</span>
+<span class="sd">            items:</span>
+<span class="sd">              type: number</span>
+<span class="sd">              format: float</span>
+<span class="sd">          xtl:</span>
+<span class="sd">            description: The pixel coordinate for the top-left corner along the x-axis (xtl = x-axis top left) for the bounding box</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          ytl:</span>
+<span class="sd">            description: The pixel coordinate for the top-left corner along the y-axis (ytl = y-axis top left) for the bounding box</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          xbr:</span>
+<span class="sd">            description: The pixel coordinate for the bottom-right corner along the x-axis (ytl = x-axis bottom right) for the bounding box</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          ybr:</span>
+<span class="sd">            description: The pixel coordinate for the bottom-right corner along the y-axis (ytl = y-axis bottom right) for the bounding box</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          width:</span>
+<span class="sd">            description: The pixel width for the bounding box</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          height:</span>
+<span class="sd">            description: The pixel height for the bounding box</span>
+<span class="sd">            type: integer</span>
+<span class="sd">            format: int32</span>
+<span class="sd">          theta:</span>
+<span class="sd">            description: The rotation of the bounding box around its center, represented in radians</span>
+<span class="sd">            type: number</span>
+<span class="sd">            format: float</span>
+<span class="sd">          species:</span>
+<span class="sd">            description: The semantic species classification (class label) of the bounding box</span>
+<span class="sd">            type: string</span>
+<span class="sd">          viewpoint:</span>
+<span class="sd">            description: The semantic viewpoint classification (class label) of the bounding box</span>
+<span class="sd">            type: string</span>
+<span class="sd">    - schema:</span>
+<span class="sd">        id: Name</span>
+<span class="sd">        description: A Name is the identification label for a group of Annotations</span>
+<span class="sd">        required:</span>
+<span class="sd">          - uuid</span>
+<span class="sd">          - alias</span>
+<span class="sd">        properties:</span>
+<span class="sd">          uuid:</span>
+<span class="sd">            description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.</span>
+<span class="sd">            type: string</span>
+<span class="sd">            format: uuid</span>
+<span class="sd">          alias:</span>
+<span class="sd">            description: a string alias for this individual, helpful for user-facing interfaces</span>
+<span class="sd">            type: string</span>
+<span class="sd">    - schema:</span>
+<span class="sd">        id: Task</span>
+<span class="sd">        description: A Task is a semantic construct that represents a background task (i.e. detection) in an asynchronous call.  A Task has an optional callback on completion or the status (and result) can be checked via the API</span>
+<span class="sd">        required:</span>
+<span class="sd">          - uuid</span>
+<span class="sd">        properties:</span>
+<span class="sd">          uuid:</span>
+<span class="sd">            description: a random UUID to identify a given asynchronous call, used to check status and results of a background task</span>
+<span class="sd">            type: string</span>
+<span class="sd">            format: uuid</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">        200:</span>
+<span class="sd">          description: Returns the Swagger 2.0 JSON format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">swag</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="n">current_app</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+        <span class="c1"># ut.embed()</span>
+
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wild Me - IA (Image Analysis)&#39;</span>
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span>
+        <span class="s1">&#39;description&#39;</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Documentation for all classification, detection, and identification calls provided by Wild Me for the AI for Earth (AI4E) collaboration&#39;</span>
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;v0.1&#39;</span>
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;contact&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Wild Me Developers (AI4E)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;http://wildme.org&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;email&#39;</span><span class="p">:</span> <span class="s1">&#39;dev@wildme.org&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;license&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Apache 2.0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.apache.org/licenses/LICENSE-2.0.html&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;demo.wildbook.org:5010&#39;</span>
+    <span class="n">swag</span><span class="p">[</span><span class="s1">&#39;schemes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;http&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="c1"># swag[&#39;basePath&#39;] = PREFIX</span>
+
+    <span class="c1"># &quot;securityDefinitions&quot;: {</span>
+    <span class="c1">#   &quot;apiKeyHeader&quot;: {</span>
+    <span class="c1">#     &quot;type&quot;: &quot;apiKey&quot;,</span>
+    <span class="c1">#     &quot;name&quot;: &quot;Ocp-Apim-Subscription-Key&quot;,</span>
+    <span class="c1">#     &quot;in&quot;: &quot;header&quot;</span>
+    <span class="c1">#   },</span>
+    <span class="c1">#   &quot;apiKeyQuery&quot;: {</span>
+    <span class="c1">#     &quot;type&quot;: &quot;apiKey&quot;,</span>
+    <span class="c1">#     &quot;name&quot;: &quot;subscription-key&quot;,</span>
+    <span class="c1">#     &quot;in&quot;: &quot;query&quot;</span>
+    <span class="c1">#   }</span>
+    <span class="c1"># },</span>
+    <span class="c1"># &quot;security&quot;: [</span>
+    <span class="c1">#   {</span>
+    <span class="c1">#     &quot;apiKeyHeader&quot;: []</span>
+    <span class="c1">#   },</span>
+    <span class="c1">#   {</span>
+    <span class="c1">#     &quot;apiKeyQuery&quot;: []</span>
+    <span class="c1">#   }</span>
+    <span class="c1"># ],</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">swag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_core_status"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_core_status">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">microsoft_core_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the health status of the API back-end; optionally can be used as a service heatbeat.</span>
+<span class="sd">    ---</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns the status of the server</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: object</span>
+<span class="sd">          properties:</span>
+<span class="sd">            status:</span>
+<span class="sd">              type: string</span>
+<span class="sd">              enum:</span>
+<span class="sd">              - healthy</span>
+<span class="sd">              - warning</span>
+<span class="sd">              - critical</span>
+<span class="sd">        examples:</span>
+<span class="sd">          application/json:</span>
+<span class="sd">            status: healthy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">heartbeat</span><span class="p">()</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;healthy&#39;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="microsoft_image_upload"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_image_upload">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_image_upload</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Upload an Image to the system and return the UUID</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: image</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The image to upload.</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: file</span>
+<span class="sd">      enum:</span>
+<span class="sd">      - image/png</span>
+<span class="sd">      - image/jpg</span>
+<span class="sd">      - image/tiff</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns an Image model with a UUID</span>
+<span class="sd">        schema:</span>
+<span class="sd">          $ref: &quot;#/definitions/Image&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">      415:</span>
+<span class="sd">        description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.apis</span> <span class="kn">import</span> <span class="n">image_upload</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">image_upload</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebException</span><span class="p">:</span>
+        <span class="k">raise</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span>
+            <span class="s1">&#39;Uploaded image is corrupted or is an unsupported file format (supported: image/png, image/jpeg, image/tiff)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;image&#39;</span><span class="p">,</span>
+            <span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="microsoft_annotation_add"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_annotation_add">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;annotation&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_annotation_add</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image</span><span class="p">,</span>
+    <span class="n">bbox</span><span class="p">,</span>
+    <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">viewpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add an Annotation to the system and return the UUID</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: image</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Image model for which the annotation will be added as a child</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Image&quot;</span>
+<span class="sd">    - name: bbox</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: a 4-tuple of coordinates that defines a rectangle in the format (x-axis top left corner, y-axis top left corner, width, height) in pixels.  These values are expected to be bounded by the size of the parent image.</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: array</span>
+<span class="sd">      items:</span>
+<span class="sd">        type: number</span>
+<span class="sd">        format: float</span>
+<span class="sd">    - name: theta</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: a rotation around the center of the annotation, in radians.  Default is 0.0</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: number</span>
+<span class="sd">    - name: species</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: a user-defined string to specify the species of the annotation (e.g. &#39;zebra&#39; or &#39;massai_giraffe&#39;).  This value is used to filter matches and run-time models for ID.  Default is None.</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">    - name: viewpoint</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: a user-defined string to specify the viewpoint of the annotation (e.g. &#39;right&#39; or &#39;front_left&#39;).  This value is used to filter matches and run-time models for ID. Default is None.</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">    - name: name</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: a Name model to assign to the created Annotation</span>
+<span class="sd">      required: false</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Name&quot;</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns an Annotations model with a UUID</span>
+<span class="sd">        schema:</span>
+<span class="sd">          $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;bbox&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)),</span> <span class="s1">&#39;Bounding box must be a list&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;Bounding Box must have 4 yntegers&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s1">&#39;Bounding box xtl (index 0) must be an integer&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s1">&#39;Bounding box ytl (index 1) must be an integer&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s1">&#39;Bounding box width (index 2) must be an integer&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="nb">int</span>
+        <span class="p">),</span> <span class="s1">&#39;Bounding box height (index 3) must be an integer&#39;</span>
+
+        <span class="k">if</span> <span class="n">theta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="s1">&#39;Theta must be a float&#39;</span>
+
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;Species must be a string&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Species cannot be empty&#39;</span>
+
+        <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;Viewpoint must be a string&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Viewpoint cannot be empty&#39;</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span>
+            <span class="p">),</span> <span class="s1">&#39;Invalid viewpoint provided.  Must be one of: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nid</span> <span class="o">=</span> <span class="n">_ensure_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nid</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">_ensure_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">]</span>
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">theta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">theta</span><span class="p">]</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">species</span><span class="p">]</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">viewpoint</span><span class="p">]</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">nid</span><span class="p">]</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">bbox_list</span><span class="o">=</span><span class="n">bbox_list</span><span class="p">,</span>
+        <span class="n">theta_list</span><span class="o">=</span><span class="n">theta_list</span><span class="p">,</span>
+        <span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
+        <span class="n">viewpoint_list</span><span class="o">=</span><span class="n">viewpoint_list</span><span class="p">,</span>
+        <span class="n">nid_list</span><span class="o">=</span><span class="n">nid_list</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_name_add"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_name_add">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_name_add</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a Name to the system and return the UUID</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: alias</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: a user-defined string to specify an alias for this name, useful for forward facing interfaces</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns an Name model with a UUID</span>
+<span class="sd">        schema:</span>
+<span class="sd">          $ref: &quot;#/definitions/Name&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;alias&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">alias</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;Alias must be a string&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Alias cannot be empty&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">alias</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="microsoft_image_annotations"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_image_annotations">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;image/annotations&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">microsoft_image_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the Annotation models for a given Image model</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: image</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Image model to use for querying associated Annotation UUIDs</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Image&quot;</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a (possibly empty) list of Annotations models</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: array</span>
+<span class="sd">          items:</span>
+<span class="sd">            $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">_ensure_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="n">annotation_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_name_annotations"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_name_annotations">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;name/annotations&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">microsoft_name_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the Annotation models for a given Name model</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: name</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Name model to use for querying associated Annotation UUIDs</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Name&quot;</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a (possibly empty) list of Annotations models</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: array</span>
+<span class="sd">          items:</span>
+<span class="sd">            $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">_ensure_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
+
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="n">annotation_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_annotation_metadata"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_annotation_metadata">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;annotation&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_annotation_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the Annotation&#39;s metadata (bbox, theta, species, viewpoint).</span>
+
+<span class="sd">    We provide no setters for Annotations.  If you wish to modify the metadata on an Annotation model, please delete it and add it again.  Modifying the metadata on an annotation may alter its derived UUID</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: annotation</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Annotation model</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Image&quot;</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a JSON object with the metadata for the annotation</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: object</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotation</span><span class="p">)</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">)</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;bbox&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+        <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+        <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+        <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">metadata</span></div>
+
+
+<div class="viewcode-block" id="microsoft_detect_model"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_detect_model">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;detect&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_detect_model</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the available models and their supported species for detection.  These models are pre-trained and are downloaded as needed on first start-up.</span>
+
+<span class="sd">    The current model names that are supported for demoing and their species:</span>
+<span class="sd">    - hammerhead -&gt; shark_hammerhead</span>
+<span class="sd">    - jaguar     -&gt; jaguar</span>
+<span class="sd">    - lynx       -&gt; lynx</span>
+<span class="sd">    - manta      -&gt; manta_ray_giant</span>
+<span class="sd">    - seaturtle  -&gt; fish, ignore, person, turtle_green, turtle_green+head, turtle_hawksbill, turtle_hawksbill+head</span>
+<span class="sd">    - ggr2       -&gt; giraffe, zebra</span>
+<span class="sd">    ---</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns an object of models (keys) and their supported species (values) listed as an array of strings.</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hidden_models</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;hendrik_elephant&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hendrik_elephant_ears&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hendrik_elephant_ears_left&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hendrik_dorsal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;candidacy&#39;</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">models_cnn_lightnet</span><span class="p">(</span><span class="n">hidden_models</span><span class="o">=</span><span class="n">hidden_models</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="microsoft_detect_input_validation"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_detect_input_validation">[docs]</a><span class="k">def</span> <span class="nf">microsoft_detect_input_validation</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">,</span> <span class="n">use_nms</span><span class="p">,</span> <span class="n">nms_threshold</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect.lightnet</span> <span class="kn">import</span> <span class="n">CONFIG_URL_DICT</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;model&#39;</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="s1">&#39;Specified model is not supported&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;score_threshold&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">score_threshold</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="s1">&#39;Score threshold must be a float&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">score_threshold</span> <span class="ow">and</span> <span class="n">score_threshold</span> <span class="o">&lt;=</span> <span class="mf">1.0</span>
+        <span class="p">),</span> <span class="s1">&#39;Score threshold is invalid, must be in range [0.0, 1.0]&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;use_nms&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">use_nms</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span> <span class="s1">&#39;NMS flag must be a boolean&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;nms_threshold&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nms_threshold</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="s1">&#39;NMS threshold must be a float&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">nms_threshold</span> <span class="ow">and</span> <span class="n">nms_threshold</span> <span class="o">&lt;=</span> <span class="mf">1.0</span>
+        <span class="p">),</span> <span class="s1">&#39;NMS threshold is invalid, must be in range [0.0, 1.0]&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="microsoft_detect"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_detect">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">microsoft_detect</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">images</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">score_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">use_nms</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">nms_threshold</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">__jobid__</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">_ensure_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;config_filepath&#39;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+            <span class="s1">&#39;weight_filepath&#39;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+            <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="n">score_threshold</span><span class="p">,</span>
+            <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="n">use_nms</span><span class="p">,</span>
+            <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="n">nms_threshold</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># DEPRICATE</span>
+        <span class="c1">#     # Do not commit results, return them outright</span>
+        <span class="c1">#     aids_list = ibs.commit_localization_results(gid_list, results_list)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebException</span><span class="p">(</span>
+            <span class="s1">&#39;Detection process failed for an unknown reason&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># DEPRICATE</span>
+    <span class="c1">#     # Do not commit detections</span>
+    <span class="c1">#     detections_list = {</span>
+    <span class="c1">#         &#39;detections_list&#39;: [</span>
+    <span class="c1">#             {</span>
+    <span class="c1">#                 &#39;detections&#39; : [</span>
+    <span class="c1">#                     _detection(ibs, aid)</span>
+    <span class="c1">#                     for aid in aid_list</span>
+    <span class="c1">#                 ],</span>
+    <span class="c1">#             }</span>
+    <span class="c1">#             for aid_list in aids_list</span>
+    <span class="c1">#         ]</span>
+    <span class="c1">#     }</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">)</span>
+    <span class="n">detections_list</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;detections_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;detections&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">_detection</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">result_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="p">],</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">result_list</span> <span class="ow">in</span> <span class="n">zipped</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">detections_list</span></div>
+
+
+<div class="viewcode-block" id="microsoft_detect_upload"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_detect_upload">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;detect&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_detect_upload</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">use_nms</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nms_threshold</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the detection results for an uploaded image and a provided model configuration.</span>
+
+<span class="sd">    The uploaded image will be used to perform object detection for a given model.  A detection will return at most 845 Detections (13 x 13 grid of 5 bounding boxes based on the YOLO v2 by Redmon et al.).</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: image</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The image for which detection will be processed.</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: file</span>
+<span class="sd">      enum:</span>
+<span class="sd">      - image/png</span>
+<span class="sd">      - image/jpg</span>
+<span class="sd">      - image/tiff</span>
+<span class="sd">    - name: model</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The model name to use with detection.  Available models can be queried using the API $PREFIX/detect/model/</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: string</span>
+<span class="sd">    - name: score_threshold</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: A score threshold to filter the detection results.  Default 0.0.  Must be in range [0, 1], inclusive</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: number</span>
+<span class="sd">      format: float</span>
+<span class="sd">    - name: use_nms</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: Flag to turn on/off Non-Maximum Suppression (NMS).  Default True.  Must be in range [0, 1], inclusive</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: boolean</span>
+<span class="sd">    - name: nms_threshold</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: A Intersection-over-Union (IoU) threshold to suppress detection results with NMS.  Default 0.0.  Must be in range [0, 1], inclusive</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: number</span>
+<span class="sd">      format: float</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns an array of Detection models on the uploaded image</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: array</span>
+<span class="sd">          items:</span>
+<span class="sd">            $ref: &quot;#/definitions/Detection&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">      415:</span>
+<span class="sd">        description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">microsoft_image_upload</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">microsoft_detect_input_validation</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">,</span> <span class="n">use_nms</span><span class="p">,</span> <span class="n">nms_threshold</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">image</span><span class="p">]</span>
+        <span class="n">detections_list</span> <span class="o">=</span> <span class="n">microsoft_detect</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">,</span> <span class="n">use_nms</span><span class="p">,</span> <span class="n">nms_threshold</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebException</span><span class="p">(</span>
+            <span class="s1">&#39;Detection process failed for an unknown reason&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">detections_list</span> <span class="o">=</span> <span class="n">detections_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;detections_list&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">detections_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">detections</span> <span class="o">=</span> <span class="n">detections_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">detections</span></div>
+
+
+<div class="viewcode-block" id="microsoft_detect_batch"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_detect_batch">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;detect/batch&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_detect_batch</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">images</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">score_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">use_nms</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">nms_threshold</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">asynchronous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The asynchronous variant of POST &#39;detect&#39; that takes in a list of Image models and returns a task ID.</span>
+
+<span class="sd">    It may be more ideal for a particular application to upload many images at one time and perform processing later in a large batch.  This type of batch detection is certainly much more efficient because the detection on GPU can process more images in parallel.  However, if you intend to run the detector on an upload as quickly as possible, please use the on-demand, non-batched API.</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: images</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A JSON list of Image models for which detection will be processed.</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: array</span>
+<span class="sd">    - name: model</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The model name to use with detection.  Available models can be queried using the API $PREFIX/detect/model/</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: string</span>
+<span class="sd">    - name: score_threshold</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: A score threshold to filter the detection results.  Default 0.0.  Must be in range [0, 1], inclusive</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: number</span>
+<span class="sd">      format: float</span>
+<span class="sd">    - name: use_nms</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: Flag to turn on/off Non-Maximum Suppression (NMS).  Default True.</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: boolean</span>
+<span class="sd">    - name: nms_threshold</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: A Intersection-over-Union (IoU) threshold to suppress detection results with NMS.  Default 0.0.  Must be in range [0, 1], inclusive</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: number</span>
+<span class="sd">      format: float</span>
+<span class="sd">    - name: callback_url</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a &#39;body&#39; parameter called `task` which will provide a Task model</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">      format: url</span>
+<span class="sd">    - name: callback_method</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The HTTP method for which to make the callback.  Default POST.</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">      enum:</span>
+<span class="sd">      - get</span>
+<span class="sd">      - post</span>
+<span class="sd">      - put</span>
+<span class="sd">      - delete</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a Task model</span>
+<span class="sd">        schema:</span>
+<span class="sd">          $ref: &quot;#/definitions/Task&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">      x-task-response:</span>
+<span class="sd">        description: The task returns an array of arrays of Detection models, in parallel lists with the provided Image models</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: array</span>
+<span class="sd">          items:</span>
+<span class="sd">            schema:</span>
+<span class="sd">              type: array</span>
+<span class="sd">              items:</span>
+<span class="sd">                $ref: &quot;#/definitions/Detection&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">images</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;images:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+            <span class="k">assert</span> <span class="s1">&#39;uuid&#39;</span> <span class="ow">in</span> <span class="n">image</span><span class="p">,</span> <span class="s1">&#39;Image Model provided is invalid, missing UUID key&#39;</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="n">microsoft_detect_input_validation</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">,</span> <span class="n">use_nms</span><span class="p">,</span> <span class="n">nms_threshold</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;asynchronous&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span> <span class="s1">&#39;Asynchronous flag must be a boolean&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;callback_url&#39;</span>
+        <span class="k">assert</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">callback_url</span><span class="p">,</span> <span class="nb">str</span>
+        <span class="p">),</span> <span class="s1">&#39;Callback URL must be a string&#39;</span>
+        <span class="k">if</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+                <span class="s1">&#39;https://&#39;</span>
+            <span class="p">),</span> <span class="s1">&#39;Callback URL must start with http:// or https://&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;callback_method&#39;</span>
+        <span class="k">assert</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">callback_method</span><span class="p">,</span> <span class="nb">str</span>
+        <span class="p">),</span> <span class="s1">&#39;Callback URL must be a string&#39;</span>
+        <span class="k">if</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">callback_method</span> <span class="o">=</span> <span class="n">callback_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">callback_method</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s1">&#39;get&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;post&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;put&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;delete&#39;</span><span class="p">,</span>
+            <span class="p">],</span> <span class="s1">&#39;Unsupported callback method, must be one of (&quot;get&quot;, &quot;post&quot;, &quot;put&quot;, &quot;delete&quot;)&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">images</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;score_threshold&#39;</span><span class="p">:</span> <span class="n">score_threshold</span><span class="p">,</span>
+        <span class="s1">&#39;use_nms&#39;</span><span class="p">:</span> <span class="n">use_nms</span><span class="p">,</span>
+        <span class="s1">&#39;nms_threshold&#39;</span><span class="p">:</span> <span class="n">nms_threshold</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">asynchronous</span><span class="p">:</span>
+        <span class="n">taskid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+            <span class="s1">&#39;microsoft_detect&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">_task</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taskid</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">microsoft_detect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_identify"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_identify">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;identify&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_identify</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">query_annotation</span><span class="p">,</span>
+    <span class="n">database_annotations</span><span class="p">,</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The asynchronous call to identify a list of pre-uploaded query annotations against a database of annotations.  Returns a task ID.</span>
+
+<span class="sd">    This call expects all of the data has been already uploaded and the</span>
+<span class="sd">    appropriate metadata set.  For example, this call expects any known</span>
+<span class="sd">    ground-truth nameshave already been made and assigned to the appropriate</span>
+<span class="sd">    Annotation models.  Conversely, we also provide a method for marking individual</span>
+<span class="sd">    reviews between two Annotation models.  The decision between a given pair</span>
+<span class="sd">    should always be one of [&#39;match&#39;, &#39;nomatch&#39;, or &#39;notcomp&#39;].  The full docuemntation</span>
+<span class="sd">    for this call can be seen in the POST &#39;decision&#39; API.</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: query_annotation</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: An Annotation models to query for an identification</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">    - name: database_annotations</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: A JSON list of Annotation models to compare the query Annotation against</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: array</span>
+<span class="sd">      items:</span>
+<span class="sd">        $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">    - name: algorithm</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The algorithm you with to run ID with.  Must be one of &quot;HotSpotter&quot;, &quot;CurvRank&quot;, &quot;Finfindr&quot;, or &quot;Deepsense&quot;</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: string</span>
+<span class="sd">    - name: callback_url</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a &#39;body&#39; parameter called `task` which will provide a Task model</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">      format: url</span>
+<span class="sd">    - name: callback_method</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The HTTP method for which to make the callback.  Default POST.</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">      enum:</span>
+<span class="sd">      - get</span>
+<span class="sd">      - post</span>
+<span class="sd">      - put</span>
+<span class="sd">      - delete</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a Task model</span>
+<span class="sd">        schema:</span>
+<span class="sd">          $ref: &quot;#/definitions/Task&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">query_annotation</span><span class="p">)</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">database_annotations</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;database_annotations&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">),</span> <span class="s1">&#39;Cannot specify an empty list of database Annotations to compare against&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;algorithm&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;Must specify the algorithm as a string&#39;</span>
+        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s1">&#39;hotspotter&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;curvrank&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;deepsense&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;finfindr&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kaggle7&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kaggleseven&#39;</span><span class="p">,</span>
+        <span class="p">],</span> <span class="s1">&#39;Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, Finfindr, Kaggle7&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;callback_url&#39;</span>
+        <span class="k">assert</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">callback_url</span><span class="p">,</span> <span class="nb">str</span>
+        <span class="p">),</span> <span class="s1">&#39;Callback URL must be a string&#39;</span>
+        <span class="k">if</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callback_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+                <span class="s1">&#39;https://&#39;</span>
+            <span class="p">),</span> <span class="s1">&#39;Callback URL must start with http:// or https://&#39;</span>
+
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;callback_method&#39;</span>
+        <span class="k">assert</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">callback_method</span><span class="p">,</span> <span class="nb">str</span>
+        <span class="p">),</span> <span class="s1">&#39;Callback URL must be a string&#39;</span>
+        <span class="k">if</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">callback_method</span> <span class="o">=</span> <span class="n">callback_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">callback_method</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s1">&#39;get&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;post&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;put&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;delete&#39;</span><span class="p">,</span>
+            <span class="p">],</span> <span class="s1">&#39;Unsupported callback method, must be one of (&quot;get&quot;, &quot;post&quot;, &quot;put&quot;, &quot;delete&quot;)&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;hotspotter&#39;</span><span class="p">]:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">elif</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;curvrank&#39;</span><span class="p">]:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s1">&#39;CurvRankFluke&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;deepsense&#39;</span><span class="p">]:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s1">&#39;Deepsense&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;finfindr&#39;</span><span class="p">]:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s1">&#39;Finfindr&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;kaggle7&#39;</span><span class="p">,</span> <span class="s1">&#39;kaggleseven&#39;</span><span class="p">]:</span>
+        <span class="n">query_config_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s1">&#39;KaggleSeven&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">user_feedback</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;aid1&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;aid2&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;p_match&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;p_nomatch&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;p_notcomp&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    <span class="n">echo_query_params</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">[</span><span class="n">qaid</span><span class="p">],</span>
+        <span class="n">daid_list</span><span class="p">,</span>
+        <span class="n">user_feedback</span><span class="p">,</span>
+        <span class="n">query_config_dict</span><span class="p">,</span>
+        <span class="n">echo_query_params</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;endpoint&#39;</span><span class="p">:</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;microsoft_identify_visualize&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;n&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">taskid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="s1">&#39;query_chips_graph_microsoft&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_task</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taskid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="query_chips_graph_microsoft"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.query_chips_graph_microsoft">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">query_chips_graph_microsoft</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips_graph</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">cm_dict</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;cm_dict&#39;</span><span class="p">]</span>
+    <span class="n">cm_key_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cm_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm_key_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">cm_key</span> <span class="o">=</span> <span class="n">cm_key_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_dict</span><span class="p">[</span><span class="n">cm_key</span><span class="p">]</span>
+
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">cm</span><span class="p">[</span><span class="s1">&#39;qannot_uuid&#39;</span><span class="p">])</span>
+    <span class="n">reference</span> <span class="o">=</span> <span class="n">cm</span><span class="p">[</span><span class="s1">&#39;dannot_extern_reference&#39;</span><span class="p">]</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">cm</span><span class="p">[</span><span class="s1">&#39;annot_score_list&#39;</span><span class="p">],</span> <span class="n">cm</span><span class="p">[</span><span class="s1">&#39;dannot_uuid_list&#39;</span><span class="p">],</span> <span class="n">cm</span><span class="p">[</span><span class="s1">&#39;dannot_extern_list&#39;</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dannot_score</span><span class="p">,</span> <span class="n">dannot_uuid</span><span class="p">,</span> <span class="n">dannot_extern</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="n">daid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">dannot_uuid</span><span class="p">)</span>
+        <span class="n">annotation</span> <span class="o">=</span> <span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
+        <span class="n">extern_url_postfix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">dannot_extern</span><span class="p">:</span>
+            <span class="n">query_annotation_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">database_annotation_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">endpoint</span><span class="p">,</span>
+                <span class="n">reference</span><span class="p">,</span>
+                <span class="n">query_annotation_</span><span class="p">,</span>
+                <span class="n">database_annotation_</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">extern_url_postfix</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">?reference=</span><span class="si">%s</span><span class="s1">&amp;query_annotation=</span><span class="si">%s</span><span class="s1">&amp;database_annotation=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+            <span class="p">)</span>
+        <span class="n">response</span><span class="p">[</span><span class="s1">&#39;annotations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">dannot_score</span><span class="p">,</span>
+                <span class="s1">&#39;annotation&#39;</span><span class="p">:</span> <span class="n">annotation</span><span class="p">,</span>
+                <span class="s1">&#39;visualize&#39;</span><span class="p">:</span> <span class="n">extern_url_postfix</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cm</span><span class="p">[</span><span class="s1">&#39;name_score_list&#39;</span><span class="p">],</span> <span class="n">cm</span><span class="p">[</span><span class="s1">&#39;unique_name_list&#39;</span><span class="p">]))</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">zipped</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name_score</span><span class="p">,</span> <span class="n">name_text</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name_text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">name_text</span><span class="p">)</span>
+        <span class="n">response</span><span class="p">[</span><span class="s1">&#39;names&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">name_score</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">)})</span>
+
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_identify_visualize"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_identify_visualize">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;visualize&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_identify_visualize</span><span class="p">(</span>
+    <span class="n">reference</span><span class="p">,</span> <span class="n">query_annotation</span><span class="p">,</span> <span class="n">database_annotation</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s1">&#39;heatmask&#39;</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Visualize the results of matching, precomputed and rendered to disk for easy look-up.</span>
+
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: reference</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: A reference string to refer to the rendered match results on disk for a given identification Task</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: string</span>
+<span class="sd">    - name: query_annotation</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The query Annotation model</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">    - name: database_annotation</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The database Annotation model</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">    - name: version</span>
+<span class="sd">      in: formData</span>
+<span class="sd">      description: The version of the visualization.  Must be one of &quot;heatmask&quot; or &quot;original&quot;.  Defaults to &quot;heatmask&quot;</span>
+<span class="sd">      required: false</span>
+<span class="sd">      type: string</span>
+<span class="sd">    consumes:</span>
+<span class="sd">    - multipart/form-data</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a Task model</span>
+<span class="sd">        schema:</span>
+<span class="sd">          $ref: &quot;#/definitions/Task&quot;</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="kn">from</span> <span class="nn">wbia.web.apis_query</span> <span class="kn">import</span> <span class="n">query_chips_graph_match_thumb</span>
+
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">query_annotation</span><span class="p">)</span>
+    <span class="n">daid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">database_annotation</span><span class="p">)</span>
+    <span class="n">quuid</span><span class="p">,</span> <span class="n">duuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">([</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">])</span>
+    <span class="n">quuid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">quuid</span><span class="p">)</span>
+    <span class="n">duuid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">duuid</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">query_chips_graph_match_thumb</span><span class="p">(</span>
+        <span class="n">extern_reference</span><span class="o">=</span><span class="n">reference</span><span class="p">,</span>
+        <span class="n">query_annot_uuid</span><span class="o">=</span><span class="n">quuid</span><span class="p">,</span>
+        <span class="n">database_annot_uuid</span><span class="o">=</span><span class="n">duuid</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="microsoft_task_status"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_task_status">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;task&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_task_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the status of an asynchronous Task.</span>
+
+<span class="sd">    A Task is an asynchronous task that was launched as a background process with an optional callback.  The status of a given Task with a UUID can be checked with this call.  The status of the call depends on where in the execution queue the Task is currently, which will be processed in a first-come-first-serve list and only one Task at a time to present atomicity of the API.</span>
+
+<span class="sd">    The status can be one of the following:</span>
+<span class="sd">    - received   -&gt; The Task request was received but has not passed any input validation.</span>
+<span class="sd">    - accepted   -&gt; The Task request has passed basic input validation and will be queued soon for execution.</span>
+<span class="sd">    - queued     -&gt; The Task is queued in the execution list and will be processed in order and one at a time.</span>
+<span class="sd">    - working    -&gt; The Task is being processed, awaiting completed results or an error exception</span>
+<span class="sd">    - publishing -&gt; The Task is publishing the results of the background API call.</span>
+<span class="sd">    - completed  -&gt; One of two end states: the Task is complete, completed results available for downloading with the REST API.</span>
+<span class="sd">    - exception  -&gt; One of two end states: the Task has encountered an error, an error message can be received using the results REST API.</span>
+<span class="sd">    - unknown    -&gt; The Task you asked for is not known, indicating that the either UUID is not recognized (i.e. a Task with that ID was never currently created) or the server has been restarted.</span>
+
+<span class="sd">    **Important: when the API server is restarted, all queued and running background Tasks are killed and all Task requests and cached results are deleted.**</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: task</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Task model</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Task&quot;</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns the status of the provided Task</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: object</span>
+<span class="sd">          properties:</span>
+<span class="sd">            status:</span>
+<span class="sd">              type: string</span>
+<span class="sd">              enum:</span>
+<span class="sd">              - received</span>
+<span class="sd">              - accepted</span>
+<span class="sd">              - queued</span>
+<span class="sd">              - working</span>
+<span class="sd">              - publishing</span>
+<span class="sd">              - completed</span>
+<span class="sd">              - exception</span>
+<span class="sd">              - unknown</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;task&#39;</span>
+        <span class="k">assert</span> <span class="s1">&#39;uuid&#39;</span> <span class="ow">in</span> <span class="n">task</span><span class="p">,</span> <span class="s1">&#39;Task Model provided is invalid, missing UUID key&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="n">uuid_</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uuid&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">uuid_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;jobstatus&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">status</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="microsoft_task_result"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_task_result">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;task&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_task_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve the result of a completed asynchronous Task</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: task</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Task model</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Task&quot;</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns the result of the provided Task</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="s1">&#39;task&#39;</span>
+        <span class="k">assert</span> <span class="s1">&#39;uuid&#39;</span> <span class="ow">in</span> <span class="n">task</span><span class="p">,</span> <span class="s1">&#39;Task Model provided is invalid, missing UUID key&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="n">uuid_</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uuid&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">uuid_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_job_result</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;json_result&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="microsoft_image_delete"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_image_delete">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_image_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Delete an Image model from the database.</span>
+
+<span class="sd">    Also deletes any derived Detection models or any added Annotations for the deleted Image model.</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: image</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Image model to delete</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Image&quot;</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a success status flag (True if deleted)</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: boolean</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">_ensure_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;deleted&#39;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="microsoft_annotation_delete"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_annotation_delete">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;annotation&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_annotation_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotation</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Delete an Annotation model from the database.</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: annotation</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Annotation model to delete</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Annotation&quot;</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a success status flag (True if deleted)</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: boolean</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">_ensure_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotation</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;deleted&#39;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="microsoft_name_delete"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_name_delete">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">microsoft_name_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Delete a Name model from the database.</span>
+
+<span class="sd">    This operation DOES NOT delete any associated Annotation models with this Name, it simply disassociates them.</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: name</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A Name model to delete</span>
+<span class="sd">      required: true</span>
+<span class="sd">      schema:</span>
+<span class="sd">        $ref: &quot;#/definitions/Name&quot;</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: Returns a success status flag (True if deleted)</span>
+<span class="sd">        schema:</span>
+<span class="sd">          type: boolean</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="c1"># Input argument validation</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">_ensure_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_names</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;deleted&#39;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="microsoft_get_test_data"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_microsoft.microsoft_get_test_data">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="n">_prefix</span><span class="p">(</span><span class="s1">&#39;test/annotations&#39;</span><span class="p">),</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">microsoft_get_test_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return test data annotations.</span>
+<span class="sd">    ---</span>
+<span class="sd">    parameters:</span>
+<span class="sd">    - name: dataset</span>
+<span class="sd">      in: body</span>
+<span class="sd">      description: A name for the dataset.  Must be one of &#39;zebra&#39;, &#39;dolphin&#39;, &#39;humpback&#39;</span>
+<span class="sd">      required: true</span>
+<span class="sd">      type: string</span>
+<span class="sd">    produces:</span>
+<span class="sd">    - application/json</span>
+<span class="sd">    responses:</span>
+<span class="sd">      200:</span>
+<span class="sd">        description: A JSON object with the query and database Annotation model lists</span>
+<span class="sd">      400:</span>
+<span class="sd">        description: Invalid input parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">api_test_datasets_id</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">response</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_annotation</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">wbia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../wbia.html">wbia - Wildbook IA</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../wbia.html">wbia</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Wild Me.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

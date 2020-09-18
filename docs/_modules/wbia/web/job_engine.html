@@ -1747,8 +1747,14 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Exiting engine loop&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="on_engine_request"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.on_engine_request">[docs]</a><span class="k">def</span> <span class="nf">on_engine_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="on_engine_request"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.job_engine.on_engine_request">[docs]</a><span class="k">def</span> <span class="nf">on_engine_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">attempts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">retry_delay</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Run whenever the engine recieves a message &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">attempts</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">attempts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">attempts</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">retry_delay</span> <span class="ow">and</span> <span class="n">retry_delay</span> <span class="o">&lt;=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span>
+    <span class="n">retry_delay</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">retry_delay</span><span class="p">)</span>
+
     <span class="c1"># Start working</span>
     <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;starting job=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
@@ -1772,7 +1778,28 @@
     <span class="n">exec_status</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">while</span> <span class="n">exec_status</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">action_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>  <span class="c1"># Global max attempts of 10</span>
+                <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">action_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">break</span>  <span class="c1"># success, no exception, break out of the loop</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">attempts</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                            <span class="s1">&#39;JOB </span><span class="si">%r</span><span class="s1"> FAILED (attempt </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%d</span><span class="s1">)!&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">jobid</span><span class="p">,</span>
+                                <span class="n">attempt</span><span class="p">,</span>
+                                <span class="n">attempts</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> WAITING </span><span class="si">%d</span><span class="s1"> SECONDS THEN RETRYING&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">retry_delay</span><span class="p">,)</span>
+                        <span class="p">)</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">retry_delay</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span>
             <span class="n">exec_status</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="c1"># Remove __jobid__ from kwargs if it&#39;s not accepted by the action_func</span>

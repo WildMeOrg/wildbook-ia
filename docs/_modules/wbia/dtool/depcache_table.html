@@ -65,8 +65,11 @@
 <span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
 
+<span class="kn">from</span> <span class="nn">wbia.dtool</span> <span class="kn">import</span> <span class="n">sqlite3</span> <span class="k">as</span> <span class="n">lite</span>
 <span class="kn">from</span> <span class="nn">wbia.dtool.sql_control</span> <span class="kn">import</span> <span class="n">SQLDatabaseController</span>
 <span class="kn">from</span> <span class="nn">wbia.dtool.types</span> <span class="kn">import</span> <span class="n">TYPE_TO_SQLTYPE</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
 
 
 <span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depcache_table]&#39;</span><span class="p">)</span>
@@ -2063,7 +2066,14 @@
 
     <span class="c1"># @profile</span>
 <div class="viewcode-block" id="DependencyCacheTable.ensure_rows"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.depcache_table.DependencyCacheTable.ensure_rows">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_rows</span><span class="p">(</span>
-        <span class="n">table</span><span class="p">,</span> <span class="n">parent_ids_</span><span class="p">,</span> <span class="n">preproc_args</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">_debug</span><span class="o">=</span><span class="kc">None</span>
+        <span class="n">table</span><span class="p">,</span>
+        <span class="n">parent_ids_</span><span class="p">,</span>
+        <span class="n">preproc_args</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">_debug</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">retry</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">retry_delay</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Lazy addition</span>
@@ -2086,93 +2096,124 @@
 <span class="sd">            &gt;&gt;&gt; result = (&#39;rowids = %r&#39; % (rowids,))</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
-        <span class="c1"># Get requested configuration id</span>
-        <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_rowid</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_debug</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span> <span class="k">if</span> <span class="n">_debug</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_debug</span>
+            <span class="c1"># Get requested configuration id</span>
+            <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_rowid</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
-        <span class="c1"># Check which rows are already computed</span>
-        <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-        <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
+            <span class="c1"># Check which rows are already computed</span>
+            <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">initial_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;[deptbl.ensure] initial_rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">),)</span>
-            <span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.ensure] config_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">,))</span>
-
-        <span class="c1"># Get corresponding &quot;dirty&quot; parent rowids</span>
-        <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
-        <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">isdirty_list</span><span class="p">)</span>
-        <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[ADD]&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">_debug</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="s1">&#39;Add </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> new rows to </span><span class="si">%r</span><span class="s1">&#39;</span>
-                        <span class="o">%</span> <span class="p">(</span>
-                            <span class="n">num_dirty</span><span class="p">,</span>
-                            <span class="n">num_total</span><span class="p">,</span>
-                            <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
-                        <span class="p">)</span>
-                    <span class="p">)</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="s1">&#39;[deptbl.add]  * config_rowid = </span><span class="si">{}</span><span class="s1">, config=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">config_rowid</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-                        <span class="p">)</span>
-                    <span class="p">)</span>
-
-                <span class="n">dirty_parent_ids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
-                <span class="n">dirty_preproc_args_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">preproc_args</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
-
-                <span class="c1"># Process only unique items</span>
-                <span class="n">unique_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">)</span>
-                <span class="n">dirty_parent_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
-                <span class="n">dirty_preproc_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_preproc_args_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
-
-                <span class="c1"># Break iterator into chunks</span>
-                <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="c1"># check parent configs we are working with</span>
-                    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">parname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()):</span>
-                        <span class="k">if</span> <span class="n">parname</span> <span class="o">==</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">root</span><span class="p">:</span>
-                            <span class="k">continue</span>
-                        <span class="n">parent_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">parname</span><span class="p">]</span>
-                        <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-                        <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">parent_history</span> <span class="o">=</span> <span class="n">parent_table</span><span class="o">.</span><span class="n">get_config_history</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;parent_history = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent_history</span><span class="p">,))</span>
-                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                                <span class="s1">&#39;[depcache_table] WARNING: config history is having troubles... says Jon&#39;</span>
-                            <span class="p">)</span>
-
-                <span class="c1"># Gives the function a hacky cache to use between chunks</span>
-                <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">gen</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_chunk_compute_dirty_rows</span><span class="p">(</span>
-                    <span class="n">dirty_parent_ids</span><span class="p">,</span> <span class="n">dirty_preproc_args</span><span class="p">,</span> <span class="n">config_rowid</span><span class="p">,</span> <span class="n">config</span>
+            <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;[deptbl.ensure] initial_rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">),)</span>
                 <span class="p">)</span>
-                <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                colnames, dirty_params_iter, nChunkInput = next(gen)</span>
-<span class="sd">                &quot;&quot;&quot;</span>
-                <span class="k">for</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nChunkInput</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
-                    <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span>
-                        <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nChunkInput</span>
-                    <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.ensure] config_rowid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config_rowid</span><span class="p">,))</span>
 
-                <span class="c1"># Remove cache when main add is done</span>
-                <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] finished add&#39;</span><span class="p">)</span>
-                <span class="c1">#</span>
-                <span class="c1"># The requested data is clean and must now exist in the parent</span>
-                <span class="c1"># database, do a lookup to ensure the correct order.</span>
-                <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">initial_rowid_list</span>
-        <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">))</span>
+            <span class="c1"># Get corresponding &quot;dirty&quot; parent rowids</span>
+            <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_rowid_list</span><span class="p">)</span>
+            <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">isdirty_list</span><span class="p">)</span>
+            <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[ADD]&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">_debug</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s1">&#39;Add </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> new rows to </span><span class="si">%r</span><span class="s1">&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">num_dirty</span><span class="p">,</span>
+                                <span class="n">num_total</span><span class="p">,</span>
+                                <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s1">&#39;[deptbl.add]  * config_rowid = </span><span class="si">{}</span><span class="s1">, config=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">config_rowid</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+
+                    <span class="n">dirty_parent_ids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+                    <span class="n">dirty_preproc_args_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">preproc_args</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+
+                    <span class="c1"># Process only unique items</span>
+                    <span class="n">unique_flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">)</span>
+                    <span class="n">dirty_parent_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_parent_ids_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
+                    <span class="n">dirty_preproc_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dirty_preproc_args_</span><span class="p">,</span> <span class="n">unique_flags</span><span class="p">)</span>
+
+                    <span class="c1"># Break iterator into chunks</span>
+                    <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                        <span class="c1"># check parent configs we are working with</span>
+                        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">parname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">parents</span><span class="p">()):</span>
+                            <span class="k">if</span> <span class="n">parname</span> <span class="o">==</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">root</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                            <span class="n">parent_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">parname</span><span class="p">]</span>
+                            <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                            <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">parent_history</span> <span class="o">=</span> <span class="n">parent_table</span><span class="o">.</span><span class="n">get_config_history</span><span class="p">(</span>
+                                    <span class="n">rowid_list</span>
+                                <span class="p">)</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;parent_history = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent_history</span><span class="p">,))</span>
+                            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                    <span class="s1">&#39;[depcache_table] WARNING: config history is having troubles... says Jon&#39;</span>
+                                <span class="p">)</span>
+
+                    <span class="c1"># Gives the function a hacky cache to use between chunks</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">gen</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_chunk_compute_dirty_rows</span><span class="p">(</span>
+                        <span class="n">dirty_parent_ids</span><span class="p">,</span> <span class="n">dirty_preproc_args</span><span class="p">,</span> <span class="n">config_rowid</span><span class="p">,</span> <span class="n">config</span>
+                    <span class="p">)</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                    colnames, dirty_params_iter, nChunkInput = next(gen)</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                    <span class="k">for</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nChunkInput</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
+                        <span class="n">table</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span>
+                            <span class="n">table</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span>
+                            <span class="n">colnames</span><span class="p">,</span>
+                            <span class="n">dirty_params_iter</span><span class="p">,</span>
+                            <span class="n">nInput</span><span class="o">=</span><span class="n">nChunkInput</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+                    <span class="c1"># Remove cache when main add is done</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">_debug</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] finished add&#39;</span><span class="p">)</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># The requested data is clean and must now exist in the parent</span>
+                    <span class="c1"># database, do a lookup to ensure the correct order.</span>
+                    <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">_get_rowid</span><span class="p">(</span><span class="n">parent_ids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">initial_rowid_list</span>
+            <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[deptbl.add] rowid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">trunc_repr</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">lite</span><span class="o">.</span><span class="n">IntegrityError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">retry</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;DEPC ENSURE_ROWS FOR TABLE </span><span class="si">%r</span><span class="s1"> FAILED DUE TO INTEGRITY ERROR (RETRY </span><span class="si">%d</span><span class="s1">)!&#39;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">table</span><span class="p">,</span>
+                    <span class="n">retry</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> WAITING </span><span class="si">%d</span><span class="s1"> SECONDS THEN RETRYING&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">retry_delay</span><span class="p">,))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">retry_delay</span><span class="p">)</span>
+
+            <span class="n">retry_</span> <span class="o">=</span> <span class="n">retry</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">ensure_rows</span><span class="p">(</span>
+                <span class="n">parent_ids_</span><span class="p">,</span>
+                <span class="n">preproc_args</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">_debug</span><span class="o">=</span><span class="n">_debug</span><span class="p">,</span>
+                <span class="n">retry</span><span class="o">=</span><span class="n">retry_</span><span class="p">,</span>
+                <span class="n">retry_delay</span><span class="o">=</span><span class="n">retry_delay</span><span class="p">,</span>
+            <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">rowid_list</span></div>
 
     <span class="k">def</span> <span class="nf">_rectify_ids</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">):</span>

@@ -53,6 +53,7 @@
 <span class="kn">from</span> <span class="nn">wbia.plottool.abstract_interaction</span> <span class="kn">import</span> <span class="n">AbstractInteraction</span>
 <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
 <span class="kn">from</span> <span class="nn">wbia.algo.graph.state</span> <span class="kn">import</span> <span class="n">POSTV</span><span class="p">,</span> <span class="n">NEGTV</span><span class="p">,</span> <span class="n">INCMP</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.nx_utils</span> <span class="kn">import</span> <span class="n">connected_component_subgraphs</span>
 
 <span class="c1"># import sys</span>
 <span class="c1"># from os.path import join</span>
@@ -144,7 +145,7 @@
     <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span>
         <span class="n">aug_graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="n">edge</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">orig_edges</span><span class="p">])</span>
     <span class="p">)</span>
-    <span class="k">for</span> <span class="n">cc_sub_graph</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">cc_sub_graph</span> <span class="ow">in</span> <span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">):</span>
         <span class="n">mst_sub_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">cc_sub_graph</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">mst_sub_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
             <span class="n">redge</span> <span class="o">=</span> <span class="n">edge</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -322,7 +323,7 @@
     <span class="c1"># Determine which edges need to be added to</span>
     <span class="c1"># make original graph connected by name</span>
     <span class="n">aug_graph</span> <span class="o">=</span> <span class="n">aug_digraph</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">cc_sub_graph</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">cc_sub_graph</span> <span class="ow">in</span> <span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">):</span>
         <span class="n">mst_sub_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">cc_sub_graph</span><span class="p">)</span>
         <span class="n">mst_edges</span> <span class="o">=</span> <span class="n">mst_sub_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">mst_edges</span><span class="p">:</span>

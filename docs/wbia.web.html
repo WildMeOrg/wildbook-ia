@@ -15,7 +15,6 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="wbia.web.futures_utils package" href="wbia.web.futures_utils.html" />
     <link rel="prev" title="wbia.viz.interact package" href="wbia.viz.interact.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -35,22 +34,6 @@
             
   <div class="section" id="wbia-web-package">
 <h1>wbia.web package<a class="headerlink" href="#wbia-web-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="wbia.web.futures_utils.html">wbia.web.futures_utils package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="wbia.web.futures_utils.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.web.futures_utils.html#wbia-web-futures-utils-base-actor-module">wbia.web.futures_utils._base_actor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.web.futures_utils.html#wbia-web-futures-utils-process-actor-module">wbia.web.futures_utils.process_actor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.web.futures_utils.html#wbia-web-futures-utils-tests-module">wbia.web.futures_utils.tests module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.web.futures_utils.html#wbia-web-futures-utils-thread-actor-module">wbia.web.futures_utils.thread_actor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.web.futures_utils.html#module-contents">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -2290,8 +2273,1033 @@ URL: /api/species/json/</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="wbia-web-apis-microsoft-module">
-<h2>wbia.web.apis_microsoft module<a class="headerlink" href="#wbia-web-apis-microsoft-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-wbia.web.apis_microsoft">
+<span id="wbia-web-apis-microsoft-module"></span><h2>wbia.web.apis_microsoft module<a class="headerlink" href="#module-wbia.web.apis_microsoft" title="Permalink to this headline">¶</a></h2>
+<p>Dependencies: flask, tornado.</p>
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_annotation_add">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_annotation_add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">bbox</span></em>, <em class="sig-param"><span class="n">theta</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">species</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">viewpoint</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_annotation_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_annotation_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an Annotation to the system and return the UUID
+—
+parameters:
+- name: image</p>
+<blockquote>
+<div><p>in: body
+description: A Image model for which the annotation will be added as a child
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Image”</p>
+</div></blockquote>
+</div></blockquote>
+<ul>
+<li><p>name: bbox
+in: formData
+description: a 4-tuple of coordinates that defines a rectangle in the format (x-axis top left corner, y-axis top left corner, width, height) in pixels.  These values are expected to be bounded by the size of the parent image.
+required: true
+type: array
+items:</p>
+<blockquote>
+<div><p>type: number
+format: float</p>
+</div></blockquote>
+</li>
+<li><p>name: theta
+in: formData
+description: a rotation around the center of the annotation, in radians.  Default is 0.0
+required: false
+type: number</p></li>
+<li><p>name: species
+in: formData
+description: a user-defined string to specify the species of the annotation (e.g. ‘zebra’ or ‘massai_giraffe’).  This value is used to filter matches and run-time models for ID.  Default is None.
+required: false
+type: string</p></li>
+<li><p>name: viewpoint
+in: formData
+description: a user-defined string to specify the viewpoint of the annotation (e.g. ‘right’ or ‘front_left’).  This value is used to filter matches and run-time models for ID. Default is None.
+required: false
+type: string</p></li>
+<li><p>name: name
+in: body
+description: a Name model to assign to the created Annotation
+required: false
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Name”</p>
+</div></blockquote>
+</li>
+</ul>
+<p>consumes:
+- multipart/form-data
+produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns an Annotations model with a UUID
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_annotation_delete">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_annotation_delete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">annotation</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_annotation_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_annotation_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete an Annotation model from the database.
+—
+parameters:
+- name: annotation</p>
+<blockquote>
+<div><p>in: body
+description: A Annotation model to delete
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a success status flag (True if deleted)
+schema:</p>
+<blockquote>
+<div><p>type: boolean</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_annotation_metadata">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_annotation_metadata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">annotation</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_annotation_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_annotation_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Annotation’s metadata (bbox, theta, species, viewpoint).</p>
+<p>We provide no setters for Annotations.  If you wish to modify the metadata on an Annotation model, please delete it and add it again.  Modifying the metadata on an annotation may alter its derived UUID
+—
+parameters:
+- name: annotation</p>
+<blockquote>
+<div><p>in: body
+description: A Annotation model
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Image”</p>
+</div></blockquote>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a JSON object with the metadata for the annotation
+schema:</p>
+<blockquote>
+<div><p>type: object</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_core_specification_swagger">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_core_specification_swagger</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_core_specification_swagger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_core_specification_swagger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.</p>
+<p>The Swagger API specification (<a class="reference external" href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md">https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md</a>) provides a standardized method to export REST API documentation and examples.  Our documentation is built on-demand with the help of the Python package flask-swagger (<a class="reference external" href="https://github.com/gangverk/flask-swagger">https://github.com/gangverk/flask-swagger</a>).</p>
+<p>The API specification includes GET, POST, PUT, and DELETE methods and Model definitions.
+—
+definitions:
+- schema:</p>
+<blockquote>
+<div><p>id: Image
+description: An Image is a semantic construct that represents an uploaded image.  Images can be uploaded for later processing or be used immediately for detection.  Object detection will create Annotation models, which have a required Image parent.  An Image can have multiple detections (i.e. Annotation models).
+required:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>uuid</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>properties:</dt><dd><dl class="simple">
+<dt>uuid:</dt><dd><p>description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.
+type: string
+format: uuid</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<ul>
+<li><dl>
+<dt>schema:</dt><dd><p>id: Annotation
+description: An Annotation is a semantic construct that represents a <em>committed</em> detection, with a bounding box and species classification assigned as stored attributes.  An Annotation is required to have a parent Image.  All bounding box coordinates are relative to the size of the parent Image that was uploaded.
+required:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>uuid</p></li>
+<li><p>bbox</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>properties:</dt><dd><dl class="simple">
+<dt>uuid:</dt><dd><p>description: a deterministically-derived UUID based on the parent image’s UUID and the bounding box coordinate (xtl, ytl, width, height) and orientation (theta), which can be used to identify duplicate Annotations.
+type: string
+format: uuid</p>
+</dd>
+<dt>bbox:</dt><dd><p>description: a 4-tuple of coordinates that defines a rectangle in the format (x-axis top left corner, y-axis top left corner, width, height) in pixels.  These values are expected to be bounded by the size of the parent image.
+type: array</p>
+</dd>
+<dt>theta:</dt><dd><p>description: a rotation around the center of the annotation, in radians
+type: number</p>
+</dd>
+<dt>species:</dt><dd><p>description: a user-defined string to specify the species of the annotation (e.g. ‘zebra’ or ‘massai_giraffe’).  This value is used to filter matches and run-time models for ID.
+type: string</p>
+</dd>
+<dt>viewpoint:</dt><dd><p>description: a user-defined string to specify the viewpoint of the annotation (e.g. ‘right’ or ‘front_left’).  This value is used to filter matches and run-time models for ID.
+type: string</p>
+</dd>
+<dt>name:</dt><dd><p>description: the name of the individual
+format: uuid
+type: string</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>schema:</dt><dd><p>id: Detection
+description: A Detection is a semantic constrict that represents an <em>un-committed</em> detection.  A Detection can be committed to an Annotation to be stored permanently on the parent Image.
+required:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>_image</p></li>
+<li><p>score</p></li>
+<li><p>bbox</p></li>
+<li><p>xtl</p></li>
+<li><p>ytl</p></li>
+<li><p>xbr</p></li>
+<li><p>ybr</p></li>
+<li><p>width</p></li>
+<li><p>height</p></li>
+<li><p>theta</p></li>
+<li><p>label</p></li>
+</ul>
+</div></blockquote>
+<dl>
+<dt>properties:</dt><dd><dl>
+<dt>image:</dt><dd><p>description: The Image that this Detection was found in
+$ref: “#/definitions/Image”</p>
+</dd>
+<dt>score:</dt><dd><p>description: The detection’s classification score
+type: integer
+format: int32</p>
+</dd>
+<dt>bbox:</dt><dd><p>description: The bounding box for this annotation, represented in the format (xtl, ytl, width, height)
+type: array
+items:</p>
+<blockquote>
+<div><p>type: number
+format: float</p>
+</div></blockquote>
+</dd>
+<dt>xtl:</dt><dd><p>description: The pixel coordinate for the top-left corner along the x-axis (xtl = x-axis top left) for the bounding box
+type: integer
+format: int32</p>
+</dd>
+<dt>ytl:</dt><dd><p>description: The pixel coordinate for the top-left corner along the y-axis (ytl = y-axis top left) for the bounding box
+type: integer
+format: int32</p>
+</dd>
+<dt>xbr:</dt><dd><p>description: The pixel coordinate for the bottom-right corner along the x-axis (ytl = x-axis bottom right) for the bounding box
+type: integer
+format: int32</p>
+</dd>
+<dt>ybr:</dt><dd><p>description: The pixel coordinate for the bottom-right corner along the y-axis (ytl = y-axis bottom right) for the bounding box
+type: integer
+format: int32</p>
+</dd>
+<dt>width:</dt><dd><p>description: The pixel width for the bounding box
+type: integer
+format: int32</p>
+</dd>
+<dt>height:</dt><dd><p>description: The pixel height for the bounding box
+type: integer
+format: int32</p>
+</dd>
+<dt>theta:</dt><dd><p>description: The rotation of the bounding box around its center, represented in radians
+type: number
+format: float</p>
+</dd>
+<dt>species:</dt><dd><p>description: The semantic species classification (class label) of the bounding box
+type: string</p>
+</dd>
+<dt>viewpoint:</dt><dd><p>description: The semantic viewpoint classification (class label) of the bounding box
+type: string</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>schema:</dt><dd><p>id: Name
+description: A Name is the identification label for a group of Annotations
+required:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>uuid</p></li>
+<li><p>alias</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>properties:</dt><dd><dl class="simple">
+<dt>uuid:</dt><dd><p>description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.
+type: string
+format: uuid</p>
+</dd>
+<dt>alias:</dt><dd><p>description: a string alias for this individual, helpful for user-facing interfaces
+type: string</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>schema:</dt><dd><p>id: Task
+description: A Task is a semantic construct that represents a background task (i.e. detection) in an asynchronous call.  A Task has an optional callback on completion or the status (and result) can be checked via the API
+required:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>uuid</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>properties:</dt><dd><dl class="simple">
+<dt>uuid:</dt><dd><p>description: a random UUID to identify a given asynchronous call, used to check status and results of a background task
+type: string
+format: uuid</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>200:</dt><dd><p>description: Returns the Swagger 2.0 JSON format</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_core_status">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_core_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_core_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_core_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the health status of the API back-end; optionally can be used as a service heatbeat.
+—
+produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns the status of the server
+schema:</p>
+<blockquote>
+<div><p>type: object
+properties:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>status:</dt><dd><p>type: string
+enum:
+- healthy
+- warning
+- critical</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<dl class="simple">
+<dt>examples:</dt><dd><dl class="simple">
+<dt>application/json:</dt><dd><p>status: healthy</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_detect">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_detect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">images</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">score_threshold</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">use_nms</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">nms_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em>, <em class="sig-param"><span class="n">__jobid__</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_detect_batch">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_detect_batch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">images</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">score_threshold</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">use_nms</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">nms_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em>, <em class="sig-param"><span class="n">asynchronous</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">callback_url</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">callback_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>The asynchronous variant of POST ‘detect’ that takes in a list of Image models and returns a task ID.</p>
+<p>It may be more ideal for a particular application to upload many images at one time and perform processing later in a large batch.  This type of batch detection is certainly much more efficient because the detection on GPU can process more images in parallel.  However, if you intend to run the detector on an upload as quickly as possible, please use the on-demand, non-batched API.
+—
+parameters:
+- name: images</p>
+<blockquote>
+<div><p>in: body
+description: A JSON list of Image models for which detection will be processed.
+required: true
+type: array</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>name: model
+in: formData
+description: The model name to use with detection.  Available models can be queried using the API $PREFIX/detect/model/
+required: true
+type: string</p></li>
+<li><p>name: score_threshold
+in: formData
+description: A score threshold to filter the detection results.  Default 0.0.  Must be in range [0, 1], inclusive
+required: false
+type: number
+format: float</p></li>
+<li><p>name: use_nms
+in: formData
+description: Flag to turn on/off Non-Maximum Suppression (NMS).  Default True.
+required: false
+type: boolean</p></li>
+<li><p>name: nms_threshold
+in: formData
+description: A Intersection-over-Union (IoU) threshold to suppress detection results with NMS.  Default 0.0.  Must be in range [0, 1], inclusive
+required: false
+type: number
+format: float</p></li>
+<li><p>name: callback_url
+in: formData
+description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a ‘body’ parameter called <cite>task</cite> which will provide a Task model
+required: false
+type: string
+format: url</p></li>
+<li><p>name: callback_method
+in: formData
+description: The HTTP method for which to make the callback.  Default POST.
+required: false
+type: string
+enum:
+- get
+- post
+- put
+- delete</p></li>
+</ul>
+<p>consumes:
+- multipart/form-data
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a Task model
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Task”</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+<dt>x-task-response:</dt><dd><p>description: The task returns an array of arrays of Detection models, in parallel lists with the provided Image models
+schema:</p>
+<blockquote>
+<div><p>type: array
+items:</p>
+<blockquote>
+<div><dl>
+<dt>schema:</dt><dd><p>type: array
+items:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Detection”</p>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_detect_input_validation">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_detect_input_validation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">score_threshold</span></em>, <em class="sig-param"><span class="n">use_nms</span></em>, <em class="sig-param"><span class="n">nms_threshold</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect_input_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect_input_validation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_detect_model">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_detect_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the available models and their supported species for detection.  These models are pre-trained and are downloaded as needed on first start-up.</p>
+<p>The current model names that are supported for demoing and their species:
+- hammerhead -&gt; shark_hammerhead
+- jaguar     -&gt; jaguar
+- lynx       -&gt; lynx
+- manta      -&gt; manta_ray_giant
+- seaturtle  -&gt; fish, ignore, person, turtle_green, turtle_green+head, turtle_hawksbill, turtle_hawksbill+head
+- ggr2       -&gt; giraffe, zebra
+—
+produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns an object of models (keys) and their supported species (values) listed as an array of strings.
+schema:</p>
+<blockquote>
+<div><p>type: object</p>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_detect_upload">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_detect_upload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">score_threshold</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">use_nms</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">nms_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_detect_upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_detect_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the detection results for an uploaded image and a provided model configuration.</p>
+<p>The uploaded image will be used to perform object detection for a given model.  A detection will return at most 845 Detections (13 x 13 grid of 5 bounding boxes based on the YOLO v2 by Redmon et al.).
+—
+parameters:
+- name: image</p>
+<blockquote>
+<div><p>in: formData
+description: The image for which detection will be processed.
+required: true
+type: file
+enum:
+- image/png
+- image/jpg
+- image/tiff</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>name: model
+in: formData
+description: The model name to use with detection.  Available models can be queried using the API $PREFIX/detect/model/
+required: true
+type: string</p></li>
+<li><p>name: score_threshold
+in: formData
+description: A score threshold to filter the detection results.  Default 0.0.  Must be in range [0, 1], inclusive
+required: false
+type: number
+format: float</p></li>
+<li><p>name: use_nms
+in: formData
+description: Flag to turn on/off Non-Maximum Suppression (NMS).  Default True.  Must be in range [0, 1], inclusive
+required: false
+type: boolean</p></li>
+<li><p>name: nms_threshold
+in: formData
+description: A Intersection-over-Union (IoU) threshold to suppress detection results with NMS.  Default 0.0.  Must be in range [0, 1], inclusive
+required: false
+type: number
+format: float</p></li>
+</ul>
+<p>consumes:
+- multipart/form-data
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns an array of Detection models on the uploaded image
+schema:</p>
+<blockquote>
+<div><p>type: array
+items:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Detection”</p>
+</div></blockquote>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+<dt>415:</dt><dd><p>description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_get_test_data">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_get_test_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">dataset</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_get_test_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_get_test_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return test data annotations.
+—
+parameters:
+- name: dataset</p>
+<blockquote>
+<div><p>in: body
+description: A name for the dataset.  Must be one of ‘zebra’, ‘dolphin’, ‘humpback’
+required: true
+type: string</p>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>200:</dt><dd><p>description: A JSON object with the query and database Annotation model lists</p>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_identify">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_identify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">query_annotation</span></em>, <em class="sig-param"><span class="n">database_annotations</span></em>, <em class="sig-param"><span class="n">algorithm</span></em>, <em class="sig-param"><span class="n">callback_url</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">callback_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_identify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_identify" title="Permalink to this definition">¶</a></dt>
+<dd><p>The asynchronous call to identify a list of pre-uploaded query annotations against a database of annotations.  Returns a task ID.</p>
+<p>This call expects all of the data has been already uploaded and the
+appropriate metadata set.  For example, this call expects any known
+ground-truth nameshave already been made and assigned to the appropriate
+Annotation models.  Conversely, we also provide a method for marking individual
+reviews between two Annotation models.  The decision between a given pair
+should always be one of [‘match’, ‘nomatch’, or ‘notcomp’].  The full docuemntation
+for this call can be seen in the POST ‘decision’ API.
+—
+parameters:
+- name: query_annotation</p>
+<blockquote>
+<div><p>in: formData
+description: An Annotation models to query for an identification
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</div></blockquote>
+<ul>
+<li><p>name: database_annotations
+in: formData
+description: A JSON list of Annotation models to compare the query Annotation against
+required: true
+type: array
+items:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</li>
+<li><p>name: algorithm
+in: formData
+description: The algorithm you with to run ID with.  Must be one of “HotSpotter”, “CurvRank”, “Finfindr”, or “Deepsense”
+required: true
+type: string</p></li>
+<li><p>name: callback_url
+in: formData
+description: The URL of where to callback when the task is completed, must be a fully resolvable address and accessible.  The callback will include a ‘body’ parameter called <cite>task</cite> which will provide a Task model
+required: false
+type: string
+format: url</p></li>
+<li><p>name: callback_method
+in: formData
+description: The HTTP method for which to make the callback.  Default POST.
+required: false
+type: string
+enum:
+- get
+- post
+- put
+- delete</p></li>
+</ul>
+<p>consumes:
+- multipart/form-data
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a Task model
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Task”</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_identify_visualize">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_identify_visualize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reference</span></em>, <em class="sig-param"><span class="n">query_annotation</span></em>, <em class="sig-param"><span class="n">database_annotation</span></em>, <em class="sig-param"><span class="n">version</span><span class="o">=</span><span class="default_value">'heatmask'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_identify_visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_identify_visualize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize the results of matching, precomputed and rendered to disk for easy look-up.</p>
+<p>—
+parameters:
+- name: reference</p>
+<blockquote>
+<div><p>in: formData
+description: A reference string to refer to the rendered match results on disk for a given identification Task
+required: true
+type: string</p>
+</div></blockquote>
+<ul>
+<li><p>name: query_annotation
+in: formData
+description: The query Annotation model
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</li>
+<li><p>name: database_annotation
+in: formData
+description: The database Annotation model
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</li>
+<li><p>name: version
+in: formData
+description: The version of the visualization.  Must be one of “heatmask” or “original”.  Defaults to “heatmask”
+required: false
+type: string</p></li>
+</ul>
+<p>consumes:
+- multipart/form-data
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a Task model
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Task”</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_image_annotations">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_image_annotations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_image_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_image_annotations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Annotation models for a given Image model
+—
+parameters:
+- name: image</p>
+<blockquote>
+<div><p>in: body
+description: A Image model to use for querying associated Annotation UUIDs
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Image”</p>
+</div></blockquote>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a (possibly empty) list of Annotations models
+schema:</p>
+<blockquote>
+<div><p>type: array
+items:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_image_delete">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_image_delete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">image</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_image_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_image_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete an Image model from the database.</p>
+<p>Also deletes any derived Detection models or any added Annotations for the deleted Image model.
+—
+parameters:
+- name: image</p>
+<blockquote>
+<div><p>in: body
+description: A Image model to delete
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Image”</p>
+</div></blockquote>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a success status flag (True if deleted)
+schema:</p>
+<blockquote>
+<div><p>type: boolean</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_image_upload">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_image_upload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_image_upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_image_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload an Image to the system and return the UUID
+—
+parameters:
+- name: image</p>
+<blockquote>
+<div><p>in: formData
+description: The image to upload.
+required: true
+type: file
+enum:
+- image/png
+- image/jpg
+- image/tiff</p>
+</div></blockquote>
+<p>consumes:
+- multipart/form-data
+produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns an Image model with a UUID
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Image”</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+<dt>415:</dt><dd><p>description: Unsupported media type in the request body. Currently only image/png, image/jpeg, image/tiff are supported.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_name_add">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_name_add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">alias</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_name_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_name_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a Name to the system and return the UUID
+—
+parameters:
+- name: alias</p>
+<blockquote>
+<div><p>in: formData
+description: a user-defined string to specify an alias for this name, useful for forward facing interfaces
+required: false
+type: string</p>
+</div></blockquote>
+<p>consumes:
+- multipart/form-data
+produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns an Name model with a UUID
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Name”</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_name_annotations">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_name_annotations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_name_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_name_annotations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Annotation models for a given Name model
+—
+parameters:
+- name: name</p>
+<blockquote>
+<div><p>in: body
+description: A Name model to use for querying associated Annotation UUIDs
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Name”</p>
+</div></blockquote>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a (possibly empty) list of Annotations models
+schema:</p>
+<blockquote>
+<div><p>type: array
+items:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Annotation”</p>
+</div></blockquote>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_name_delete">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_name_delete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_name_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_name_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a Name model from the database.</p>
+<p>This operation DOES NOT delete any associated Annotation models with this Name, it simply disassociates them.
+—
+parameters:
+- name: name</p>
+<blockquote>
+<div><p>in: body
+description: A Name model to delete
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Name”</p>
+</div></blockquote>
+</div></blockquote>
+<p>produces:
+- application/json
+responses:</p>
+<blockquote>
+<div><dl>
+<dt>200:</dt><dd><p>description: Returns a success status flag (True if deleted)
+schema:</p>
+<blockquote>
+<div><p>type: boolean</p>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_task_result">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_task_result</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">task</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_task_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_task_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the result of a completed asynchronous Task
+—
+parameters:
+- name: task</p>
+<blockquote>
+<div><p>in: body
+description: A Task model
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Task”</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="simple">
+<dt>responses:</dt><dd><dl class="simple">
+<dt>200:</dt><dd><p>description: Returns the result of the provided Task</p>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.microsoft_task_status">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">microsoft_task_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">task</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#microsoft_task_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.microsoft_task_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the status of an asynchronous Task.</p>
+<p>A Task is an asynchronous task that was launched as a background process with an optional callback.  The status of a given Task with a UUID can be checked with this call.  The status of the call depends on where in the execution queue the Task is currently, which will be processed in a first-come-first-serve list and only one Task at a time to present atomicity of the API.</p>
+<p>The status can be one of the following:
+- received   -&gt; The Task request was received but has not passed any input validation.
+- accepted   -&gt; The Task request has passed basic input validation and will be queued soon for execution.
+- queued     -&gt; The Task is queued in the execution list and will be processed in order and one at a time.
+- working    -&gt; The Task is being processed, awaiting completed results or an error exception
+- publishing -&gt; The Task is publishing the results of the background API call.
+- completed  -&gt; One of two end states: the Task is complete, completed results available for downloading with the REST API.
+- exception  -&gt; One of two end states: the Task has encountered an error, an error message can be received using the results REST API.
+- unknown    -&gt; The Task you asked for is not known, indicating that the either UUID is not recognized (i.e. a Task with that ID was never currently created) or the server has been restarted.</p>
+<p><strong>Important: when the API server is restarted, all queued and running background Tasks are killed and all Task requests and cached results are deleted.</strong>
+—
+parameters:
+- name: task</p>
+<blockquote>
+<div><p>in: body
+description: A Task model
+required: true
+schema:</p>
+<blockquote>
+<div><p>$ref: “#/definitions/Task”</p>
+</div></blockquote>
+</div></blockquote>
+<dl>
+<dt>responses:</dt><dd><dl>
+<dt>200:</dt><dd><p>description: Returns the status of the provided Task
+schema:</p>
+<blockquote>
+<div><p>type: object
+properties:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>status:</dt><dd><p>type: string
+enum:
+- received
+- accepted
+- queued
+- working
+- publishing
+- completed
+- exception
+- unknown</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+</dd>
+<dt>400:</dt><dd><p>description: Invalid input parameter</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.apis_microsoft.query_chips_graph_microsoft">
+<code class="sig-prename descclassname">wbia.web.apis_microsoft.</code><code class="sig-name descname">query_chips_graph_microsoft</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/apis_microsoft.html#query_chips_graph_microsoft"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.apis_microsoft.query_chips_graph_microsoft" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-wbia.web.apis_query">
 <span id="wbia-web-apis-query-module"></span><h2>wbia.web.apis_query module<a class="headerlink" href="#module-wbia.web.apis_query" title="Permalink to this headline">¶</a></h2>
@@ -3770,7 +4778,7 @@ python -m wbia.web.job_engine job_engine_tester –fg</p>
 
 <dl class="py function">
 <dt id="wbia.web.job_engine.on_engine_request">
-<code class="sig-prename descclassname">wbia.web.job_engine.</code><code class="sig-name descname">on_engine_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">jobid</span></em>, <em class="sig-param"><span class="n">action</span></em>, <em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/job_engine.html#on_engine_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.job_engine.on_engine_request" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">wbia.web.job_engine.</code><code class="sig-name descname">on_engine_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">jobid</span></em>, <em class="sig-param"><span class="n">action</span></em>, <em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">kwargs</span></em>, <em class="sig-param"><span class="n">attempts</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">retry_delay</span><span class="o">=</span><span class="default_value">60</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/job_engine.html#on_engine_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.job_engine.on_engine_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run whenever the engine recieves a message</p>
 </dd></dl>
 
@@ -3822,8 +4830,28 @@ python -m wbia.web.job_engine job_engine_tester –fg</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="wbia-web-prometheus-module">
-<h2>wbia.web.prometheus module<a class="headerlink" href="#wbia-web-prometheus-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-wbia.web.prometheus">
+<span id="wbia-web-prometheus-module"></span><h2>wbia.web.prometheus module<a class="headerlink" href="#module-wbia.web.prometheus" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="wbia.web.prometheus.prometheus_increment_api">
+<code class="sig-prename descclassname">wbia.web.prometheus.</code><code class="sig-name descname">prometheus_increment_api</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">tag</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/prometheus.html#prometheus_increment_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.prometheus.prometheus_increment_api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.prometheus.prometheus_increment_exception">
+<code class="sig-prename descclassname">wbia.web.prometheus.</code><code class="sig-name descname">prometheus_increment_exception</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">tag</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/prometheus.html#prometheus_increment_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.prometheus.prometheus_increment_exception" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.prometheus.prometheus_increment_route">
+<code class="sig-prename descclassname">wbia.web.prometheus.</code><code class="sig-name descname">prometheus_increment_route</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="n">tag</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/prometheus.html#prometheus_increment_route"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.prometheus.prometheus_increment_route" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="wbia.web.prometheus.prometheus_update">
+<code class="sig-prename descclassname">wbia.web.prometheus.</code><code class="sig-name descname">prometheus_update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ibs</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/web/prometheus.html#prometheus_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wbia.web.prometheus.prometheus_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-wbia.web.routes">
 <span id="wbia-web-routes-module"></span><h2>wbia.web.routes module<a class="headerlink" href="#module-wbia.web.routes" title="Permalink to this headline">¶</a></h2>
@@ -4654,7 +5682,6 @@ python -m wbia.web.app –exec-turk_quality –db GIRM_Master1</p>
 <li class="toctree-l2"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wbia.tests.html">wbia.tests package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">wbia.web package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wbia.html#wbia-main">wbia.__main__</a></li>
@@ -4685,7 +5712,6 @@ python -m wbia.web.app –exec-turk_quality –db GIRM_Master1</p>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="wbia.html">wbia - Wildbook IA</a><ul>
       <li>Previous: <a href="wbia.viz.interact.html" title="previous chapter">wbia.viz.interact package</a></li>
-      <li>Next: <a href="wbia.web.futures_utils.html" title="next chapter">wbia.web.futures_utils package</a></li>
   </ul></li>
   </ul></li>
 </ul>

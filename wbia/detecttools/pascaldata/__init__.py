@@ -3,8 +3,8 @@
 
 import os
 from wbia.detecttools.directory import Directory
-from wbia.detectools.pascaldata import common as com
-from wbia.detectools.pascaldata.pascal_image import PASCAL_Image
+from wbia.detecttools.pascaldata import common as com
+from wbia.detecttools.pascaldata.pascal_image import PASCAL_Image
 
 
 class PASCAL_Data(object):

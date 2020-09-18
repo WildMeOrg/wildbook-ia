@@ -52,6 +52,7 @@
 <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
 <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
 <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.nx_utils</span> <span class="kn">import</span> <span class="n">connected_component_subgraphs</span>
 
 <span class="c1"># import six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
@@ -585,7 +586,7 @@
 
             <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
             <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)),</span> <span class="p">{</span><span class="s1">&#39;user_thresh_match&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
-            <span class="n">review_groups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
+            <span class="n">review_groups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
 
             <span class="n">changing_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
             <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">changing_aids</span><span class="p">)</span>
@@ -594,7 +595,7 @@
                 <span class="c1"># Connect all original names in the database to denote merges</span>
                 <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
                     <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-            <span class="n">dbside_groups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
+            <span class="n">dbside_groups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
 
             <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="s1">&#39;Accept&#39;</span><span class="p">,</span>

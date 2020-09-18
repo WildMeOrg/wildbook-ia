@@ -5,7 +5,7 @@ import networkx as nx
 import utool as ut
 import pandas as pd
 import numpy as np
-from wbia.algo.graph.nx_utils import connected_component_subgraphs
+from wbia.algo.graph.nx_utils import connected_component_subgraphs, e_
 
 
 (print, rrr, profile) = ut.inject2(__name__)

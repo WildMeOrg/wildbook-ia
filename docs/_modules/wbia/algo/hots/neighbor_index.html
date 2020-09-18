@@ -535,7 +535,11 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nnindex flann cache is forced off&#39;</span><span class="p">)</span>
             <span class="n">load_success</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">load_success</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">load_success</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">load_success</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="k">if</span> <span class="n">load_success</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
                 <span class="n">nVecs</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">num_indexed_vecs</span><span class="p">()</span>
