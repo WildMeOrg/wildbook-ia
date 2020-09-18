@@ -1,7 +1,5 @@
 FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
-MAINTAINER Wild Me <dev@wildme.org>
-
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1
 

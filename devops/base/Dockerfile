@@ -8,11 +8,6 @@ ENV LANG C.UTF-8
 
 USER root
 
-# Create runtime user "wbia" (aka WildBook IA)
-RUN set -x \
-    && addgroup --system wbia \
-    && adduser --system --group wbia
-
 # Install package updates and dependencies
 RUN set -ex \
  && apt update \

@@ -1,7 +1,5 @@
 FROM wildme/wbia-provision:latest as org.wildme.wbia.build
 
-MAINTAINER Wild Me <dev@wildme.org>
-
 # Grab latest code and remove all Git histories from code repositories
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
@@ -27,7 +25,12 @@ RUN set -ex \
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
-MAINTAINER Wild Me <dev@wildme.org>
+LABEL autoheal=true
+
+# Create runtime user "wbia" (aka WildBook IA)
+RUN set -x \
+ && addgroup --system wbia \
+ && adduser --system --group wbia
 
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
@@ -42,25 +45,15 @@ ADD ./_config/embed.sh /bin/embed
 # Add Python health check
 ADD ./_config/healthcheck.py /bin/healthcheck.py
 
+# Add entrypoint
+ADD ./_config/entrypoint.sh /bin/entrypoint
+
+# Specify database directory
 RUN set -x \
-    && mkdir -p /data \
-    && chown wbia:wbia /data \
-    && chmod 755 /data
+ && mkdir -p /data \
+ && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
 
 WORKDIR /wbia
-
-RUN /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
-
-##########################################################################################
-FROM org.wildme.wbia.install as org.wildme.wbia.deploy
-
-MAINTAINER Wild Me <dev@wildme.org>
-
-LABEL autoheal=true
-
-COPY ./_config/entrypoint.sh /bin/entrypoint
-
-ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/logs --web --containerized --production"]
 
 # Port for the web server
 EXPOSE 5000
@@ -70,9 +63,9 @@ HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
 
 STOPSIGNAL SIGTERM
 
-##########################################################################################
-FROM org.wildme.wbia.deploy as org.wildme.wbia.configure
+ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
 
-MAINTAINER Wild Me <dev@wildme.org>
+##########################################################################################
+FROM org.wildme.wbia.install as org.wildme.wbia.configure
 
 CMD []

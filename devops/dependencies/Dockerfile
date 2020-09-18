@@ -1,7 +1,5 @@
 FROM wildme/wbia-base:latest as org.wildme.wbia.dependencies
 
-MAINTAINER Wild Me <dev@wildme.org>
-
 ARG OPENCV_VERSION=3.4.11
 
 # Install OpenCV
