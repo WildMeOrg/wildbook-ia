@@ -28,6 +28,14 @@ FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
 LABEL autoheal=true
 
+ENV HOST_USER=root
+
+ENV HOST_UID=0
+
+ENV AWS_ACCESS_KEY_ID
+
+ENV AWS_SECRET_ACCESS_KEY
+
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
