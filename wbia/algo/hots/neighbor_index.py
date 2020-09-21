@@ -501,7 +501,11 @@ class NeighborIndex(object):
             logger.info('...nnindex flann cache is forced off')
             load_success = False
         else:
-            load_success = nnindexer.load(cachedir, verbose=verbose)
+            try:
+                load_success = nnindexer.load(cachedir, verbose=verbose)
+            except Exception:
+                load_success = False
+
         if load_success:
             if not ut.QUIET:
                 nVecs = nnindexer.num_indexed_vecs()
