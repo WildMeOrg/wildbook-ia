@@ -13,11 +13,6 @@ RUN set -ex \
  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
  && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
-RUN /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-python-headless
-
-RUN /virtualenv/env3/bin/pip uninstall -y dtool-ibeis guitool-ibeis plottool-ibeis utool-ibeis vtool-ibeis \
- && /virtualenv/env3/bin/pip uninstall -y dtool guitool plottool utool vtool
-
 # Run smoke tests
 RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia;            from wbia.__main__ import smoke_test; smoke_test()" \

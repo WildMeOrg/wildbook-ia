@@ -3,115 +3,174 @@ FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1
 
-# Clone IBEIS VSTS repositories
-RUN git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-brambox          /wbia/brambox \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann          /wbia/flann \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyhesaff         /wbia/hesaff \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-flukematch     /wbia/wbia-plugin-flukematch \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-curvrank       /wbia/wbia-plugin-curvrank \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-deepsense      /wbia/wbia-plugin-deepsense \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-finfindr       /wbia/wbia-plugin-finfindr \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-kaggle7        /wbia/wbia-plugin-kaggle7 \
- && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia               /wbia/wildbook-ia \
- && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-lightnet          /wbia/lightnet \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pydarknet        /wbia/pydarknet \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyrf             /wbia/pyrf \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-utool                /wbia/utool \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-vtool                /wbia/vtool
-
-RUN cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
- && git init \
- && git remote add vs https://github.com/WildbookOrg/wbia-tpl-curvrank \
- && git fetch vs \
- # FIXME (11-Jun-12020) Looking to change the branch to `master`
- && git checkout functional-ibeis
-
-RUN cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
- && git init \
- && git remote add vs https://github.com/WildbookOrg/wbia-tpl-kaggle7 \
- && git fetch vs \
- && git checkout master
-
-# Build and install utool and ubelt
-RUN cd /wbia/utool \
- && /virtualenv/env3/bin/pip install -e .
-
-RUN /virtualenv/env3/bin/pip install ubelt
-
-# TODO Temporarily disabled: Checkout latest version of all other repos
-#RUN cd /wbia/wbia \
-# && /virtualenv/env3/bin/python super_setup.py pull \
-# && /virtualenv/env3/bin/python super_setup.py pull
-
-RUN . /virtualenv/env3/bin/activate \
- && pip install scikit-build
-
-# Build Python repositories with external codebases
+# Make a copy of our build OpenCV
 RUN set -ex \
-    && /bin/bash -xc '. /virtualenv/env3/bin/activate \
-        && cd /wbia/flann \
-        && /bin/bash run_developer_setup.sh' \
+ && cp -r /virtualenv/env3/lib/python3.7/site-packages/cv2 /tmp/cv2
+
+# Clone WBIA repository
 RUN set -ex \
-    && /bin/bash -xc '. /virtualenv/env3/bin/activate \
-        && cd /wbia/hesaff \
-        && /bin/bash run_developer_setup.sh' \
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/brambox \
- && /virtualenv/env3/bin/pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/lightnet \
- && /virtualenv/env3/bin/pip install -r requirements.txt \
- && /virtualenv/env3/bin/pip install -r develop.txt'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-flukematch \
- && /bin/bash unix_build.sh'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank \
- && /bin/bash unix_build.sh'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/pyrf \
- && /bin/bash unix_build.sh'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/vtool \
+ && cd /wbia \
+ && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia.git
+
+# Clone WBIA toolkit repositories
+RUN set -ex \
+ && cd /wbia \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-utool.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-vtool.git
+
+# Clone WBIA third-party toolkit repositories
+RUN set -ex \
+ && cd /wbia \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyhesaff.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pydarknet.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyrf.git \
+ # Depricated
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-deprecate-tpl-brambox \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-deprecate-tpl-lightnet
+
+# Clone first-party WBIA plug-in repositories
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn.git
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-flukematch.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-finfindr.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-deepsense.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-pie.git
+
+# Clone third-party WBIA plug-in repositories
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-curvrank.git \
+ && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
+ && git fetch origin \
+ && git checkout develop
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-kaggle7.git \
+ && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git fetch origin \
+ && git checkout develop
+
+# git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-2d-orientation.git
+# git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-lca.git
+
+# WBIA Toolkits
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-utool \
  && /bin/bash run_developer_setup.sh'
 
-# Install Python repositories
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-vtool \
+ && /bin/bash run_developer_setup.sh'
+
+# WBIA third-party toolkits
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-tpl-pyhesaff \
+ && /bin/bash run_developer_setup.sh'
+
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-tpl-pyflann \
+ && /bin/bash run_developer_setup.sh'
+
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-tpl-pydarknet \
+ && /bin/bash run_developer_setup.sh'
+
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-tpl-pyrf \
+ && /bin/bash run_developer_setup.sh'
+
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/hesaff \
+ && cd /wbia/wbia-deprecate-tpl-brambox \
  && pip install -e .'
+
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/lightnet \
+ && cd /wbia/wbia-deprecate-tpl-lightnet \
+ && /virtualenv/env3/bin/pip install -r develop.txt \
  && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/pydarknet \
- && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/pyrf \
- && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/utool \
- && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/vtool \
- && pip install -e .'
+
+# Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
- && pip install -e .'
+ && /bin/bash run_developer_setup.sh'
+
+# WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-flukematch \
- && pip install -e .'
+ && cd /wbia/wbia-plugin-cnn \
+ && /bin/bash run_developer_setup.sh'
+
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank \
- && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-deepsense \
- && pip install -e .'
+ && cd /wbia/wbia-plugin-pie \
+ && /bin/bash run_developer_setup.sh'
+
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
  && pip install -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-deepsense \
+ && pip install -e .'
+
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
  && pip install -e .'
 
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-flukematch \
+ && ./unix_build.sh \
+ && pip install -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-curvrank \
+ && ./unix_build.sh \
+ && pip install -e .'
+
+# Ensure no previous or deprecated repositories are installed
+# Ensure that opencv-python is un-installed since we want to use our built version
+# Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)
+RUN set -ex \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        opencv-python \
+        opencv-python-headless \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        dtool-ibeis \
+        guitool-ibeis \
+        plottool-ibeis \
+        utool-ibeis \
+        vtool-ibeis \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        dtool \
+        guitool \
+        plottool \
+        utool \
+        vtool \
+ && /virtualenv/env3/bin/pip uninstall -y \
+        tensorflow \
+        tensorflow-gpu \
+        tensorflow-estimator \
+        tensorboard \
+        tensorboard-plugin-wit \
+        keras \
+ && /virtualenv/env3/bin/pip install \
+        tensorflow-gpu==1.15 \
+        keras==2.2.5
+
+# Restore copy of our build OpenCV
+# When opencv-python is installed and subsequently un-installed is clobbers our version
+RUN set -ex \
+ && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
+ && cp -r /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \
+ && rm -rf /tmp/cv2
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]
