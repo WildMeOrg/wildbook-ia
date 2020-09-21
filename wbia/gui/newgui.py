@@ -563,9 +563,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Add control widgets (import, group, species selector, etc...)
         for count, control_widgets in enumerate(ibswgt.control_widget_lists):
             _container = status_wgt.addNewWidget(
-                orientation=Qt.Horizontal,
-                margin=0,
-                name='ControlContainer%d' % (count,),
+                orientation=Qt.Horizontal, margin=0, name='ControlContainer%d' % (count,),
             )
             for widget in control_widgets:
                 _container.addWidget(widget)
@@ -1382,10 +1380,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.override_all_annotation_species(aid_list),
                     ),
                     ('----', lambda: None),
-                    (
-                        "Remove annotation's name",
-                        lambda: ibswgt.back.unset_names([aid]),
-                    ),
+                    ("Remove annotation's name", lambda: ibswgt.back.unset_names([aid]),),
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(aid_list)),
                     ('----', lambda: None),
                 ]

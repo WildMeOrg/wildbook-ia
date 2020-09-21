@@ -179,13 +179,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
                 [assert_cache_hits] CACHE INVALID: %r != %r
                 """
             )
-            msg = msg_fmt % (
-                tblname,
-                colname,
-                cfgkeys,
-                cache_vals_list,
-                db_vals_list,
-            )
+            msg = msg_fmt % (tblname, colname, cfgkeys, cache_vals_list, db_vals_list,)
             try:
                 list1 = cache_vals_list
                 list2 = db_vals_list

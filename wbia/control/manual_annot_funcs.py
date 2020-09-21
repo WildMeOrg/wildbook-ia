@@ -3939,11 +3939,7 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
     annot_age_months_est_min_text_list = ibs.get_annot_age_months_est_min_texts(aid_list)
     annot_age_months_est_max_text_list = ibs.get_annot_age_months_est_max_texts(aid_list)
     annot_age_months_est_text_list = [
-        '%s to %s'
-        % (
-            age_min_text,
-            age_max_text,
-        )
+        '%s to %s' % (age_min_text, age_max_text,)
         for age_min_text, age_max_text in zip(
             annot_age_months_est_min_text_list, annot_age_months_est_max_text_list
         )

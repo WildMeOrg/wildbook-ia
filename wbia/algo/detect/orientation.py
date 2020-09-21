@@ -62,9 +62,7 @@ if not ut.get_argflag('--no-pytorch'):
                 sequence += [
                     iaa.PiecewiseAffine(scale=(0.0005, 0.005)),
                     iaa.Affine(
-                        rotate=(-rotate, rotate),
-                        shear=(-shear, shear),
-                        mode='symmetric',
+                        rotate=(-rotate, rotate), shear=(-shear, shear), mode='symmetric',
                     ),
                     iaa.Grayscale(alpha=(0.0, 0.5)),
                 ]
@@ -123,14 +121,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
         self.targets = targets is not None
 
-        args = (
-            (
-                filepaths,
-                targets,
-            )
-            if self.targets
-            else (filepaths,)
-        )
+        args = (filepaths, targets,) if self.targets else (filepaths,)
         self.samples = list(zip(*args))
 
         if self.targets:
@@ -166,14 +157,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        result = (
-            (
-                sample,
-                target,
-            )
-            if self.targets
-            else (sample,)
-        )
+        result = (sample, target,) if self.targets else (sample,)
 
         return result
 
@@ -360,13 +344,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
 
     samples = dataset.samples
     flags = np.array(ut.take_column(samples, 1))
-    logger.info(
-        'Dataset %r has %d samples'
-        % (
-            tag,
-            len(flags),
-        )
-    )
+    logger.info('Dataset %r has %d samples' % (tag, len(flags),))
 
     indices = []
     for flag in set(flags):
@@ -744,10 +722,7 @@ def test(
 
     logger.info(
         'Using weights in the ensemble, index %r: %s '
-        % (
-            ensemble_index,
-            ut.repr3(weights_path_list),
-        )
+        % (ensemble_index, ut.repr3(weights_path_list),)
     )
     result_list = test_ensemble(
         gpath_list,

@@ -295,25 +295,10 @@ def name_model_mode5(num_annots, num_names=None, verbose=True, mode=1):
 
     def trimatch_pmf(match_ab, match_bc, match_ca):
         lookup = {
-            'same': {
-                'same': {
-                    'same': 1,
-                    'diff': 0,
-                },
-                'diff': {
-                    'same': 0,
-                    'diff': 1,
-                },
-            },
+            'same': {'same': {'same': 1, 'diff': 0,}, 'diff': {'same': 0, 'diff': 1,},},
             'diff': {
-                'same': {
-                    'same': 0,
-                    'diff': 1,
-                },
-                'diff': {
-                    'same': 0.5,
-                    'diff': 0.5,
-                },
+                'same': {'same': 0, 'diff': 1,},
+                'diff': {'same': 0.5, 'diff': 0.5,},
             },
         }
         return lookup[match_ca][match_bc][match_ab]
@@ -538,25 +523,10 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
 
     def trimatch_pmf(match_ab, match_bc, match_ca):
         lookup = {
-            'same': {
-                'same': {
-                    'same': 1,
-                    'diff': 0,
-                },
-                'diff': {
-                    'same': 0,
-                    'diff': 1,
-                },
-            },
+            'same': {'same': {'same': 1, 'diff': 0,}, 'diff': {'same': 0, 'diff': 1,},},
             'diff': {
-                'same': {
-                    'same': 0,
-                    'diff': 1,
-                },
-                'diff': {
-                    'same': 0.5,
-                    'diff': 0.5,
-                },
+                'same': {'same': 0, 'diff': 1,},
+                'diff': {'same': 0.5, 'diff': 0.5,},
             },
         }
         return lookup[match_ca][match_bc][match_ab]
@@ -623,11 +593,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
             pmf_func=match_pmf,
         )
         if mode == 3:
-            dup_cpd_t = pgm_ext.TemplateCPD(
-                'dup',
-                ['False', 'True'],
-                varpref='D',
-            )
+            dup_cpd_t = pgm_ext.TemplateCPD('dup', ['False', 'True'], varpref='D',)
         else:
             dup_cpd_t = pgm_ext.TemplateCPD(
                 'dup',
@@ -876,10 +842,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
             fig.set_size_inches(23, 7)
         fig = pt.gcf()
 
-        title = 'num_names=%r, num_annots=%r' % (
-            model.num_names,
-            num_annots,
-        )
+        title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
         map_assign = kwargs.get('map_assign', None)
         # max_marginal_list = []
         # for name, marginal in marginalized_joints.items():

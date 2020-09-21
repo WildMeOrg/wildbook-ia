@@ -239,12 +239,7 @@ def get_annot_been_adjusted(ibs, aid_list):
     been_ori_adjusted = ori_list != 0
 
     adjusted_list = [
-        (
-            bbox[0] / gw,
-            bbox[1] / gh,
-            (1 - (bbox[2] / gw)) / 2,
-            (1 - (bbox[3] / gh)) / 2,
-        )
+        (bbox[0] / gw, bbox[1] / gh, (1 - (bbox[2] / gw)) / 2, (1 - (bbox[3] / gh)) / 2,)
         for bbox, (gw, gh) in zip(bbox_list, size_list)
     ]
 
@@ -509,11 +504,7 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
         total = len(hash_histogram.keys())
         logger.info(
             'Found [%d / %d / %d] images that have duplicates...'
-            % (
-                divergent,
-                counter,
-                total,
-            )
+            % (divergent, counter, total,)
         )
         ibs.delete_images(global_delete_gid_list)
         logger.info('Deleted %d images.' % (len(global_delete_gid_list),))
@@ -675,12 +666,7 @@ def check_image_loadable(ibs, gid_list=None):
     gpath_list = ibs.get_image_paths(gid_list)
     orient_list = ibs.get_image_orientation(gid_list)
 
-    arg_iter = list(
-        zip(
-            gpath_list,
-            orient_list,
-        )
-    )
+    arg_iter = list(zip(gpath_list, orient_list,))
     flag_list = ut.util_parallel.generate2(
         check_image_loadable_worker, arg_iter, futures_threaded=True
     )
@@ -1015,13 +1001,7 @@ def check_exif_data(ibs, gid_list):
         else:
             has_latlon.append(False)
 
-    logger.info(
-        '%d / %d have gps info'
-        % (
-            sum(has_latlon),
-            len(has_latlon),
-        )
-    )
+    logger.info('%d / %d have gps info' % (sum(has_latlon), len(has_latlon),))
 
     key2_freq = ut.ddict(lambda: 0)
     num_tags_list = []
@@ -1398,11 +1378,7 @@ def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
                 squeeze_tables.append(table)
 
     tables_list = [
-        (
-            ibs.depc_image.tables,
-            wbia.constants.IMAGE_TABLE,
-            set(ibs._get_all_gids()),
-        ),
+        (ibs.depc_image.tables, wbia.constants.IMAGE_TABLE, set(ibs._get_all_gids()),),
         (
             ibs.depc_annot.tables,
             wbia.constants.ANNOTATION_TABLE,
@@ -2062,20 +2038,16 @@ def unflat_map(method, unflat_rowids, **kwargs):
     # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
     if True:
-        assert len(flat_vals) == len(
-            flat_rowids
-        ), 'flat lens not the same, len(flat_vals)=%d len(flat_rowids)=%d' % (
-            len(flat_vals),
-            len(flat_rowids),
+        assert len(flat_vals) == len(flat_rowids), (
+            'flat lens not the same, len(flat_vals)=%d len(flat_rowids)=%d'
+            % (len(flat_vals), len(flat_rowids),)
         )
     # Then ut.unflatten2 the results to the original input dimensions
     unflat_vals = ut.unflatten2(flat_vals, reverse_list)
     if True:
-        assert len(unflat_vals) == len(
-            unflat_rowids
-        ), 'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' % (
-            len(unflat_vals),
-            len(unflat_rowids),
+        assert len(unflat_vals) == len(unflat_rowids), (
+            'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d'
+            % (len(unflat_vals), len(unflat_rowids),)
         )
     return unflat_vals
 
@@ -6601,10 +6573,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
                                 'Skipped Invalid Observation with '
                                 'photonumber: %r, waypoint_id: %r'
                             )
-                            % (
-                                sValue.text,
-                                waypoint_id,
-                            )
+                            % (sValue.text, waypoint_id,)
                         )
                         continue
                     # Check that the photo_number is within the acceptable bounds
@@ -6633,10 +6602,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
                             '[ibs]     Skipped Empty Observation with'
                             '"categoryKey": %r, waypoint_id: %r'
                         )
-                        % (
-                            categoryKey,
-                            waypoint_id,
-                        )
+                        % (categoryKey, waypoint_id,)
                     )
             else:
                 logger.info(
@@ -6645,10 +6611,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
                         'Skipped Incompatible Observation with '
                         '"categoryKey": %r, waypoint_id: %r'
                     )
-                    % (
-                        categoryKey,
-                        waypoint_id,
-                    )
+                    % (categoryKey, waypoint_id,)
                 )
     # Append the last photo_number
     if last_photo_number is not None and last_imageset_info is not None:
@@ -6675,11 +6638,7 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
                 '[ibs] ERROR: Parsing Patrol XML file failed, '
                 'rolling back by deleting %d images...'
             )
-            % (
-                len(
-                    gid_list,
-                )
-            )
+            % (len(gid_list,))
         )
         raise e
     if len(gid_list) > 0:
@@ -6701,10 +6660,7 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         gps_list = [gps] * len(gid_list_)
         ibs.set_image_gps(gid_list_, gps_list)
         # Create a new imageset
-        imagesettext = '%s Waypoint %03d' % (
-            xml_name.replace('.xml', ''),
-            index + 1,
-        )
+        imagesettext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1,)
         imgsetid = ibs.add_imagesets(imagesettext)
         # Add images to the imagesets
         imgsetid_list = [imgsetid] * len(gid_list_)
@@ -7085,24 +7041,9 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
             closest_diff %= 60
             s = closest_diff
             logger.info('FOUND LOCATION FOR AID %d' % (aid,))
-            logger.info(
-                '\tDIFF   : %d H, %d M, %d S'
-                % (
-                    h,
-                    m,
-                    s,
-                )
-            )
+            logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
             logger.info('\tNEW GPS: %s' % (closest_gps,))
-    logger.info(
-        r'%d \ %d \ %d \ %d'
-        % (
-            num_all,
-            num_bad,
-            num_known,
-            num_found,
-        )
-    )
+    logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found,))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -7173,13 +7114,7 @@ def search_ggr_qr_codes_worker(
             logger.info('\tMatch was found')
             break
 
-        logger.info(
-            '\tProcessing %r (%s)'
-            % (
-                filepath,
-                note,
-            )
-        )
+        logger.info('\tProcessing %r (%s)' % (filepath, note,))
 
         image = cv2.imread(filepath, 0)
         qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
@@ -7391,10 +7326,7 @@ def fix_ggr_qr_codes(ibs, imageset_qr_dict):
         number = int(number)
         assert letter in ['A', 'B', 'C', 'D', 'E', 'F']
 
-        imageset_name = 'GGR2,%d,%s' % (
-            number,
-            letter,
-        )
+        imageset_name = 'GGR2,%d,%s' % (number, letter,)
         imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_name)
         gid_list = ibs.get_imageset_gids(imageset_id)
         assert qr_gid in gid_list
@@ -7500,23 +7432,13 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             match_gid = None
 
             if letter != 'A':
-                logger.info(
-                    'Individual car missing A: %r (%r)'
-                    % (
-                        number,
-                        letter,
-                    )
-                )
+                logger.info('Individual car missing A: %r (%r)' % (number, letter,))
                 match_gid = None
 
             if len(qr_list) == 0:
                 logger.info(
                     'Individual car missing QR: %r %r (imageset_rowid = %r)'
-                    % (
-                        number,
-                        letter,
-                        imageset_rowid,
-                    )
+                    % (number, letter, imageset_rowid,)
                 )
             else:
                 for qr in qr_list:
@@ -7527,22 +7449,12 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                 if match_gid in [None, -1]:
                     logger.info(
                         'Individual car incorrect QR: %r %r (imageset_rowid = %r)'
-                        % (
-                            number,
-                            letter,
-                            imageset_rowid,
-                        )
+                        % (number, letter, imageset_rowid,)
                     )
                     logger.info('\t%r' % (qr_list,))
 
             if imageset_rowid in cleared_imageset_rowid_list:
-                logger.info(
-                    '\tCleared Imageset: %d %r'
-                    % (
-                        number,
-                        letter,
-                    )
-                )
+                logger.info('\tCleared Imageset: %d %r' % (number, letter,))
 
             sync_dict[imageset_rowid] = match_gid
         else:
@@ -7569,50 +7481,24 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                         failed_list.append((letter, imageset_rowid))
 
                 if imageset_rowid in cleared_imageset_rowid_list:
-                    logger.info(
-                        '\tCleared Imageset: %d %r'
-                        % (
-                            number,
-                            letter,
-                        )
-                    )
+                    logger.info('\tCleared Imageset: %d %r' % (number, letter,))
 
                 sync_dict[imageset_rowid] = match_gid
 
             if len(missing_list) > 0:
-                logger.info(
-                    'Group car missing QR: %r (%r)'
-                    % (
-                        number,
-                        letter_list,
-                    )
-                )
+                logger.info('Group car missing QR: %r (%r)' % (number, letter_list,))
                 for missing, imageset_rowid in missing_list:
                     logger.info(
                         '\tNo QR for %r %r (imageset_rowid = %r)'
-                        % (
-                            number,
-                            missing,
-                            imageset_rowid,
-                        )
+                        % (number, missing, imageset_rowid,)
                     )
 
             if len(failed_list) > 0:
-                logger.info(
-                    'Group car incorrect QR: %r (%r)'
-                    % (
-                        number,
-                        letter_list,
-                    )
-                )
+                logger.info('Group car incorrect QR: %r (%r)' % (number, letter_list,))
                 for failed, imageset_rowid in failed_list:
                     logger.info(
                         '\tBad QR for %r %r (imageset_rowid = %r)'
-                        % (
-                            number,
-                            failed,
-                            imageset_rowid,
-                        )
+                        % (number, failed, imageset_rowid,)
                     )
 
     filename_qr_json = join(ibs.dbdir, 'imageset_qr_dict.final.json')
@@ -7825,13 +7711,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             current_offset = ibs.get_image_timedelta_posix([qr_gid])[0]
             offset += current_offset
             ibs.set_image_timedelta_posix(gid_list, [offset] * len(gid_list))
-            logger.info(
-                'Correcting offset for %r: %d'
-                % (
-                    values,
-                    offset,
-                )
-            )
+            logger.info('Correcting offset for %r: %d' % (values, offset,))
 
         try:
             qr_time = ibs.get_image_unixtime(qr_gid)
@@ -7839,13 +7719,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             offset = anchor_time - qr_time
             assert offset == 0
         except AssertionError:
-            logger.info(
-                '\tFailed to correct offset for %r: %d '
-                % (
-                    values,
-                    offset,
-                )
-            )
+            logger.info('\tFailed to correct offset for %r: %d ' % (values, offset,))
 
         if imageset_rowid not in cleared_imageset_rowid_list:
             assert lower_posix <= qr_time and qr_time <= upper_posix
@@ -7976,28 +7850,13 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
                 closest_diff %= 60
                 s = closest_diff
                 logger.info('FOUND LOCATION FOR GID %d' % (gid,))
-                logger.info(
-                    '\tDIFF   : %d H, %d M, %d S'
-                    % (
-                        h,
-                        m,
-                        s,
-                    )
-                )
+                logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
                 logger.info('\tNEW GPS: %s' % (closest_gps,))
             else:
                 not_found.add(note)
         else:
             not_found.add(note)
-    logger.info(
-        r'%d \ %d \ %d \ %d'
-        % (
-            num_all,
-            num_bad,
-            num_unrecovered,
-            num_found,
-        )
-    )
+    logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_gid_list)
     num_unrecovered = num_bad - len(recovered_gid_list)
     logger.info('Missing GPS: %d' % (num_bad,))
@@ -8069,28 +7928,13 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
                 closest_diff %= 60
                 s = closest_diff
                 logger.info('FOUND LOCATION FOR AID %d' % (aid,))
-                logger.info(
-                    '\tDIFF   : %d H, %d M, %d S'
-                    % (
-                        h,
-                        m,
-                        s,
-                    )
-                )
+                logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s,))
                 logger.info('\tNEW GPS: %s' % (closest_gps,))
             else:
                 not_found.add(note)
         else:
             not_found.add(note)
-    logger.info(
-        r'%d \ %d \ %d \ %d'
-        % (
-            num_all,
-            num_bad,
-            num_unrecovered,
-            num_found,
-        )
-    )
+    logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found,))
     num_recovered = len(recovered_aid_list)
     num_unrecovered = num_bad - len(recovered_aid_list)
     logger.info('Missing GPS: %d' % (num_bad,))
@@ -8408,13 +8252,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
 
     broken_gid_list = []
     for gid, metadata_dict, aid_list in zipped:
-        logger.info(
-            'Processing gid = %r with %d annots'
-            % (
-                gid,
-                len(aid_list),
-            )
-        )
+        logger.info('Processing gid = %r with %d annots' % (gid, len(aid_list),))
         if len(aid_list) < 2:
             continue
 
@@ -8568,11 +8406,7 @@ def check_ggr_valid_aids(
     if verbose:
         logger.info(
             'Filtered out %d annotations from %d / %d'
-            % (
-                num_difference,
-                num_finish,
-                num_start,
-            )
+            % (num_difference, num_finish, num_start,)
         )
 
     return aid_list
@@ -8682,15 +8516,7 @@ def print_partition_sizes_recursive(vals, k, level=0, index=0):
         )
 
     prefix = '\t' * level
-    logger.info(
-        '%sLevel %d, %d - %d'
-        % (
-            prefix,
-            level,
-            index,
-            length,
-        )
-    )
+    logger.info('%sLevel %d, %d - %d' % (prefix, level, index, length,))
 
     return length
 
@@ -8710,19 +8536,11 @@ def create_ggr_match_leaves_recursive(ibs, tag, imageset_rowid_list, k, level=0,
         )
 
     gid_list = ut.flatten(ibs.get_imageset_gids(imageset_rowid_list_))
-    imageset_text_ = 'Leaf - %s - %d - %d' % (
-        tag,
-        level,
-        index,
-    )
+    imageset_text_ = 'Leaf - %s - %d - %d' % (tag, level, index,)
 
     logger.info(
         'Setting %d for %d to %r'
-        % (
-            len(gid_list),
-            len(imageset_rowid_list_),
-            imageset_text_,
-        )
+        % (len(gid_list), len(imageset_rowid_list_), imageset_text_,)
     )
     imageset_text_list = ibs.get_imageset_text(ibs.get_valid_imgsetids())
     if imageset_text_ not in imageset_text_list:

@@ -15,8 +15,7 @@ def db_conn():
         for t in ('metadata', 'foo', 'bar'):
             for i in range(1, 3):
                 conn.execute(
-                    f'insert into {t} (id, x) values (?, ?)',
-                    (i, f'_{i}_'),
+                    f'insert into {t} (id, x) values (?, ?)', (i, f'_{i}_'),
                 )
         yield conn
 

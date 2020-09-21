@@ -278,13 +278,7 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
     )
 
     if ensure and len(failed_list) > 0:
-        logger.info(
-            'Importing %d files failed: %r'
-            % (
-                len(failed_list),
-                failed_list,
-            )
-        )
+        logger.info('Importing %d files failed: %r' % (len(failed_list), failed_list,))
 
     return params_list
 
@@ -583,13 +577,7 @@ def localize_images(ibs, gid_list_=None):
 
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
-        logger.info(
-            'Localizing %r -> %r'
-            % (
-                uri,
-                loc_gpath,
-            )
-        )
+        logger.info('Localizing %r -> %r' % (uri, loc_gpath,))
         if isproto(uri, valid_protos):
             if isproto(uri, s3_proto):
                 logger.info('\tAWS S3 Fetch')
@@ -613,10 +601,7 @@ def localize_images(ibs, gid_list_=None):
                     scheme = urlsplit(uri_, allow_fragments=False).scheme
                     uri_ = uri_.strip('%s://' % (scheme,))
                     uri_path = urlquote(uri_.encode('utf8'))
-                    uri_ = '%s://%s' % (
-                        scheme,
-                        uri_path,
-                    )
+                    uri_ = '%s://%s' % (scheme, uri_path,)
                     # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
                     assert (
@@ -1131,13 +1116,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
         new_orient = ORIENTATION_ORDER_LIST[new_index]
         new_orient_list.append(new_orient)
 
-    logger.info(
-        'Rotating images %r -> %r'
-        % (
-            orient_list,
-            new_orient_list,
-        )
-    )
+    logger.info('Rotating images %r -> %r' % (orient_list, new_orient_list,))
     ibs._set_image_orientation(gid_list, new_orient_list)
 
     # We've just rotated, invert the width, height values in the database for each image

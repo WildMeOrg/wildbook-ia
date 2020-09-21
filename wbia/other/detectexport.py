@@ -473,22 +473,12 @@ def get_cnn_labeler_training_images_pytorch(
     tup_list = list(zip(aid_list, species_list, yaw_list))
     old_len = len(tup_list)
     tup_list = [
-        (
-            aid,
-            species,
-            viewpoint_mapping.get(species, {}).get(yaw, yaw),
-        )
+        (aid, species, viewpoint_mapping.get(species, {}).get(yaw, yaw),)
         for aid, species, yaw in tup_list
         if species in category_set
     ]
     new_len = len(tup_list)
-    logger.info(
-        'Filtered annotations: keep %d / original %d'
-        % (
-            new_len,
-            old_len,
-        )
-    )
+    logger.info('Filtered annotations: keep %d / original %d' % (new_len, old_len,))
 
     # Skip any annotations that are of the wanted category and don't have a specified viewpoint
     counter = 0
@@ -563,10 +553,7 @@ def get_cnn_labeler_training_images_pytorch(
             if yaw is None:
                 skipped_yaw += 1
                 continue
-            category = '%s:%s' % (
-                species,
-                yaw,
-            )
+            category = '%s:%s' % (species, yaw,)
         elif species in valid_seen_set:
             category = '%s' % (species,)
         else:
@@ -574,20 +561,8 @@ def get_cnn_labeler_training_images_pytorch(
             continue
         aid_list_.append(aid)
         category_list_.append(category)
-    logger.info(
-        'Skipped Yaw:  skipped %d / total %d'
-        % (
-            skipped_yaw,
-            len(tup_list),
-        )
-    )
-    logger.info(
-        'Skipped Seen: skipped %d / total %d'
-        % (
-            skipped_seen,
-            len(tup_list),
-        )
-    )
+    logger.info('Skipped Yaw:  skipped %d / total %d' % (skipped_yaw, len(tup_list),))
+    logger.info('Skipped Seen: skipped %d / total %d' % (skipped_seen, len(tup_list),))
 
     for category in sorted(set(category_list_)):
         logger.info('Making folder for %r' % (category,))
@@ -627,10 +602,7 @@ def get_cnn_labeler_training_images_pytorch(
         cv2.imwrite(patch_filepath, chip)
 
         # Compute label
-        label = '%s,%s' % (
-            patch_filename,
-            category,
-        )
+        label = '%s,%s' % (patch_filename, category,)
         label_list.append(label)
 
     logger.info('Using labels for labeler training:')

@@ -87,11 +87,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     wb_port = str(wb_port)
     wb_target = str(wb_target)
 
-    wildbook_base_url = 'http://%s:%s/%s/' % (
-        wb_hostname,
-        wb_port,
-        wb_target,
-    )
+    wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target,)
     wildbook_base_url = wildbook_base_url.strip('/')
 
     logger.info('USING WB BASEURL: %r' % (wildbook_base_url,))
@@ -483,19 +479,13 @@ def wildbook_signal_imgsetid_list(
         ), 'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,)
         unknown_flags = ibs.is_aid_unknown(aid_list)
         unnamed_aid_list = ut.compress(aid_list, unknown_flags)
-        unnamed_ok_aid_list = ibs.filter_annots_general(
-            unnamed_aid_list,
-            minqual='ok',
-        )
+        unnamed_ok_aid_list = ibs.filter_annots_general(unnamed_aid_list, minqual='ok',)
         nUnnamedOk = sum(unnamed_ok_aid_list)
         assert nUnnamedOk == 0, (
             'ImageSet imgsetid=%r1 cannot be shipped becuase '
             'annotation(s) %r with an identifiable quality have '
             'not been named'
-        ) % (
-            imgsetid,
-            unnamed_ok_aid_list,
-        )
+        ) % (imgsetid, unnamed_ok_aid_list,)
 
     # Call Wildbook url to signal update
     logger.info(

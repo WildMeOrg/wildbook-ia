@@ -311,12 +311,7 @@ def request_wbia_nnindexer(qreq_, verbose=True, **kwargs):
 
 
 def request_augmented_wbia_nnindexer(
-    qreq_,
-    daid_list,
-    verbose=True,
-    use_memcache=True,
-    force_rebuild=False,
-    memtrack=None,
+    qreq_, daid_list, verbose=True, use_memcache=True, force_rebuild=False, memtrack=None,
 ):
     r"""
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT

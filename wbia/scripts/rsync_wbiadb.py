@@ -71,12 +71,7 @@ def rsync_ibsdb_main():
             'Usage: '
             # 'python -m wbia.scripts.rsync_wbiadb'
             'python -m wbia rsync'
-            '%s --db <db=%s> --user <user=%s>'
-            % (
-                valid_modes,
-                default_db,
-                default_user,
-            )
+            '%s --db <db=%s> --user <user=%s>' % (valid_modes, default_db, default_user,)
         )
         sys.exit(1)
 

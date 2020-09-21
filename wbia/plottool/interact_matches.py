@@ -331,13 +331,7 @@ class MatchInteraction2(BASE_CLASS):
             print('... selected score at rank idx=%r' % (idx,))
             print('... selected score with fs=%r' % (self.fs[mx],))
             print('... resolved to mx=%r' % mx)
-            print(
-                '... fx1, fx2 = %r, %r'
-                % (
-                    fx1,
-                    fx2,
-                )
-            )
+            print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
             self.select_ith_match(mx)
         else:
             print('...Unknown viztype: %r' % viztype)
@@ -361,13 +355,7 @@ class MatchInteraction2(BASE_CLASS):
             def toggle_attr():
                 new_value = (value + 1) % (num_states)
                 new_value = type_(new_value)
-                print(
-                    'new_value(%s) = %r'
-                    % (
-                        attr,
-                        new_value,
-                    )
-                )
+                print('new_value(%s) = %r' % (attr, new_value,))
                 setattr(self, attr, new_value)
                 self.show_page()
                 self.draw()

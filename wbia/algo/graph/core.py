@@ -686,10 +686,7 @@ class NameRelabel(object):
         num_inconsistent = len(infr.recovery_ccs)
         num_names_max = infr.pos_graph.number_of_components()
 
-        status = dict(
-            num_names_max=num_names_max,
-            num_inconsistent=num_inconsistent,
-        )
+        status = dict(num_names_max=num_names_max, num_inconsistent=num_inconsistent,)
         infr.print('done checking status', 3)
         return status
 

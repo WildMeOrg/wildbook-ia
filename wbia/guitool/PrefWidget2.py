@@ -121,9 +121,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                 state = (QtGui.QValidator.Invalid, text, pos)
             else:
                 if not re.match(
-                    r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$',
-                    text,
-                    flags=re.MULTILINE,
+                    r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$', text, flags=re.MULTILINE,
                 ):
                     # print('INVALIDATE text = %r' % (text,))
                     state = (QtGui.QValidator.Invalid, text, pos)
@@ -399,12 +397,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         if True and VERBOSE_CONFIG:
             print(
                 '[DELEGATE] editorEvent event=%r with model=%r, option=%r, index=%r'
-                % (
-                    event,
-                    model,
-                    option,
-                    index,
-                )
+                % (event, model, option, index,)
             )
         return super(ConfigValueDelegate, self).editorEvent(event, model, option, index)
 
@@ -705,12 +698,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if True:
             strlist += [
                 indent + '┌── ',
-                indent
-                + '┃ %s(name=%r):'
-                % (
-                    typestr,
-                    self.name,
-                ),
+                indent + '┃ %s(name=%r):' % (typestr, self.name,),
             ]
         if self.is_leaf():
             strlist += [

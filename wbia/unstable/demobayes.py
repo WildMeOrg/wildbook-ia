@@ -601,11 +601,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     # Learn P(S_{ij} | M_{ij})
     import vtool as vt
 
-    encoder = vt.ScoreNormalizer(
-        reverse=True,
-        monotonize=True,
-        adjust=4,
-    )
+    encoder = vt.ScoreNormalizer(reverse=True, monotonize=True, adjust=4,)
     encoder.fit(X=diag_scores, y=diag_labels, verbose=True)
 
     if False:
@@ -659,10 +655,7 @@ def classify_one_new_unknown():
         temp_model(score_evidence=[1, 0, 0, 0, 0, 1], mode=1, **constkw)
 
     # from wbia.unstable.demobayes import *
-    constkw = dict(
-        num_annots=4,
-        num_names=4,
-    )
+    constkw = dict(num_annots=4, num_names=4,)
     model, evidence = temp_model(
         mode=1,
         # lll and llh have strikingly different
@@ -684,11 +677,7 @@ def tst_triangle_property():
         >>> result = test_triangle_property()
         >>> ut.show_if_requested()
     """
-    constkw = dict(
-        num_annots=3,
-        num_names=3,
-        name_evidence=[],
-    )
+    constkw = dict(num_annots=3, num_names=3, name_evidence=[],)
     temp_model(
         mode=1,
         other_evidence={

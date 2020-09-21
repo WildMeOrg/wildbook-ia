@@ -394,10 +394,7 @@ def testdata_my_exmaples(index):
 def find_close_incorrect_match(ibs, qaids):
     use_cache = False
     save_qcache = False
-    cfgdict_vsmany = dict(
-        index_method='single',
-        pipeline_root='vsmany',
-    )
+    cfgdict_vsmany = dict(index_method='single', pipeline_root='vsmany',)
     qres_vsmany_list, qreq_vsmany_ = ibs.query_chips(
         qaids,
         ibs.get_valid_aids(),

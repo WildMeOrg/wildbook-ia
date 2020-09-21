@@ -257,13 +257,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
                 type_ = model.get_coltype(index.column())
                 data = qtype.cast_from_qt(var, type_)
             # Do actual setting of data
-            print(
-                ' * new_data = %s(%r)'
-                % (
-                    utool.type_str(type_),
-                    data,
-                )
-            )
+            print(' * new_data = %s(%r)' % (utool.type_str(type_), data,))
             model.set_data(index, data)
             # Emit that data was changed and return succcess
             model.dataChanged.emit(index, index)

@@ -378,10 +378,7 @@ class ClfProblem(ut.NiceRepr):
             def clf_partial():
                 pipe = sklearn.pipeline.Pipeline(
                     [
-                        (
-                            'inputer',
-                            sklearn.impute.SimpleImputer(strategy='mean'),
-                        ),
+                        ('inputer', sklearn.impute.SimpleImputer(strategy='mean'),),
                         # ('scale', sklearn.preprocessing.StandardScaler),
                         ('est', est_class(**est_params)),
                     ]
@@ -393,10 +390,7 @@ class ClfProblem(ut.NiceRepr):
             def clf_partial():
                 pipe = sklearn.pipeline.Pipeline(
                     [
-                        (
-                            'inputer',
-                            sklearn.impute.SimpleImputer(strategy='mean'),
-                        ),
+                        ('inputer', sklearn.impute.SimpleImputer(strategy='mean'),),
                         ('est', est_class(**est_params)),
                     ]
                 )
@@ -1483,9 +1477,7 @@ class MultiClassLabels(ut.NiceRepr):
         labels.indicator_df = indicator_df
         labels.class_names = indicator_df.columns.values
         labels.encoded_df = pd.DataFrame(
-            indicator_df.values.argmax(axis=1),
-            columns=[task_name],
-            index=index,
+            indicator_df.values.argmax(axis=1), columns=[task_name], index=index,
         )
         labels.task_name = task_name
         labels.n_samples = n_samples

@@ -378,10 +378,7 @@ def make_wbia_headers_dict(ibs):
                 if ut.VERBOSE:
                     logger.info(
                         '[guiheaders] infering getter for tablename=%r, colname=%r'
-                        % (
-                            tablename,
-                            colname,
-                        )
+                        % (tablename, colname,)
                     )
                     # logger.info('[guiheaders] infering %r' % (getters[tablename][colname],))
                 try:

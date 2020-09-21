@@ -34,13 +34,7 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 
 def _resize(image, t_width=None, t_height=None, verbose=False):
     if verbose:
-        logger.info(
-            'RESIZING WITH t_width = %r and t_height = %r'
-            % (
-                t_width,
-                t_height,
-            )
-        )
+        logger.info('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height,))
     height, width = image.shape[:2]
     if t_width is None and t_height is None:
         return image
@@ -135,13 +129,7 @@ def general_precision_recall_algo(
         except ZeroDivisionError:
             logger.info(
                 'Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r'
-                % (
-                    conf,
-                    tp,
-                    tn,
-                    fp,
-                    fn,
-                )
+                % (conf, tp, tn, fp, fn,)
             )
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
@@ -253,10 +241,7 @@ def general_area_best_conf(
         # label = '%s [AP = %0.02f, OP = %0.02f]' % (label, ap * 100.0, best_conf)
         label = '%s [AP = %0.02f]' % (label, ap * 100.0)
     else:
-        label = '%s [AUC = %0.02f]' % (
-            label,
-            ap * 100.0,
-        )
+        label = '%s [AUC = %0.02f]' % (label, ap * 100.0,)
 
     linestyle = '--' if kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
@@ -415,12 +400,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, **kwargs):
         assert None not in confidence_list
         zipped = zip(confidence_list, max_overlap_list, pred_index_list, gt_index_list)
         pred_conf_list = [
-            (
-                confidence,
-                max_overlap,
-                pred_index,
-                gt_index,
-            )
+            (confidence, max_overlap, pred_index, gt_index,)
             for confidence, max_overlap, pred_index, gt_index in zipped
         ]
         pred_conf_list = sorted(pred_conf_list, reverse=True)
@@ -525,10 +505,7 @@ def general_parse_gt_annots(
                 if tag is None:
                     tag = species
                 else:
-                    tag = '%s+%s' % (
-                        species,
-                        tag,
-                    )
+                    tag = '%s+%s' % (species, tag,)
 
                 temp = {
                     'gid': gid,
@@ -1038,11 +1015,7 @@ def localizer_confusion_matrix_algo_plot(
 
     logger.info(
         'Processing Confusion Matrix for: %r (Conf = %0.02f, Accuracy = %0.02f)'
-        % (
-            label,
-            best_conf,
-            best_accuracy,
-        )
+        % (label, best_conf, best_accuracy,)
     )
     tp, fp, fn = best_args
 
@@ -2214,10 +2187,7 @@ def localizer_precision_recall_algo_display(
     if len(config_tag) > 0:
         config_tag = '%s-' % (config_tag,)
 
-    fig_filename = '%slocalizer-precision-recall-%0.2f.png' % (
-        config_tag,
-        min_overlap,
-    )
+    fig_filename = '%slocalizer-precision-recall-%0.2f.png' % (config_tag, min_overlap,)
     fig_path = join(output_path, fig_filename)
     plt.savefig(fig_path, bbox_inches='tight')
 
@@ -2502,13 +2472,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
     output_cases=False,
     **kwargs,
 ):
-    logger.info(
-        'Processing Confusion Matrix for: %r (Conf = %0.02f)'
-        % (
-            label,
-            conf,
-        )
-    )
+    logger.info('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_image
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set_ = list(test_gid_set_)
@@ -2562,10 +2526,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
             image = cv2.resize(image, (192, 192), **warpkw)
             # Get path
             image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (
-                gid,
-                prediction,
-            )
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (gid, prediction,)
             image_filepath = join(image_path, image_filename)
             # Save path
             cv2.imwrite(image_filepath, image)
@@ -2646,11 +2607,7 @@ def classifier_cameratrap_precision_recall_algo_display(
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
     plt.title(
-        'Precision-Recall Curve (Best: %s, AP = %0.02f)'
-        % (
-            best_label1,
-            best_area1,
-        ),
+        'Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1,),
         y=1.10,
     )
     plt.legend(
@@ -2688,12 +2645,7 @@ def classifier_cameratrap_precision_recall_algo_display(
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
     plt.title(
-        'ROC Curve (Best: %s, AP = %0.02f)'
-        % (
-            best_label2,
-            best_area2,
-        ),
-        y=1.10,
+        'ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10,
     )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
@@ -2937,13 +2889,7 @@ def classifier2_precision_recall_algo(
             x = ';'.join(species_set)
             y = []
             for key in confidence_dict:
-                y.append(
-                    '%s-%0.04f'
-                    % (
-                        key,
-                        confidence_dict[key],
-                    )
-                )
+                y.append('%s-%0.04f' % (key, confidence_dict[key],))
             y = ';'.join(y)
             output_filename = 'image-index-%s-gid-%s-gt-%s-pred-%s.png' % (
                 index,
@@ -3191,11 +3137,7 @@ def labeler_tp_tn_fp_fn(
 
     # Make ground-truth
     label_list = [
-        '%s:%s'
-        % (
-            species,
-            viewpoint_,
-        )
+        '%s:%s' % (species, viewpoint_,)
         for species, viewpoint_ in zip(species_list, viewpoint_list)
     ]
     # Get predictions
@@ -3273,13 +3215,7 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
         except ZeroDivisionError:
             logger.info(
                 'Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r'
-                % (
-                    conf,
-                    tp,
-                    tn,
-                    fp,
-                    fn,
-                )
+                % (conf, tp, tn, fp, fn,)
             )
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
@@ -3290,10 +3226,7 @@ def labeler_precision_recall_algo_plot(ibs, **kwargs):
     category_list = kwargs['category_list']
     logger.info(
         'Processing Precision-Recall for: %r (category_list = %r)'
-        % (
-            label,
-            category_list,
-        )
+        % (label, category_list,)
     )
     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(
         ibs, **kwargs
@@ -3304,13 +3237,7 @@ def labeler_precision_recall_algo_plot(ibs, **kwargs):
 def labeler_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     category_list = kwargs['category_list']
-    logger.info(
-        'Processing ROC for: %r (category_list = %r)'
-        % (
-            label,
-            category_list,
-        )
-    )
+    logger.info('Processing ROC for: %r (category_list = %r)' % (label, category_list,))
     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(
         ibs, **kwargs
     )
@@ -3356,11 +3283,7 @@ def labeler_confusion_matrix_algo_plot(
     species_list = depc.get_property('labeler', aid_list, 'species', config=kwargs)
     viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint', config=kwargs)
     prediction_list = [
-        '%s:%s'
-        % (
-            species,
-            viewpoint,
-        )
+        '%s:%s' % (species, viewpoint,)
         for species, viewpoint in zip(species_list, viewpoint_list)
     ]
 
@@ -3551,18 +3474,12 @@ def labeler_precision_recall_algo_display(
     if fuzzy:
         axes_.set_xlabel(
             'Predicted (Correct = %0.02f%%, Fuzzy = %0.02f%%)'
-            % (
-                correct_rate * 100.0,
-                fuzzy_rate * 100.0,
-            )
+            % (correct_rate * 100.0, fuzzy_rate * 100.0,)
         )
     else:
         axes_.set_xlabel(
             'Predicted (Correct = %0.02f%%, Species = %0.02f%%)'
-            % (
-                correct_rate * 100.0,
-                fuzzy_rate * 100.0,
-            )
+            % (correct_rate * 100.0, fuzzy_rate * 100.0,)
         )
 
     axes_.set_ylabel('Ground-Truth')
@@ -3632,13 +3549,7 @@ def canonical_roc_algo_plot(ibs, **kwargs):
 def canonical_confusion_matrix_algo_plot(
     ibs, label, color, conf, species, output_cases=False, **kwargs
 ):
-    logger.info(
-        'Processing Confusion Matrix for: %r (Conf = %0.02f)'
-        % (
-            label,
-            conf,
-        )
-    )
+    logger.info('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_annot
 
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -3695,10 +3606,7 @@ def canonical_confusion_matrix_algo_plot(
                 continue
             # Get path
             image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (
-                aid,
-                prediction,
-            )
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (aid, prediction,)
             image_filepath = join(image_path, image_filename)
             # Save path
             cv2.imwrite(image_filepath, chip)
@@ -3774,11 +3682,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
     plt.title(
-        'Precision-Recall Curve (Best: %s, AP = %0.02f)'
-        % (
-            best_label1,
-            best_area1,
-        ),
+        'Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1,),
         y=1.10,
     )
     plt.legend(
@@ -3810,12 +3714,7 @@ def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
     plt.title(
-        'ROC Curve (Best: %s, AP = %0.02f)'
-        % (
-            best_label2,
-            best_area2,
-        ),
-        y=1.10,
+        'ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10,
     )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
@@ -3944,12 +3843,7 @@ def canonical_localization_deviation_plot(
     std = np.std(y_list)
     overshoot /= len(y_list)
 
-    label = '%s (Over: %0.02f, %0.02f+/-%0.02f)' % (
-        label,
-        overshoot,
-        mean,
-        std,
-    )
+    label = '%s (Over: %0.02f, %0.02f+/-%0.02f)' % (label, overshoot, mean, std,)
     plt.plot(
         x_list,
         y_list,
@@ -4033,12 +3927,7 @@ def canonical_localization_iou_plot(
     mean = np.mean(y_list)
     std = np.std(y_list)
 
-    label = '%s (Acc: %0.02f, %0.02f+/-%0.02f)' % (
-        label,
-        accuracy,
-        mean,
-        std,
-    )
+    label = '%s (Acc: %0.02f, %0.02f+/-%0.02f)' % (label, accuracy, mean, std,)
     plt.plot(
         x_list,
         y_list,
@@ -4162,11 +4051,7 @@ def canonical_localization_iou_visualize(
 
         canvas_filepath = join(
             output_path,
-            'canonical-regression-iou-%0.02f-aid-%s.jpg'
-            % (
-                overlap,
-                test_aid,
-            ),
+            'canonical-regression-iou-%0.02f-aid-%s.jpg' % (overlap, test_aid,),
         )
         cv2.imwrite(canvas_filepath, canvas)
 
@@ -4378,10 +4263,7 @@ def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     for index, (attribute, color_) in enumerate(zip(attribute_list, color_list_)):
         index_ = (index // 4) * 4
         config_ = config_list[index_].copy()
-        config_['label'] = '%s %s' % (
-            config_['label'],
-            attribute,
-        )
+        config_['label'] = '%s %s' % (config_['label'], attribute,)
         canonical_localization_deviation_plot(
             ibs, attribute, color=color_, index=index, **config_
         )
@@ -4471,13 +4353,7 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None, output_pa
 
         canvas = np.hstack((chip, mask, blended))
         output_filepath = join(
-            output_path,
-            'background.%s.%d.%d.png'
-            % (
-                species,
-                gid,
-                aid,
-            ),
+            output_path, 'background.%s.%d.%d.png' % (species, gid, aid,),
         )
         cv2.imwrite(output_filepath, canvas)
 
@@ -4541,13 +4417,7 @@ def aoi2_confusion_matrix_algo_plot(
     test_gid_set_=None,
     **kwargs,
 ):
-    logger.info(
-        'Processing Confusion Matrix for: %r (Conf = %0.02f)'
-        % (
-            label,
-            conf,
-        )
-    )
+    logger.info('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf,))
     depc = ibs.depc_annot
     if test_gid_set_ is None:
         test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')
@@ -4688,11 +4558,7 @@ def aoi2_precision_recall_algo_display(
     best_area1 = area_list[index]
     best_conf1 = conf_list[index]
     plt.title(
-        'Precision-Recall Curve (Best: %s, AP = %0.02f)'
-        % (
-            best_label1,
-            best_area1,
-        ),
+        'Precision-Recall Curve (Best: %s, AP = %0.02f)' % (best_label1, best_area1,),
         y=1.10,
     )
     plt.legend(
@@ -4724,12 +4590,7 @@ def aoi2_precision_recall_algo_display(
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
     plt.title(
-        'ROC Curve (Best: %s, AP = %0.02f)'
-        % (
-            best_label2,
-            best_area2,
-        ),
-        y=1.10,
+        'ROC Curve (Best: %s, AP = %0.02f)' % (best_label2, best_area2,), y=1.10,
     )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),

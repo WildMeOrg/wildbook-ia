@@ -142,9 +142,7 @@ class Ingestable2(object):
                     valid_values=valid_species,
                 ),
                 ut.ParamInfo(
-                    'adjust_percent',
-                    0.0,
-                    hideif=lambda cfg: not cfg['images_as_annots'],
+                    'adjust_percent', 0.0, hideif=lambda cfg: not cfg['images_as_annots'],
                 ),
             ]
 
@@ -1485,10 +1483,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
                 annot_vert_list = []
                 for index in range(len(annot_seg) // 2):
                     annot_vert_list.append(
-                        (
-                            annot_seg[index * 2],
-                            annot_seg[index * 2 + 1],
-                        )
+                        (annot_seg[index * 2], annot_seg[index * 2 + 1],)
                     )
 
                 annot_verts_list.append(annot_vert_list)

@@ -93,10 +93,7 @@ def update_1_0_0(db, ibs=None):
             ('image_gps_lon', 'REAL DEFAULT -1.0'),
             ('image_toggle_enabled', 'INTEGER DEFAULT 0'),
             ('image_toggle_reviewed', 'INTEGER DEFAULT 0'),
-            (
-                'image_note',
-                'TEXT',
-            ),
+            ('image_note', 'TEXT',),
         ),
         superkeys=[(IMAGE_UUID,)],
         docstr="""
@@ -133,10 +130,7 @@ def update_1_0_0(db, ibs=None):
 
     db.add_table(
         const.CONFIG_TABLE,
-        (
-            (CONFIG_ROWID, 'INTEGER PRIMARY KEY'),
-            (CONFIG_SUFFIX, 'TEXT NOT NULL'),
-        ),
+        ((CONFIG_ROWID, 'INTEGER PRIMARY KEY'), (CONFIG_SUFFIX, 'TEXT NOT NULL'),),
         superkeys=[(CONFIG_SUFFIX,)],
         docstr="""
         Used to store the ids of algorithm configurations that generate
@@ -181,12 +175,7 @@ def update_1_0_0(db, ibs=None):
             ('lblimage_value', 'TEXT NOT NULL'),
             ('lblimage_note', 'TEXT'),
         ),
-        superkeys=[
-            (
-                'lbltype_rowid',
-                'lblimage_value',
-            )
-        ],
+        superkeys=[('lbltype_rowid', 'lblimage_value',)],
         docstr="""
         Used to store the labels (attributes) of images""",
     )
@@ -200,12 +189,7 @@ def update_1_0_0(db, ibs=None):
             ('lblannot_value', 'TEXT NOT NULL'),
             ('lblannot_note', 'TEXT'),
         ),
-        superkeys=[
-            (
-                'lbltype_rowid',
-                'lblannot_value',
-            )
-        ],
+        superkeys=[('lbltype_rowid', 'lblannot_value',)],
         docstr="""
         Used to store the labels / attributes of annotations.
         E.G name, species """,
@@ -225,12 +209,7 @@ def update_1_0_0(db, ibs=None):
             ('chip_width', 'INTEGER NOT NULL'),
             ('chip_height', 'INTEGER NOT NULL'),
         ),
-        superkeys=[
-            (
-                'annot_rowid',
-                'config_rowid',
-            )
-        ],
+        superkeys=[('annot_rowid', 'config_rowid',)],
         docstr="""
         Used to store *processed* annots as chips""",
     )
@@ -257,12 +236,7 @@ def update_1_0_0(db, ibs=None):
             ('image_rowid', 'INTEGER NOT NULL'),
             ('encounter_rowid', 'INTEGER'),
         ),
-        superkeys=[
-            (
-                IMAGE_ROWID,
-                'encounter_rowid',
-            )
-        ],
+        superkeys=[(IMAGE_ROWID, 'encounter_rowid',)],
         docstr="""
         Relationship between encounters and images (many to many mapping) the
         many-to-many relationship between images and encounters is encoded here
@@ -281,13 +255,7 @@ def update_1_0_0(db, ibs=None):
             ('config_rowid', 'INTEGER DEFAULT 0'),
             ('glr_confidence', 'REAL DEFAULT 0.0'),
         ),
-        superkeys=[
-            (
-                'image_rowid',
-                'lblimage_rowid',
-                'config_rowid',
-            )
-        ],
+        superkeys=[('image_rowid', 'lblimage_rowid', 'config_rowid',)],
         docstr="""
         Used to store one-to-many the relationship between images
         and labels""",
@@ -302,13 +270,7 @@ def update_1_0_0(db, ibs=None):
             ('config_rowid', 'INTEGER DEFAULT 0'),
             ('alr_confidence', 'REAL DEFAULT 0.0'),
         ),
-        superkeys=[
-            (
-                'annot_rowid',
-                'lblannot_rowid',
-                'config_rowid',
-            )
-        ],
+        superkeys=[('annot_rowid', 'lblannot_rowid', 'config_rowid',)],
         docstr="""
         Used to store one-to-many the relationship between annotations (annots)
         and labels""",
@@ -840,12 +802,7 @@ def update_1_1_0(db, ibs=None):
             (1, 'contributor_uuid', 'UUID', None),
         ),
         # FIXME: This change may have broken things
-        superkeys=[
-            (
-                'contributor_uuid',
-                CONFIG_SUFFIX,
-            )
-        ],
+        superkeys=[('contributor_uuid', CONFIG_SUFFIX,)],
     )
 
     # Add config to encounters
@@ -855,12 +812,7 @@ def update_1_1_0(db, ibs=None):
             # add column to v1.0.2 at index 2
             (2, 'config_rowid', 'INTEGER', None),
         ),
-        superkeys=[
-            (
-                'encounter_uuid',
-                'encounter_text',
-            )
-        ],
+        superkeys=[('encounter_uuid', 'encounter_text',)],
     )
 
     # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
@@ -881,12 +833,7 @@ def update_1_1_1(db, ibs=None):
             # rename column and change it's type
             ('contributor_uuid', 'contributor_rowid', 'INTEGER', None),
         ),
-        superkeys=[
-            (
-                'contributor_rowid',
-                CONFIG_SUFFIX,
-            )
-        ],
+        superkeys=[('contributor_rowid', CONFIG_SUFFIX,)],
     )
 
     # Change type of column
@@ -1156,10 +1103,7 @@ def update_1_3_6(db, ibs=None):
 
     db.add_table(
         const.PARTY_TABLE,
-        (
-            (PARTY_ROWID, 'INTEGER PRIMARY KEY'),
-            (PARTY_TAG, 'TEXT NOT NULL'),
-        ),
+        ((PARTY_ROWID, 'INTEGER PRIMARY KEY'), (PARTY_TAG, 'TEXT NOT NULL'),),
         superkeys=[(PARTY_TAG,)],
         docstr="""
         Serves as a group for contributors
@@ -1196,12 +1140,7 @@ def update_1_3_6(db, ibs=None):
             ('annotmatch_truth', 'INTEGER DEFAULT 2'),
             ('annotmatch_confidence', 'REAL DEFAULT 0'),
         ),
-        superkeys=[
-            (
-                'annot_rowid1',
-                'annot_rowid2',
-            )
-        ],
+        superkeys=[('annot_rowid1', 'annot_rowid2',)],
         relates=(const.ANNOTATION_TABLE, const.ANNOTATION_TABLE),
         # shortname='annotmatch',
         docstr="""
@@ -1230,8 +1169,7 @@ def update_1_3_6(db, ibs=None):
     )
 
     db.modify_table(
-        const.ANNOTATION_TABLE,
-        shortname='annot',
+        const.ANNOTATION_TABLE, shortname='annot',
     )
 
 
@@ -1255,16 +1193,8 @@ def update_1_3_7(db, ibs=None):
     db.modify_table(
         const.ANNOTMATCH_TABLE,
         dependsmap={
-            ANNOT_ROWID1: (
-                const.ANNOTATION_TABLE,
-                (ANNOT_ROWID,),
-                (ANNOT_VISUAL_UUID,),
-            ),
-            ANNOT_ROWID2: (
-                const.ANNOTATION_TABLE,
-                (ANNOT_ROWID,),
-                (ANNOT_VISUAL_UUID,),
-            ),
+            ANNOT_ROWID1: (const.ANNOTATION_TABLE, (ANNOT_ROWID,), (ANNOT_VISUAL_UUID,),),
+            ANNOT_ROWID2: (const.ANNOTATION_TABLE, (ANNOT_ROWID,), (ANNOT_VISUAL_UUID,),),
         },
     )
     db.modify_table(
@@ -1295,10 +1225,7 @@ def update_1_3_7(db, ibs=None):
             'config_rowid': (
                 const.CONFIG_TABLE,
                 ('config_rowid',),
-                (
-                    'contributor_rowid',
-                    CONFIG_SUFFIX,
-                ),
+                ('contributor_rowid', CONFIG_SUFFIX,),
             ),
         },
     )
@@ -1307,11 +1234,7 @@ def update_1_3_7(db, ibs=None):
         'encounter_image_relationship',
         dependsmap={
             'image_rowid': (const.IMAGE_TABLE, (IMAGE_ROWID,), (IMAGE_UUID,)),
-            'encounter_rowid': (
-                'encounters',
-                ('encounter_rowid',),
-                ('encounter_text',),
-            ),
+            'encounter_rowid': ('encounters', ('encounter_rowid',), ('encounter_text',),),
         },
     )
 
@@ -1320,8 +1243,7 @@ def update_1_3_8(db, ibs=None):
     # Encounters only care about their text again as a uuid We are removing
     # config_rowid from encounters. Thus the dependency is not encoded
     db.modify_table(
-        'encounters',
-        superkeys=[('encounter_text',)],
+        'encounters', superkeys=[('encounter_text',)],
     )
 
 
@@ -1344,12 +1266,7 @@ def update_1_4_0(db, ibs=None):
     # Remove contributors from configs
     db.modify_table(
         'encounter_image_relationship',
-        superkeys=[
-            (
-                IMAGE_ROWID,
-                'encounter_rowid',
-            )
-        ],
+        superkeys=[(IMAGE_ROWID, 'encounter_rowid',)],
         # superkeys=[(CONFIG_SUFFIX,)]
     )
 
@@ -1447,8 +1364,7 @@ def update_1_4_4(db, ibs=None):
 
 def update_1_4_5(db, ibs=None):
     db.modify_table(
-        const.ANNOTMATCH_TABLE,
-        [(None, 'annotmatch_note', 'TEXT', None)],
+        const.ANNOTMATCH_TABLE, [(None, 'annotmatch_note', 'TEXT', None)],
     )
 
 
@@ -1662,12 +1578,7 @@ def update_1_5_0(db, ibs=None):
             ('encounter_uuid', 'imageset_uuid', 'UUID NOT NULL', None),
             ('encounter_text', 'imageset_text', 'TEXT NOT NULL', None),
             ('encounter_note', 'imageset_note', 'TEXT NOT NULL', None),
-            (
-                'encounter_start_time_posix',
-                'imageset_start_time_posix',
-                'INTEGER',
-                None,
-            ),
+            ('encounter_start_time_posix', 'imageset_start_time_posix', 'INTEGER', None,),
             ('encounter_end_time_posix', 'imageset_end_time_posix', 'INTEGER', None),
             ('encounter_gps_lat', 'imageset_gps_lat', 'INTEGER', None),
             ('encounter_gps_lon', 'imageset_gps_lon', 'INTEGER', None),
@@ -1722,17 +1633,10 @@ def update_1_5_0(db, ibs=None):
 def update_1_5_1(db, ibs=None):
     # Rename encounters to imagesets
     db.modify_table(
-        const.IMAGE_TABLE,
-        superkeys=[(IMAGE_UUID,)],
+        const.IMAGE_TABLE, superkeys=[(IMAGE_UUID,)],
     )
     db.modify_table(
-        const.ANNOTMATCH_TABLE,
-        superkeys=[
-            (
-                'annot_rowid1',
-                'annot_rowid2',
-            )
-        ],
+        const.ANNOTMATCH_TABLE, superkeys=[('annot_rowid1', 'annot_rowid2',)],
     )
 
 
@@ -2041,13 +1945,7 @@ def update_1_8_0(db, ibs=None):
             (None, 'annot_staged_user_identity', 'TEXT', None),
             (None, 'annot_staged_metadata_json', 'TEXT', None),
         ),
-        superkeys=[
-            (ANNOT_UUID,),
-            (
-                ANNOT_VISUAL_UUID,
-                ANNOT_STAGED_UUID,
-            ),
-        ],
+        superkeys=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID, ANNOT_STAGED_UUID,)],
         primary_superkey=(ANNOT_UUID,),
     )
 

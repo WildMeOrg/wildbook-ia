@@ -329,11 +329,7 @@ def build_annot_context_options(
         def _wrap_set_annot_prop(prop, toggle_val):
             if ut.VERBOSE:
                 logger.info(
-                    '[SETTING] Clicked set prop=%r to val=%r'
-                    % (
-                        prop,
-                        toggle_val,
-                    )
+                    '[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,)
                 )
             ibs.set_annot_prop(prop, [aid], [toggle_val])
             if ut.VERBOSE:

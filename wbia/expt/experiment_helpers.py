@@ -361,10 +361,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
         if verbose >= 1:
             logger.info(
                 '[harn.help] parsed %d / %d unique annot configs'
-                % (
-                    len(acfg_list_),
-                    len(acfg_list),
-                )
+                % (len(acfg_list_), len(acfg_list),)
             )
         if verbose > 2:
             logger.info('[harn.help] parsed from: %r' % (acfg_name_list,))

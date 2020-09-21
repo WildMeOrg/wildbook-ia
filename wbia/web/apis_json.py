@@ -486,13 +486,7 @@ def add_images_json(
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_unixtime_list_ = ut.filter_items(image_unixtime_list, flag_list)
 
-        logger.info(
-            'Setting times: %r -> %r'
-            % (
-                gid_list_,
-                image_unixtime_list_,
-            )
-        )
+        logger.info('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_,))
         ibs.set_image_unixtime(gid_list_, image_unixtime_list_)
 
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
@@ -528,11 +522,7 @@ def add_images_json(
 
         logger.info(
             'Setting gps: %r -> %r, %r'
-            % (
-                gid_list_,
-                image_gps_lat_list_,
-                image_gps_lon_list_,
-            )
+            % (gid_list_, image_gps_lat_list_, image_gps_lon_list_,)
         )
         ibs.set_image_gps(
             gid_list_, lat_list=image_gps_lat_list_, lon_list=image_gps_lon_list_
@@ -1758,8 +1748,7 @@ def set_annot_name_texts_json(ibs, annot_uuid_list, name_text_list, **kwargs):
 
 
 @register_api(
-    '/api/annot/note/json/',
-    methods=['PUT'],
+    '/api/annot/note/json/', methods=['PUT'],
 )
 def set_annot_note_json(ibs, annot_uuid_list, annot_note_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)

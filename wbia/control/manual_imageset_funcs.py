@@ -617,13 +617,7 @@ def get_imageset_gsgrids(ibs, imgsetid_list=None, gid_list=None):
         )
     else:
         # TODO: Group type
-        params_iter = (
-            (
-                imgsetid,
-                gid,
-            )
-            for imgsetid, gid in zip(imgsetid_list, gid_list)
-        )
+        params_iter = ((imgsetid, gid,) for imgsetid, gid in zip(imgsetid_list, gid_list))
         where_clause = 'imageset_rowid=? AND image_rowid=?'
         # list of relationships for each imageset
         gsgrids_list = ibs.db.get_where(
@@ -1250,10 +1244,7 @@ def get_imageset_duration(ibs, imageset_rowid_list):
             duration = duration % seconds_in_day
         duration_str = time.strftime('%H:%M:%S', time.gmtime(duration))
         if days > 0:
-            duration_str = '%d days, %s' % (
-                days,
-                duration_str,
-            )
+            duration_str = '%d days, %s' % (days, duration_str,)
         return duration_str
 
     import time

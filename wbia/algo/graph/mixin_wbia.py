@@ -1194,8 +1194,7 @@ def fix_annotmatch_to_undirected_upper(ibs):
 
         df4 = df3[~pd.isnull(df3[ed_key])]
         ibs.set_annotmatch_evidence_decision(
-            df4.annotmatch_rowid,
-            [None if pd.isnull(x) else int(x) for x in df4[ed_key]],
+            df4.annotmatch_rowid, [None if pd.isnull(x) else int(x) for x in df4[ed_key]],
         )
         ibs.set_annotmatch_tag_text(
             df4.annotmatch_rowid, df4.annotmatch_tag_text.tolist()

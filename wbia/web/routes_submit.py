@@ -30,10 +30,7 @@ def submit_login(name, organization, refer=None, *args, **kwargs):
     if name == '_new_':
         first = kwargs['new_name_first']
         last = kwargs['new_name_last']
-        name = '%s.%s' % (
-            first,
-            last,
-        )
+        name = '%s.%s' % (first, last,)
         name = name.replace(' ', '')
 
     if organization == '_new_':
@@ -43,10 +40,7 @@ def submit_login(name, organization, refer=None, *args, **kwargs):
     name = name.lower()
     organization = organization.lower()
 
-    username = '%s@%s' % (
-        name,
-        organization,
-    )
+    username = '%s@%s' % (name, organization,)
     controller_inject.authenticate(
         username=username, name=name, organization=organization
     )
@@ -67,14 +61,7 @@ def submit_cameratrap(**kwargs):
     user_id = user.get('username', None)
     flag = request.form.get('cameratrap-toggle', 'off') == 'on'
     ibs.set_image_cameratrap([gid], [flag])
-    logger.info(
-        '[web] user_id: %s, gid: %d, flag: %r'
-        % (
-            user_id,
-            gid,
-            flag,
-        )
-    )
+    logger.info('[web] user_id: %s, gid: %d, flag: %r' % (user_id, gid, flag,))
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -123,72 +110,36 @@ def submit_detection(**kwargs):
         elif method.lower() == 'clear':
             aid_list = ibs.get_image_aids(gid)
             ibs.delete_annots(aid_list)
-            logger.info(
-                '[web] (CLEAERED) user_id: %s, gid: %d'
-                % (
-                    user_id,
-                    gid,
-                )
-            )
+            logger.info('[web] (CLEAERED) user_id: %s, gid: %d' % (user_id, gid,))
             redirection = request.referrer
             if 'gid' not in redirection:
                 # Prevent multiple clears
                 if '?' in redirection:
-                    redirection = '%s&gid=%d' % (
-                        redirection,
-                        gid,
-                    )
+                    redirection = '%s&gid=%d' % (redirection, gid,)
                 else:
-                    redirection = '%s?gid=%d' % (
-                        redirection,
-                        gid,
-                    )
+                    redirection = '%s?gid=%d' % (redirection, gid,)
             return redirect(redirection)
         elif method.lower() == 'rotate left':
             ibs.update_image_rotate_left_90([gid])
-            logger.info(
-                '[web] (ROTATED LEFT) user_id: %s, gid: %d'
-                % (
-                    user_id,
-                    gid,
-                )
-            )
+            logger.info('[web] (ROTATED LEFT) user_id: %s, gid: %d' % (user_id, gid,))
             redirection = request.referrer
             if 'gid' not in redirection:
                 # Prevent multiple clears
                 if '?' in redirection:
-                    redirection = '%s&gid=%d' % (
-                        redirection,
-                        gid,
-                    )
+                    redirection = '%s&gid=%d' % (redirection, gid,)
                 else:
-                    redirection = '%s?gid=%d' % (
-                        redirection,
-                        gid,
-                    )
+                    redirection = '%s?gid=%d' % (redirection, gid,)
             return redirect(redirection)
         elif method.lower() == 'rotate right':
             ibs.update_image_rotate_right_90([gid])
-            logger.info(
-                '[web] (ROTATED RIGHT) user_id: %s, aid: %d'
-                % (
-                    user_id,
-                    gid,
-                )
-            )
+            logger.info('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, gid,))
             redirection = request.referrer
             if 'gid' not in redirection:
                 # Prevent multiple clears
                 if '?' in redirection:
-                    redirection = '%s&gid=%d' % (
-                        redirection,
-                        gid,
-                    )
+                    redirection = '%s&gid=%d' % (redirection, gid,)
                 else:
-                    redirection = '%s?gid=%d' % (
-                        redirection,
-                        gid,
-                    )
+                    redirection = '%s?gid=%d' % (redirection, gid,)
             return redirect(redirection)
         else:
             with ut.Timer('submit...update'):
@@ -660,12 +611,7 @@ def submit_detection(**kwargs):
 
                         logger.info(
                             '[web] user_id: %s, gid: %d, annots: %d, parts: %d'
-                            % (
-                                user_id,
-                                gid,
-                                len(annotation_list),
-                                len(part_list),
-                            )
+                            % (user_id, gid, len(annotation_list), len(part_list),)
                         )
 
         default_list = [
@@ -727,82 +673,40 @@ def submit_viewpoint(**kwargs):
     user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        logger.info(
-            '[web] (SET AS JUNK) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        logger.info(
-            '[web] (ROTATED LEFT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        logger.info(
-            '[web] (ROTATED RIGHT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -852,82 +756,40 @@ def submit_viewpoint2(**kwargs):
     user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        logger.info(
-            '[web] (SET AS JUNK) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        logger.info(
-            '[web] (ROTATED LEFT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        logger.info(
-            '[web] (ROTATED RIGHT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -988,82 +850,40 @@ def submit_viewpoint3(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        logger.info(
-            '[web] (SET AS JUNK) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        logger.info(
-            '[web] (ROTATED LEFT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     if method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        logger.info(
-            '[web] (ROTATED RIGHT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -1130,82 +950,40 @@ def submit_annotation(**kwargs):
     user_id = user.get('username', None)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
-        logger.info(
-            '[web] (SET AS JUNK) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (SET AS JUNK) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     elif method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        logger.info(
-            '[web] (ROTATED LEFT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     elif method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        logger.info(
-            '[web] (ROTATED RIGHT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -1354,13 +1132,7 @@ def submit_species(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     elif method.lower() == 'skip':
         species_text = const.UNKNOWN
@@ -1378,26 +1150,14 @@ def submit_species(**kwargs):
             )
         )
     elif method.lower() in 'refresh':
-        logger.info(
-            '[web] (REFRESH) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (REFRESH) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         if '?' in redirection:
             redirection = '%s&refresh=true' % (redirection,)
         else:
@@ -1405,49 +1165,25 @@ def submit_species(**kwargs):
         return redirect(redirection)
     elif method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
-        logger.info(
-            '[web] (ROTATED LEFT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED LEFT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     elif method.lower() == 'rotate right':
         ibs.update_annot_rotate_right_90([aid])
-        logger.info(
-            '[web] (ROTATED RIGHT) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (ROTATED RIGHT) user_id: %s, aid: %d' % (user_id, aid,))
         redirection = request.referrer
         if 'aid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s&aid=%d' % (redirection, aid,)
             else:
-                redirection = '%s?aid=%d' % (
-                    redirection,
-                    aid,
-                )
+                redirection = '%s?aid=%d' % (redirection, aid,)
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
@@ -1467,12 +1203,7 @@ def submit_species(**kwargs):
 
         logger.info(
             '[web] user_id: %s, aid: %d, species: %r (%r)'
-            % (
-                user_id,
-                aid,
-                species_text,
-                metadata_dict,
-            )
+            % (user_id, aid, species_text, metadata_dict,)
         )
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1512,25 +1243,15 @@ def submit_part_types(**kwargs):
     refresh = False
     if method.lower() in 'refresh':
         logger.info(
-            '[web] (REFRESH) user_id: %s, part_rowid: %d'
-            % (
-                user_id,
-                part_rowid,
-            )
+            '[web] (REFRESH) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)
         )
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&part_rowid=%d' % (
-                    redirection,
-                    part_rowid,
-                )
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid,)
             else:
-                redirection = '%s?part_rowid=%d' % (
-                    redirection,
-                    part_rowid,
-                )
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         if '?' in redirection:
             redirection = '%s&refresh=true' % (redirection,)
         else:
@@ -1539,48 +1260,28 @@ def submit_part_types(**kwargs):
     elif method.lower() == 'rotate left':
         ibs.update_part_rotate_left_90([part_rowid])
         logger.info(
-            '[web] (ROTATED LEFT) user_id: %s, part_rowid: %d'
-            % (
-                user_id,
-                part_rowid,
-            )
+            '[web] (ROTATED LEFT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)
         )
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&part_rowid=%d' % (
-                    redirection,
-                    part_rowid,
-                )
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid,)
             else:
-                redirection = '%s?part_rowid=%d' % (
-                    redirection,
-                    part_rowid,
-                )
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         return redirect(redirection)
     elif method.lower() == 'rotate right':
         ibs.update_part_rotate_right_90([part_rowid])
         logger.info(
-            '[web] (ROTATED RIGHT) user_id: %s, part_rowid: %d'
-            % (
-                user_id,
-                part_rowid,
-            )
+            '[web] (ROTATED RIGHT) user_id: %s, part_rowid: %d' % (user_id, part_rowid,)
         )
         redirection = request.referrer
         if 'part_rowid' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&part_rowid=%d' % (
-                    redirection,
-                    part_rowid,
-                )
+                redirection = '%s&part_rowid=%d' % (redirection, part_rowid,)
             else:
-                redirection = '%s?part_rowid=%d' % (
-                    redirection,
-                    part_rowid,
-                )
+                redirection = '%s?part_rowid=%d' % (redirection, part_rowid,)
         return redirect(redirection)
     else:
         part_type_text = kwargs.get('ia-part-type-value', '')
@@ -1590,11 +1291,7 @@ def submit_part_types(**kwargs):
         refresh = part_type_text not in previous_part_types
         logger.info(
             '[web] user_id: %s, part_rowid: %d, type: %r'
-            % (
-                user_id,
-                part_rowid,
-                part_type_text,
-            )
+            % (user_id, part_rowid, part_type_text,)
         )
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1631,13 +1328,7 @@ def submit_quality(**kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     else:
         if src_ag is not None and dst_ag is not None:
@@ -1680,13 +1371,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
-        logger.info(
-            '[web] (DELETED) user_id: %s, aid: %d'
-            % (
-                user_id,
-                aid,
-            )
-        )
+        logger.info('[web] (DELETED) user_id: %s, aid: %d' % (user_id, aid,))
         aid = None  # Reset AID to prevent previous
     else:
         sex = int(request.form['demographics-sex-value'])
@@ -1732,14 +1417,7 @@ def submit_demographics(species='zebra_grevys', **kwargs):
         ibs.set_annot_age_months_est_max(aid_list, [age_max] * len(aid_list))
         logger.info(
             '[web] Updating %d demographics with user_id: %s\n\taid_list : %r\n\tsex: %r\n\tage_min: %r\n\tage_max: %r'
-            % (
-                len(aid_list),
-                user_id,
-                aid_list,
-                sex,
-                age_min,
-                age_max,
-            )
+            % (len(aid_list), user_id, aid_list, sex, age_min, age_max,)
         )
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1793,22 +1471,12 @@ def submit_identification(**kwargs):
 
     # Add a new review row for the new decision (possibly replacing the old one)
     logger.info(
-        'ADDING EVIDENCE_DECISION: %r %r %r %r'
-        % (
-            aid1,
-            aid2,
-            decision,
-            tag_list,
-        )
+        'ADDING EVIDENCE_DECISION: %r %r %r %r' % (aid1, aid2, decision, tag_list,)
     )
     tags_list = None if tag_list is None else [tag_list]
     review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
     review_rowid = review_rowid[0]
-    previous = '%s;%s;%s' % (
-        aid1,
-        aid2,
-        review_rowid,
-    )
+    previous = '%s;%s;%s' % (aid1, aid2, review_rowid,)
 
     # Notify any attached web QUERY_OBJECT
     try:
@@ -1848,10 +1516,7 @@ def submit_identification_v2(graph_uuid, **kwargs):
     )
     logger.info('Using hogwild: %r' % (hogwild,))
 
-    previous = '%s;%s;-1' % (
-        aid1,
-        aid2,
-    )
+    previous = '%s;%s;-1' % (aid1, aid2,)
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -2014,10 +1679,7 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     )
     logger.info('Using hogwild: %r' % (hogwild,))
 
-    previous = '%s;%s;-1' % (
-        aid1,
-        aid2,
-    )
+    previous = '%s;%s;-1' % (aid1, aid2,)
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -2108,11 +1770,7 @@ def submit_contour(**kwargs):
 
         logger.info(
             '[web] part_rowid: %d, contours: %d, points: %d'
-            % (
-                part_rowid,
-                num_contours,
-                num_points,
-            )
+            % (part_rowid, num_contours, num_points,)
         )
 
     default_list = ['temp']

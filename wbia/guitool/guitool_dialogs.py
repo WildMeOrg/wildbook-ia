@@ -115,10 +115,7 @@ def user_option(
         msgbox.addButton(QtWidgets.QPushButton(opt), role)
     # Set default button
     if default is not None:
-        assert default in options, 'default=%r is not in options=%r' % (
-            default,
-            options,
-        )
+        assert default in options, 'default=%r is not in options=%r' % (default, options,)
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)

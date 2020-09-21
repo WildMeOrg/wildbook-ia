@@ -87,16 +87,10 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
     )
 
     params_iter = (
-        (
-            annotgroup_uuid,
-            annotgroup_text,
-            annotgroup_note,
+        (annotgroup_uuid, annotgroup_text, annotgroup_note,)
+        for (annotgroup_uuid, annotgroup_text, annotgroup_note,) in zip(
+            annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
         )
-        for (
-            annotgroup_uuid,
-            annotgroup_text,
-            annotgroup_note,
-        ) in zip(annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list)
     )
     get_rowid_from_superkey = ibs.get_annotgroup_rowid_from_superkey
     # FIXME: encode superkey paramx

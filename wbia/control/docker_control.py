@@ -31,10 +31,7 @@ DOCKER_CLONE_FMTSTR = '%s_clone_%d'
 def docker_container_clone_name(container_name, clone=None):
     if clone is None:
         return container_name
-    container_clone_name = DOCKER_CLONE_FMTSTR % (
-        container_name,
-        clone,
-    )
+    container_clone_name = DOCKER_CLONE_FMTSTR % (container_name, clone,)
     return container_clone_name
 
 
@@ -332,10 +329,7 @@ def docker_container_urls(ibs, container, docker_get_config):
         if port is None:
             url = '%s' % (ip,)
         else:
-            url = '%s:%s' % (
-                ip,
-                port,
-            )
+            url = '%s:%s' % (ip, port,)
         url_list.append(url)
     return url_list
 
@@ -392,10 +386,7 @@ def docker_check_container(
     for retry_index in range(retry_count):
         logger.info(
             '[docker_control] Performing container check (attempt %d, max %d)'
-            % (
-                retry_index + 1,
-                retry_count,
-            )
+            % (retry_index + 1, retry_count,)
         )
         for url in url_list:
             logger.info('\tChecking URL: %s' % (url,))
