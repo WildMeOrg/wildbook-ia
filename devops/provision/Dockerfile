@@ -1,7 +1,5 @@
 FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
 
-MAINTAINER Wild Me <dev@wildme.org>
-
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1
 
@@ -14,7 +12,6 @@ RUN git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-brambox  
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-deepsense      /wbia/wbia-plugin-deepsense \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-finfindr       /wbia/wbia-plugin-finfindr \
  && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-kaggle7        /wbia/wbia-plugin-kaggle7 \
- && git clone --branch master https://github.com/WildbookOrg/wbia-plugin-2d-orientation /wbia/wbia-plugin-2d-orientation \
  && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia               /wbia/wildbook-ia \
  && git clone --branch master https://github.com/WildbookOrg/wbia-tpl-lightnet          /wbia/lightnet \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pydarknet        /wbia/pydarknet \
@@ -32,12 +29,6 @@ RUN cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
 RUN cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git init \
  && git remote add vs https://github.com/WildbookOrg/wbia-tpl-kaggle7 \
- && git fetch vs \
- && git checkout master
-
-RUN cd /wbia/wbia-plugin-2d-orientation/wbia_2d_orientation \
- && git init \
- && git remote add vs https://github.com/WildbookOrg/wbia-tpl-2d-orientation \
  && git fetch vs \
  && git checkout master
 
@@ -120,9 +111,6 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip install -e .'
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
- && pip install -e .'
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-2d-orientation \
  && pip install -e .'
 
 
