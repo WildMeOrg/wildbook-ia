@@ -31,9 +31,31 @@ FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
 LABEL autoheal=true
 
+ARG VERSION="3.3.0"
+
+ARG VCS_URL="https://github.com/WildbookOrg/wildbook-ia"
+
+ARG VCS_REF="develop"
+
+ARG BUILD_DATE="2020"
+
+LABEL org.wildme.vendor="Wild Me" \
+      org.wildme.url="https://wildme.org" \
+      org.wildme.name="Wildbook IA" \
+      org.wildme.description="Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation" \
+      org.wildme.version=$VERSION \
+      org.wildme.vcs-url=$VCS_URL \
+      org.wildme.vcs-ref=$VCS_REF \
+      org.wildme.build-date=$BUILD_DATE \
+      org.wildme.docker.schema-version="1.0"
+
 ENV HOST_USER root
 
 ENV HOST_UID 0
+
+ENV AWS_ACCESS_KEY_ID ACCESS_KEY
+
+ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
 WORKDIR /wbia
 
