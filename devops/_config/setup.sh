@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ "${HOST_USER}" != "root" ]; then
-    addgroup --system ${HOST_USER}
-    adduser --uid ${HOST_UID} --system --group ${HOST_USER}
+    # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
+    adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
 fi
 
 if [ ! -d "/data/db" ]; then
