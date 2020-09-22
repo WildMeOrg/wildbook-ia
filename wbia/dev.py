@@ -92,6 +92,9 @@ print, rrr, profile = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+logger.setLevel(logging.INFO)
+
+
 # ------------------
 # DEV DEVELOPMENT
 # ------------------
