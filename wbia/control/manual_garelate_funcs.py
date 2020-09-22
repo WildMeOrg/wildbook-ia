@@ -84,8 +84,8 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list):
     # if aid_list is None:
     #    aid_list = [None] * len(annotgroup_rowid_list)
     params_iter = (
-        (annotgroup_rowid, aid,)
-        for (annotgroup_rowid, aid,) in zip(annotgroup_rowid_list, aid_list)
+        (annotgroup_rowid, aid)
+        for (annotgroup_rowid, aid) in zip(annotgroup_rowid_list, aid_list)
     )
     get_rowid_from_superkey = ibs.get_gar_rowid_from_superkey
     # FIXME: encode superkey paramx

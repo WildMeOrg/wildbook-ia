@@ -217,13 +217,13 @@ def get_hots_flat_table(ibs):
     """
     aid_list = ibs.get_valid_aids()
     column_tups = [
-        (int, 'aids', aid_list,),
-        (str, 'names', ibs.get_annot_names(aid_list),),
-        (list, 'bbox', list(map(list, ibs.get_annot_bboxes(aid_list),)),),
-        (float, 'theta', ibs.get_annot_thetas(aid_list),),
-        (str, 'gpaths', ibs.get_annot_image_paths(aid_list),),
-        (str, 'notes', ibs.get_annot_notes(aid_list),),
-        (str, 'uuids', ibs.get_annot_uuids(aid_list),),
+        (int, 'aids', aid_list),
+        (str, 'names', ibs.get_annot_names(aid_list)),
+        (list, 'bbox', list(map(list, ibs.get_annot_bboxes(aid_list)))),
+        (float, 'theta', ibs.get_annot_thetas(aid_list)),
+        (str, 'gpaths', ibs.get_annot_image_paths(aid_list)),
+        (str, 'notes', ibs.get_annot_notes(aid_list)),
+        (str, 'uuids', ibs.get_annot_uuids(aid_list)),
     ]
     column_type = [tup[0] for tup in column_tups]
     column_lbls = [tup[1] for tup in column_tups]

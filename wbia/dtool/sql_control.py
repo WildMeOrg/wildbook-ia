@@ -425,7 +425,7 @@ class SQLDatabaseController(object):
                     raise ValueError(value)
                 self.ctrlr.executeone(
                     f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
-                    ('database_version', value,),
+                    ('database_version', value),
                 )
 
             @property
@@ -445,7 +445,7 @@ class SQLDatabaseController(object):
                     value = str(value)
                 self.ctrlr.executeone(
                     f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
-                    ('database_init_uuid', value,),
+                    ('database_init_uuid', value),
                 )
 
             # collections.abc.MutableMapping abstract methods
@@ -1329,7 +1329,7 @@ class SQLDatabaseController(object):
             logger.info(
                 '[sql]'
                 + ut.get_caller_name(list(range(1, 4)))
-                + ' db.get(%r, %r, ...)' % (tblname, colnames,)
+                + ' db.get(%r, %r, ...)' % (tblname, colnames)
             )
         assert isinstance(colnames, tuple), 'must specify column names TUPLE to get from'
         # if isinstance(colnames, six.string_types):
@@ -2308,7 +2308,7 @@ class SQLDatabaseController(object):
         for col_name, col_type in coldef_list:
             name_part = ('%s,' % ut.repr2(col_name)).ljust(max_colsize)
             type_part = ut.repr2(col_type)
-            line_list.append(tab2 + '(%s%s),' % (name_part, type_part,))
+            line_list.append(tab2 + '(%s%s),' % (name_part, type_part))
         line_list.append(tab1 + '],')
         superkeys = self.get_table_superkey_colnames(tablename)
         docstr = self.get_table_docstr(tablename)
@@ -2436,7 +2436,7 @@ class SQLDatabaseController(object):
     def get_table_primarykey_colnames(self, tablename):
         columns = self.get_columns(tablename)
         primarykey_colnames = tuple(
-            [name for (column_id, name, type_, notnull, dflt_value, pk,) in columns if pk]
+            [name for (column_id, name, type_, notnull, dflt_value, pk) in columns if pk]
         )
         return primarykey_colnames
 

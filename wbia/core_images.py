@@ -325,7 +325,7 @@ def compute_classifications(depc, gid_list, config=None):
             'thumbsize': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
         }
         thumbpath_list = ibs.depc_image.get(
-            'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True,
+            'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True
         )
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     else:
@@ -411,7 +411,7 @@ def compute_classifications2(depc, gid_list, config=None):
             'thumbsize': (densenet.INPUT_SIZE, densenet.INPUT_SIZE),
         }
         thumbpath_list = ibs.depc_image.get(
-            'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True,
+            'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True
         )
         config_ = {
             'classifier_weight_filepath': config['classifier_two_weight_filepath'],
@@ -1015,7 +1015,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 if VERBOSE:
                     logger.info(
                         'Filtered with sensitivity = %0.02f (%d -> %d)'
-                        % (config['sensitivity'], count_old, count_new,)
+                        % (config['sensitivity'], count_old, count_new)
                     )
 
         # Apply NMS
@@ -1208,7 +1208,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 count_new = len(bboxes)
                 if VERBOSE:
                     logger.info(
-                        'Filtered invalid images (%d -> %d)' % (count_old, count_new,)
+                        'Filtered invalid images (%d -> %d)' % (count_old, count_new)
                     )
 
         if config['boundary']:
@@ -1322,7 +1322,7 @@ def get_localization_masks_worker(gid, img, bbox_list, theta_list, target_size):
         mask = cv2.resize(img_, tuple(new_size), **warpkw)
         # cv2.imshow('', mask)
         # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, new_size,)
+        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, new_size)
         assert mask.shape[0] == new_size[0] and mask.shape[1] == new_size[1], msg
         return mask
 
@@ -2445,10 +2445,10 @@ def compute_detections(depc, gid_list, config=None):
                 zipped_.append([bbox, theta, species, viewpoint, conf * score])
             else:
                 logger.info(
-                    'Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'],)
+                    'Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'])
                 )
                 logger.info(
-                    'Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'],)
+                    'Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'])
                 )
         if len(zipped_) == 0:
             detect_list = list(empty_list)
@@ -2498,7 +2498,7 @@ def compute_cameratrap_exif(depc, gid_list, config=None):
     gpath_list = ibs.get_image_paths(gid_list)
     orient_list = ibs.get_image_orientation(gid_list)
 
-    arg_iter = list(zip(gpath_list, orient_list,))
+    arg_iter = list(zip(gpath_list, orient_list))
     kwargs_iter = [config] * len(gid_list)
     raw_list = ut.util_parallel.generate2(
         compute_cameratrap_exif_worker, arg_iter, kwargs_iter

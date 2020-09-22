@@ -875,7 +875,7 @@ def query_chips_graph(
             zipped = sorted(zip(name_score_list, unique_nids), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
-            logger.info('Top %d names: %r' % (n_, zipped,))
+            logger.info('Top %d names: %r' % (n_, zipped))
             dnid_set = set(ut.take_column(zipped, 1))
             aids_list = ibs.get_name_aids(dnid_set)
 
@@ -924,13 +924,13 @@ def query_chips_graph(
             zipped = sorted(zip(score_list, daid_list_), reverse=True)
             n_ = min(n, len(zipped))
             zipped = zipped[:n_]
-            logger.info('Top %d annots: %r' % (n_, zipped,))
+            logger.info('Top %d annots: %r' % (n_, zipped))
             annot_daid_set = set(ut.take_column(zipped, 1))
 
             # Combine names and annotations
             daid_set = list(name_daid_set) + list(annot_daid_set)
             daid_set = list(set(daid_set))
-            logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set,))
+            logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set))
 
             extern_flag_list = []
             for daid in daid_list_:
@@ -1066,9 +1066,7 @@ def query_chips_graph(
             ('summary_name', cm.name_score_list),
         ]
         for summary_key, summary_score_list in summary_list:
-            value_list = sorted(
-                list(zip(summary_score_list, cm.daid_list,)), reverse=True,
-            )
+            value_list = sorted(list(zip(summary_score_list, cm.daid_list)), reverse=True)
             n_ = min(len(value_list), n)
             value_list = value_list[:n_]
 
@@ -1137,7 +1135,7 @@ def query_chips_graph_match_thumb(
     if not exists(dannot_path):
         message = (
             'database_annot_uuid is unknown for the given reference %s and query_annot_uuid %s'
-            % (extern_reference, query_annot_uuid,)
+            % (extern_reference, query_annot_uuid)
         )
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
@@ -1157,7 +1155,7 @@ def query_chips_graph_match_thumb(
     if not exists(version_path):
         message = (
             'match thumb version is unknown for the given reference %s, query_annot_uuid %s, database_annot_uuid %s'
-            % (extern_reference, query_annot_uuid, database_annot_uuid,)
+            % (extern_reference, query_annot_uuid, database_annot_uuid)
         )
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
@@ -1550,7 +1548,7 @@ def review_graph_match_config_v2(
         previous_edge_list = session[EDGES_KEY]
         logger.info(
             'Using previous_edge_list\n\tUser: %s\n\tList: %r'
-            % (user_id, previous_edge_list,)
+            % (user_id, previous_edge_list)
         )
 
         data = graph_client.sample(
@@ -1576,7 +1574,7 @@ def review_graph_match_config_v2(
         session[EDGES_KEY] = previous_edge_list
         logger.info(
             'Updating previous_edge_list\n\tUser: %s\n\tList: %r'
-            % (user_id, previous_edge_list,)
+            % (user_id, previous_edge_list)
         )
 
     args = (

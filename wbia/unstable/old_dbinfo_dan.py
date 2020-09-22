@@ -771,7 +771,7 @@ def split_analysis(ibs):
     for infr in ut.InteractiveIter(reasonable_infr):
         annots = ibs.annots(infr.aids)
         edge_to_speeds = annots.get_speeds()
-        logger.info('max_speed = %r' % (max(edge_to_speeds.values())),)
+        logger.info('max_speed = %r' % (max(edge_to_speeds.values()),))
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 
@@ -783,7 +783,7 @@ def split_analysis(ibs):
     for infr in ut.InteractiveIter(random_infr):
         annots = ibs.annots(infr.aids)
         edge_to_speeds = annots.get_speeds()
-        logger.info('max_speed = %r' % (max(edge_to_speeds.values())),)
+        logger.info('max_speed = %r' % (max(edge_to_speeds.values()),))
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 

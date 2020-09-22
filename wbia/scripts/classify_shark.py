@@ -103,7 +103,7 @@ def shark_net(dry=False):
         test_outptuts = model._predict(X_test)
         y_pred = test_outptuts['predictions']
         logger.info(model.name)
-        report = sklearn.metrics.classification_report(y_true=y_test, y_pred=y_pred,)
+        report = sklearn.metrics.classification_report(y_true=y_test, y_pred=y_pred)
         logger.info(report)
 
         state_fpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/model_state_arch_jzuddodd.pkl'

@@ -14,7 +14,7 @@ from wbia.plottool import interact_helpers as ih
 def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None, **kwargs):
     if ut.VERBOSE:
         print(ut.get_caller_name(range(9)))
-        print('[interact_image] gid=%r fnum=%r' % (gid, fnum,))
+        print('[interact_image] gid=%r fnum=%r' % (gid, fnum))
     if fnum is None:
         fnum = df2.next_fnum()
     # TODO: change to class based structure

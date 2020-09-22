@@ -148,7 +148,7 @@ def start_tornado(
             if fallback:
                 logger.info(
                     'Port %s is unavailable, using fallback_port = %r'
-                    % (port, fallback_port,)
+                    % (port, fallback_port)
                 )
                 start_tornado(
                     ibs,

@@ -212,7 +212,7 @@ class WebException(ut.NiceRepr, Exception):
             return self.rawreturn
 
     def __nice__(self):
-        return '(%r: %r)' % (self.code, self.message,)
+        return '(%r: %r)' % (self.code, self.message)
 
 
 class WebMissingUUIDException(WebException):
@@ -579,7 +579,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
                 key_ = key_.rjust(length1)
                 type_ = type_.ljust(length2)
                 try:
-                    logger.info('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_,))
+                    logger.info('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_))
                 except UnicodeEncodeError:
                     logger.info('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
     except Exception:
@@ -614,11 +614,11 @@ def translate_wbia_webcall(func, *args, **kwargs):
                     value = kwargs[key]
                     value_str = '%r' % (value,)
                     value_str = ut.truncate_str(value_str, maxlen=256)
-                    msg_list.append('\t%r: %s' % (key, value_str,))
+                    msg_list.append('\t%r: %s' % (key, value_str))
                 # msg_list.append('\targs = %r' % (args,))
                 # msg_list.append('flask.request.args = %r' % (flask.request.args,))
                 # msg_list.append('flask.request.form = %r' % (flask.request.form,))
-                msg_list.append('%s: %s' % (type(ex2).__name__, ex2,))
+                msg_list.append('%s: %s' % (type(ex2).__name__, ex2))
                 if WEB_DEBUG_INCLUDE_TRACE:
                     trace = str(traceback.format_exc())
                     msg_list.append(trace)
@@ -705,7 +705,7 @@ def get_signature(key, message):
 
 def get_url_authorization(url):
     hash_ = get_signature(GLOBAL_APP_SECRET, url)
-    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_,)
+    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_)
     return hash_challenge
 
 
@@ -1204,7 +1204,7 @@ def get_wbia_flask_route(__name__):
                         args = ()
                         logger.info(
                             'Processing: %r with args: %r and kwargs: %r'
-                            % (func, args, kwargs,)
+                            % (func, args, kwargs)
                         )
 
                         from wbia.web.app import PROMETHEUS

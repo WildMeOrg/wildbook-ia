@@ -96,7 +96,7 @@ def sync_wildbook():
     logger.info('The IA database has %r images' % (len(all_images),))
     logger.info(
         'The IA database has %r/%r images not from this downloaded set'
-        % (num_ia_unique, len(all_images),)
+        % (num_ia_unique, len(all_images))
     )
 
     logger.info('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
@@ -117,7 +117,7 @@ def sync_wildbook():
     logger.info('The IA database has %r images' % (len(all_images),))
     logger.info(
         'The IA database has %r/%r images not from this downloaded set'
-        % (num_ia_unique, len(all_images),)
+        % (num_ia_unique, len(all_images))
     )
     logger.info('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
     logger.info('Missing %d/%d parsed images' % (len(miss_info), len(info_gid_list)))
@@ -722,7 +722,7 @@ def get_injur_categories(single_annots, verbose=False):
         if injured:
             if 'healthy' in tags:
                 logger.info(
-                    'shark aid=%r labeled as injured and healty %r!!!' % (aid, tags,)
+                    'shark aid=%r labeled as injured and healty %r!!!' % (aid, tags)
                 )
         if len(tags) == 0:
             return tags
@@ -790,7 +790,7 @@ def add_new_images(ibs, miss_info, species):
 
     # Check to see if adding any images failed
     failed_flags = ut.flag_None_items(miss_info['gid'])
-    logger.info('# failed to add %s images' % (sum(failed_flags)),)
+    logger.info('# failed to add %s images' % (sum(failed_flags),))
 
     passed_flags = ut.not_list(failed_flags)
     miss_info = miss_info.compress(passed_flags)

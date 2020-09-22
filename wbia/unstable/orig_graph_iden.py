@@ -273,7 +273,9 @@ class OrigAnnotInference(object):
                 values={node: 'n%r' % (node[1],) for node in name_nodes},
             )
             nx.set_node_attributes(
-                graph, name='color', values={node: pt.LIGHT_GREEN for node in name_nodes},
+                graph,
+                name='color',
+                values={node: pt.LIGHT_GREEN for node in name_nodes},
             )
         if show:
             import wbia.plottool as pt

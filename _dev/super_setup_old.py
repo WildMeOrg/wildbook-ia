@@ -1036,7 +1036,7 @@ def move_wildme(wbia_rman, fmt):
                     if origin_user not in remotes:
                         # first add a remote that is the original origin
                         origin_url = origin['url']
-                        print('  * Create remote %r: %r' % (origin_user, origin_url,))
+                        print('  * Create remote %r: %r' % (origin_user, origin_url))
                         gitrepo.create_remote(origin_user, origin_url)
                     # change origin to use wildme url
                     gitorigin = gitrepo.remote('origin')

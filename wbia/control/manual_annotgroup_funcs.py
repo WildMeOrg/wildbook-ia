@@ -80,15 +80,11 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
         tbl = annotgroup
     """
     # WORK IN PROGRESS
-    colnames = (
-        ANNOTGROUP_UUID,
-        ANNOTGROUP_TEXT,
-        ANNOTGROUP_NOTE,
-    )
+    colnames = (ANNOTGROUP_UUID, ANNOTGROUP_TEXT, ANNOTGROUP_NOTE)
 
     params_iter = (
-        (annotgroup_uuid, annotgroup_text, annotgroup_note,)
-        for (annotgroup_uuid, annotgroup_text, annotgroup_note,) in zip(
+        (annotgroup_uuid, annotgroup_text, annotgroup_note)
+        for (annotgroup_uuid, annotgroup_text, annotgroup_note) in zip(
             annotgroup_uuid_list, annotgroup_text_list, annotgroup_note_list
         )
     )

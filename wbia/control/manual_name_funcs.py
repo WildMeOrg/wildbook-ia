@@ -112,7 +112,7 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     colnames = [NAME_UUID, NAME_TEXT, NAME_NOTE]
     params_iter = list(zip(name_uuid_list, name_text_list, name_note_list))
     name_rowid_list = ibs.db.add_cleanly(
-        const.NAME_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx,
+        const.NAME_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx
     )
     return name_rowid_list
     # OLD WAY
@@ -265,14 +265,14 @@ def get_empty_nids(ibs, _nid_list=None):
     alias_text_list = ibs.get_name_alias_texts(alias_nid_list)
     alias_nid_list = ibs.get_name_rowids_from_text(alias_text_list)
     # Find the empty aliases, recursively
-    logger.info('%sFound %d empty NIDs' % (recstr, len(empty_nid_list),))
+    logger.info('%sFound %d empty NIDs' % (recstr, len(empty_nid_list)))
     logger.info(
-        '%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list),)
+        '%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list))
     )
     message = ' checking these recursively' if len(alias_nid_list) > 0 else ''
     logger.info(
         '%sFound %d empty NIDs with an alias...%s'
-        % (recstr, len(alias_nid_list), message,)
+        % (recstr, len(alias_nid_list), message)
     )
     empty_alias_nid_list = ibs.get_empty_nids(_nid_list=alias_nid_list)
     # Compile the full list of nids without any associated annotations

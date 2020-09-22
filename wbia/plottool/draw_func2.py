@@ -409,7 +409,7 @@ def overlay_icon(
             width, height = dsize
         else:
             width, height = img_size
-        logger.info('width, height= %r, %r' % (width, height,))
+        logger.info('width, height= %r, %r' % (width, height))
         x1 = xy[0] + width * bbox_alignment[0]
         y1 = xy[1] + height * bbox_alignment[1]
         x2 = xy[0] + width * (1 - bbox_alignment[0])

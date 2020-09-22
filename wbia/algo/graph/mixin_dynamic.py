@@ -1146,7 +1146,7 @@ class Redundancy(_RedundancyComputers):
             infr.remove_internal_priority(cc)
             if infr.params['inference.update_attrs']:
                 infr.set_edge_attrs(
-                    'inferred_state', ut.dzip(nxu.edges_inside(infr.graph, cc), ['same']),
+                    'inferred_state', ut.dzip(nxu.edges_inside(infr.graph, cc), ['same'])
                 )
         else:
             if was_pos_redun:
@@ -1491,7 +1491,7 @@ class NonDynamicUpdate(object):
         # Find edges internal to inconsistent PCCs
         incon_internal = {
             nid: union(
-                ne_to_edges[key][(nid, nid)] for key in (POSTV, NEGTV,) + UNINFERABLE
+                ne_to_edges[key][(nid, nid)] for key in (POSTV, NEGTV) + UNINFERABLE
             )
             for nid in incon_internal_nids
         }

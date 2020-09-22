@@ -19,7 +19,7 @@ def classifyShark(ibs, gid_list):
     batch_size = 32
     model_name = 'injur-shark-' + suffix
     model = classify_shark.WhaleSharkInjuryModel(
-        name=model_name, output_dims=2, data_shape=(224, 224, 3), batch_size=batch_size,
+        name=model_name, output_dims=2, data_shape=(224, 224, 3), batch_size=batch_size
     )
     model.init_arch()
     filep = ut.grab_file_url(modelStateLocation)

@@ -161,7 +161,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        result = (sample, target,) if self.targets else (sample,)
+        result = (sample, target) if self.targets else (sample,)
         return result
 
     def __len__(self):
@@ -182,7 +182,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
 
 def finetune(
-    model, dataloaders, optimizer, scheduler, device, num_epochs=128, under=1.0, over=1.0,
+    model, dataloaders, optimizer, scheduler, device, num_epochs=128, under=1.0, over=1.0
 ):
     phases = ['train', 'val']
 
@@ -367,7 +367,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     import matplotlib.pyplot as plt
 
     samples = dataset.samples
-    logger.info('Dataset %r has %d samples' % (tag, len(samples),))
+    logger.info('Dataset %r has %d samples' % (tag, len(samples)))
 
     index_list = list(range(len(samples)))
     random.shuffle(index_list)
@@ -452,7 +452,7 @@ def train(data_path, output_path, batch_size=32):
     # Initialize the model for this run
     model = torchvision.models.densenet201(pretrained=True)
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4),)
+    model.classifier = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4))
 
     # Send the model to GPU
     model = model.to(device)
@@ -521,7 +521,7 @@ def test_single(filepath_list, weights_path, batch_size=512):
     # Initialize the model for this run
     model = torchvision.models.densenet201()
     num_ftrs = model.classifier.in_features
-    model.classifier = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4),)
+    model.classifier = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4))
 
     model.load_state_dict(state)
 

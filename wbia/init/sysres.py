@@ -877,7 +877,7 @@ def ensure_db_from_url(zipped_db_url):
     dbdir = ut.grab_zipped_url(
         zipped_url=zipped_db_url, ensure=True, download_dir=workdir
     )
-    logger.info('have %s=%r' % (zipped_db_url, dbdir,))
+    logger.info('have %s=%r' % (zipped_db_url, dbdir))
     return dbdir
 
 

@@ -225,7 +225,7 @@ def __export_reviewed_subset(ibs, min_count=500, ensure_annots=False):
     if gid_list is None:
         return None
     new_dbpath = '/' + join('Datasets', 'BACKGROUND', ibs.dbname)
-    logger.info('Exporting to %r with %r images' % (new_dbpath, len(gid_list),))
+    logger.info('Exporting to %r with %r images' % (new_dbpath, len(gid_list)))
     return export_images(ibs, gid_list, new_dbpath=new_dbpath)
 
 
@@ -461,7 +461,7 @@ def fix_bidirectional_annotmatch(ibs):
             logger.info('t1, t2 = %r, %r' % (t1, t2))
             logger.info('newtag = %r' % (newtag,))
             logger.info(
-                'truth_real, truth1, truth2 = %r, %r, %r' % (truth_real, truth1, truth2,)
+                'truth_real, truth1, truth2 = %r, %r, %r' % (truth_real, truth1, truth2)
             )
             logger.info('aid1, aid2 = %r, %r' % (aid1, aid2))
             fixme_edges.append(tuple(sorted((aid1, aid2))))

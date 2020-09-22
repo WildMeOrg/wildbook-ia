@@ -90,7 +90,7 @@ def parse_imageinfo(gpath):
                 _, ext = splitext(filename)
                 # base = filename
                 base = ut.random_nonce(16)
-                suffix = '.%s%s' % (base, ext,)
+                suffix = '.%s%s' % (base, ext)
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
                 args = (
                     gpath,
@@ -120,7 +120,7 @@ def parse_imageinfo(gpath):
                         scheme = urlsplit(uri_, allow_fragments=False).scheme
                         uri_ = uri_.strip('%s://' % (scheme,))
                         uri_path = urlquote(uri_.encode('utf8'))
-                        uri_ = '%s://%s' % (scheme, uri_path,)
+                        uri_ = '%s://%s' % (scheme, uri_path)
                         # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
                         assert (
@@ -158,7 +158,7 @@ def parse_imageinfo(gpath):
             #                          warn.line)
             #     warnstr = warnings.formatwarning
             #     logger.info(warnstr)
-            logger.info('%d warnings issued by %r' % (len(w), gpath,))
+            logger.info('%d warnings issued by %r' % (len(w), gpath))
     # Parse out the data
     width, height = pil_img.size  # Read width, height
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags

@@ -84,7 +84,7 @@ def download_associations_list(**kwargs):
 
     key_str_list = []
     for key in sorted(kwargs.keys()):
-        key_str = '%s=%s' % (key, kwargs[key],)
+        key_str = '%s=%s' % (key, kwargs[key])
         key_str_list.append(key_str)
     key_str = '.'.join(key_str_list)
     if len(key_str) > 0:
@@ -126,7 +126,7 @@ def download_associations_matrix(**kwargs):
 
     key_str_list = []
     for key in sorted(kwargs.keys()):
-        key_str = '%s=%s' % (key, kwargs[key],)
+        key_str = '%s=%s' % (key, kwargs[key])
         key_str_list.append(key_str)
     key_str = '.'.join(key_str_list)
     if len(key_str) > 0:
@@ -621,7 +621,7 @@ def get_annotation_special_monica_laurel_max(desired_species=None, **kwargs):
     combined_str = '\n'.join(line_list)
     combined_str = (
         'DB,Annotation UUID,AID,NID,Name,Name Changed,Cross-Database Match,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n'
-        % (imageset_metadata_key_str, annot_metadata_key_str,)
+        % (imageset_metadata_key_str, annot_metadata_key_str)
         + combined_str
     )
     return appf.send_csv_file(combined_str, filename)

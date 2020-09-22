@@ -144,12 +144,12 @@ def make_factor_text(factor, name):
         values = factor.values
         try:
             rowstrs = [
-                'p(%s)=%.3f' % (','.join(n), v,)
+                'p(%s)=%.3f' % (','.join(n), v)
                 for n, v in zip(zip(*factor.statenames), values)
             ]
         except Exception:
             rowstrs = [
-                'p(%s)=%.3f' % (','.join(n), v,)
+                'p(%s)=%.3f' % (','.join(n), v)
                 for n, v in zip(factor._row_labels(False), values)
             ]
         idxs = ut.list_argmaxima(values)
@@ -509,7 +509,7 @@ def draw_bayesian_model(
             ax.set_xlim((xmin - 42, xmax + 42))
             ax.set_ylim((ymin - 50, ymax + 50))
             fig.set_size_inches(23, 7)
-        title = 'num_names=%r, num_annots=%r' % (num_names, num_annots,)
+        title = 'num_names=%r, num_annots=%r' % (num_names, num_annots)
     else:
         title = ''
     map_assign = kwargs.get('map_assign', None)

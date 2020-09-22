@@ -610,7 +610,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         if all(is_unknown) and not nid1_is_known and not nid2_is_known:
             joinnew_text = 'match all (nonjunk)\n to a new name'
             self.append_button(
-                joinnew_text, callback=self.merge_nonjunk_into_new_name, rect=next_rect(),
+                joinnew_text, callback=self.merge_nonjunk_into_new_name, rect=next_rect()
             )
         # option dismiss all and give new names to all nonjunk images
         if any(is_unknown):

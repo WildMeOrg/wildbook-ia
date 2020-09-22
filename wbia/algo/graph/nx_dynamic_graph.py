@@ -12,7 +12,7 @@ logger = logging.getLogger('wbia')
 class GraphHelperMixin(ut.NiceRepr):
     def __nice__(self):
         return 'nNodes={}, nEdges={}'.format(
-            self.number_of_nodes(), self.number_of_edges(),
+            self.number_of_nodes(), self.number_of_edges()
         )
 
     def has_nodes(self, nodes):
@@ -181,7 +181,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     def __nice__(self):
         return 'nNodes={}, nEdges={}, nCCs={}'.format(
-            self.number_of_nodes(), self.number_of_edges(), self.number_of_components(),
+            self.number_of_nodes(), self.number_of_edges(), self.number_of_components()
         )
 
     def number_of_components(self):

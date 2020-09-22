@@ -518,7 +518,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
         num_extra = 0
         for idx, val in enumerate(assignment):
             if val is None:
-                assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
+                assignment[idx] = '%s%d' % (extra_prefix, num_extra)
                 num_extra += 1
     return assignment
 
@@ -577,7 +577,7 @@ def find_consistent_labeling_old(
         num_extra = num_new_names - num_old_names
         if num_extra > 0:
             extra_oldnames = [
-                '%s%d' % (extra_prefix, count,) for count in range(num_extra)
+                '%s%d' % (extra_prefix, count) for count in range(num_extra)
             ]
         elif num_extra < 0:
             pass
@@ -625,6 +625,6 @@ def find_consistent_labeling_old(
 
     for idx, val in enumerate(assignment):
         if val is None:
-            assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
+            assignment[idx] = '%s%d' % (extra_prefix, num_extra)
             num_extra += 1
     return assignment

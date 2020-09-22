@@ -404,7 +404,7 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduce
         data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, tmp_state_idxs))))
         unique_ids, groupxs = vt.group_indices(data_ids)
         logger.info(
-            'Collapsed %r states into %r states' % (len(data_ids), len(unique_ids),)
+            'Collapsed %r states into %r states' % (len(data_ids), len(unique_ids))
         )
         # Sum the values in the cpd to marginalize the duplicate probs
         new_values = np.array(
@@ -599,7 +599,7 @@ def compute_reduced_joint(model, query_vars, evidence, method, operation='maximi
         num_unique_states = len(reduced_joint.state_idxs)
         logger.info(
             '[pgm] %r / %r initially sampled states are unique'
-            % (num_unique_states, num_raw_states,)
+            % (num_unique_states, num_raw_states)
         )
         reduced_joint.normalize()
         reduced_joint.reorder()
@@ -1067,7 +1067,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         fig.set_size_inches(23, 7)
     fig = pt.gcf()
 
-    title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
+    title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots)
     map_assign = kwargs.get('map_assign', None)
 
     top_assignments = kwargs.get('top_assignments', None)

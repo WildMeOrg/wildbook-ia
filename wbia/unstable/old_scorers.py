@@ -282,7 +282,7 @@ def general_coverage_mask_generator(
     for daid, fm, fs in zip(id_list, fm_list, fs_list):
         # CAREFUL weight_mask_m is overriden on every iteration
         weight_mask_m = compute_general_matching_coverage_mask(
-            make_mask_func, chipsize, fm, fs, qkpts, qweights, cov_cfg, out=weight_mask_m,
+            make_mask_func, chipsize, fm, fs, qkpts, qweights, cov_cfg, out=weight_mask_m
         )
         yield daid, weight_mask_m, weight_mask
 

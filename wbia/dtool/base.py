@@ -821,7 +821,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         true_order = ut.flatten(dependency_levels)[1:-1]
         # logger.info('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
         ut.colorprint(
-            '[req] Ensuring request %s dependencies: %r' % (request, true_order,),
+            '[req] Ensuring request %s dependencies: %r' % (request, true_order),
             'yellow',
         )
         for tablename in true_order:

@@ -218,7 +218,7 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
 
 
 def testdata_post_sver(
-    defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None,
+    defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None
 ):
     """
     >>> from wbia.algo.hots._pipeline_helpers import *  # NOQA

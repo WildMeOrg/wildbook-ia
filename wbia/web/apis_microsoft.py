@@ -24,7 +24,7 @@ register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 def _prefix(route=''):
-    rule = '/%s/%s/' % (PREFIX, route,)
+    rule = '/%s/%s/' % (PREFIX, route)
     while '//' in rule:
         rule = rule.replace('//', '/')
     return rule
@@ -493,9 +493,10 @@ def microsoft_annotation_add(
         if viewpoint is not None:
             assert isinstance(viewpoint, str), 'Viewpoint must be a string'
             assert len(viewpoint) > 0, 'Viewpoint cannot be empty'
-            assert viewpoint in const.YAWALIAS, (
-                'Invalid viewpoint provided.  Must be one of: %s'
-                % (list(const.YAWALIAS.keys()),)
+            assert (
+                viewpoint in const.YAWALIAS
+            ), 'Invalid viewpoint provided.  Must be one of: %s' % (
+                list(const.YAWALIAS.keys()),
             )
 
         if name is not None:

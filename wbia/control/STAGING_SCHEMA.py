@@ -90,9 +90,7 @@ def post_1_0_2(db, ibs=None):
         review_rowid_list = ibs._get_all_review_rowids()
         review_uuid_list = [uuid.uuid4() for _ in range(len(review_rowid_list))]
         ibs._set_review_uuids(review_rowid_list, review_uuid_list)
-    db.modify_table(
-        const.REVIEW_TABLE, [('review_uuid', '', 'UUID NOT NULL', None)],
-    )
+    db.modify_table(const.REVIEW_TABLE, [('review_uuid', '', 'UUID NOT NULL', None)])
 
 
 def update_1_0_3(db, ibs=None):

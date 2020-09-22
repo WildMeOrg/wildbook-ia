@@ -564,9 +564,11 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         viewpoint_text = viewpoint_text.replace('_3_', 'back')
         viewpoint_text = viewpoint_text.replace('_4_', 'left')
         viewpoint_text = viewpoint_text.replace('_5_', 'right')
-        assert viewpoint_text in const.VIEW.CODE_TO_INT, (
-            'Value %r not in acceptable %s'
-            % (viewpoint_text, ut.repr3(const.VIEW.CODE_TO_INT),)
+        assert (
+            viewpoint_text in const.VIEW.CODE_TO_INT
+        ), 'Value %r not in acceptable %s' % (
+            viewpoint_text,
+            ut.repr3(const.VIEW.CODE_TO_INT),
         )
         return viewpoint_text
 
@@ -607,7 +609,7 @@ def _resize(image, t_width=None, t_height=None):
     else:
         import cv2
 
-        logger.info('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height,))
+        logger.info('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height))
         height, width = image.shape[:2]
         if t_width is None and t_height is None:
             return image

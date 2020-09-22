@@ -567,20 +567,17 @@ class QueryResultsWidget(gt.APIItemWidget):
                 'Accept',
                 # 'Review More'
             ]
-            msg = (
-                ut.codeblock(
-                    """
+            msg = ut.codeblock(
+                """
                 There are %d names and %d annotations in this mass review set.
                 Mass review has discovered %d internal groups.
                 Accepting will induce a database grouping of %d names.
                 """
-                )
-                % (
-                    len(nid2_aids),
-                    len(changing_aids),
-                    len(review_groups),
-                    len(dbside_groups),
-                )
+            ) % (
+                len(nid2_aids),
+                len(changing_aids),
+                len(review_groups),
+                len(dbside_groups),
             )
 
             reply = gt.user_option(msg=msg, options=options)
@@ -594,7 +591,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 logger_ = qres_wgt.logger
                 logger_.debug(msg)
                 logger_.info('START MASS_THRESHOLD_MERGE')
-                logger_.info('num_groups=%d thresh=%r' % (len(dbside_groups), thresh,))
+                logger_.info('num_groups=%d thresh=%r' % (len(dbside_groups), thresh))
                 for count, subgraph in enumerate(dbside_groups):
                     thresh_aid_pairs = [
                         edge
@@ -640,7 +637,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                     logger_.info('START GROUP %d' % (count,))
                     logger_.info(
                         'GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)'
-                        % (len(thresh_uuid_pairs), thresh,)
+                        % (len(thresh_uuid_pairs), thresh)
                     )
                     logger_.debug('(uuid_pairs=%r)' % (thresh_uuid_pairs))
                     logger_.debug('(merge_name=%r)' % (merge_name))
@@ -1095,7 +1092,7 @@ def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
     for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
         chip_contex_options += [
             (
-                'Annot&%d Options (aid=%r)' % (count, aid,),
+                'Annot&%d Options (aid=%r)' % (count, aid),
                 interact_chip.build_annot_context_options(
                     ibs, aid, refresh_func=None, config2_=config2_
                 ),
@@ -1149,7 +1146,7 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
     case_hotlink_list = gt.make_word_hotlinks(case_list, used_chars)
     pair_tag_options = []
     if True or ut.VERBOSE:
-        logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+        logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2))
         logger.info('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
         logger.info('[inspect_gui] tags = %r' % (tags,))
     if ut.VERBOSE:
@@ -1157,10 +1154,10 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
 
     def _wrap_set_annotmatch_prop(prop, toggle_val):
         if ut.VERBOSE:
-            logger.info('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
+            logger.info('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val))
         am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
         if ut.VERBOSE:
-            logger.info('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            logger.info('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2))
             logger.info('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
         ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
         if ut.VERBOSE:
@@ -1172,7 +1169,7 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
             else:
                 tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
                 tags = [_.lower() for _ in tags]
-            logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2))
             logger.info('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
             logger.info('[inspect_gui] tags = %r' % (tags,))
 

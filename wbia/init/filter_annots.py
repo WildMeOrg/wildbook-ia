@@ -1898,13 +1898,13 @@ def sample_annots_wrt_ref(
                     'Warning: Cannot meet sample_size=%r. available_%saids '
                     'will be undersized by at least %d'
                 )
-                % (sample_size, prefix, -num_remove_gf,)
+                % (sample_size, prefix, -num_remove_gf)
             )
         if num_keep_gf < 0:
             # Too many multitons; Can never remove a multiton
             logger.info(
                 'Warning: Cannot meet sample_size=%r. available_%saids '
-                'will be oversized by at least %d' % (sample_size, prefix, -num_keep_gf,)
+                'will be oversized by at least %d' % (sample_size, prefix, -num_keep_gf)
             )
         rng = np.random.RandomState(SEED2)
         gf_avl_aids = ut.random_sample(gf_avl_aids, num_keep_gf, rng=rng)

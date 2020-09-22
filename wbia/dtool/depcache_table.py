@@ -138,7 +138,7 @@ def ensure_config_table(db):
     """ SQL definition of configuration table. """
     config_addtable_kw = ut.odict(
         [
-            ('tablename', CONFIG_TABLE,),
+            ('tablename', CONFIG_TABLE),
             (
                 'coldef_list',
                 [
@@ -497,7 +497,7 @@ class _TableDebugHelper(object):
             ):
                 logger.info('  table.%s = %r' % (a, getattr(table, a)))
 
-    def print_table(table,):
+    def print_table(table):
         table.db.print_table_csv(table.tablename)
         # if table.ismulti:
         #    table.print_model_manifests()
@@ -597,7 +597,7 @@ class _TableDebugHelper(object):
                         'preproc_func=%r for table=%s must have a '
                         'depcache arg, at least one parent rowid arg, '
                         'and a config arg'
-                    ) % (table.preproc_func, table.tablename,)
+                    ) % (table.preproc_func, table.tablename)
                     raise AssertionError(msg)
                 rowid_args = args[1:-1]
                 if len(rowid_args) != len(table.parents()):
@@ -1416,7 +1416,7 @@ class _TableComputeHelper(object):
                         # TODO: hash all input UUIDs and the full config together
                         quick_access_tup = (model_uuid, 0)
                         # Give the setsize and setfpath data if needed
-                        parent_extra = tuple(ut.flatten(zip(multi_setsizes,)))
+                        parent_extra = tuple(ut.flatten(zip(multi_setsizes)))
                     else:
                         quick_access_tup = tuple()
                         parent_extra = tuple()
@@ -1690,9 +1690,11 @@ class _TableComputeHelper(object):
         if DEBUG_LIST_MODE:
             proptup_gen = list(proptup_gen)
             num_output = len(proptup_gen)
-            assert num_output == nInput, (
-                'Input and output sizes do not agree. '
-                'num_output=%r, num_input=%r' % (num_output, nInput,)
+            assert (
+                num_output == nInput
+            ), 'Input and output sizes do not agree. ' 'num_output=%r, num_input=%r' % (
+                num_output,
+                nInput,
             )
         # Append rowids and rectify nested and external columns
         dirty_params_iter = table.prepare_storage(
@@ -1983,10 +1985,10 @@ class DependencyCacheTable(
         superkeys = [table.superkey_colnames]
         add_table_kw = ut.odict(
             [
-                ('tablename', table.tablename,),
-                ('coldef_list', coldef_list,),
-                ('docstr', table.docstr,),
-                ('superkeys', superkeys,),
+                ('tablename', table.tablename),
+                ('coldef_list', coldef_list),
+                ('docstr', table.docstr),
+                ('superkeys', superkeys),
                 ('dependson', table.parents()),
             ]
         )
@@ -2062,7 +2064,7 @@ class DependencyCacheTable(
                     if verbose or _debug:
                         logger.info(
                             'Add %d / %d new rows to %r'
-                            % (num_dirty, num_total, table.tablename,)
+                            % (num_dirty, num_total, table.tablename)
                         )
                         logger.info(
                             '[deptbl.add]  * config_rowid = {}, config={}'.format(
@@ -2131,7 +2133,7 @@ class DependencyCacheTable(
 
             logger.error(
                 'DEPC ENSURE_ROWS FOR TABLE %r FAILED DUE TO INTEGRITY ERROR (RETRY %d)!'
-                % (table, retry,)
+                % (table, retry)
             )
             retry_delay = random.uniform(retry_delay_min, retry_delay_max)
             logger.error('\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,))

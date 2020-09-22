@@ -20,7 +20,7 @@ def set_cookie(**kwargs):
     response = make_response('true')
     response.set_cookie(request.args['name'], request.args['value'])
     logger.info(
-        '[web] Set Cookie: %r -> %r' % (request.args['name'], request.args['value'],)
+        '[web] Set Cookie: %r -> %r' % (request.args['name'], request.args['value'])
     )
     return response
 
@@ -47,7 +47,7 @@ def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
     gpath = None
 
     if 'thumbsize' not in kwargs:
-        kwargs['thumbsize'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT),)
+        kwargs['thumbsize'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT))
 
     if 'draw_annots' not in kwargs:
         kwargs['draw_annots'] = False
@@ -82,7 +82,7 @@ def annotation_src(aid=None, ibs=None, **kwargs):
         ibs = current_app.ibs
 
     if 'dim_size' not in kwargs:
-        kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT),)
+        kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT))
     image = ibs.get_annot_chips(aid, config2_=kwargs)
 
     # image_src = _resize_src(image, **kwargs)
@@ -98,7 +98,7 @@ def probchip_src(aid=None, ibs=None, **kwargs):
         ibs = current_app.ibs
 
     if 'dim_size' not in kwargs:
-        kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT),)
+        kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT))
 
     image_filepath = ibs.get_annot_probchip_fpath(aid, config2_=kwargs)
     image = cv2.imread(image_filepath)
@@ -114,7 +114,7 @@ def probchip_src(aid=None, ibs=None, **kwargs):
 def part_src(part_rowid, **kwargs):
     ibs = current_app.ibs
     if 'dim_size' not in kwargs:
-        kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT),)
+        kwargs['dim_size'] = max(int(appf.TARGET_WIDTH), int(appf.TARGET_HEIGHT))
     image = ibs.get_part_chips(part_rowid, config2_=kwargs)
     image_src = appf.embed_image_html(image, target_height=300)
     return image_src

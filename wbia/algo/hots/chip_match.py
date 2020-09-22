@@ -138,9 +138,12 @@ def safe_check_nested_lens_eq(arr1, arr2):
     else:
         safe_check_lens_eq(arr1, arr2, 'outer lengths do not correspond')
         for count, (x, y) in enumerate(zip(arr1, arr2)):
-            assert len(x) == len(y), (
-                'inner lengths at position=%r do not correspond (%r != %r)'
-                % (count, len(x), len(y),)
+            assert len(x) == len(
+                y
+            ), 'inner lengths at position=%r do not correspond (%r != %r)' % (
+                count,
+                len(x),
+                len(y),
             )
 
 
@@ -522,7 +525,7 @@ class _ChipMatchVisualization(object):
         }
         if aid2 is None:
             aid2 = cm.get_top_aids(ntop=1)[0]
-        logger.info('[cm] ishow_single_annotmatch aids(%s, %s)' % (cm.qaid, aid2,))
+        logger.info('[cm] ishow_single_annotmatch aids(%s, %s)' % (cm.qaid, aid2))
         kwshow.update(**kwargs)
         try:
             inter = interact_matches.MatchInteraction(
@@ -1187,9 +1190,7 @@ class _AnnotMatchConvenienceGetter(object):
                     cminfo_dict[key] = annot_df[prop].iloc[idx]
 
         cminfo_dict.update(
-            dict(
-                gt_aid=cminfo_dict['gt_annot_daid'], gf_aid=cminfo_dict['gf_annot_daid'],
-            )
+            dict(gt_aid=cminfo_dict['gt_annot_daid'], gf_aid=cminfo_dict['gf_annot_daid'])
         )
         del cminfo_dict['gt_annot_daid']
         del cminfo_dict['gf_annot_daid']
@@ -1851,7 +1852,7 @@ class _ChipMatchDebugger(object):
                     varinfo_list += [
                         # '    %s varinfo(%s):' % (symbol, varname,),
                         '    %s %s = <not shown!>'
-                        % (symbol, varname,),
+                        % (symbol, varname)
                     ]
                 varinfo_list += ['          len = %r' % (len(varval),)]
                 if depth != len(varval):

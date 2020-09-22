@@ -700,7 +700,7 @@ def set_annotmatch_evidence_decision(
 @accessor_decors.setter
 @register_api('/api/match/decision/meta/', methods=['PUT'])
 def set_annotmatch_meta_decision(
-    ibs, annotmatch_rowid_list, annotmatch_meta_decision_list, duplicate_behavior='error',
+    ibs, annotmatch_rowid_list, annotmatch_meta_decision_list, duplicate_behavior='error'
 ):
     id_iter = annotmatch_rowid_list
     colnames = (ANNOTMATCH_META_DECISION,)

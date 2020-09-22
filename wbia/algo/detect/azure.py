@@ -87,7 +87,7 @@ def _detect(gpath, prediction_project, prediction_iteration, prediction_model):
     with open(gpath, 'rb') as image_file:
         data = image_file.read()
 
-    prediction_url = DETECTION_URL % (prediction_project, prediction_iteration,)
+    prediction_url = DETECTION_URL % (prediction_project, prediction_iteration)
     prediction_header = DETECTION_HEADER.copy()
     prediction_header['Prediction-Key'] = prediction_model
     response = requests.post(url=prediction_url, data=data, headers=prediction_header)

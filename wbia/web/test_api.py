@@ -30,7 +30,7 @@ def get_signature(key, message):
 def get_authorization_header(uri, user_email=None, user_enc_pass=None):
     # Get signature
     secret_key_signature = get_signature(APPLICATION_SECRET_KEY, uri)
-    application_authentication = '%s:%s' % (APPLICATION_NAME, secret_key_signature,)
+    application_authentication = '%s:%s' % (APPLICATION_NAME, secret_key_signature)
     if user_email is None or user_enc_pass is None:
         return '%s' % (application_authentication,)
     return '%s:%s:%s' % (application_authentication, user_email, user_enc_pass)

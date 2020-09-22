@@ -1905,7 +1905,7 @@ class TestResult(ut.NiceRepr):
                     is_valid,
                     None,
                     'Taking index=%r sample from len(qx_list) = %r'
-                    % (index, len(qx_list),),
+                    % (index, len(qx_list)),
                 )
 
         if not return_mask:

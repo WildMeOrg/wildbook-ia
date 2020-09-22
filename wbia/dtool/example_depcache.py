@@ -324,9 +324,7 @@ def testdata_depc(fname=None):
             num = len(kpts)
             yield kpts, num
 
-    @depc.register_preproc(
-        'descriptor', ['keypoint'], ['vecs'], [np.ndarray],
-    )
+    @depc.register_preproc('descriptor', ['keypoint'], ['vecs'], [np.ndarray])
     def dummy_preproc_vecs(depc, kp_rowid, config=None):
         if config is None:
             config = {}
@@ -335,7 +333,7 @@ def testdata_depc(fname=None):
             yield np.ones((7 + rowid, 8), dtype=np.uint8) + rowid,
 
     @depc.register_preproc(
-        'fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray],
+        'fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray]
     )
     def dummy_preproc_fgweight(depc, kpts_rowid, probchip_rowid, config=None):
         if config is None:
@@ -403,9 +401,7 @@ def testdata_depc(fname=None):
                 w, h = vt.get_size(mask)
                 yield (w, h), mask_fpath
 
-        @depc.register_preproc(
-            'notch', [dummy_root], ['notchdata'], [np.ndarray],
-        )
+        @depc.register_preproc('notch', [dummy_root], ['notchdata'], [np.ndarray])
         def dummy_preproc_notch(depc, parent_rowids, config=None):
             if config is None:
                 config = {}

@@ -249,7 +249,7 @@ def print_results(ibs, testres, **kwargs):
         annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
 
         acfg_name_list = dict(  # NOQA
-            acfg_list=[acfg1, acfg2], expanded_aids_list=[annots1, annots2],
+            acfg_list=[acfg1, acfg2], expanded_aids_list=[annots1, annots2]
         )
         test_cfg_name_list = ['candidacy_k']
         cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(

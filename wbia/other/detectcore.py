@@ -128,10 +128,10 @@ def export_to_xml(
             info['interest'] = '1' if interest else '0'
 
         if part_type is not None:
-            species_name = '%s+%s' % (species_name, part_type,)
+            species_name = '%s+%s' % (species_name, part_type)
 
         area = w_ * h_
-        logger.info('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area,))
+        logger.info('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area))
 
         annotation.add_object(species_name, (xmax, xmin, ymax, ymin), **info)
 
@@ -188,7 +188,7 @@ def export_to_xml(
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
-            out_name = '%d_%06d' % (current_year, index,)
+            out_name = '%d_%06d' % (current_year, index)
             out_img = '%s.jpg' % (out_name,)
 
             _image = ibs.get_images(gid)
@@ -295,7 +295,7 @@ def export_to_xml(
 
             # Write XML
             logger.info(
-                'Copying:\n%r\n%r\n%r\n\n' % (image_path, dst_img, (width, height),)
+                'Copying:\n%r\n%r\n%r\n\n' % (image_path, dst_img, (width, height))
             )
             xml_data = open(dst_annot, 'w')
             xml_data.write(annotation.xml())
@@ -304,7 +304,7 @@ def export_to_xml(
                 index += 1
                 if offset != 'auto':
                     break
-                out_filename = '%d_%06d.xml' % (current_year, index,)
+                out_filename = '%d_%06d.xml' % (current_year, index)
                 dst_annot = join(annotdir, out_filename)
         else:
             logger.info('Skipping:\n%r\n\n' % (image_path,))
@@ -587,7 +587,7 @@ def export_to_coco(
         )
 
         logger.info(
-            'Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height),)
+            'Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height))
         )
 
         aid_list = ibs.get_image_aids(gid)
@@ -660,7 +660,7 @@ def export_to_coco(
                 individuals,
             )
             logger.info(
-                '\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area,)
+                '\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area)
             )
 
             if include_reviews:
@@ -694,7 +694,7 @@ def export_to_coco(
                     part_uuid_list, part_bbox_list, part_theta_list, part_type_list
                 )
                 for part_uuid, part_bbox, part_theta, part_type in part_zipped:
-                    part_species_name = '%s+%s' % (species_name, part_type,)
+                    part_species_name = '%s+%s' % (species_name, part_type)
 
                     part_species_name = species_mapping.get(
                         part_species_name, part_species_name
@@ -725,7 +725,7 @@ def export_to_coco(
                     )
                     logger.info(
                         '\t\tAdding part %r with area %0.04f pixels^2'
-                        % (part_species_name, area,)
+                        % (part_species_name, area)
                     )
                     output_dict[dataset]['parts'].append(part)
 
@@ -771,7 +771,7 @@ def export_to_coco(
             output_dict[dataset]['annotations'][index] = annot
 
     for dataset in output_dict:
-        json_filename = 'instances_%s%s.json' % (dataset, current_year,)
+        json_filename = 'instances_%s%s.json' % (dataset, current_year)
         json_filepath = join(annotdir, json_filename)
 
         with open(json_filepath, 'w') as json_file:
@@ -1262,7 +1262,7 @@ def visualize_bounding_boxes(
             ytl = int(np.around(val['ytl'] * h))
             cv2.rectangle(image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
 
-        write_filename = 'bboxes_%d_%s.png' % (gid, version,)
+        write_filename = 'bboxes_%d_%s.png' % (gid, version)
         write_filepath = join(output_path, write_filename)
         logger.info(write_filepath)
         cv2.imwrite(write_filepath, image)

@@ -51,11 +51,11 @@ def smoke_test():  # nocover
 
     import brambox
 
-    print('Brambox: %r, %r' % (brambox.__version__, brambox.__file__,))
+    print('Brambox: %r, %r' % (brambox.__version__, brambox.__file__))
 
     import lightnet
 
-    print('Lightnet: %r, %r' % (lightnet.__version__, lightnet.__file__,))
+    print('Lightnet: %r, %r' % (lightnet.__version__, lightnet.__file__))
 
 
 def run_wbia():
