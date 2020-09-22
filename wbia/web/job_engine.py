@@ -1899,7 +1899,11 @@ def on_collect_request(
             record = None
 
         # Update relevant times in the shelf
-        metadata = get_shelve_value(collector_shelve_input_filepath, 'metadata')
+        if collector_shelve_input_filepath is None:
+            metadata = None
+        else:
+            metadata = get_shelve_value(collector_shelve_input_filepath, 'metadata')
+
         if metadata is not None:
             times = metadata.get('times', {})
             times['updated'] = _timestamp()
