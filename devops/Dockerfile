@@ -31,6 +31,12 @@ FROM wildme/wbia-base:latest as org.wildme.wbia.install
 
 LABEL autoheal=true
 
+ENV HOST_USER root
+
+ENV HOST_UID 0
+
+WORKDIR /wbia
+
 COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
@@ -38,32 +44,37 @@ COPY --from=org.wildme.wbia.build /wbia /wbia
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 
+# Add setup script for python development
+ADD ./_config/setup.sh /bin/setup
+
 # Add embed script for python development
 ADD ./_config/embed.sh /bin/embed
 
+# Add (non-root) bash shell script for python development
+ADD ./_config/shell.sh /bin/shell
+
+# Add entrypoint
+ADD ./_config/entrypoint.sh /bin/entrypoint
+
+# Specify database directory
+RUN set -x \
+ && mkdir -p /data \
+ && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
+
 # Add Python health check
 ADD ./_config/healthcheck.py /bin/healthcheck.py
-
-RUN mkdir /data
-
-VOLUME /data
-
-RUN /virtualenv/env3/bin/python /wbia/wildbook-ia/wbia/dev.py --set-workdir /data
-
-##########################################################################################
-FROM org.wildme.wbia.install as org.wildme.wbia.deploy
-
-ENTRYPOINT ["/virtualenv/env3/bin/python", "/wbia/wildbook-ia/wbia/dev.py", "--dbdir", "/data/db", "--logdir", "/data/logs", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
-
-# Ports for the frontend web server
-EXPOSE 5000
 
 HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
 
 STOPSIGNAL SIGTERM
 
+# Port for the web server
+EXPOSE 5000
+
+ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
+
 ##########################################################################################
-FROM org.wildme.wbia.deploy as org.wildme.wbia.configure
+FROM org.wildme.wbia.install as org.wildme.wbia.configure
 
 CMD []
