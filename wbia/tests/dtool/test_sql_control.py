@@ -69,8 +69,8 @@ class TestSchemaModifiers:
             'indexer_id INTEGER NOT NULL, '
             'config_id INTEGER DEFAULT 0, '
             'data TEXT, '
-            'CONSTRAINT superkey '
-            'UNIQUE (meta_labeler_id,indexer_id,config_id) )'
+            'CONSTRAINT unique_meta_labeler_id_indexer_id_config_id '
+            'UNIQUE (meta_labeler_id, indexer_id, config_id) )'
         )
         assert sql.text == expected
 
