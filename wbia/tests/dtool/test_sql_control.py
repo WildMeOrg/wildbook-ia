@@ -28,6 +28,54 @@ def test_instantiation(ctrlr):
     assert not ctrlr.connection.closed
 
 
+class TestSchemaModifiers:
+    """Testing the API that creates, modifies or deletes schema elements"""
+
+    @pytest.fixture(autouse=True)
+    def fixture(self, ctrlr):
+        self.ctrlr = ctrlr
+
+    def make_table_definition(self, name):
+        """Creates a table definition for use with the controller's add_table method"""
+        definition = {
+            'tablename': name,
+            'coldef_list': [
+                (f'{name}_id', 'INTEGER PRIMARY KEY'),
+                ('meta_labeler_id', 'INTEGER NOT NULL'),
+                ('indexer_id', 'INTEGER NOT NULL'),
+                ('config_id', 'INTEGER DEFAULT 0'),
+                ('data', 'TEXT'),
+            ],
+            'docstr': f'docstr for {name}',
+            'superkeys': [
+                ('meta_labeler_id', 'indexer_id', 'config_id'),
+            ],
+            'dependson': [
+                'meta_labelers',
+                'indexers',
+            ],
+        }
+        return definition
+
+    def test_make_add_table_sqlstr(self):
+        table_definition = self.make_table_definition('foobars')
+
+        # Call the target
+        sql = self.ctrlr._make_add_table_sqlstr(**table_definition)
+
+        expected = (
+            'CREATE TABLE IF NOT EXISTS foobars ( '
+            'foobars_id INTEGER PRIMARY KEY, '
+            'meta_labeler_id INTEGER NOT NULL, '
+            'indexer_id INTEGER NOT NULL, '
+            'config_id INTEGER DEFAULT 0, '
+            'data TEXT, '
+            'CONSTRAINT superkey '
+            'UNIQUE (meta_labeler_id,indexer_id,config_id) )'
+        )
+        assert sql.text == expected
+
+
 def test_safely_get_db_version(ctrlr):
     v = ctrlr.get_db_version(ensure=True)
     assert v == '0.0.0'
