@@ -322,9 +322,13 @@ class TestAPI:
 
         # Check for the actual value associated with the resulting id
         inserted_value = self.ctrlr.connection.execute(
-            text(f'SELECT id, y FROM {table_name} WHERE rowid = :rowid'), rowid=result[0],
+            text(f'SELECT id, y FROM {table_name} WHERE rowid = :rowid'),
+            rowid=result[0],
         ).fetchone()
-        assert inserted_value == (11, 10,)
+        assert inserted_value == (
+            11,
+            10,
+        )
 
     def test_executemany(self):
         table_name = 'test_executemany'
@@ -431,7 +435,12 @@ class TestAPI:
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
-        results = self.ctrlr.get_where(table_name, ['id', 'y'], tuple(), None,)
+        results = self.ctrlr.get_where(
+            table_name,
+            ['id', 'y'],
+            tuple(),
+            None,
+        )
 
         # Verify query
         assert results == [(i + 1, i) for i in range(0, 10)]
@@ -451,7 +460,12 @@ class TestAPI:
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
-        results = self.ctrlr.get_where(table_name, ['id', 'y'], ({'id': 1},), 'id = :id',)
+        results = self.ctrlr.get_where(
+            table_name,
+            ['id', 'y'],
+            ({'id': 1},),
+            'id = :id',
+        )
         evens = results[0]
 
         # Verify query
