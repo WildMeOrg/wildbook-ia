@@ -1489,55 +1489,38 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         self.executeone(operation, [], verbose=False)
 
-    def __make_superkey_constraints(self, superkeys: list) -> list:
-        """Creates SQL for the 'superkey' constraint.
-        A 'superkey' is one or more columns that make up a unique constraint on the table.
-
-        """
-        has_superkeys = superkeys is not None and len(superkeys) > 0
-        constraints = []
-        if has_superkeys:
-            # Create a superkey statement for each superkey item
-            # superkeys = [(col), (col1, col2, ...), ...],
-            for columns in superkeys:
-                columns = ','.join(columns)
-                constraints.append(f'CONSTRAINT superkey UNIQUE ({columns})')
-        return constraints
+    def __make_unique_constraint(self, column_or_columns):
+        """Creates a SQL ``CONSTRAINT`` clause for ``UNIQUE`` column data"""
+        if not isinstance(column_or_columns, (list, tuple)):
+            columns = [column_or_columns]
+        else:
+            # Cast as list incase it's a tuple, b/c tuple + list = error
+            columns = list(column_or_columns)
+        constraint_name = '_'.join(['unique'] + columns)
+        columns_listing = ', '.join(columns)
+        return f'CONSTRAINT {constraint_name} UNIQUE ({columns_listing})'
 
     def __make_column_definition(self, name: str, definition: str) -> str:
         """Creates SQL for the given column `name` and type, default & constraint (i.e. `definition`)."""
         if not name:
             raise ValueError(f'name cannot be an empty string paired with {definition}')
-        if not definition:
+        elif not definition:
             raise ValueError(f'definition cannot be an empty string paired with {name}')
         return f'{name} {definition}'
 
     def _make_add_table_sqlstr(
         self, tablename: str, coldef_list: list, sep=' ', **metadata_keyval
     ):
-        r"""Creates the SQL for a CREATE TABLE statement
+        """Creates the SQL for a CREATE TABLE statement
 
         Args:
             tablename (str): table name
             coldef_list (list): list of tuples (name, type definition)
+            sep (str): clause separation character(s) (default: space)
+            kwargs: metadata specifications
 
         Returns:
             str: operation
-
-        CommandLine:
-            python -m dtool.sql_control _make_add_table_sqlstr
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> from wbia.dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'keypoint'
-            >>> db = depc[tablename].db
-            >>> autogen_dict = db.get_table_autogen_dict(tablename)
-            >>> coldef_list = autogen_dict['coldef_list']
-            >>> operation = db._make_add_table_sqlstr(tablename, coldef_list)
-            >>> print(operation)
 
         """
         if not coldef_list:
@@ -1548,22 +1531,20 @@ class SQLDatabaseController(object):
         if len(bad_kwargs) > 0:
             raise TypeError(f'got unexpected keyword arguments: {bad_kwargs}')
 
-        if ut.DEBUG2:
-            logger.info('[sql] schema ensuring tablename=%r' % tablename)
-        if ut.VERBOSE:
-            logger.info('')
-            _args = [tablename, coldef_list]
-            logger.info(ut.func_str(self.add_table, _args, metadata_keyval))
-            logger.info('')
+        logger.debug('[sql] schema ensuring tablename=%r' % tablename)
+        logger.debug(
+            ut.func_str(self.add_table, [tablename, coldef_list], metadata_keyval)
+        )
 
         # Create the main body of the CREATE TABLE statement with column definitions
         # coldef_list = [(<column-name>, <definition>,), ...]
         body_list = [self.__make_column_definition(c, d) for c, d in coldef_list]
 
         # Make a list of constraints to place on the table
-        constraint_list = self.__make_superkey_constraints(
-            metadata_keyval.get('superkeys', [])
-        )
+        # superkeys = [(<column-name>, ...), ...]
+        constraint_list = [
+            self.__make_unique_constraint(x) for x in metadata_keyval.get('superkeys', [])
+        ]
         constraint_list = ut.unique_ordered(constraint_list)
 
         comma = ',' + sep
