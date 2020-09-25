@@ -156,6 +156,9 @@ RUN set -ex \
         utool \
         vtool \
  && /virtualenv/env3/bin/pip uninstall -y \
+        lightnet \
+        brambox \
+ && /virtualenv/env3/bin/pip uninstall -y \
         tensorflow \
         tensorflow-gpu \
         tensorflow-estimator \

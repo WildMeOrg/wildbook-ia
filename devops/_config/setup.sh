@@ -33,3 +33,6 @@ chown ${HOST_USER}:${HOST_USER} /config
 
 # PermissionError: [Errno 13] Permission denied: '/wbia/wbia-plugin-pie/wbia_pie/examples/manta-demo/db_localised'
 chown -R ${HOST_USER}:${HOST_USER} /wbia/wbia-plugin-pie/
+
+# Web error wbia.control.controller_inject.WebMatchThumbException, old symlinks expecting /data/docker to exist
+ln -s /data/db /data/docker
