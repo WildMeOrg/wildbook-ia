@@ -1069,7 +1069,7 @@ class SQLDatabaseController(object):
         assume_unique=False,
         **kwargs,
     ):
-        """getter
+        """Get rows of data by ID
 
         Args:
             tblname (str): table name to get from
@@ -1077,26 +1077,8 @@ class SQLDatabaseController(object):
             id_iter (iterable): iterable of search keys
             id_colname (str): column to be used as the search key (default: rowid)
             eager (bool): use eager evaluation
+            assume_unique (bool): default False. Experimental feature that could result in a 10x speedup
             unpack_scalars (bool): default True
-            id_colname (bool): default False. Experimental feature that could result in a 10x speedup
-
-        CommandLine:
-            python -m dtool.sql_control get
-
-        Ignore:
-            tblname = 'annotations'
-            colnames = ('name_rowid',)
-            id_iter = aid_list
-            #id_iter = id_iter[0:20]
-            id_colname = 'rowid'
-            eager = True
-            db = ibs.db
-
-            x1 = db.get(tblname, colnames, id_iter, assume_unique=True)
-            x2 = db.get(tblname, colnames, id_iter, assume_unique=False)
-            x1 == x2
-            %timeit  db.get(tblname, colnames, id_iter, assume_unique=True)
-            %timeit  db.get(tblname, colnames, id_iter, assume_unique=False)
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1112,15 +1094,18 @@ class SQLDatabaseController(object):
             >>> got_data = db.get('notch', colnames, id_iter=rowids)
             >>> assert got_data == [1, 2, 3]
         """
-        if VERBOSE_SQL:
-            logger.info(
-                '[sql]'
-                + ut.get_caller_name(list(range(1, 4)))
-                + ' db.get(%r, %r, ...)' % (tblname, colnames)
-            )
+        logger.debug(
+            '[sql]'
+            + ut.get_caller_name(list(range(1, 4)))
+            + ' db.get(%r, %r, ...)' % (tblname, colnames)
+        )
         if not isinstance(colnames, (tuple, list)):
             raise TypeError('colnames must be a sequence type of strings')
 
+        # ??? Getting a single column of unique values that is matched on rowid?
+        #     And sorts the results after the query?
+        # ??? This seems oddly specific for a generic method.
+        #     Perhaps the logic should be in its own method?
         if (
             assume_unique
             and id_iter is not None
@@ -1128,21 +1113,13 @@ class SQLDatabaseController(object):
             and len(colnames) == 1
         ):
             id_iter = list(id_iter)
-            operation_fmt = """
-                SELECT {colnames}
-                FROM {tblname}
-                WHERE rowid in ({id_repr})
-                ORDER BY rowid ASC
-                """
-            fmtdict = {
-                'tblname': tblname,
-                'colnames': ', '.join(colnames),
-                'id_repr': ','.join(map(str, id_iter)),
-            }
-            operation = operation_fmt.format(**fmtdict)
+            columns = ', '.join(colnames)
+            ids_listing = ', '.join(map(str, id_iter))
+            operation = f'SELECT {columns} FROM {tblname} WHERE rowid in ({ids_listing}) ORDER BY rowid ASC'
             results = self.connection.execute(operation).fetchall()
             import numpy as np
 
+            # ??? Why order the results if they are going to be sorted here?
             sortx = np.argsort(np.argsort(id_iter))
             results = ut.take(results, sortx)
             if kwargs.get('unpack_scalars', True):
@@ -1153,8 +1130,8 @@ class SQLDatabaseController(object):
                 where_clause = None
                 params_iter = []
             else:
-                where_clause = id_colname + '=?'
-                params_iter = [(_rowid,) for _rowid in id_iter]
+                where_clause = id_colname + ' = :id'
+                params_iter = [{'id': id} for id in id_iter]
 
             return self.get_where(
                 tblname, colnames, params_iter, where_clause, eager=eager, **kwargs
