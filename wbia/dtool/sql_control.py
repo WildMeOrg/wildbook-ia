@@ -1802,17 +1802,12 @@ class SQLDatabaseController(object):
         )
 
     def drop_table(self, tablename):
-        if VERBOSE_SQL:
-            logger.info('[sql] schema dropping tablename=%r' % tablename)
+        logger.info('[sql] schema dropping tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        fmtkw = {
-            'tablename': tablename,
-        }
-        op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
-        operation = op_fmtstr.format(**fmtkw)
-        self.executeone(operation, [], verbose=False)
+        operation = text(f'DROP TABLE IF EXISTS {tablename}')
+        self.executeone(operation, [])
 
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
