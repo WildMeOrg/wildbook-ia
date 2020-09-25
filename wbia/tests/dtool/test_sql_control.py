@@ -151,6 +151,38 @@ class TestSchemaModifiers:
         ]
         assert results.fetchall() == expected_metadata_rows
 
+    def test_rename_table(self):
+        # Assumes `add_table` passes to reduce this test's complexity.
+        table_name = 'cookies'
+        self.ctrlr.add_table(**self.make_table_definition(table_name))
+
+        # Call the target
+        new_table_name = 'deserts'
+        self.ctrlr.rename_table(table_name, new_table_name)
+
+        # Check the table has been renamed use sqlalchemy's reflection
+        md = MetaData()
+        metadata = self.reflect_table('metadata', md)
+
+        # Reflecting the table is enough to check that it's been renamed.
+        self.reflect_table(new_table_name, md)
+
+        # Check for metadata entries have been renamed.
+        results = self.ctrlr.connection.execute(
+            select([metadata.c.metadata_key, metadata.c.metadata_value]).where(
+                metadata.c.metadata_key.like(f'{new_table_name}_%')
+            )
+        )
+        expected_metadata_rows = [
+            (f'{new_table_name}_docstr', f'docstr for {table_name}'),
+            (
+                f'{new_table_name}_superkeys',
+                "[('meta_labeler_id', 'indexer_id', 'config_id')]",
+            ),
+            (f'{new_table_name}_dependson', '[]'),
+        ]
+        assert results.fetchall() == expected_metadata_rows
+
 
 def test_safely_get_db_version(ctrlr):
     v = ctrlr.get_db_version(ensure=True)
