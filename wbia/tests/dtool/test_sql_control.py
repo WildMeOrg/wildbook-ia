@@ -35,7 +35,7 @@ class TestSchemaModifiers:
     def fixture(self, ctrlr):
         self.ctrlr = ctrlr
 
-    def make_table_definition(self, name):
+    def make_table_definition(self, name, depends_on=[]):
         """Creates a table definition for use with the controller's add_table method"""
         definition = {
             'tablename': name,
@@ -50,15 +50,14 @@ class TestSchemaModifiers:
             'superkeys': [
                 ('meta_labeler_id', 'indexer_id', 'config_id'),
             ],
-            'dependson': [
-                'meta_labelers',
-                'indexers',
-            ],
+            'dependson': depends_on,
         }
         return definition
 
     def test_make_add_table_sqlstr(self):
-        table_definition = self.make_table_definition('foobars')
+        table_definition = self.make_table_definition(
+            'foobars', depends_on=['meta_labelers', 'indexers']
+        )
 
         # Call the target
         sql = self.ctrlr._make_add_table_sqlstr(**table_definition)
