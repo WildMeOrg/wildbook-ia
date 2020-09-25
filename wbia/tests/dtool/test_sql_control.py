@@ -207,6 +207,34 @@ class TestSchemaModifiers:
         )
         assert results.fetchall() == []
 
+    def test_drop_all_table(self):
+        # Assumes `add_table` passes to reduce this test's complexity.
+        table_names = ['cookies', 'pies', 'cakes']
+        for name in table_names:
+            self.ctrlr.add_table(**self.make_table_definition(name))
+
+        # Call the target
+        self.ctrlr.drop_all_tables()
+
+        # Check the table using sqlalchemy's reflection
+        md = MetaData()
+        metadata = self.reflect_table('metadata', md)
+
+        # This error in the attempt to reflect indicates the table has been removed.
+        for name in table_names:
+            with pytest.raises(sqlalchemy.exc.NoSuchTableError):
+                self.reflect_table(name, md)
+
+        # Check for the absents of metadata for the removed tables.
+        results = self.ctrlr.connection.execute(select([metadata.c.metadata_key]))
+        expected_metadata_rows = [
+            ('database_init_uuid',),
+            ('database_version',),
+            ('metadata_docstr',),
+            ('metadata_superkeys',),
+        ]
+        assert results.fetchall() == expected_metadata_rows
+
 
 def test_safely_get_db_version(ctrlr):
     v = ctrlr.get_db_version(ensure=True)
