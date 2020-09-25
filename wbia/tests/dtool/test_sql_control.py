@@ -183,6 +183,30 @@ class TestSchemaModifiers:
         ]
         assert results.fetchall() == expected_metadata_rows
 
+    def test_drop_table(self):
+        # Assumes `add_table` passes to reduce this test's complexity.
+        table_name = 'cookies'
+        self.ctrlr.add_table(**self.make_table_definition(table_name))
+
+        # Call the target
+        self.ctrlr.drop_table(table_name)
+
+        # Check the table using sqlalchemy's reflection
+        md = MetaData()
+        metadata = self.reflect_table('metadata', md)
+
+        # This error in the attempt to reflect indicates the table has been removed.
+        with pytest.raises(sqlalchemy.exc.NoSuchTableError):
+            self.reflect_table(table_name, md)
+
+        # Check for metadata entries have been renamed.
+        results = self.ctrlr.connection.execute(
+            select([metadata.c.metadata_key, metadata.c.metadata_value]).where(
+                metadata.c.metadata_key.like(f'{table_name}_%')
+            )
+        )
+        assert results.fetchall() == []
+
 
 def test_safely_get_db_version(ctrlr):
     v = ctrlr.get_db_version(ensure=True)
