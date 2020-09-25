@@ -56,6 +56,19 @@ class TestSchemaModifiers:
         }
         return definition
 
+    @property
+    def _table_factory(self):
+        return partial(Table, autoload=True, autoload_with=self.ctrlr._engine)
+
+    def reflect_table(self, name, metadata=None):
+        """Using SQLAlchemy to reflect the table at the given ``name``
+        to return a SQLAlchemy Table object
+
+        """
+        if metadata is None:
+            metadata = MetaData()
+        return self._table_factory(name, metadata)
+
     def test_make_add_table_sqlstr(self):
         table_definition = self.make_table_definition(
             'foobars', depends_on=['meta_labelers', 'indexers']
@@ -90,10 +103,9 @@ class TestSchemaModifiers:
 
         # Check the table has been added and verify details
         # Use sqlalchemy's reflection
-        table_factory = partial(Table, autoload=True, autoload_with=self.ctrlr._engine)
         md = MetaData()
-        bars = table_factory('bars', md)
-        metadata = table_factory('metadata', md)
+        bars = self.reflect_table('bars', md)
+        metadata = self.reflect_table('metadata', md)
 
         # Check the table's column definitions
         expected_bars_columns = [
