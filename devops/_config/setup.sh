@@ -11,23 +11,23 @@ if [ ! -d "/data/db" ]; then
    chmod 750 /data/db
 fi
 
-rm -rf /config
+rm -rf /cache
 
 if [ "${HOST_USER}" == "root" ]; then
-    export HOST_CONFIG=/root/.config
+    export HOST_CACHE=/root/.cache
 else
-    export HOST_CONFIG=/home/${HOST_USER}/.config
+    export HOST_CACHE=/home/${HOST_USER}/.cache
 fi
 
-rm -rf ${HOST_CONFIG}
+rm -rf ${HOST_CACHE}
 
-ln -s /config ${HOST_CONFIG}
+ln -s /cache ${HOST_CACHE}
 
-mkdir /config
+mkdir /cache
 
-chown ${HOST_USER}:${HOST_USER} ${HOST_CONFIG}
+chown ${HOST_USER}:${HOST_USER} ${HOST_CACHE}
 
-chown ${HOST_USER}:${HOST_USER} /config
+chown ${HOST_USER}:${HOST_USER} /cache
 
 # Hotfixes!
 
