@@ -2184,16 +2184,8 @@ class SQLDatabaseController(object):
 
     def get_column(self, tablename, name):
         """ Conveinience: """
-        _table, (_column,) = sanitize_sql(self, tablename, (name,))
-        column_vals = self.executeone(
-            operation="""
-            SELECT %s
-            FROM %s
-            ORDER BY rowid ASC
-            """
-            % (_column, _table)
-        )
-        return column_vals
+        table, (column,) = sanitize_sql(self, tablename, (name,))
+        return self.executeone(text(f'SELECT {column} FROM {table} ORDER BY rowid ASC'))
 
     def get_table_as_pandas(
         self, tablename, rowids=None, columns=None, exclude_columns=[]
@@ -2223,14 +2215,13 @@ class SQLDatabaseController(object):
         df = pd.DataFrame(ut.dzip(column_names, column_list), index=index)
         return df
 
+    # TODO (25-Sept-12020) Deprecate once ResultProxy can be exposed,
+    #      because it will allow result access by index or column name.
     def get_table_column_data(
         self, tablename, columns=None, exclude_columns=[], rowids=None
     ):
         """
         Grabs a table of information
-
-        CommandLine:
-            python -m dtool.sql_control --test-get_table_column_data
 
         Example:
             >>> # ENABLE_DOCTEST
