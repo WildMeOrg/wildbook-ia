@@ -5,27 +5,23 @@ if [ "${HOST_USER}" != "root" ]; then
     adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
 fi
 
+addgroup --system --gid 999 docker
+
+usermod -aG docker ${HOST_USER}
+
 if [ ! -d "/data/db" ]; then
    mkdir -p /data/db
    chown ${HOST_USER}:${HOST_USER} /data/db
    chmod 750 /data/db
 fi
 
-rm -rf /cache
+cd ~/
 
-if [ "${HOST_USER}" == "root" ]; then
-    export HOST_CACHE=/root/.cache
-else
-    export HOST_CACHE=/home/${HOST_USER}/.cache
-fi
+rm -rf .cache
 
-rm -rf ${HOST_CACHE}
+ln -s /cache .cache
 
-ln -s /cache ${HOST_CACHE}
-
-mkdir /cache
-
-chown ${HOST_USER}:${HOST_USER} ${HOST_CACHE}
+chown ${HOST_USER}:${HOST_USER} .cache
 
 chown ${HOST_USER}:${HOST_USER} /cache
 
@@ -35,4 +31,10 @@ chown ${HOST_USER}:${HOST_USER} /cache
 chown -R ${HOST_USER}:${HOST_USER} /wbia/wbia-plugin-pie/
 
 # Web error wbia.control.controller_inject.WebMatchThumbException, old symlinks expecting /data/docker to exist
-ln -s /data/db /data/docker
+rm -rf /data/docker
+
+rm -rf /data/db/db
+
+cd /data
+
+ln -s /data/db docker
