@@ -1002,6 +1002,11 @@ class SQLDatabaseController(object):
         stmt = f'SELECT {columns} FROM {tblname}'
         if where_clause is None:
             val_list = self.executeone(text(stmt), **kwargs)
+        elif '?' in where_clause:
+            raise ValueError(
+                "Statements cannot use '?' parameterization, "
+                "use ':name' parameters instead."
+            )
         else:
             stmt += f' WHERE {where_clause}'
             val_list = self.executemany(
