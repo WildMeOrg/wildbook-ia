@@ -714,11 +714,8 @@ class SQLDatabaseController(object):
 
     def get_all_rowids(self, tblname, **kwargs):
         """ returns a list of all rowids from a table in ascending order """
-        fmtdict = {
-            'tblname': tblname,
-        }
-        operation_fmt = 'SELECT rowid FROM {tblname} ORDER BY rowid ASC'
-        return self._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+        operation = text(f'SELECT rowid FROM {tblname} ORDER BY rowid ASC')
+        return self.executeone(operation, **kwargs)
 
     def get_all_col_rows(self, tblname, colname):
         """ returns a list of all rowids from a table in ascending order """
