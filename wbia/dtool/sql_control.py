@@ -1778,21 +1778,14 @@ class SQLDatabaseController(object):
             self.rename_table(tablename_temp, tablename_new)
 
     def rename_table(self, tablename_old, tablename_new):
-        if ut.VERBOSE:
-            logger.info(
-                '[sql] schema renaming tablename=%r -> %r'
-                % (tablename_old, tablename_new)
-            )
+        logger.info(
+            '[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new)
+        )
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        fmtkw = {
-            'tablename_old': tablename_old,
-            'tablename_new': tablename_new,
-        }
-        op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
-        operation = op_fmtstr.format(**fmtkw)
-        self.executeone(operation, [], verbose=False)
+        operation = text(f'ALTER TABLE {tablename_old} RENAME TO {tablename_new}')
+        self.executeone(operation, [])
 
         # Rename table's metadata
         key_old_list = [
@@ -1801,10 +1794,9 @@ class SQLDatabaseController(object):
         key_new_list = [
             tablename_new + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES
         ]
-        id_iter = [(key,) for key in key_old_list]
+        id_iter = [key for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
-        # logger.info('Setting metadata_key from %s to %s' % (ut.repr2(id_iter), ut.repr2(val_iter)))
         self.set(
             METADATA_TABLE_NAME, colnames, val_iter, id_iter, id_colname='metadata_key'
         )
