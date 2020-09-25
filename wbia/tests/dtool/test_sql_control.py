@@ -735,6 +735,82 @@ class TestAPI:
         # Verify query
         assert results == [(9, 8), (8, 7)]
 
+    def test_get_all(self):
+        # Make a table for records
+        table_name = 'test_getting'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (str(i), i, i * 2.01)
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Build the expect results of the testing target
+        results = self.ctrlr.connection.execute(f'SELECT id, x, z FROM {table_name}')
+        rows = results.fetchall()
+        row_mapping = {row[0]: row[1:] for row in rows if row[1]}
+
+        # Call the testing target
+        data = self.ctrlr.get(table_name, ['x', 'z'])
+
+        # Verify getting
+        assert data == [r for r in row_mapping.values()]
+
+    def test_get_by_id(self):
+        # Make a table for records
+        table_name = 'test_getting'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (str(i), i, i * 2.01)
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        requested_ids = [2, 4, 6]
+        data = self.ctrlr.get(table_name, ['x', 'z'], requested_ids)
+
+        # Build the expect results of the testing target
+        sql_array = ', '.join([str(id) for id in requested_ids])
+        results = self.ctrlr.connection.execute(
+            f'SELECT x, z FROM {table_name} WHERE id in ({sql_array})'
+        )
+        expected = results.fetchall()
+        # Verify getting
+        assert data == expected
+
+    def test_get_as_unique(self):
+        # This test could be inaccurate, because this logical path appears
+        # to be bolted on the side. Usage of this path's feature is unknown.
+
+        # Make a table for records
+        table_name = 'test_getting'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        for i in range(0, 10):
+            x, y, z = (str(i), i, i * 2.01)
+            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+        # Call the testing target
+        # The table has a INTEGER PRIMARY KEY, which essentially maps to the rowid
+        # in SQLite. So, we need not change the default `id_colname` param.
+        requested_ids = [2, 4, 6]
+        data = self.ctrlr.get(table_name, ['x'], requested_ids, assume_unique=True)
+
+        # Build the expect results of the testing target
+        sql_array = ', '.join([str(id) for id in requested_ids])
+        results = self.ctrlr.connection.execute(
+            f'SELECT x FROM {table_name} WHERE id in ({sql_array})'
+        )
+        # ... recall that the controller unpacks single values
+        expected = [row[0] for row in results]
+        # Verify getting
+        assert data == expected
+
     def test_setting(self):
         # Note, this is not a comprehensive test. It only attempts to test the SQL logic.
         # Make a table for records
