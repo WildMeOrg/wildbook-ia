@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import uuid
+from functools import partial
 
 import pytest
 import sqlalchemy.exc
+from sqlalchemy import MetaData, Table
 from sqlalchemy.engine import Connection
-from sqlalchemy.sql import text
+from sqlalchemy.sql import select, text
 
 from wbia.dtool.sql_control import (
     METADATA_TABLE_COLUMNS,
@@ -73,6 +75,69 @@ class TestSchemaModifiers:
             'UNIQUE (meta_labeler_id, indexer_id, config_id) )'
         )
         assert sql.text == expected
+
+    def test_add_table(self):
+        # Two tables...
+        # .. used in the creation of bars table
+        foos_definition = self.make_table_definition('foos')
+        # .. bars table depends on foos table
+        bars_definition = self.make_table_definition('bars', depends_on=['foos'])
+        # We test against bars table and basically neglect foos table
+
+        # Call the target
+        self.ctrlr.add_table(**foos_definition)
+        self.ctrlr.add_table(**bars_definition)
+
+        # Check the table has been added and verify details
+        # Use sqlalchemy's reflection
+        table_factory = partial(Table, autoload=True, autoload_with=self.ctrlr._engine)
+        md = MetaData()
+        bars = table_factory('bars', md)
+        metadata = table_factory('metadata', md)
+
+        # Check the table's column definitions
+        expected_bars_columns = [
+            ('bars_id', 'INTEGER'),
+            ('config_id', 'INTEGER'),
+            ('data', 'TEXT'),
+            ('indexer_id', 'INTEGER'),
+            ('meta_labeler_id', 'INTEGER'),
+        ]
+        found_bars_columns = [
+            (
+                c.name,
+                c.type.__class__.__name__,
+            )
+            for c in bars.columns
+        ]
+        assert sorted(found_bars_columns) == expected_bars_columns
+        # Check the table's constraints
+        expected_constraint_info = [
+            ('PrimaryKeyConstraint', None, ['bars_id']),
+            (
+                'UniqueConstraint',
+                'unique_meta_labeler_id_indexer_id_config_id',
+                ['meta_labeler_id', 'indexer_id', 'config_id'],
+            ),
+        ]
+        found_constraint_info = [
+            (x.__class__.__name__, x.name, [c.name for c in x.columns])
+            for x in bars.constraints
+        ]
+        assert sorted(found_constraint_info) == expected_constraint_info
+
+        # Check for metadata entries
+        results = self.ctrlr.connection.execute(
+            select([metadata.c.metadata_key, metadata.c.metadata_value]).where(
+                metadata.c.metadata_key.like('bars_%')
+            )
+        )
+        expected_metadata_rows = [
+            ('bars_docstr', 'docstr for bars'),
+            ('bars_superkeys', "[('meta_labeler_id', 'indexer_id', 'config_id')]"),
+            ('bars_dependson', "['foos']"),
+        ]
+        assert results.fetchall() == expected_metadata_rows
 
 
 def test_safely_get_db_version(ctrlr):
