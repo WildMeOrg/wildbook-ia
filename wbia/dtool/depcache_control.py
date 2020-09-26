@@ -488,126 +488,123 @@ class _CoreDependencyCache(object):
         if config is None:
             config = {}
 
-        with ut.Indenter('[GetParentID-%s]' % (target_tablename,)):
-            logger.debug('Enter get_parent_rowids')
-            logger.debug(' * target_tablename = %r' % (target_tablename,))
-            logger.debug(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
-            logger.debug(' * config = %r' % (config,))
-            target_table = depc[target_tablename]
+        logger.debug('Enter get_parent_rowids')
+        logger.debug(' * target_tablename = %r' % (target_tablename,))
+        logger.debug(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
+        logger.debug(' * config = %r' % (config,))
+        target_table = depc[target_tablename]
 
-            # TODO: Expand to the appropriate given inputs
-            if _hack_rootmost:
-                # Hack: if true, we are given inputs in rootmost form
-                exi_inputs = target_table.rootmost_inputs
-            else:
-                # otherwise we are given inputs in totalroot form
-                exi_inputs = target_table.rootmost_inputs.total_expand()
-            logger.debug(' * exi_inputs=%s' % (exi_inputs,))
+        # TODO: Expand to the appropriate given inputs
+        if _hack_rootmost:
+            # Hack: if true, we are given inputs in rootmost form
+            exi_inputs = target_table.rootmost_inputs
+        else:
+            # otherwise we are given inputs in totalroot form
+            exi_inputs = target_table.rootmost_inputs.total_expand()
+        logger.debug(' * exi_inputs=%s' % (exi_inputs,))
 
-            rectified_input = depc.rectify_input_tuple(exi_inputs, input_tuple)
+        rectified_input = depc.rectify_input_tuple(exi_inputs, input_tuple)
 
-            rowid_dict = {}
-            for rmi, rowids in zip(exi_inputs.rmi_list, rectified_input):
-                rowid_dict[rmi] = rowids
+        rowid_dict = {}
+        for rmi, rowids in zip(exi_inputs.rmi_list, rectified_input):
+            rowid_dict[rmi] = rowids
 
-            compute_edges = exi_inputs.flat_compute_rmi_edges()
-            logger.debug(' * rectified_input=%s' % ut.trunc_repr(rectified_input))
-            logger.debug(' * compute_edges=%s' % ut.repr2(compute_edges, nl=2))
+        compute_edges = exi_inputs.flat_compute_rmi_edges()
+        logger.debug(' * rectified_input=%s' % ut.trunc_repr(rectified_input))
+        logger.debug(' * compute_edges=%s' % ut.repr2(compute_edges, nl=2))
 
-            for count, (input_nodes, output_node) in enumerate(compute_edges, start=1):
-                logger.debug(
-                    ' * COMPUTING %d/%d EDGE %r -- %r'
-                    % (count, len(compute_edges), input_nodes, output_node),
-                )
-                tablekey = output_node.tablename
-                table = depc[tablekey]
-                input_nodes_ = input_nodes
-                logger.debug(
-                    'table.parent_id_tablenames = %r' % (table.parent_id_tablenames,)
-                )
-                logger.debug('input_nodes_ = %r' % (input_nodes_,))
-                input_multi_flags = [
-                    node.ismulti and node in exi_inputs.rmi_list for node in input_nodes_
-                ]
+        for count, (input_nodes, output_node) in enumerate(compute_edges, start=1):
+            logger.debug(
+                ' * COMPUTING %d/%d EDGE %r -- %r'
+                % (count, len(compute_edges), input_nodes, output_node),
+            )
+            tablekey = output_node.tablename
+            table = depc[tablekey]
+            input_nodes_ = input_nodes
+            logger.debug(
+                'table.parent_id_tablenames = %r' % (table.parent_id_tablenames,)
+            )
+            logger.debug('input_nodes_ = %r' % (input_nodes_,))
+            input_multi_flags = [
+                node.ismulti and node in exi_inputs.rmi_list for node in input_nodes_
+            ]
 
-                # Args currently go in like this:
-                # args  = [..., (pid_{i,1}, pid_{i,2}, ..., pid_{i,M}), ...]
-                # They get converted into
-                # argsT = [... (pid_{1,j}, ... pid_{N,j}) ...]
-                # i = row, j = col
-                sig_multi_flags = table.get_parent_col_attr('ismulti')
-                parent_rowidsT = ut.take(rowid_dict, input_nodes_)
-                parent_rowids_ = []
-                # TODO: will need to figure out which columns to zip and which
-                # columns to product (ie take product over ones that have 1
-                # item, and zip ones that have equal amount of items)
-                for flag1, flag2, rowidsT in zip(
-                    sig_multi_flags, input_multi_flags, parent_rowidsT
-                ):
-                    if flag1 and flag2:
-                        parent_rowids_.append(rowidsT)
-                    elif flag1 and not flag2:
-                        parent_rowids_.append([rowidsT])
-                    elif not flag1 and flag2:
-                        assert len(rowidsT) == 1
-                        parent_rowids_.append(rowidsT[0])
-                    else:
-                        parent_rowids_.append(rowidsT)
-                # Assume that we are either given corresponding lists or single values
-                # that must be broadcast.
-                rowlens = list(map(len, parent_rowids_))
-                maxlen = max(rowlens)
-                parent_rowids2_ = [
-                    r * maxlen if len(r) == 1 else r for r in parent_rowids_
-                ]
-                _parent_rowids = list(zip(*parent_rowids2_))
-                # _parent_rowids = list(ut.product(*parent_rowids_))
-
-                logger.debug(
-                    'parent_rowids_ = %s'
-                    % (
-                        ut.repr4(
-                            [ut.trunc_repr(ids_) for ids_ in parent_rowids_],
-                            strvals=True,
-                        )
-                    )
-                )
-                logger.debug(
-                    'parent_rowids2_ = %s'
-                    % (
-                        ut.repr4(
-                            [ut.trunc_repr(ids_) for ids_ in parent_rowids2_],
-                            strvals=True,
-                        )
-                    )
-                )
-                logger.debug(
-                    '_parent_rowids = %s'
-                    % (
-                        ut.truncate_str(
-                            ut.repr4(
-                                [ut.trunc_repr(ids_) for ids_ in _parent_rowids],
-                                strvals=True,
-                            )
-                        )
-                    )
-                )
-
-                if output_node.tablename != target_tablename:
-                    # Get table configuration
-                    config_ = depc._ensure_config(tablekey, config)
-
-                    output_rowids = table.get_rowid(
-                        _parent_rowids, config=config_, recompute=_recompute, **_kwargs
-                    )
-                    rowid_dict[output_node] = output_rowids
-                    # table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
+            # Args currently go in like this:
+            # args  = [..., (pid_{i,1}, pid_{i,2}, ..., pid_{i,M}), ...]
+            # They get converted into
+            # argsT = [... (pid_{1,j}, ... pid_{N,j}) ...]
+            # i = row, j = col
+            sig_multi_flags = table.get_parent_col_attr('ismulti')
+            parent_rowidsT = ut.take(rowid_dict, input_nodes_)
+            parent_rowids_ = []
+            # TODO: will need to figure out which columns to zip and which
+            # columns to product (ie take product over ones that have 1
+            # item, and zip ones that have equal amount of items)
+            for flag1, flag2, rowidsT in zip(
+                sig_multi_flags, input_multi_flags, parent_rowidsT
+            ):
+                if flag1 and flag2:
+                    parent_rowids_.append(rowidsT)
+                elif flag1 and not flag2:
+                    parent_rowids_.append([rowidsT])
+                elif not flag1 and flag2:
+                    assert len(rowidsT) == 1
+                    parent_rowids_.append(rowidsT[0])
                 else:
-                    # We are only computing up to the parents of the table here.
-                    parent_rowids = _parent_rowids
-                    break
-            # rowids = rowid_dict[output_node]
-            return parent_rowids
+                    parent_rowids_.append(rowidsT)
+            # Assume that we are either given corresponding lists or single values
+            # that must be broadcast.
+            rowlens = list(map(len, parent_rowids_))
+            maxlen = max(rowlens)
+            parent_rowids2_ = [r * maxlen if len(r) == 1 else r for r in parent_rowids_]
+            _parent_rowids = list(zip(*parent_rowids2_))
+            # _parent_rowids = list(ut.product(*parent_rowids_))
+
+            logger.debug(
+                'parent_rowids_ = %s'
+                % (
+                    ut.repr4(
+                        [ut.trunc_repr(ids_) for ids_ in parent_rowids_],
+                        strvals=True,
+                    )
+                )
+            )
+            logger.debug(
+                'parent_rowids2_ = %s'
+                % (
+                    ut.repr4(
+                        [ut.trunc_repr(ids_) for ids_ in parent_rowids2_],
+                        strvals=True,
+                    )
+                )
+            )
+            logger.debug(
+                '_parent_rowids = %s'
+                % (
+                    ut.truncate_str(
+                        ut.repr4(
+                            [ut.trunc_repr(ids_) for ids_ in _parent_rowids],
+                            strvals=True,
+                        )
+                    )
+                )
+            )
+
+            if output_node.tablename != target_tablename:
+                # Get table configuration
+                config_ = depc._ensure_config(tablekey, config)
+
+                output_rowids = table.get_rowid(
+                    _parent_rowids, config=config_, recompute=_recompute, **_kwargs
+                )
+                rowid_dict[output_node] = output_rowids
+                # table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
+            else:
+                # We are only computing up to the parents of the table here.
+                parent_rowids = _parent_rowids
+                break
+        # rowids = rowid_dict[output_node]
+        return parent_rowids
 
     def check_rowids(depc, tablename, input_tuple, config={}):
         """
@@ -689,11 +686,10 @@ class _CoreDependencyCache(object):
             **_kwargs,
         )
 
-        with ut.Indenter('[GetRowId-%s]' % (target_tablename,)):
-            config_ = depc._ensure_config(target_tablename, config)
-            rowids = table.get_rowid(
-                parent_rowids, config=config_, recompute=recompute, **_kwargs
-            )
+        config_ = depc._ensure_config(target_tablename, config)
+        rowids = table.get_rowid(
+            parent_rowids, config=config_, recompute=recompute, **_kwargs
+        )
         return rowids
 
     @ut.accepts_scalar_input2(argx_list=[1])
@@ -794,75 +790,72 @@ class _CoreDependencyCache(object):
         if tablename == depc.root_tablename:
             return depc.root_getters[colnames](root_rowids)
             # pass
-        with ut.Indenter('[GetProp-%s]' % (tablename,)):
-            logger.debug(' * tablename=%s' % (tablename))
-            logger.debug(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
-            logger.debug(' * colnames = %r' % (colnames,))
-            logger.debug(' * config = %r' % (config,))
+        logger.debug(' * tablename=%s' % (tablename))
+        logger.debug(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
+        logger.debug(' * colnames = %r' % (colnames,))
+        logger.debug(' * config = %r' % (config,))
 
-            if hack_paths and not ensure and not read_extern:
-                # HACK: should be able to not compute rows to get certain properties
-                from os.path import join
+        if hack_paths and not ensure and not read_extern:
+            # HACK: should be able to not compute rows to get certain properties
+            from os.path import join
 
-                # recompute_ = recompute or recompute_all
-                parent_rowids = depc.get_parent_rowids(
-                    tablename,
-                    root_rowids,
-                    config=config,
-                    ensure=True,
-                    recompute_all=False,
-                    eager=True,
-                    nInput=None,
-                )
-                config_ = depc._ensure_config(tablename, config)
-                logger.debug(' * (ensured) config_ = %r' % (config_,))
-                table = depc[tablename]
-                extern_dpath = table.extern_dpath
-                ut.ensuredir(extern_dpath)
-                fname_list = table.get_extern_fnames(
-                    parent_rowids, config=config_, extern_col_index=0
-                )
-                fpath_list = [join(extern_dpath, fname) for fname in fname_list]
-                return fpath_list
-
-            if nInput is None and ut.is_listlike(root_rowids):
-                nInput = len(root_rowids)
-
-            rowid_kw = dict(
+            # recompute_ = recompute or recompute_all
+            parent_rowids = depc.get_parent_rowids(
+                tablename,
+                root_rowids,
                 config=config,
-                nInput=nInput,
-                eager=eager,
-                ensure=ensure,
-                recompute=recompute,
-                recompute_all=recompute_all,
+                ensure=True,
+                recompute_all=False,
+                eager=True,
+                nInput=None,
             )
-
-            rowdata_kw = dict(
-                read_extern=read_extern,
-                num_retries=num_retries,
-                eager=eager,
-                ensure=ensure,
-                nInput=nInput,
+            config_ = depc._ensure_config(tablename, config)
+            logger.debug(' * (ensured) config_ = %r' % (config_,))
+            table = depc[tablename]
+            extern_dpath = table.extern_dpath
+            ut.ensuredir(extern_dpath)
+            fname_list = table.get_extern_fnames(
+                parent_rowids, config=config_, extern_col_index=0
             )
+            fpath_list = [join(extern_dpath, fname) for fname in fname_list]
+            return fpath_list
 
-            input_tuple = root_rowids
+        if nInput is None and ut.is_listlike(root_rowids):
+            nInput = len(root_rowids)
 
-            for trynum in range(num_retries + 1):
-                try:
-                    table = depc[tablename]
-                    # Vectorized get of properties
-                    tbl_rowids = depc.get_rowids(tablename, input_tuple, **rowid_kw)
-                    logger.debug(
-                        '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
-                    )
-                    prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
-                except depcache_table.ExternalStorageException:
-                    logger.info('!!* Hit ExternalStorageException')
-                    if trynum == num_retries:
-                        raise
-                else:
-                    break
-            logger.debug('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
+        rowid_kw = dict(
+            config=config,
+            nInput=nInput,
+            eager=eager,
+            ensure=ensure,
+            recompute=recompute,
+            recompute_all=recompute_all,
+        )
+
+        rowdata_kw = dict(
+            read_extern=read_extern,
+            num_retries=num_retries,
+            eager=eager,
+            ensure=ensure,
+            nInput=nInput,
+        )
+
+        input_tuple = root_rowids
+
+        for trynum in range(num_retries + 1):
+            try:
+                table = depc[tablename]
+                # Vectorized get of properties
+                tbl_rowids = depc.get_rowids(tablename, input_tuple, **rowid_kw)
+                logger.debug('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
+                prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
+            except depcache_table.ExternalStorageException:
+                logger.info('!!* Hit ExternalStorageException')
+                if trynum == num_retries:
+                    raise
+            else:
+                break
+        logger.debug('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
 
     def get_native(
@@ -904,35 +897,34 @@ class _CoreDependencyCache(object):
             >>> print('chips = %r' % (chips,))
         """
         tbl_rowids = list(tbl_rowids)
-        with ut.Indenter('[GetNative %s]' % (tablename,)):
-            logger.debug(' * tablename = %r' % (tablename,))
-            logger.debug(' * colnames = %r' % (colnames,))
-            logger.debug(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
-            table = depc[tablename]
-            # import utool
-            # with utool.embed_on_exception_context:
-            # try:
-            prop_list = table.get_row_data(tbl_rowids, colnames, read_extern=read_extern)
-            # except depcache_table.ExternalStorageException:
-            #    # This code is a bit rendant and would probably live better elsewhere
-            #    # Also need to fix issues if more than one column specified
-            #    extern_uris = table.get_row_data(
-            #        tbl_rowids, colnames, read_extern=False,
-            #        delete_on_fail=True, ensure=False)
-            #    from os.path import exists
-            #    error_flags = [exists(uri) for uri in extern_uris]
-            #    redo_rowids = ut.compress(tbl_rowids, ut.not_list(error_flags))
-            #    parent_rowids = table.get_parent_rowids(redo_rowids)
-            #    # config_rowids = table.get_row_cfgid(redo_rowids)
-            #    configs = table.get_row_configs(redo_rowids)
-            #    assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
-            #    config = configs[0]
-            #    table.get_rowid(parent_rowids, recompute=True, config=config)
+        logger.debug(' * tablename = %r' % (tablename,))
+        logger.debug(' * colnames = %r' % (colnames,))
+        logger.debug(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
+        table = depc[tablename]
+        # import utool
+        # with utool.embed_on_exception_context:
+        # try:
+        prop_list = table.get_row_data(tbl_rowids, colnames, read_extern=read_extern)
+        # except depcache_table.ExternalStorageException:
+        #    # This code is a bit rendant and would probably live better elsewhere
+        #    # Also need to fix issues if more than one column specified
+        #    extern_uris = table.get_row_data(
+        #        tbl_rowids, colnames, read_extern=False,
+        #        delete_on_fail=True, ensure=False)
+        #    from os.path import exists
+        #    error_flags = [exists(uri) for uri in extern_uris]
+        #    redo_rowids = ut.compress(tbl_rowids, ut.not_list(error_flags))
+        #    parent_rowids = table.get_parent_rowids(redo_rowids)
+        #    # config_rowids = table.get_row_cfgid(redo_rowids)
+        #    configs = table.get_row_configs(redo_rowids)
+        #    assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
+        #    config = configs[0]
+        #    table.get_rowid(parent_rowids, recompute=True, config=config)
 
-            #    # TRY ONE MORE TIME
-            #    prop_list = table.get_row_data(tbl_rowids, colnames,
-            #                                   read_extern=read_extern,
-            #                                   delete_on_fail=False)
+        #    # TRY ONE MORE TIME
+        #    prop_list = table.get_row_data(tbl_rowids, colnames,
+        #                                   read_extern=read_extern,
+        #                                   delete_on_fail=False)
         return prop_list
 
     def get_config_history(depc, tablename, root_rowids, config=None):
