@@ -70,7 +70,7 @@ from wbia.control import controller_inject
 import multiprocessing
 
 
-print, rrr, profile = ut.inject2(__name__)
+print, rrr, profile = ut.inject2(__name__)  # NOQA
 # logger = logging.getLogger('wbia')
 
 
@@ -689,13 +689,8 @@ def initialize_process_record(
     shelve_output_filepath,
     shelve_path,
     shelve_archive_path,
-    collect_pull_interface,
     jobiface_id,
 ):
-
-    collect_recieve_socket = ctx.socket(zmq.DEALER)
-    collect_recieve_socket.connect(collect_pull_interface)
-
     MAX_ATTEMPTS = 20
     ARCHIVE_DAYS = 14
 
@@ -785,24 +780,6 @@ def initialize_process_record(
         if completed or suppressed or corrupted:
             # Register the job, pass the jobcounter and jobid only
             engine_request = None
-
-            if completed:
-                status = 'completed'
-            elif suppressed:
-                status = 'suppressed'
-            else:
-                status = 'corrupted'
-
-            reply_notify = {
-                'jobid': jobid,
-                'status': status,
-                'action': 'register',
-            }
-            print('Sending register: %r' % (reply_notify,))
-            collect_recieve_socket.send_json(reply_notify)
-            # reply = collect_recieve_socket.recv_json()
-            # jobid_ = reply['jobid']
-            # assert jobid_ == jobid
         else:
             # We have a pending job, restart with the original request
             with ut.Indenter('[client %d] ' % (jobiface_id)):
@@ -824,9 +801,6 @@ def initialize_process_record(
                 record['attempts'] = attempts + 1
 
                 ut.save_cPkl(record_filepath, record, verbose=False)
-
-    collect_recieve_socket.disconnect(collect_pull_interface)
-    collect_recieve_socket.close()
 
     values = jobcounter, jobid, engine_request, archived, completed, suppressed, corrupted
     return values
@@ -914,8 +888,6 @@ class JobInterface(object):
                 shelve_input_filepath_list.append(shelve_input_filepath)
                 shelve_output_filepath_list.append(shelve_output_filepath)
 
-            collect_pull_interface = jobiface.port_dict['collect_pull_url']
-
             arg_iter = list(
                 zip(
                     record_filepath_list,
@@ -923,7 +895,6 @@ class JobInterface(object):
                     shelve_output_filepath_list,
                     [shelve_path] * num_records,
                     [shelve_archive_path] * num_records,
-                    [collect_pull_interface] * num_records,
                     [jobiface.id_] * num_records,
                 )
             )
@@ -967,11 +938,25 @@ class JobInterface(object):
                 if engine_request is None:
                     assert not archived
                     if completed:
+                        status = 'completed'
                         num_completed += 1
                     elif suppressed:
+                        status = 'suppressed'
                         num_suppressed += 1
                     else:
+                        status = 'corrupted'
                         num_corrupted += 1
+
+                    reply_notify = {
+                        'jobid': jobid,
+                        'status': status,
+                        'action': 'register',
+                    }
+                    print('Sending register: %r' % (reply_notify,))
+                    jobiface.collect_recieve_socket.send_json(reply_notify)
+                    reply = jobiface.collect_recieve_socket.recv_json()
+                    jobid_ = reply['jobid']
+                    assert jobid_ == jobid
                 else:
                     num_restarted += 1
                     restart_jobcounter_list.append(jobcounter)
