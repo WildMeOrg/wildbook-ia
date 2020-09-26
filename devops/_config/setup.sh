@@ -1,13 +1,21 @@
 #!/bin/bash
 
+# DOCKER_SOCKET=/var/run/docker.sock
+
 if [ "${HOST_USER}" != "root" ]; then
     # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
     adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
 fi
 
-addgroup --system --gid 999 docker
+# if [ -S ${DOCKER_SOCKET} ]; then
+#     DOCKER_GID=$(stat -c '%g' ${DOCKER_SOCKET})
+#     DOCKER_GROUP=docker
 
-usermod -aG docker ${HOST_USER}
+#     addgroup --system --gid ${DOCKER_GID} ${DOCKER_GROUP}
+#     usermod -aG ${DOCKER_GROUP} ${HOST_USER}
+
+#     sg ${DOCKER_GROUP} -c "/bin/bash"
+# fi
 
 if [ ! -d "/data/db" ]; then
    mkdir -p /data/db/

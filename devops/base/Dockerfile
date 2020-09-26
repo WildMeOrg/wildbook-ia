@@ -37,6 +37,8 @@ RUN set -ex \
         # Install dependencies for pygraphviz
         graphviz \
         libgraphviz-dev \
+        # Install dependencies for Theano
+        libopenblas-dev \
         # Install run-time tools
         gosu \
         xvfb \
