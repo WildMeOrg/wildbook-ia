@@ -486,12 +486,12 @@ class TestAPI:
             '(id INTEGER PRIMARY KEY, x TEXT, y INTEGER, z REAL)'
         )
 
-    def test_executeone(self):
-        table_name = 'test_executeone'
-        self.make_table(table_name)
+    def populate_table(self, name):
+        """To be used in conjunction with ``make_table`` to populate the table
+        with records from 0 to 9.
 
-        # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
+        """
+        insert_stmt = text(f'INSERT INTO {name} (x, y, z) VALUES (:x, :y, :z)')
         for i in range(0, 10):
             x, y, z = (
                 (i % 2) and 'odd' or 'even',
@@ -499,6 +499,13 @@ class TestAPI:
                 i * 2.01,
             )
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+
+    def test_executeone(self):
+        table_name = 'test_executeone'
+        self.make_table(table_name)
+
+        # Create some dummy records
+        self.populate_table(table_name)
 
         # Call the testing target
         result = self.ctrlr.executeone(text(f'SELECT id, y FROM {table_name}'))
@@ -511,14 +518,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         result = self.ctrlr.executeone(
@@ -543,14 +543,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         results = self.ctrlr.executemany(
@@ -590,14 +583,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         result = self.ctrlr.executeone(text(f'SELECT y FROM {table_name}'))
@@ -633,14 +619,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         results = self.ctrlr.get_where(
@@ -658,14 +637,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         results = self.ctrlr.get_where(
@@ -684,14 +656,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         results = self.ctrlr.get_where(
@@ -713,14 +678,7 @@ class TestAPI:
         self.make_table(table_name)
 
         # Create some dummy records
-        insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (
-                (i % 2) and 'odd' or 'even',
-                i,
-                i * 2.01,
-            )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        self.populate_table(table_name)
 
         # Call the testing target
         results = self.ctrlr.get_where_eq(
