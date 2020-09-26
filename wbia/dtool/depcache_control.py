@@ -110,9 +110,8 @@ class _CoreDependencyCache(object):
 
         SEE: dtool.REG_PREPROC_DOC
         """
-        if depc._debug:
-            logger.info('[depc] Registering tablename=%r' % (tablename,))
-            logger.info('[depc]  * preproc_func=%r' % (preproc_func,))
+        logger.debug('[depc] Registering tablename=%r' % (tablename,))
+        logger.debug('[depc]  * preproc_func=%r' % (preproc_func,))
         # ----------
         # Sanitize inputs
         if isinstance(tablename, six.string_types):
@@ -198,20 +197,15 @@ class _CoreDependencyCache(object):
         logger.info(
             '[depc] Initialize %s depcache in %r' % (depc.root.upper(), depc.cache_dpath)
         )
-        _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
             reg_preproc = PREPROC_REGISTER[depc.root]
             reg_subprop = SUBPROP_REGISTER[depc.root]
-            if ut.VERBOSE:
-                logger.info(
-                    '[depc.init] Registering %d global preproc funcs' % len(reg_preproc)
-                )
+            logger.info(
+                '[depc.init] Registering %d global preproc funcs' % len(reg_preproc)
+            )
             for args_, _kwargs in reg_preproc:
                 depc._register_prop(*args_, **_kwargs)
-            if ut.VERBOSE:
-                logger.info(
-                    '[depc.init] Registering %d global subprops ' % len(reg_subprop)
-                )
+            logger.info('[depc.init] Registering %d global subprops ' % len(reg_subprop))
             for args_, _kwargs in reg_subprop:
                 depc._register_subprop(*args_, **_kwargs)
 
@@ -239,11 +233,10 @@ class _CoreDependencyCache(object):
             db = sql_control.SQLDatabaseController.from_uri(db_uri)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db
-        if ut.VERBOSE:
-            logger.info('[depc] Finished initialization')
+        logger.info('[depc] Finished initialization')
 
         for table in depc.cachetable_dict.values():
-            table.initialize(_debug=_debug)
+            table.initialize()
 
         # HACKS:
         # Define injected functions for autocomplete convinience
@@ -365,11 +358,9 @@ class _CoreDependencyCache(object):
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
-                if _debug:
-                    logger.info(' **config = %r' % (config,))
+                logger.debug(' **config = %r' % (config,))
                 config_ = configclass(**config)
-                if _debug:
-                    logger.info(' config_ = %r' % (config_,))
+                logger.debug(' config_ = %r' % (config_,))
         return config_
 
     def get_config_trail(depc, tablename, config):
@@ -411,7 +402,6 @@ class _CoreDependencyCache(object):
             nInput=nInput,
             recompute=recompute,
             recompute_all=recompute_all,
-            _debug=ut.countdown_flag(_debug),
             levels_up=1,
         )
         parent_rowids = depc._get_parent_rowids(table, rowid_dict)
@@ -494,18 +484,15 @@ class _CoreDependencyCache(object):
         """
         _kwargs = kwargs.copy()
         _recompute = _kwargs.pop('recompute_all', False)
-        _debug = _kwargs.get('_debug', False)
         _hack_rootmost = _kwargs.pop('_hack_rootmost', False)
-        _debug = depc._debug if _debug is None else _debug
         if config is None:
             config = {}
 
-        with ut.Indenter('[GetParentID-%s]' % (target_tablename,), enabled=_debug):
-            if _debug:
-                logger.info(ut.color_text('Enter get_parent_rowids', 'blue'))
-                logger.info(' * target_tablename = %r' % (target_tablename,))
-                logger.info(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
-                logger.info(' * config = %r' % (config,))
+        with ut.Indenter('[GetParentID-%s]' % (target_tablename,)):
+            logger.debug('Enter get_parent_rowids')
+            logger.debug(' * target_tablename = %r' % (target_tablename,))
+            logger.debug(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
+            logger.debug(' * config = %r' % (config,))
             target_table = depc[target_tablename]
 
             # TODO: Expand to the appropriate given inputs
@@ -515,8 +502,7 @@ class _CoreDependencyCache(object):
             else:
                 # otherwise we are given inputs in totalroot form
                 exi_inputs = target_table.rootmost_inputs.total_expand()
-            if _debug:
-                logger.info(' * exi_inputs=%s' % (exi_inputs,))
+            logger.debug(' * exi_inputs=%s' % (exi_inputs,))
 
             rectified_input = depc.rectify_input_tuple(exi_inputs, input_tuple)
 
@@ -525,25 +511,21 @@ class _CoreDependencyCache(object):
                 rowid_dict[rmi] = rowids
 
             compute_edges = exi_inputs.flat_compute_rmi_edges()
-            if _debug:
-                logger.info(' * rectified_input=%s' % ut.trunc_repr(rectified_input))
-                logger.info(' * compute_edges=%s' % ut.repr2(compute_edges, nl=2))
+            logger.debug(' * rectified_input=%s' % ut.trunc_repr(rectified_input))
+            logger.debug(' * compute_edges=%s' % ut.repr2(compute_edges, nl=2))
 
             for count, (input_nodes, output_node) in enumerate(compute_edges, start=1):
-                if _debug:
-                    ut.cprint(
-                        ' * COMPUTING %d/%d EDGE %r -- %r'
-                        % (count, len(compute_edges), input_nodes, output_node),
-                        'blue',
-                    )
+                logger.debug(
+                    ' * COMPUTING %d/%d EDGE %r -- %r'
+                    % (count, len(compute_edges), input_nodes, output_node),
+                )
                 tablekey = output_node.tablename
                 table = depc[tablekey]
                 input_nodes_ = input_nodes
-                if _debug:
-                    logger.info(
-                        'table.parent_id_tablenames = %r' % (table.parent_id_tablenames,)
-                    )
-                    logger.info('input_nodes_ = %r' % (input_nodes_,))
+                logger.debug(
+                    'table.parent_id_tablenames = %r' % (table.parent_id_tablenames,)
+                )
+                logger.debug('input_nodes_ = %r' % (input_nodes_,))
                 input_multi_flags = [
                     node.ismulti and node in exi_inputs.rmi_list for node in input_nodes_
                 ]
@@ -581,42 +563,39 @@ class _CoreDependencyCache(object):
                 _parent_rowids = list(zip(*parent_rowids2_))
                 # _parent_rowids = list(ut.product(*parent_rowids_))
 
-                if _debug:
-                    logger.info(
-                        'parent_rowids_ = %s'
-                        % (
+                logger.debug(
+                    'parent_rowids_ = %s'
+                    % (
+                        ut.repr4(
+                            [ut.trunc_repr(ids_) for ids_ in parent_rowids_],
+                            strvals=True,
+                        )
+                    )
+                )
+                logger.debug(
+                    'parent_rowids2_ = %s'
+                    % (
+                        ut.repr4(
+                            [ut.trunc_repr(ids_) for ids_ in parent_rowids2_],
+                            strvals=True,
+                        )
+                    )
+                )
+                logger.debug(
+                    '_parent_rowids = %s'
+                    % (
+                        ut.truncate_str(
                             ut.repr4(
-                                [ut.trunc_repr(ids_) for ids_ in parent_rowids_],
+                                [ut.trunc_repr(ids_) for ids_ in _parent_rowids],
                                 strvals=True,
                             )
                         )
                     )
-                    logger.info(
-                        'parent_rowids2_ = %s'
-                        % (
-                            ut.repr4(
-                                [ut.trunc_repr(ids_) for ids_ in parent_rowids2_],
-                                strvals=True,
-                            )
-                        )
-                    )
-                    logger.info(
-                        '_parent_rowids = %s'
-                        % (
-                            ut.truncate_str(
-                                ut.repr4(
-                                    [ut.trunc_repr(ids_) for ids_ in _parent_rowids],
-                                    strvals=True,
-                                )
-                            )
-                        )
-                    )
+                )
 
-                if _debug:
-                    ut.cprint('-------------', 'blue')
                 if output_node.tablename != target_tablename:
                     # Get table configuration
-                    config_ = depc._ensure_config(tablekey, config, _debug)
+                    config_ = depc._ensure_config(tablekey, config)
 
                     output_rowids = table.get_rowid(
                         _parent_rowids, config=config_, recompute=_recompute, **_kwargs
@@ -660,12 +639,11 @@ class _CoreDependencyCache(object):
             >>> root_rowids = [1, 2, 3]
             >>> root_rowids2 = [(4, 5, 6, 7)]
             >>> root_rowids3 = root_rowids2
-            >>> _debug = True
             >>> tablename = 'smk_match'
             >>> input_tuple = (root_rowids, root_rowids2, root_rowids3)
             >>> target_table = depc[tablename]
             >>> inputs = target_table.rootmost_inputs.total_expand()
-            >>> depc.get_rowids(tablename, input_tuple, _debug=_debug)
+            >>> depc.get_rowids(tablename, input_tuple)
             >>> depc.print_all_tables()
 
         Example:
@@ -696,8 +674,6 @@ class _CoreDependencyCache(object):
             >>> assert recomp_rowids == initial_rowids, 'rowids should not change due to recompute'
         """
         target_tablename = tablename
-        _debug = rowid_kw.get('_debug', False)
-        _debug = depc._debug if _debug is None else _debug
         _kwargs = rowid_kw.copy()
         config = _kwargs.pop('config', {})
         _hack_rootmost = _kwargs.pop('_hack_rootmost', False)
@@ -713,8 +689,8 @@ class _CoreDependencyCache(object):
             **_kwargs,
         )
 
-        with ut.Indenter('[GetRowId-%s]' % (target_tablename,), enabled=_debug):
-            config_ = depc._ensure_config(target_tablename, config, _debug)
+        with ut.Indenter('[GetRowId-%s]' % (target_tablename,)):
+            config_ = depc._ensure_config(target_tablename, config)
             rowids = table.get_rowid(
                 parent_rowids, config=config_, recompute=recompute, **_kwargs
             )
@@ -768,7 +744,6 @@ class _CoreDependencyCache(object):
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
-            >>> _debug = True
             >>> tablename = 'labeler'
             >>> root_rowids = aids
             >>> prop_list = depc.get(
@@ -785,7 +760,6 @@ class _CoreDependencyCache(object):
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
-            >>> _debug = True
             >>> tablename = 'smk_match'
             >>> tablename = 'vocab'
             >>> table = depc[tablename]
@@ -804,7 +778,6 @@ class _CoreDependencyCache(object):
             >>> depc = testdata_depc3(True)
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> aids = [1, 2, 3]
-            >>> _debug = True
             >>> depc = testdata_depc()
             >>> tablename = 'chip'
             >>> table = depc[tablename]
@@ -821,13 +794,11 @@ class _CoreDependencyCache(object):
         if tablename == depc.root_tablename:
             return depc.root_getters[colnames](root_rowids)
             # pass
-        _debug = depc._debug if _debug is None else _debug
-        with ut.Indenter('[GetProp-%s]' % (tablename,), enabled=_debug):
-            if _debug:
-                logger.info(' * tablename=%s' % (tablename))
-                logger.info(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
-                logger.info(' * colnames = %r' % (colnames,))
-                logger.info(' * config = %r' % (config,))
+        with ut.Indenter('[GetProp-%s]' % (tablename,)):
+            logger.debug(' * tablename=%s' % (tablename))
+            logger.debug(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
+            logger.debug(' * colnames = %r' % (colnames,))
+            logger.debug(' * config = %r' % (config,))
 
             if hack_paths and not ensure and not read_extern:
                 # HACK: should be able to not compute rows to get certain properties
@@ -839,17 +810,15 @@ class _CoreDependencyCache(object):
                     root_rowids,
                     config=config,
                     ensure=True,
-                    _debug=None,
                     recompute_all=False,
                     eager=True,
                     nInput=None,
                 )
                 config_ = depc._ensure_config(tablename, config)
-                if _debug:
-                    logger.info(' * (ensured) config_ = %r' % (config_,))
+                logger.debug(' * (ensured) config_ = %r' % (config_,))
                 table = depc[tablename]
                 extern_dpath = table.extern_dpath
-                ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
+                ut.ensuredir(extern_dpath)
                 fname_list = table.get_extern_fnames(
                     parent_rowids, config=config_, extern_col_index=0
                 )
@@ -866,12 +835,10 @@ class _CoreDependencyCache(object):
                 ensure=ensure,
                 recompute=recompute,
                 recompute_all=recompute_all,
-                _debug=_debug,
             )
 
             rowdata_kw = dict(
                 read_extern=read_extern,
-                _debug=_debug,
                 num_retries=num_retries,
                 eager=eager,
                 ensure=ensure,
@@ -885,10 +852,9 @@ class _CoreDependencyCache(object):
                     table = depc[tablename]
                     # Vectorized get of properties
                     tbl_rowids = depc.get_rowids(tablename, input_tuple, **rowid_kw)
-                    if _debug:
-                        logger.info(
-                            '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
-                        )
+                    logger.debug(
+                        '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
+                    )
                     prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
                 except depcache_table.ExternalStorageException:
                     logger.info('!!* Hit ExternalStorageException')
@@ -896,8 +862,7 @@ class _CoreDependencyCache(object):
                         raise
                 else:
                     break
-            if _debug:
-                logger.info('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
+            logger.debug('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
 
     def get_native(
@@ -939,24 +904,20 @@ class _CoreDependencyCache(object):
             >>> print('chips = %r' % (chips,))
         """
         tbl_rowids = list(tbl_rowids)
-        _debug = depc._debug if _debug is None else _debug
-        with ut.Indenter('[GetNative %s]' % (tablename,), enabled=_debug):
-            if _debug:
-                logger.info(' * tablename = %r' % (tablename,))
-                logger.info(' * colnames = %r' % (colnames,))
-                logger.info(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
+        with ut.Indenter('[GetNative %s]' % (tablename,)):
+            logger.debug(' * tablename = %r' % (tablename,))
+            logger.debug(' * colnames = %r' % (colnames,))
+            logger.debug(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
             table = depc[tablename]
             # import utool
             # with utool.embed_on_exception_context:
             # try:
-            prop_list = table.get_row_data(
-                tbl_rowids, colnames, _debug=_debug, read_extern=read_extern
-            )
+            prop_list = table.get_row_data(tbl_rowids, colnames, read_extern=read_extern)
             # except depcache_table.ExternalStorageException:
             #    # This code is a bit rendant and would probably live better elsewhere
             #    # Also need to fix issues if more than one column specified
             #    extern_uris = table.get_row_data(
-            #        tbl_rowids, colnames, _debug=_debug, read_extern=False,
+            #        tbl_rowids, colnames, read_extern=False,
             #        delete_on_fail=True, ensure=False)
             #    from os.path import exists
             #    error_flags = [exists(uri) for uri in extern_uris]
@@ -969,7 +930,7 @@ class _CoreDependencyCache(object):
             #    table.get_rowid(parent_rowids, recompute=True, config=config)
 
             #    # TRY ONE MORE TIME
-            #    prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
+            #    prop_list = table.get_row_data(tbl_rowids, colnames,
             #                                   read_extern=read_extern,
             #                                   delete_on_fail=False)
         return prop_list
@@ -1036,7 +997,10 @@ class _CoreDependencyCache(object):
         FIXME: make this work for all configs
         """
         rowid_list = depc.get_rowids(
-            tablename, root_rowids, config=config, ensure=False, _debug=_debug
+            tablename,
+            root_rowids,
+            config=config,
+            ensure=False,
         )
         table = depc[tablename]
         num_deleted = table.delete_rows(rowid_list)
@@ -1112,7 +1076,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             get_root_uuid = ut.identity
         depc.get_root_uuid = get_root_uuid
         depc.delete_exclude_tables = {}
-        depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
+        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
+        depc._debug = False
 
     def get_tablenames(depc):
         return list(depc.cachetable_dict.keys())
@@ -1486,9 +1451,9 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> exec(ut.execstr_funckw(depc.delete_root), globals())
             >>> root_rowids = [1]
-            >>> depc.delete_root(root_rowids, _debug=0)
+            >>> depc.delete_root(root_rowids)
             >>> depc.get('fgweight', [1])
-            >>> depc.delete_root(root_rowids, _debug=0)
+            >>> depc.delete_root(root_rowids)
         """
         # graph = depc.make_graph(implicit=False)
         # hack
@@ -1498,7 +1463,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         )
         # children = [child for child in graph.succ[depc.root_tablename]
         #            if sum([len(e) for e in graph.pred[child].values()]) == 1]
-        # depc.delete_property(tablename, root_rowids, _debug=_debug)
+        # depc.delete_property(tablename, root_rowids)
         num_deleted = 0
         for tablename, table_rowids in rowid_dict.items():
             if tablename == depc.root:
