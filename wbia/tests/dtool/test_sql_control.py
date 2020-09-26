@@ -473,7 +473,7 @@ class TestMetadataProperty:
         assert isinstance(self.ctrlr.metadata.database.init_uuid, uuid.UUID)
 
 
-class TestAPI:
+class BaseAPITestCase:
     """Testing the primary *usage* API"""
 
     @pytest.fixture(autouse=True)
@@ -500,6 +500,8 @@ class TestAPI:
             )
             self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
 
+
+class TestExecutionAPI(BaseAPITestCase):
     def test_executeone(self):
         table_name = 'test_executeone'
         self.make_table(table_name)
@@ -591,6 +593,8 @@ class TestAPI:
         # Note the unwrapped values, rather than [(i,) ...]
         assert result == [i for i in range(0, 10)]
 
+
+class TestAdditionAPI(BaseAPITestCase):
     def test_add(self):
         table_name = 'test_add'
         self.make_table(table_name)
@@ -614,6 +618,8 @@ class TestAPI:
         expected = [(i + 1, x, y, z) for i, (x, y, z) in enumerate(parameter_values)]
         assert results.fetchall() == expected
 
+
+class TestGettingAPI(BaseAPITestCase):
     def test_get_where_without_where_condition(self):
         table_name = 'test_get_where'
         self.make_table(table_name)
@@ -769,6 +775,8 @@ class TestAPI:
         # Verify getting
         assert data == expected
 
+
+class TestSettingAPI(BaseAPITestCase):
     def test_setting(self):
         # Note, this is not a comprehensive test. It only attempts to test the SQL logic.
         # Make a table for records
@@ -801,6 +809,8 @@ class TestAPI:
         set_rows = sorted(results)
         assert set_rows == expected
 
+
+class TestDeletionAPI(BaseAPITestCase):
     def test_delete(self):
         # Make a table for records
         table_name = 'test_delete'
