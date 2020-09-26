@@ -798,6 +798,7 @@ def initialize_process_record(
                 'status': status,
                 'action': 'register',
             }
+            print('Sending register: %r' % (reply_notify,))
             collect_recieve_socket.send_json(reply_notify)
             # reply = collect_recieve_socket.recv_json()
             # jobid_ = reply['jobid']
@@ -1704,7 +1705,7 @@ def on_engine_request(
             if isinstance(ex, TypeError) and "unexpected keyword argument '{}'".format(
                 key
             ):
-                kwargs.pop(key)
+                kwargs.pop(key, None)
                 continue
             result = ut.formatex(ex, keys=['jobid'], tb=True)
             result = ut.strip_ansi(result)
@@ -1767,6 +1768,7 @@ def collector_loop(port_dict, dbdir, containerized):
                     ut.printex(ex, 'ERROR in collection')
                     print(traceback.format_exc())
                     reply = {}
+
                 send_multipart_json(collect_rout_sock, idents, reply)
 
                 idents = None
@@ -1862,6 +1864,15 @@ def on_collect_request(
 
     args = get_collector_shelve_filepaths(collector_data, jobid)
     collector_shelve_input_filepath, collector_shelve_output_filepath = args
+
+    print(
+        'on_collect_request action = %r, jobid = %r, status = %r'
+        % (
+            action,
+            jobid,
+            status,
+        )
+    )
 
     if action == 'notification':
         assert None not in [jobid, runtime_lock_filepath]
