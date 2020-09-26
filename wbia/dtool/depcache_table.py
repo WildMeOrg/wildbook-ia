@@ -2052,67 +2052,63 @@ class DependencyCacheTable(
             num_total = len(parent_ids_)
 
             if num_dirty > 0:
-                with ut.Indenter('[ADD]', enabled=_debug):
-                    logger.debug(
-                        'Add %d / %d new rows to %r'
-                        % (num_dirty, num_total, table.tablename)
+                logger.debug(
+                    'Add %d / %d new rows to %r' % (num_dirty, num_total, table.tablename)
+                )
+                logger.debug(
+                    '[deptbl.add]  * config_rowid = {}, config={}'.format(
+                        config_rowid, str(config)
                     )
-                    logger.debug(
-                        '[deptbl.add]  * config_rowid = {}, config={}'.format(
-                            config_rowid, str(config)
-                        )
+                )
+
+                dirty_parent_ids_ = ut.compress(parent_ids_, isdirty_list)
+                dirty_preproc_args_ = ut.compress(preproc_args, isdirty_list)
+
+                # Process only unique items
+                unique_flags = ut.flag_unique_items(dirty_parent_ids_)
+                dirty_parent_ids = ut.compress(dirty_parent_ids_, unique_flags)
+                dirty_preproc_args = ut.compress(dirty_preproc_args_, unique_flags)
+
+                # Break iterator into chunks
+                if False and verbose:
+                    # check parent configs we are working with
+                    for x, parname in enumerate(table.parents()):
+                        if parname == table.depc.root:
+                            continue
+                        parent_table = table.depc[parname]
+                        ut.take_column(parent_ids_, x)
+                        rowid_list = ut.take_column(parent_ids_, x)
+                        try:
+                            parent_history = parent_table.get_config_history(rowid_list)
+                            logger.info('parent_history = %r' % (parent_history,))
+                        except KeyError:
+                            logger.info(
+                                '[depcache_table] WARNING: config history is having troubles... says Jon'
+                            )
+
+                # Gives the function a hacky cache to use between chunks
+                table._hack_chunk_cache = {}
+                gen = table._chunk_compute_dirty_rows(
+                    dirty_parent_ids, dirty_preproc_args, config_rowid, config
+                )
+                """
+                colnames, dirty_params_iter, nChunkInput = next(gen)
+                """
+                for colnames, dirty_params_iter, nChunkInput in gen:
+                    table.db._add(
+                        table.tablename,
+                        colnames,
+                        dirty_params_iter,
+                        nInput=nChunkInput,
                     )
 
-                    dirty_parent_ids_ = ut.compress(parent_ids_, isdirty_list)
-                    dirty_preproc_args_ = ut.compress(preproc_args, isdirty_list)
-
-                    # Process only unique items
-                    unique_flags = ut.flag_unique_items(dirty_parent_ids_)
-                    dirty_parent_ids = ut.compress(dirty_parent_ids_, unique_flags)
-                    dirty_preproc_args = ut.compress(dirty_preproc_args_, unique_flags)
-
-                    # Break iterator into chunks
-                    if False and verbose:
-                        # check parent configs we are working with
-                        for x, parname in enumerate(table.parents()):
-                            if parname == table.depc.root:
-                                continue
-                            parent_table = table.depc[parname]
-                            ut.take_column(parent_ids_, x)
-                            rowid_list = ut.take_column(parent_ids_, x)
-                            try:
-                                parent_history = parent_table.get_config_history(
-                                    rowid_list
-                                )
-                                logger.info('parent_history = %r' % (parent_history,))
-                            except KeyError:
-                                logger.info(
-                                    '[depcache_table] WARNING: config history is having troubles... says Jon'
-                                )
-
-                    # Gives the function a hacky cache to use between chunks
-                    table._hack_chunk_cache = {}
-                    gen = table._chunk_compute_dirty_rows(
-                        dirty_parent_ids, dirty_preproc_args, config_rowid, config
-                    )
-                    """
-                    colnames, dirty_params_iter, nChunkInput = next(gen)
-                    """
-                    for colnames, dirty_params_iter, nChunkInput in gen:
-                        table.db._add(
-                            table.tablename,
-                            colnames,
-                            dirty_params_iter,
-                            nInput=nChunkInput,
-                        )
-
-                    # Remove cache when main add is done
-                    table._hack_chunk_cache = None
-                    logger.debug('[deptbl.add] finished add')
-                    #
-                    # The requested data is clean and must now exist in the parent
-                    # database, do a lookup to ensure the correct order.
-                    rowid_list = table._get_rowid(parent_ids_, config=config)
+                # Remove cache when main add is done
+                table._hack_chunk_cache = None
+                logger.debug('[deptbl.add] finished add')
+                #
+                # The requested data is clean and must now exist in the parent
+                # database, do a lookup to ensure the correct order.
+                rowid_list = table._get_rowid(parent_ids_, config=config)
             else:
                 rowid_list = initial_rowid_list
             logger.debug('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
