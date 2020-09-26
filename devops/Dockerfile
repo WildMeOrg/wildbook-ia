@@ -6,6 +6,8 @@ RUN set -ex \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
+ && find /wbia/wildbook* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
+    'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
@@ -24,7 +26,9 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;    from wbia_kaggle7._plugin   import *" \
  && /virtualenv/env3/bin/python -c "import wbia_deepsense;  from wbia_deepsense._plugin import *" \
  && find /wbia/wbia* -name '*.a' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wbia* -name '*.so' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}'
+ && find /wbia/wbia* -name '*.so' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.a' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.so' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}'
 
 ##########################################################################################
 FROM wildme/wbia-base:latest as org.wildme.wbia.install
