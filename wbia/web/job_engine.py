@@ -1704,7 +1704,7 @@ def on_engine_request(
             if isinstance(ex, TypeError) and "unexpected keyword argument '{}'".format(
                 key
             ):
-                kwargs.pop(key, None)
+                kwargs.pop(key)
                 continue
             result = ut.formatex(ex, keys=['jobid'], tb=True)
             result = ut.strip_ansi(result)
