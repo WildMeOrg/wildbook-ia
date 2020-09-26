@@ -916,7 +916,7 @@ class JobInterface(object):
             num_registered, num_restarted = 0, 0
             num_completed, num_archived, num_suppressed, num_corrupted = 0, 0, 0, 0
 
-            for values in values_list:
+            for values in tqdm.tqdm(values_list):
                 (
                     jobcounter,
                     jobid,
