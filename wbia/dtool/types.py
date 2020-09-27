@@ -15,11 +15,11 @@ __all__ = (
     'List',
     'NDArray',
     'Number',
-    'TYPE_TO_SQLTYPE',
+    'SQL_TYPE_TO_SA_TYPE',
     'UUID',
 )
 
-
+# DDD (26-Sept-12020) Deprecated in favor of SQL_TYPE_TO_SA_TYPE
 TYPE_TO_SQLTYPE = {
     np.ndarray: 'NDARRAY',
     uuid.UUID: 'UUID',
@@ -179,3 +179,8 @@ class UUID(UserDefinedType):
                     return value
 
         return process
+
+
+_USER_DEFINED_TYPES = (Dict, List, NDArray, Number, UUID)
+# SQL type (e.g. 'DICT') to SQLAlchemy type:
+SQL_TYPE_TO_SA_TYPE = {cls().get_col_spec(): cls for cls in _USER_DEFINED_TYPES}
