@@ -413,6 +413,14 @@ class SQLDatabaseController(object):
         def __len__(self):
             return len(self.ctrlr.get_table_names()) + 1  # for 'database'
 
+    def __init_engine(self):
+        """Create the SQLAlchemy Engine"""
+        self._engine = sqlalchemy.create_engine(
+            self.uri,
+            # The echo flag is a shortcut to set up SQLAlchemy logging
+            echo=False,
+        )
+
     @classmethod
     def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
         """Creates a controller instance from a connection URI
@@ -446,6 +454,8 @@ class SQLDatabaseController(object):
         self.metadata = self.Metadata(self)
         self.readonly = readonly
 
+        self.__init_engine()
+
         self._tablenames = None
         # FIXME (31-Jul-12020) rename to private attribute
         self.thread_connections = {}
@@ -464,11 +474,6 @@ class SQLDatabaseController(object):
 
     def connect(self):
         """Create a connection for the instance or use the existing connection"""
-        # The echo flag is a shortcut to set up SQLAlchemy logging
-        self._engine = sqlalchemy.create_engine(
-            self.uri,
-            echo=False,
-        )
         self._connection = self._engine.connect()
         return self._connection
 
@@ -630,10 +635,9 @@ class SQLDatabaseController(object):
         logger.info('[sql] reboot')
         self.connection.close()
         del self.connection
-        self._engine = sqlalchemy.create_engine(
-            self.uri,
-            echo=False,
-        )
+        # Re-initialize the engine
+        # ??? May be better to use the `dispose()` method?
+        self.__init_engine()
         self.connection = self._engine.connect()
 
     def backup(self, backup_filepath):
