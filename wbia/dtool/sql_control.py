@@ -455,6 +455,10 @@ class SQLDatabaseController(object):
         self.readonly = readonly
 
         self.__init_engine()
+        # Create a _private_ SQLAlchemy metadata instance
+        # TODO (27-Sept-12020) Develop API to expose elements of SQLAlchemy.
+        #      The MetaData is unbound to ensure we don't accidentally misuse it.
+        self._sa_metadata = sqlalchemy.MetaData()
 
         self._tablenames = None
         # FIXME (31-Jul-12020) rename to private attribute
