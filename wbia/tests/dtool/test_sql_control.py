@@ -548,6 +548,19 @@ class TestExecutionAPI(BaseAPITestCase):
 
         assert result == [(i + 1, i) for i in range(0, 10)]
 
+    def test_executeone_without_results(self):
+        table_name = 'test_executeone'
+        self.make_table(table_name)
+
+        # Call the testing target
+        result = self.ctrlr.executeone(text(f'SELECT id, y FROM {table_name}'))
+
+        # Note, this breaks backwards compatiblity,
+        # where no results returned an empty list (i.e. `[]`).
+        # IMO returning None is correct,
+        # because that's the expectation from `fetchone`'s DBAPI spec.
+        assert result is None
+
     def test_executeone_on_insert(self):
         # Should return id after an insert
         table_name = 'test_executeone'
