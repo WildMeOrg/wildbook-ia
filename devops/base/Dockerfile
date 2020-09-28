@@ -81,11 +81,11 @@ RUN set -ex \
         pip \
  && /virtualenv/env3/bin/pip install --upgrade \
         # Install build requirements
-        cmake!=3.18.2 \
+        'cmake!=3.18.2' \
         ninja \
         scikit-build \
-        setuptools>=42 \
-        setuptools_scm[toml]>=3.4 \
+        'setuptools>=42' \
+        'setuptools_scm[toml]>=3.4' \
         cython \
         # Install OpenCV dependencies
         numpy \
