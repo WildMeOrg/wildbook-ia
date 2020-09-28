@@ -197,7 +197,9 @@ class SQLDatabaseController(object):
                     f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = :key'
                 )
                 try:
-                    return self.ctrlr.executeone(stmt, {'key': 'database_version'})[0]
+                    return self.ctrlr.executeone(
+                        stmt, {'key': 'database_version'}, use_fetchone_behavior=True
+                    )[0]
                 except TypeError:  # NoneType
                     return None
 
@@ -218,7 +220,9 @@ class SQLDatabaseController(object):
                     f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = :key'
                 )
                 try:
-                    value = self.ctrlr.executeone(stmt, {'key': 'database_init_uuid'})[0]
+                    value = self.ctrlr.executeone(
+                        stmt, {'key': 'database_init_uuid'}, use_fetchone_behavior=True
+                    )[0]
                 except TypeError:  # NoneType
                     return None
                 if value is not None:
@@ -289,7 +293,9 @@ class SQLDatabaseController(object):
                     'WHERE metadata_key = :key'
                 )
                 try:
-                    value = self.ctrlr.executeone(statement, {'key': key})[0]
+                    value = self.ctrlr.executeone(
+                        statement, {'key': key}, use_fetchone_behavior=True
+                    )[0]
                 except TypeError:  # NoneType
                     return None
                 if METADATA_TABLE_COLUMNS[name]['is_coded_data']:
@@ -1356,8 +1362,24 @@ class SQLDatabaseController(object):
     # SQLDB CORE
     # =========
 
-    def executeone(self, operation, params=(), eager=True, verbose=VERBOSE_SQL):
-        """Executes the given ``operation`` once with the given set of ``params``"""
+    def executeone(
+        self,
+        operation,
+        params=(),
+        eager=True,
+        verbose=VERBOSE_SQL,
+        use_fetchone_behavior=False,
+    ):
+        """Executes the given ``operation`` once with the given set of ``params``
+
+        Args:
+            operation (str|TextClause): SQL statement
+            params (sequence|dict): parameters to pass in with SQL execution
+            eager: [deprecated] no-op
+            verbose: [deprecated] no-op
+            use_fetchone_behavior (bool): Use DBAPI ``fetchone`` behavior when outputing no rows (i.e. None)
+
+        """
         if not isinstance(operation, ClauseElement):
             raise TypeError(
                 "'operation' needs to be a sqlalchemy textual sql instance "
@@ -1383,7 +1405,11 @@ class SQLDatabaseController(object):
                     for row in results
                 ]
             )
-            if not values:  # empty list
+            # FIXME (28-Sept-12020) No rows results in an empty list. This behavior does not
+            #       match the resulting expectations of `fetchone`'s DBAPI spec.
+            #       If executeone is the shortcut of `execute` and `fetchone`,
+            #       the expectation should be to return according to DBAPI spec.
+            if use_fetchone_behavior and not values:  # empty list
                 values = None
             return values
 
