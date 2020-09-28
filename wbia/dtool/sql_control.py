@@ -2280,6 +2280,10 @@ class SQLDatabaseController(object):
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
             >>> column_list, column_names = db.get_table_column_data(tablename)
+            >>> column_list
+            [[], [], [], [], []]
+            >>> column_names
+            ['keypoint_rowid', 'chip_rowid', 'config_rowid', 'kpts', 'num']
         """
         if columns is None:
             all_column_names = self.get_column_names(tablename)
@@ -2293,6 +2297,9 @@ class SQLDatabaseController(object):
             ]
         else:
             column_list = [self.get_column(tablename, name) for name in column_names]
+        # BBB (28-Sept-12020) The previous implementation of `executeone` returned []
+        #     rather than None for empty rows.
+        column_list = [x and x or [] for x in column_list]
         return column_list, column_names
 
     def make_json_table_definition(self, tablename):
