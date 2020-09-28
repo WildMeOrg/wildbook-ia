@@ -20,7 +20,7 @@ import sqlalchemy
 import utool as ut
 from deprecated import deprecated
 from sqlalchemy.schema import Table
-from sqlalchemy.sql import text, ClauseElement
+from sqlalchemy.sql import bindparam, text, ClauseElement
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
@@ -949,14 +949,20 @@ class SQLDatabaseController(object):
                                    (default: True)
 
         """
-        equal_conditions = [f'{c}=:{c}' for c in where_colnames]
-        where_conditions = f' {op} '.upper().join(equal_conditions)
+        table = self._reflect_table(tblname)
+        # Build the equality conditions using column type information.
+        # This allows us to bind the parameter with the correct type.
+        equal_conditions = [
+            (table.c[c] == bindparam(c, type_=table.c[c].type)) for c in where_colnames
+        ]
+        gate_func = {'and': sqlalchemy.and_, 'or': sqlalchemy.or_}[op.lower()]
+        where_clause = gate_func(*equal_conditions)
         params = [dict(zip(where_colnames, p)) for p in params_iter]
         return self.get_where(
             tblname,
             colnames,
             params,
-            where_conditions,
+            where_clause,
             unpack_scalars=unpack_scalars,
             **kwargs,
         )
@@ -1023,7 +1029,7 @@ class SQLDatabaseController(object):
             colnames (tuple[str]): sequence of column names
             params_iter (list[dict]): a sequence of dicts with parameters,
                                       where each item in the sequence is used in a SQL execution
-            where_clause (str): conditional statement used in the where clause
+            where_clause (str|Operation): conditional statement used in the where clause
             unpack_scalars (bool): [deprecated] use to unpack a single result from each query
                                    only use with operations that return a single result for each query
                                    (default: True)
@@ -1031,21 +1037,24 @@ class SQLDatabaseController(object):
         """
         if not isinstance(colnames, (tuple, list)):
             raise TypeError('colnames must be a sequence type of strings')
+        elif where_clause is not None:
+            if '?' in str(where_clause):  # cast in case it's an SQLAlchemy object
+                raise ValueError(
+                    "Statements cannot use '?' parameterization, "
+                    "use ':name' parameters instead."
+                )
+            elif isinstance(where_clause, str):
+                where_clause = text(where_clause)
 
-        # Build and execute the query
-        columns = ', '.join(colnames)
-        stmt = f'SELECT {columns} FROM {tblname}'
+        table = self._reflect_table(tblname)
+        stmt = sqlalchemy.select([table.c[c] for c in colnames])
+
         if where_clause is None:
-            val_list = self.executeone(text(stmt), **kwargs)
-        elif '?' in where_clause:
-            raise ValueError(
-                "Statements cannot use '?' parameterization, "
-                "use ':name' parameters instead."
-            )
+            val_list = self.executeone(stmt, **kwargs)
         else:
-            stmt += f' WHERE {where_clause}'
+            stmt = stmt.where(where_clause)
             val_list = self.executemany(
-                text(stmt),
+                stmt,
                 params_iter,
                 unpack_scalars=unpack_scalars,
                 eager=eager,
@@ -1361,7 +1370,7 @@ class SQLDatabaseController(object):
         # BBB (12-Sept-12020) Retaining insertion rowid result
         # FIXME postgresql (12-Sept-12020) This won't work in postgres.
         #       Maybe see if ResultProxy.inserted_primary_key will work
-        if 'insert' in operation.text.lower():
+        if 'insert' in str(operation).lower():  # cast in case it's an SQLAlchemy object
             # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
             return [results.lastrowid]
         elif not results.returns_rows:
