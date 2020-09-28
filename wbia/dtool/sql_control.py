@@ -770,13 +770,28 @@ class SQLDatabaseController(object):
 
     def _add(self, tblname, colnames, params_iter, unpack_scalars=True, **kwargs):
         """ ADDER NOTE: use add_cleanly """
-        columns = ', '.join(colnames)
-        column_params = ', '.join(f':{col}' for col in colnames)
         parameterized_values = [
             {col: val for col, val in zip(colnames, params)} for params in params_iter
         ]
-        stmt = text(f'INSERT INTO {tblname} ({columns}) VALUES ({column_params})')
-        return self.executemany(stmt, parameterized_values, unpack_scalars=unpack_scalars)
+        table = self._reflect_table(tblname)
+
+        # It would be possible to do one insert,
+        # but SQLite is not capable of returning the primary key value after a multi-value insert.
+        # Thus, we are stuck doing several inserts... ineffecient.
+        insert_stmt = sqlalchemy.insert(table)
+
+        primary_keys = []
+        with self.connection.begin():  # new nested database transaction
+            for vals in parameterized_values:
+                result = self.connection.execute(insert_stmt.values(vals))
+
+                pk = result.inserted_primary_key
+                if unpack_scalars:
+                    # Assumption at the time of writing this is that the primary key is the SQLite rowid.
+                    # Therefore, we can assume the primary key is a single column value.
+                    pk = pk[0]
+                primary_keys.append(pk)
+        return primary_keys
 
     def add_cleanly(
         self,
