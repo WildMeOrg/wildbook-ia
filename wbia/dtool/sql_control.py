@@ -460,6 +460,9 @@ class SQLDatabaseController(object):
         #      The MetaData is unbound to ensure we don't accidentally misuse it.
         self._sa_metadata = sqlalchemy.MetaData()
 
+        # Reflect all known tables
+        self._sa_metadata.reflect(bind=self._engine)
+
         self._tablenames = None
         # FIXME (31-Jul-12020) rename to private attribute
         self.thread_connections = {}
