@@ -166,7 +166,7 @@ RUN set -ex \
         tensorboard-plugin-wit \
         keras \
  && /virtualenv/env3/bin/pip install \
-        tensorflow-gpu==1.15 \
+        tensorflow-gpu==1.15.4 \
         keras==2.2.5
 
 # Restore copy of our build OpenCV
