@@ -19,6 +19,7 @@ import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
+from sqlalchemy.schema import Table
 from sqlalchemy.sql import text, ClauseElement
 
 from wbia.dtool import lite
@@ -710,6 +711,14 @@ class SQLDatabaseController(object):
         logger.info('[sql] squeeze')
         self.shrink_memory()
         self.vacuum()
+
+    def _reflect_table(self, table_name):
+        """Produces a SQLAlchemy Table object from the given ``table_name``"""
+        # Note, this on introspects once. Repeated calls will pull the Table object
+        # from the MetaData object.
+        return Table(
+            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine
+        )
 
     # ==============
     # API INTERFACE
