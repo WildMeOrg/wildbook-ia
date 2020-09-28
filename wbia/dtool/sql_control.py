@@ -2995,25 +2995,9 @@ class SQLDatabaseController(object):
         # ut.cmd(sqlite3_reader, sqlite3_db_fpath)
         pass
 
+    @deprecated("Use 'self.metadata.database.version = version' instead")
     def set_db_version(self, version):
-        # Do things properly, get the metadata_rowid (best because we want to assert anyway)
-        metadata_key_list = ['database_version']
-        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-        where_clause = 'metadata_key=?'
-        # list of relationships for each image
-        metadata_rowid_list = self.get_where(
-            METADATA_TABLE_NAME,
-            ('metadata_rowid',),
-            params_iter,
-            where_clause,
-            unpack_scalars=True,
-        )
-        assert (
-            len(metadata_rowid_list) == 1
-        ), 'duplicate database_version keys in database'
-        id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
-        val_list = ((_,) for _ in [version])
-        self.set(METADATA_TABLE_NAME, ('metadata_value',), val_list, id_iter)
+        self.metadata.database.version = version
 
     def get_sql_version(self):
         """ Conveinience """
