@@ -26,3 +26,4 @@ from wbia.dtool.depcache_table import ExternalStorageException, ExternType
 from wbia.dtool.base import *  # NOQA
 from wbia.dtool.sql_control import SQLDatabaseController
 from wbia.dtool.types import TYPE_TO_SQLTYPE
+import wbia.dtool.events
