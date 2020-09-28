@@ -20,6 +20,26 @@ def ctrlr():
     return SQLDatabaseController.from_uri('sqlite:///:memory:')
 
 
+def make_table_definition(name, depends_on=[]):
+    """Creates a table definition for use with the controller's add_table method"""
+    definition = {
+        'tablename': name,
+        'coldef_list': [
+            (f'{name}_id', 'INTEGER PRIMARY KEY'),
+            ('meta_labeler_id', 'INTEGER NOT NULL'),
+            ('indexer_id', 'INTEGER NOT NULL'),
+            ('config_id', 'INTEGER DEFAULT 0'),
+            ('data', 'TEXT'),
+        ],
+        'docstr': f'docstr for {name}',
+        'superkeys': [
+            ('meta_labeler_id', 'indexer_id', 'config_id'),
+        ],
+        'dependson': depends_on,
+    }
+    return definition
+
+
 def test_instantiation(ctrlr):
     # Check for basic connection information
     assert ctrlr.uri == 'sqlite:///:memory:'
@@ -30,6 +50,37 @@ def test_instantiation(ctrlr):
     assert not ctrlr.connection.closed
 
 
+def test_instantiation_with_table_reflection(tmp_path):
+    db_file = (tmp_path / 'testing.db').resolve()
+    creating_ctrlr = SQLDatabaseController.from_uri(f'sqlite:///{db_file}')
+    # Assumes `add_table` is functional. If you run into failing problems
+    # check for failures around this method first.
+    created_tables = []
+    table_names = map(
+        'table_{}'.format,
+        (
+            'a',
+            'b',
+            'c',
+        ),
+    )
+    for t in table_names:
+        creating_ctrlr.add_table(**make_table_definition(t, depends_on=created_tables))
+        # Build up of denpendence
+        created_tables.append(t)
+
+    # Delete the controller
+    del creating_ctrlr
+
+    # Create the controller again for reflection (testing target)
+    ctrlr = SQLDatabaseController.from_uri(f'sqlite:///{db_file}')
+    # Verify the tables are loaded on instantiation
+    assert list(ctrlr._sa_metadata.tables.keys()) == ['metadata'] + created_tables
+    # Note, we don't have to check for the contents of the tables,
+    # because that's machinery within SQLAlchemy,
+    # which will have been tested by SQLAlchemy.
+
+
 class TestSchemaModifiers:
     """Testing the API that creates, modifies or deletes schema elements"""
 
@@ -37,24 +88,7 @@ class TestSchemaModifiers:
     def fixture(self, ctrlr):
         self.ctrlr = ctrlr
 
-    def make_table_definition(self, name, depends_on=[]):
-        """Creates a table definition for use with the controller's add_table method"""
-        definition = {
-            'tablename': name,
-            'coldef_list': [
-                (f'{name}_id', 'INTEGER PRIMARY KEY'),
-                ('meta_labeler_id', 'INTEGER NOT NULL'),
-                ('indexer_id', 'INTEGER NOT NULL'),
-                ('config_id', 'INTEGER DEFAULT 0'),
-                ('data', 'TEXT'),
-            ],
-            'docstr': f'docstr for {name}',
-            'superkeys': [
-                ('meta_labeler_id', 'indexer_id', 'config_id'),
-            ],
-            'dependson': depends_on,
-        }
-        return definition
+    make_table_definition = staticmethod(make_table_definition)
 
     @property
     def _table_factory(self):
