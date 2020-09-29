@@ -1182,13 +1182,14 @@ class SQLDatabaseController(object):
                 where_clause = None
                 params_iter = []
             else:
-                where_clause = text(id_colname + ' = :id')
+                id_param_name = '_identifier'
+                where_clause = text(id_colname + f' = :{id_param_name}')
                 if id_colname != 'rowid':  # b/c rowid doesn't really exist as a column
                     column = self._reflect_table(tblname).c[id_colname]
                     where_clause = where_clause.bindparams(
-                        bindparam('id', type_=column.type)
+                        bindparam(id_param_name, type_=column.type)
                     )
-                params_iter = [{'id': id} for id in id_iter]
+                params_iter = [{id_param_name: id} for id in id_iter]
 
             return self.get_where(
                 tblname, colnames, params_iter, where_clause, eager=eager, **kwargs
@@ -1320,17 +1321,20 @@ class SQLDatabaseController(object):
             id_list = [x[0] for x in id_list]
 
         # Execute the SQL updates for each set of values
+        id_param_name = '_identifier'
         table = self._reflect_table(tblname)
         stmt = table.update().values(
             **{col: bindparam(f'e{i}') for i, col in enumerate(colnames)}
         )
-        where_clause = text(id_colname + ' = :id')
+        where_clause = text(id_colname + f' = :{id_param_name}')
         if id_colname != 'rowid':  # b/c rowid doesn't really exist as a column
             id_column = table.c[id_colname]
-            where_clause = where_clause.bindparams(bindparam('id', type_=id_column.type))
+            where_clause = where_clause.bindparams(
+                bindparam(id_param_name, type_=id_column.type)
+            )
         stmt = stmt.where(where_clause)
         for i, id in enumerate(id_list):
-            params = {'id': id}
+            params = {id_param_name: id}
             params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
             self.connection.execute(stmt, **params)
 
