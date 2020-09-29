@@ -65,5 +65,5 @@ wbia-pyflann >= 3.1.0
 wbia-pyhesaff >= 3.0.2
 wbia-pyrf >= 3.0.0
 
-wbia-utool >= 3.3.0
+wbia-utool >= 3.3.1
 wbia-vtool >= 3.2.1
