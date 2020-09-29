@@ -224,7 +224,12 @@ def update_1_0_0(db, ibs=None):
             ('feature_keypoints', 'NUMPY'),
             ('feature_sifts', 'NUMPY'),
         ),
-        superkeys=[('chip_rowid, config_rowid',)],
+        superkeys=[
+            (
+                'chip_rowid',
+                'config_rowid',
+            )
+        ],
         docstr="""
         Used to store individual chip features (ellipses)""",
     )
