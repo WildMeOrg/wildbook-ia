@@ -1308,6 +1308,17 @@ class SQLDatabaseController(object):
             ut.printex(ex, key_list=['num_val', 'num_id'])
             raise
 
+        # BBB (28-Sept-12020) This method's usage throughout the codebase allows
+        #     for items in `val_iter` to be a non-sequence value.
+        has_unsequenced_values = val_list and not isinstance(val_list[0], (tuple, list))
+        if has_unsequenced_values:
+            val_list = [(v,) for v in val_list]
+        # BBB (28-Sept-12020) This method's usage throughout the codebase allows
+        #     for items in `id_iter` to be a tuple of one value.
+        has_sequenced_ids = id_list and isinstance(id_list[0], (tuple, list))
+        if has_sequenced_ids:
+            id_list = [x[0] for x in id_list]
+
         # Execute the SQL updates for each set of values
         table = self._reflect_table(tblname)
         stmt = table.update().values(
