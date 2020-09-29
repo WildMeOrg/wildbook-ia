@@ -1309,9 +1309,15 @@ class SQLDatabaseController(object):
             raise
 
         # Execute the SQL updates for each set of values
-        assignments = ', '.join([f'{col} = :e{i}' for i, col in enumerate(colnames)])
-        where_condition = f'{id_colname} = :id'
-        stmt = text(f'UPDATE {tblname} SET {assignments} WHERE {where_condition}')
+        table = self._reflect_table(tblname)
+        stmt = table.update().values(
+            **{col: bindparam(f'e{i}') for i, col in enumerate(colnames)}
+        )
+        where_clause = text(id_colname + ' = :id')
+        if id_colname != 'rowid':  # b/c rowid doesn't really exist as a column
+            id_column = table.c[id_colname]
+            where_clause = where_clause.bindparams(bindparam('id', type_=id_column.type))
+        stmt = stmt.where(where_clause)
         for i, id in enumerate(id_list):
             params = {'id': id}
             params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
