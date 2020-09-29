@@ -1182,7 +1182,12 @@ class SQLDatabaseController(object):
                 where_clause = None
                 params_iter = []
             else:
-                where_clause = id_colname + ' = :id'
+                where_clause = text(id_colname + ' = :id')
+                if id_colname != 'rowid':  # b/c rowid doesn't really exist as a column
+                    column = self._reflect_table(tblname).c[id_colname]
+                    where_clause = where_clause.bindparams(
+                        bindparam('id', type_=column.type)
+                    )
                 params_iter = [{'id': id} for id in id_iter]
 
             return self.get_where(
