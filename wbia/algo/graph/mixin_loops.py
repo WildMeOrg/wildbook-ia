@@ -254,7 +254,7 @@ class InfrLoops(object):
         """
         maybe_error_edges = list(infr.maybe_error_edges())
         if len(maybe_error_edges) == 0:
-            raise StopIteration()
+            return
         infr.print('============================', color='white')
         infr.print('--- INCON RECOVER LOOP ---', color='white')
         infr.queue.clear()
