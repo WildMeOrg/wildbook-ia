@@ -1817,16 +1817,18 @@ class SQLDatabaseController(object):
             return [None] * len(x)
 
         self.add_cleanly(tablename_temp, dst_list, data_list, get_rowid_from_superkey)
-        if tablename_new is None:
+        if tablename_new is None:  # i.e. not renaming the table
             # Drop original table
-            self.drop_table(tablename)
+            self.drop_table(tablename, invalidate_cache=False)
             # Rename temp table to original table name
-            self.rename_table(tablename_temp, tablename)
+            self.rename_table(tablename_temp, tablename, invalidate_cache=False)
         else:
             # Rename new table to new name
-            self.rename_table(tablename_temp, tablename_new)
+            self.rename_table(tablename_temp, tablename_new, invalidate_cache=False)
+        # Any modifications are going to invalidate the cached tables.
+        self.invalidate_tables_cache()
 
-    def rename_table(self, tablename_old, tablename_new):
+    def rename_table(self, tablename_old, tablename_new, invalidate_cache=True):
         logger.info(
             '[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new)
         )
@@ -1849,8 +1851,10 @@ class SQLDatabaseController(object):
         self.set(
             METADATA_TABLE_NAME, colnames, val_iter, id_iter, id_colname='metadata_key'
         )
+        if invalidate_cache:
+            self.invalidate_tables_cache()
 
-    def drop_table(self, tablename):
+    def drop_table(self, tablename, invalidate_cache=True):
         logger.info('[sql] schema dropping tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
@@ -1861,6 +1865,8 @@ class SQLDatabaseController(object):
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
         self.delete(METADATA_TABLE_NAME, key_list, id_colname='metadata_key')
+        if invalidate_cache:
+            self.invalidate_tables_cache()
 
     def drop_all_tables(self):
         """
@@ -1869,8 +1875,8 @@ class SQLDatabaseController(object):
         self._tablenames = None
         for tablename in self.get_table_names():
             if tablename != 'metadata':
-                self.drop_table(tablename)
-        self._tablenames = None
+                self.drop_table(tablename, invalidate_cache=False)
+        self.invalidate_tables_cache()
 
     # ==============
     # CONVINENCE
@@ -2116,6 +2122,15 @@ class SQLDatabaseController(object):
                     col = (col_name, col_type, col_null, col_default, col_key)
                     file_.write('\t%s%s%s%s%s\n' % col)
         ut.view_directory(app_resource_dir)
+
+    def invalidate_tables_cache(self):
+        """Invalidates the controller's cache of table names and objects
+        Resets the caches and/or repopulates them.
+
+        """
+        self._tablenames = None
+        self._sa_metadata = sqlalchemy.MetaData()
+        self.get_table_names()
 
     def get_table_names(self, lazy=False):
         """ Conveinience: """
