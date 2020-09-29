@@ -426,10 +426,13 @@ def update_schema_version(
             pre, update, post = db_versions[next_version]
             if pre is not None:
                 pre(db, ibs=ibs)
+                db.invalidate_tables_cache()
             if update is not None:
                 update(db, ibs=ibs)
+                db.invalidate_tables_cache()
             if post is not None:
                 post(db, ibs=ibs)
+                db.invalidate_tables_cache()
             _check_superkeys()
     except Exception as ex:
         if dobackup:
