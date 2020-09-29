@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         # For speed, we choose one version and that should be the lowest common denominator
-        python-version: [3.6]
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
       # Checkout and env setup
@@ -41,13 +41,12 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --statistics
 
   test:
-    name: Testing on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest] # Disable "macos-latest" for now
         # For speed, we choose one version and that should be the lowest common denominator
-        python-version: [3.6]
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
       # Checkout and env setup
