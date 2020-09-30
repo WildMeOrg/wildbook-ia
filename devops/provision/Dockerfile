@@ -24,10 +24,7 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyhesaff.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pydarknet.git \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyrf.git \
- # Depricated
- && git clone --branch develop https://github.com/WildbookOrg/wbia-deprecate-tpl-brambox \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-deprecate-tpl-lightnet
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyrf.git
 
 # Clone first-party WBIA plug-in repositories
 RUN set -ex \
@@ -91,15 +88,6 @@ RUN set -ex \
  && cd /wbia/wbia-tpl-pyrf \
  && /bin/bash run_developer_setup.sh'
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-deprecate-tpl-brambox \
- && pip install -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-deprecate-tpl-lightnet \
- && /virtualenv/env3/bin/pip install -r develop.txt \
- && pip install -e .'
-
 # Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
@@ -155,9 +143,6 @@ RUN set -ex \
         plottool \
         utool \
         vtool \
- && /virtualenv/env3/bin/pip uninstall -y \
-        lightnet \
-        brambox \
  && /virtualenv/env3/bin/pip uninstall -y \
         tensorflow \
         tensorflow-gpu \
