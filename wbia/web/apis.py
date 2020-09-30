@@ -124,6 +124,7 @@ def annot_src_api(rowid=None, fresh=False, **kwargs):
     Returns the image file of annot <aid>
 
     Example:
+        >>> # xdoctest: +REQUIRES(--slow)
         >>> # WEB_DOCTEST
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
@@ -171,6 +172,7 @@ def background_src_api(rowid=None, fresh=False, **kwargs):
     Returns the image file of annot <aid>
 
     Example:
+        >>> # xdoctest: +REQUIRES(--slow)
         >>> # WEB_DOCTEST
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia

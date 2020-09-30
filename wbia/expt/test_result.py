@@ -560,6 +560,7 @@ class TestResult(ut.NiceRepr):
             ut.lmap(sum, ut.apply_grouping([len(ut.unique(ibs.annots(aids))) for aids in testres.cfgx2_qaids], testres.get_cfgx_groupxs()))
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.expt.test_result import *  # NOQA
             >>> from wbia.init import main_helpers
@@ -1938,6 +1939,7 @@ class TestResult(ut.NiceRepr):
             python -m wbia.expt.test_result --exec-get_truth2_prop --show
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.expt.test_result import *  # NOQA
             >>> import wbia

@@ -217,6 +217,7 @@ class _ChipMatchVisualization(object):
             python -m wbia --tf _ChipMatchVisualization.show_single_namematch --show --rank=2 --qaid=1 --save rank2.jpg
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> import wbia
@@ -341,6 +342,7 @@ class _ChipMatchVisualization(object):
             python -m wbia.algo.hots.chip_match show_single_annotmatch --show --qaids=5245 --daids=5161 --db PZ_Master1
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
@@ -352,6 +354,7 @@ class _ChipMatchVisualization(object):
             >>> ut.show_if_requested()
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> # Make sure we can show results against an aid that wasn't matched
@@ -549,6 +552,7 @@ class _ChipMatchVisualization(object):
             python -m wbia.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> qaid = 18
@@ -857,6 +861,7 @@ class _ChipMatchScorers(object):
             python -m wbia.algo.hots.chip_match --test-score_annot_csum --show --qaid 18
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver()

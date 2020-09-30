@@ -67,7 +67,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m wbia.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn, --slow)
         >>> from wbia.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> pblm.hyper_params['xval_kw']['n_splits'] = 10

@@ -27,7 +27,7 @@ class MatchInteraction2(BASE_CLASS):
 
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:wbia)
+        >>> # xdoctest: +REQUIRES(module:wbia, --slow)
         >>> from wbia.plottool.interact_matches import *  # NOQA
         >>> import wbia
         >>> # build test data

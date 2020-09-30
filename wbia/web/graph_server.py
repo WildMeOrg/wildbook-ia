@@ -177,7 +177,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
 
     Doctest:
-        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn, --slow)
         >>> from wbia.web.graph_server import *
         >>> import wbia
         >>> actor = GraphActor()

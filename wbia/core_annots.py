@@ -891,7 +891,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         rowid_kw = dict(config=config)
 
     Doctest:
-        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn, --slow)
         >>> from wbia.core_annots import *  # NOQA
         >>> import wbia.plottool as pt
         >>> ibs, depc, aid_list = testdata_core()

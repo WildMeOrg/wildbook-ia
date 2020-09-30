@@ -371,6 +371,7 @@ class SMK(ut.NiceRepr):
             python -m wbia SMK.match_single -a ctrl --profile --db GZ_ALL
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # FUTURE_ENABLE
             >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
             >>> import wbia
