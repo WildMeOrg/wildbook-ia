@@ -44,6 +44,7 @@ class InfrLoops(object):
             python -m wbia.algo.graph.mixin_loops main_gen
 
         Doctest:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> from wbia.algo.graph.mixin_loops import *
             >>> from wbia.algo.graph.mixin_simulation import UserOracle
             >>> import wbia

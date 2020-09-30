@@ -296,7 +296,7 @@ class PairwiseFeatureExtractor(object):
         object (feature corresopndences) doesnt directly provide.
 
         Example:
-            >>> # xdoctest: +REQUIRES(module:wbia_cnn)
+            >>> # xdoctest: +REQUIRES(module:wbia_cnn, --slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.verif.pairfeat import *  # NOQA
             >>> import wbia

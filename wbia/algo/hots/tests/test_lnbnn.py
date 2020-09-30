@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
+import sys  # noqa
+
 import utool as ut
+import pytest
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+@pytest.mark.skipif("'--slow' not in sys.argv")
 def test_lnbnn():
     import wbia
 

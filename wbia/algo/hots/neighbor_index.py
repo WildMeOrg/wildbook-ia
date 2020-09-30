@@ -136,6 +136,7 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         output depth_profile = [(8, 16), 1, 8, 8]
 
     Example:
+        >>> # xdoctest: +REQUIRES(--slow)
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> import wbia

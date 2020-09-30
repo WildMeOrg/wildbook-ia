@@ -395,6 +395,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         Compute a per-word weight like idf
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()
@@ -432,6 +433,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
     def compute_gammas(inva, alpha, thresh):
         """
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.smk.inverted_index import *  # NOQA
             >>> qreq_, inva = testdata_inva()

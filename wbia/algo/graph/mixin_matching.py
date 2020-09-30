@@ -258,6 +258,7 @@ class AnnotInfrMatching(object):
             python -m wbia.algo.graph.core _cm_training_pairs
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
@@ -366,6 +367,7 @@ class AnnotInfrMatching(object):
             python -m wbia.algo.graph.core apply_match_scores --show
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
@@ -448,7 +450,7 @@ class InfrLearning(object):
             python -m wbia.algo.graph.mixin_matching learn_evaluation_verifiers
 
         Doctest:
-            >>> # xdoctest: +REQUIRES(module:wbia_cnn)
+            >>> # xdoctest: +REQUIRES(module:wbia_cnn, --slow)
             >>> import wbia
             >>> infr = wbia.AnnotInference(
             >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',
@@ -742,6 +744,7 @@ class CandidateSearch(_RedundancyAugmentation):
         """
 
         Example:
+            >>> # xdoctest: +REQUIRES(--slow)
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
