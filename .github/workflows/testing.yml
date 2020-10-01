@@ -70,4 +70,4 @@ jobs:
         run: |
           mkdir -p data/work
           python -m wbia --set-workdir data/work --preload-exit
-          pytest
+          pytest --slow
