@@ -259,6 +259,7 @@ class ChipConfig(dtool.Config):
         # ---
         ut.ParamInfo('histeq', False, hideif=False),
         ut.ParamInfo('greyscale', False, hideif=False),
+        ut.ParamInfo('flip_horizontal', False, hideif=False),
         # ---
         ut.ParamInfo('adapteq', False, hideif=False),
         ut.ParamInfo('adapteq_ksize', 16, hideif=lambda cfg: not cfg['adapteq']),
@@ -369,6 +370,7 @@ def gen_chip_configure_and_compute(
     resize_dim = config['resize_dim']
     axis_aligned = config['axis_aligned']
     greyscale = config['greyscale']
+    flip_horizontal = config['flip_horizontal']
     # cfghashid = config.get_hashid()
 
     if axis_aligned:
@@ -501,6 +503,8 @@ def gen_chip_configure_and_compute(
         for chipBGR, width, height, M in gen:
             if greyscale:
                 chipBGR = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2GRAY)
+            if flip_horizontal:
+                chipBGR = cv2.flip(chipBGR, 1)
             yield chipBGR, width, height, M
     else:
         # arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
@@ -526,6 +530,8 @@ def gen_chip_configure_and_compute(
             width, height = vt.get_size(chipBGR)
             if greyscale:
                 chipBGR = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2GRAY)
+            if flip_horizontal:
+                chipBGR = cv2.flip(chipBGR, 1)
             yield (chipBGR, width, height, M)
 
 
