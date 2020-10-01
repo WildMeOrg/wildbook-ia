@@ -489,28 +489,28 @@ def localizer_lightnet_train(
 
     """
     x = (
-        'CUDA_VISIBLE_DEVICES=3 ',
-        '/home/jason.parham/virtualenv/wildme3.6/bin/python',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup',
+        'CUDA_VISIBLE_DEVICES=0 ',
+        '/virtualenv/env3/bin/python',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin/test.py',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg/yolo.py',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/results.txt',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/backup',
         True,
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/deploy',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/deploy',
         True,
         None,
         False,
         True,
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/data',
-        '/data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/darknet19_448.conv.23.pt',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/data',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/darknet19_448.conv.23.pt',
         'wilddog'
     )
 
     cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str = x
 
-    call_str = 'CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/bin/test.py -c -n /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/cfg/yolo.py --results /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/results.txt /data/wbia/WD_Master/_ibsdb/_wbia_cache/training/lightnet/lightnet-training-wilddog-8eb77cb02b66e9d6/backup/*'
+    call_str = 'CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin/test.py -c -n /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg/yolo.py --results /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/results.txt /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/backup/*'
     """
 
     # Call testing

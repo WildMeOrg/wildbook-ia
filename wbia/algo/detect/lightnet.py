@@ -39,6 +39,7 @@ CONFIG_URL_DICT = {
     'rightwhale_v2': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v2.py',
     'rightwhale_v3': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v3.py',
     'rightwhale_v4': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v4.py',
+    'rightwhale_v5': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v5.py',
     'jaguar_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v1.py',
     'jaguar_v2': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v2.py',
     'jaguar': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v2.py',
