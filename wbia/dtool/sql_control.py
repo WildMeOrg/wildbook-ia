@@ -1334,6 +1334,8 @@ class SQLDatabaseController(object):
             )
         stmt = stmt.where(where_clause)
         for i, id in enumerate(id_list):
+            if id_colname == 'rowid':
+                id = int(id)
             params = {id_param_name: id}
             params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
             self.connection.execute(stmt, **params)
