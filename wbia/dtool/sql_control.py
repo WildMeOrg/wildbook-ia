@@ -1512,9 +1512,9 @@ class SQLDatabaseController(object):
             'tablename': METADATA_TABLE_NAME,
             'columns': 'metadata_key, metadata_value',
         }
-        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-        operation = op_fmtstr.format(**fmtkw)
-        params = [key, val]
+        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (:key, :val)'
+        operation = text(op_fmtstr.format(**fmtkw))
+        params = {'key': key, 'val': val}
         self.executeone(operation, params, verbose=False)
 
     @deprecated('Use metadata property instead')

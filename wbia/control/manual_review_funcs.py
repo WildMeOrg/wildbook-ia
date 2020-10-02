@@ -612,12 +612,11 @@ def get_review_rowids_from_single(ibs, aid_list, eager=True, nInput=None):
 def get_review_rowids_from_aid1(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID1,)
-    review_rowids = ibs.staging.get_where(
+    review_rowids = ibs.staging.get_where_eq(
         const.REVIEW_TABLE,
         colnames,
         params_iter,
-        where_clause=where_clause,
+        (REVIEW_AID1,),
         unpack_scalars=False,
     )
     return review_rowids
@@ -627,12 +626,11 @@ def get_review_rowids_from_aid1(ibs, aid_list, eager=True, nInput=None):
 def get_review_rowids_from_aid2(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID2,)
-    review_rowids = ibs.staging.get_where(
+    review_rowids = ibs.staging.get_where_eq(
         const.REVIEW_TABLE,
         colnames,
         params_iter,
-        where_clause=where_clause,
+        (REVIEW_AID2,),
         unpack_scalars=False,
     )
     return review_rowids
