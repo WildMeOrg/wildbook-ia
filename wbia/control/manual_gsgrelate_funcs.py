@@ -173,10 +173,13 @@ def get_gsgr_rowid_from_superkey(ibs, gid_list, imgsetid_list):
     Returns:
         gsgrid_list (list):  eg-relate-ids from info constrained to be unique (imgsetid, gid)"""
     colnames = ('image_rowid',)
+    where_colnames = ('image_rowid', 'imageset_rowid')
     params_iter = zip(gid_list, imgsetid_list)
-    where_clause = 'image_rowid=? AND imageset_rowid=?'
-    gsgrid_list = ibs.db.get_where(
-        const.GSG_RELATION_TABLE, colnames, params_iter, where_clause
+    gsgrid_list = ibs.db.get_where_eq(
+        const.GSG_RELATION_TABLE,
+        colnames,
+        params_iter,
+        where_colnames,
     )
     return gsgrid_list
 
