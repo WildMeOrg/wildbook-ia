@@ -1397,6 +1397,7 @@ class SQLDatabaseController(object):
         eager=True,
         verbose=VERBOSE_SQL,
         use_fetchone_behavior=False,
+        keepwrap=False,
     ):
         """Executes the given ``operation`` once with the given set of ``params``
 
@@ -1429,7 +1430,7 @@ class SQLDatabaseController(object):
             values = list(
                 [
                     # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
-                    row[0] if len(row) == 1 else row
+                    row[0] if not keepwrap and len(row) == 1 else row
                     for row in results
                 ]
             )
@@ -1441,7 +1442,9 @@ class SQLDatabaseController(object):
                 values = None
             return values
 
-    def executemany(self, operation, params_iter, unpack_scalars=True, **kwargs):
+    def executemany(
+        self, operation, params_iter, unpack_scalars=True, keepwrap=False, **kwargs
+    ):
         """Executes the given ``operation`` once for each item in ``params_iter``
 
         Args:
@@ -1463,7 +1466,7 @@ class SQLDatabaseController(object):
         results = []
         with self.connection.begin():
             for params in params_iter:
-                value = self.executeone(operation, params)
+                value = self.executeone(operation, params, keepwrap=keepwrap)
                 # Should only be used when the user wants back on value.
                 # Let the error bubble up if used wrong.
                 # Deprecated... Do not depend on the unpacking behavior.
