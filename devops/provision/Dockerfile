@@ -39,7 +39,10 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-flukematch.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-deepsense.git \
- && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-pie.git
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-pie.git \
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-lca.git
+
+# git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-2d-orientation.git
 
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
@@ -55,9 +58,6 @@ RUN set -ex \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git fetch origin \
  && git checkout develop
-
-# git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-2d-orientation.git
-# git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-lca.git
 
 # WBIA Toolkits
 RUN set -ex \
@@ -124,6 +124,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
+ && pip install -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-lca \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
