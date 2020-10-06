@@ -68,6 +68,7 @@ ARCHIVE_URL_DICT = {
     'right_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v0.zip',
     'whale_shark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_shark.v0.zip',
     'flukebook_v1': 'https://wildbookiarepository.azureedge.net/models/classifier2.flukebook.v1.zip',
+    'rightwhale_v5': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v5.zip',
 }
 
 
