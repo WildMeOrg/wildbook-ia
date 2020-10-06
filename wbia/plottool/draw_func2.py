@@ -2738,7 +2738,7 @@ def customize_colormap(data, base_colormap):
 
     sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
-    sm.set_clim(-0.5, extent_ + 0.5)
+    # sm.set_clim(-0.5, extent_ + 0.5)
     # colorbar = plt.colorbar(sm)
 
     return cmap

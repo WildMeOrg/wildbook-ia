@@ -337,7 +337,7 @@ def general_confusion_matrix_algo(
             )
 
     cb = fig_.colorbar(res)  # NOQA
-    cb.set_clim(0.0, 1.0)
+    # cb.set_clim(0.0, 1.0)
     plt.xticks(np.arange(num_categories), category_list, rotation=90)
     plt.yticks(np.arange(num_categories), category_list)
     margin_small = 0.1
