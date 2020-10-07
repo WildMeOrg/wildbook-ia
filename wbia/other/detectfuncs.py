@@ -3322,7 +3322,7 @@ def labeler_precision_recall_algo_display(
     **kwargs,
 ):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    from wbia import plottool as pt
 
     if category_list is None:
 
@@ -3622,7 +3622,7 @@ def canonical_confusion_matrix_algo_plot(
 @register_ibs_method
 def canonical_precision_recall_algo_display(ibs, figsize=(20, 20)):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    from wbia import plottool as pt
 
     fig_ = plt.figure(figsize=figsize, dpi=400)
 
@@ -4055,7 +4055,7 @@ def canonical_localization_iou_visualize(
 @register_ibs_method
 def canonical_localization_precision_recall_algo_display(ibs, figsize=(20, 40)):
     import matplotlib.pyplot as plt
-    import plottool as pt
+    from wbia import plottool as pt
 
     fig_ = plt.figure(figsize=figsize, dpi=400)  # NOQA
 

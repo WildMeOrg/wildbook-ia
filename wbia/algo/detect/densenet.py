@@ -436,7 +436,7 @@ def train(
     batch_size=48,
     class_weights={},
     multi=PARALLEL,
-    sample_multiplier=2.0,
+    sample_multiplier=4.0,
     allow_missing_validation_classes=False,
     **kwargs,
 ):
