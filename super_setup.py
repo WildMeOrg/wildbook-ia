@@ -14,25 +14,33 @@ from os.path import abspath
 import click
 import ubelt as ub
 
+import logging
+import os
+
+
+logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
+
 
 REPOS = [
     # (<repo-on-github>, <checkout-name>, <branch>)
-    ('WildbookOrg/wbia-tpl-brambox', 'wbia-tpl-brambox', 'master'),
-    ('WildbookOrg/wbia-tpl-pyflann', 'wbia-tpl-pyflann', 'master'),
-    ('WildbookOrg/wbia-tpl-pyhesaff', 'wbia-tpl-pyhesaff', 'master'),
     ('WildbookOrg/wildbook-ia', 'wildbook-ia', 'develop'),
-    ('WildbookOrg/wbia-tpl-lightnet', 'wbia-tpl-lightnet', 'master'),
-    ('WildbookOrg/wbia-tpl-pydarknet', 'wbia-tpl-pydarknet', 'master'),
-    ('WildbookOrg/wbia-tpl-pyrf', 'wbia-tpl-pyrf', 'master'),
-    ('WildbookOrg/wbia-utool', 'wbia-utool', 'master'),
-    ('WildbookOrg/wbia-vtool', 'wbia-vtool', 'master'),
-    ('WildbookOrg/wbia-plugin-cnn', 'wbia-plugin-cnn', 'master'),
-    ('WildbookOrg/wbia-plugin-flukematch', 'wbia-plugin-flukematch', 'master'),
-    ('WildbookOrg/wbia-plugin-curvrank', 'wbia-plugin-curvrank', 'master'),
-    ('WildbookOrg/wbia-plugin-deepsense', 'wbia-plugin-deepsense', 'master'),
-    ('WildbookOrg/wbia-plugin-finfindr', 'wbia-plugin-finfindr', 'master'),
-    ('WildbookOrg/wbia-plugin-kaggle7', 'wbia-plugin-kaggle7', 'master'),
-    ('WildbookOrg/wbia-plugin-2d-orientation', 'wbia-plugin-2d-orientation', 'master'),
+    ('WildbookOrg/wbia-utool', 'wbia-utool', 'develop'),
+    ('WildbookOrg/wbia-vtool', 'wbia-vtool', 'develop'),
+    ('WildbookOrg/wbia-tpl-pyhesaff', 'wbia-tpl-pyhesaff', 'develop'),
+    ('WildbookOrg/wbia-tpl-pyflann', 'wbia-tpl-pyflann', 'develop'),
+    ('WildbookOrg/wbia-tpl-pydarknet', 'wbia-tpl-pydarknet', 'develop'),
+    ('WildbookOrg/wbia-tpl-pyrf', 'wbia-tpl-pyrf', 'develop'),
+    ('WildbookOrg/wbia-deprecate-tpl-brambox', 'wbia-deprecate-tpl-brambox', 'develop'),
+    ('WildbookOrg/wbia-deprecate-tpl-lightnet', 'wbia-deprecate-tpl-lightnet', 'develop'),
+    ('WildbookOrg/wbia-plugin-cnn', 'wbia-plugin-cnn', 'develop'),
+    ('WildbookOrg/wbia-plugin-flukematch', 'wbia-plugin-flukematch', 'develop'),
+    ('WildbookOrg/wbia-plugin-curvrank', 'wbia-plugin-curvrank', 'develop'),
+    ('WildbookOrg/wbia-plugin-deepsense', 'wbia-plugin-deepsense', 'develop'),
+    ('WildbookOrg/wbia-plugin-finfindr', 'wbia-plugin-finfindr', 'develop'),
+    ('WildbookOrg/wbia-plugin-kaggle7', 'wbia-plugin-kaggle7', 'develop'),
+    ('WildbookOrg/wbia-plugin-pie', 'wbia-plugin-pie', 'develop'),
+    ('WildbookOrg/wbia-plugin-lca', 'wbia-plugin-lca', 'develop'),
+    # ('WildbookOrg/wbia-plugin-2d-orientation', 'wbia-plugin-2d-orientation', 'develop'),
 ]
 
 
@@ -220,7 +228,7 @@ class Repo(ub.NiceRepr):
         >>> repo = Repo(
         >>>     name='ubelt-local',
         >>>     remote='github',
-        >>>     branch='master',
+        >>>     branch='develop',
         >>>     remotes={
         >>>         'github': 'git@github.com:Erotemic/ubelt.git',
         >>>         'fakemirror': 'https://gitlab.com/Erotemic/ubelt.git',
@@ -239,7 +247,7 @@ class Repo(ub.NiceRepr):
         repo.code_dpath = kwargs.pop('code_dpath', None)
         repo.remotes = kwargs.pop('remotes', None)
         repo.remote = kwargs.pop('remote', None)
-        repo.branch = kwargs.pop('branch', 'master')
+        repo.branch = kwargs.pop('branch', 'develop')
 
         repo._logged_lines = []
         repo._logged_cmds = []
@@ -565,7 +573,8 @@ class Repo(ub.NiceRepr):
         repo._cmd('git pull')
 
     def status(repo):
-        repo._cmd('git status')
+        retVal = repo._cmd('git status')
+        print(retVal['out'])
 
 
 def worker(repo, funcname, kwargs):
