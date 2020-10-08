@@ -1422,7 +1422,7 @@ class _TableComputeHelper(object):
                     #                                 fname in zip(multi_args,
                     #                                              multi_fpaths)]))
                     row_tup = (
-                        ids_
+                        tuple(ids_)
                         + (config_rowid,)
                         + quick_access_tup
                         + data_cols
