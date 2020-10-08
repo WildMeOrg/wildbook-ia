@@ -63,6 +63,11 @@ PROMETHEUS_DATA = {
         'Job engine status',
         ['status', 'name', 'endpoint'],
     ),
+    'process': Gauge(
+        'wbia_engine_dead_process',
+        'Job engine status',
+        ['name', 'process'],
+    ),
     'elapsed': Gauge(
         'wbia_elapsed_seconds',
         'Number of elapsed seconds for the current working job',
@@ -355,6 +360,17 @@ def prometheus_update(ibs, *args, **kwargs):
                             PROMETHEUS_DATA['engine'].labels(
                                 status=status, name=container_name, endpoint=endpoint
                             ).set(number)
+                except Exception:
+                    pass
+
+                try:
+                    # logger.info(ut.repr3(status_dict))
+                    process_status_dict = ibs.get_process_alive_status()
+                    for process in process_status_dict:
+                        number = 0 if process_status_dict.get(process, False) else 1
+                        PROMETHEUS_DATA['process'].labels(
+                            process=process, name=container_name
+                        ).set(number)
                 except Exception:
                     pass
         try:
