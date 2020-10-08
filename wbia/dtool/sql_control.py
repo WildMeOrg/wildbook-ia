@@ -1066,6 +1066,7 @@ class SQLDatabaseController(object):
                 eager=eager,
                 **kwargs,
             )
+
         return val_list
 
     def exists_where_eq(
@@ -1427,6 +1428,24 @@ class SQLDatabaseController(object):
         elif not results.returns_rows:
             return None
         else:
+            if isinstance(operation, sqlalchemy.sql.selectable.Select):
+                # This code is specifically for handling duplication in colnames
+                # because sqlalchemy removes them.
+                # e.g. select field1, field1, field2 from table;
+                # becomes
+                #      select field1, field2 from table;
+                # so the items in val_list only have 2 values
+                # but the caller isn't expecting it so it causes problems
+                returned_columns = tuple([c.name for c in operation.columns])
+                raw_columns = tuple([c.name for c in operation._raw_columns])
+                if raw_columns != returned_columns:
+                    results_ = []
+                    for r in results:
+                        results_.append(
+                            tuple(r[returned_columns.index(c)] for c in raw_columns)
+                        )
+                    results = results_
+
             values = list(
                 [
                     # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
