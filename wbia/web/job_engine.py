@@ -279,6 +279,16 @@ def get_job_id_list(ibs):
 
 @register_ibs_method
 @register_api(
+    '/api/engine/process/status/', methods=['GET', 'POST'], __api_plural_check__=False
+)
+def get_process_alive_status(ibs):
+    status_dict = ibs.job_manager.reciever.get_process_alive_status()
+    print('status_dict = %r' % (status_dict,))
+    return status_dict
+
+
+@register_ibs_method
+@register_api(
     '/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False
 )
 def get_job_status(ibs, jobid=None):
@@ -611,6 +621,24 @@ class JobBackend(object):
             for lane in self.engine_procs:
                 for engine in self.engine_procs[lane]:
                     assert engine.is_alive(), 'engine died too soon'
+
+    def get_process_alive_status(self):
+        status_dict = {}
+
+        if self.spawn_queue:
+            status_dict['engine_queue'] = self.engine_queue_proc.is_alive()
+            status_dict['collect_queue'] = self.collect_queue_proc.is_alive()
+
+        if self.spawn_collector:
+            status_dict['collector'] = self.collect_proc.is_alive()
+
+        if self.spawn_engine:
+            for lane in self.engine_procs:
+                for id_, engine in enumerate(self.engine_procs[lane]):
+                    engine_str = 'engine.%s.%s' % (lane, id_)
+                    status_dict[engine_str] = engine.is_alive()
+
+        return status_dict
 
 
 def get_shelve_lock_filepath(shelve_filepath):

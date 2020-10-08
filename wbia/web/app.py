@@ -16,6 +16,10 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
+
+logger.setLevel(logging.INFO)
+
+
 try:
     try:
         from werkzeug.wsgi import DispatcherMiddleware
