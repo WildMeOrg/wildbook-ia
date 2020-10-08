@@ -119,7 +119,8 @@ class Integer(TypeDecorator):
     impl = SAInteger
 
     def process_bind_param(self, value, dialect):
-        return int(value)
+        if value is not None:
+            return int(value)
 
 
 class List(JSONCodeableType):
@@ -184,3 +185,4 @@ class UUID(UserDefinedType):
 _USER_DEFINED_TYPES = (Dict, List, NDArray, Number, UUID)
 # SQL type (e.g. 'DICT') to SQLAlchemy type:
 SQL_TYPE_TO_SA_TYPE = {cls().get_col_spec(): cls for cls in _USER_DEFINED_TYPES}
+SQL_TYPE_TO_SA_TYPE['INTEGER'] = Integer
