@@ -245,6 +245,8 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
                 yield edge
         except StopIteration:
             pass
+        except RuntimeError:
+            pass
     except nx.NetworkXUnfeasible:
         if partial:
             # Return all available edges
@@ -260,6 +262,8 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
                 for edge in aug_edges:
                     yield edge
             except StopIteration:
+                pass
+            except RuntimeError:
                 pass
         else:
             raise
