@@ -1364,7 +1364,7 @@ class SQLDatabaseController(object):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return self.executeone(operation, params, eager=eager, **kwargs)
+        return self.executeone(text(operation), params, eager=eager, **kwargs)
 
     @profile
     def _executemany_operation_fmt(
