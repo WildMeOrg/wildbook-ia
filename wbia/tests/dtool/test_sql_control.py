@@ -143,17 +143,14 @@ class TestSchemaModifiers:
 
         # Check the table's column definitions
         expected_bars_columns = [
-            ('bars_id', 'INTEGER'),
-            ('config_id', 'INTEGER'),
-            ('data', 'TEXT'),
-            ('indexer_id', 'INTEGER'),
-            ('meta_labeler_id', 'INTEGER'),
+            ('bars_id', 'wbia.dtool.types.Integer'),
+            ('config_id', 'wbia.dtool.types.Integer'),
+            ('data', 'sqlalchemy.sql.sqltypes.TEXT'),
+            ('indexer_id', 'wbia.dtool.types.Integer'),
+            ('meta_labeler_id', 'wbia.dtool.types.Integer'),
         ]
         found_bars_columns = [
-            (
-                c.name,
-                c.type.__class__.__name__,
-            )
+            (c.name, '.'.join([c.type.__class__.__module__, c.type.__class__.__name__]))
             for c in bars.columns
         ]
         assert sorted(found_bars_columns) == expected_bars_columns
