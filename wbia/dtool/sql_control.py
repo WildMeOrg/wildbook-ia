@@ -20,6 +20,7 @@ import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
+from sqlalchemy.engine import RowProxy
 from sqlalchemy.schema import Table
 from sqlalchemy.sql import bindparam, text, ClauseElement
 
@@ -1174,7 +1175,24 @@ class SQLDatabaseController(object):
                 **kwargs,
             )
 
-        return val_list
+        # This code is specifically for handling duplication in colnames
+        # because sqlalchemy removes them.
+        # e.g. select field1, field1, field2 from table;
+        # becomes
+        #      select field1, field2 from table;
+        # so the items in val_list only have 2 values
+        # but the caller isn't expecting it so it causes problems
+        returned_columns = tuple([c.name for c in stmt.columns])
+        if colnames == returned_columns:
+            return val_list
+
+        result = []
+        for val in val_list:
+            if isinstance(val, RowProxy):
+                result.append(tuple(val[returned_columns.index(c)] for c in colnames))
+            else:
+                result.append(val)
+        return result
 
     def exists_where_eq(
         self,
