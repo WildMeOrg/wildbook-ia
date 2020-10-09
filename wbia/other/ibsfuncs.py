@@ -9743,10 +9743,10 @@ def nms_aids(ibs, aid_list, **kwargs):
     assert len(set(gid_list)) == 1
 
     indices = np.array(list(range(len(aid_list))))
-    bboxes = ibs.get_annot_bboxes(aid_list)
-    thetas = ibs.get_annot_thetas(aid_list)
-    confs = ibs.get_annot_detect_confidence(aid_list)
-    classes = ibs.get_annot_species(aid_list)
+    bboxes = np.array(ibs.get_annot_bboxes(aid_list))
+    thetas = np.array(ibs.get_annot_thetas(aid_list))
+    confs = np.array(ibs.get_annot_detect_confidence(aid_list))
+    classes = np.array(ibs.get_annot_species(aid_list))
 
     values = ibs.nms_boxes(indices, bboxes, thetas, confs, classes, **kwargs)
 
