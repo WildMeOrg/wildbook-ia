@@ -896,6 +896,7 @@ def commit_localization_results(
     orienter_algo=None,
     orienter_model_tag=None,
     update_json_log=True,
+    apply_nms_post_use_labeler_species=True,
     **kwargs,
 ):
     global_gid_list = []
@@ -957,6 +958,10 @@ def commit_localization_results(
                 'labeler', aid_list, 'species', config=labeler_config
             )
             ibs.set_annot_species(aid_list, species_list)
+
+            if apply_nms_post_use_labeler_species:
+                aids_list = [ibs.nms_aids(aid_list_, **kwargs) for aid_list_ in aids_list]
+                aid_list = ut.flatten(aids_list)
 
     if orienter_algo is not None:
         orienter_config = {}
