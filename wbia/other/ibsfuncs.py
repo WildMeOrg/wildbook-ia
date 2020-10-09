@@ -4831,7 +4831,7 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
         else:
             operation = 'SELECT rowid from annotations WHERE annot_quality NOTNULL AND annot_quality>={minqual_int} AND rowid IN ({aids})'
         operation = operation.format(aids=list_repr, minqual_int=minqual_int)
-        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+        aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
         qual_flags = list(
             ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok)
@@ -4921,7 +4921,7 @@ def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
                 'SELECT rowid from annotations WHERE name_rowid>0 AND rowid IN (%s)'
                 % (list_repr,)
             )
-        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+        aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
         flag_list = ibs.is_aid_unknown(aid_list)
         if not invert:
@@ -5057,7 +5057,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         list_repr = ','.join(map(str, aid_list))
         operation = 'SELECT rowid from annotations WHERE (species_rowid == {species_rowid}) AND rowid IN ({aids})'
         operation = operation.format(aids=list_repr, species_rowid=species_rowid)
-        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+        aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
         species_rowid_list = ibs.get_annot_species_rowids(aid_list)
         is_valid_species = [sid == species_rowid for sid in species_rowid_list]
