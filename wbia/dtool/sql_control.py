@@ -301,6 +301,11 @@ class SQLDatabaseController(object):
                     return None
                 if METADATA_TABLE_COLUMNS[name]['is_coded_data']:
                     value = eval(value)
+                if name == 'superkeys' and isinstance(value, list):
+                    # superkeys looks like [('image_rowid, encounter_rowid',)]
+                    # instead of [('image_rowid',), ('encounter_rowid',)]
+                    if len(value) == 1 and len(value[0]) == 1:
+                        value = [tuple(value[0][0].split(', '))]
                 return value
 
             def __getattribute__(self, name):
@@ -1642,7 +1647,8 @@ class SQLDatabaseController(object):
         # Make a list of constraints to place on the table
         # superkeys = [(<column-name>, ...), ...]
         constraint_list = [
-            self.__make_unique_constraint(x) for x in metadata_keyval.get('superkeys', [])
+            self.__make_unique_constraint(x)
+            for x in metadata_keyval.get('superkeys') or []
         ]
         constraint_list = ut.unique_ordered(constraint_list)
 
