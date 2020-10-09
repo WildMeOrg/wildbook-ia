@@ -1020,7 +1020,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
         # Apply NMS
         if config['nms']:
-            indices = list(range(len(bboxes)))
+            indices = np.array(list(range(len(bboxes))))
             indices, bboxes, thetas, confs, classes = ibs.nms_boxes(
                 indices, bboxes, thetas, confs, classes, verbose=VERBOSE, **config
             )

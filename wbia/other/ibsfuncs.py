@@ -9736,10 +9736,13 @@ def nms_boxes(
 @register_ibs_method
 def nms_aids(ibs, aid_list, **kwargs):
 
-    gid_list = ibs.get_annot_gids(aid_list)
-    assert len(gid_list) == 1
+    if len(aid_list) == 0:
+        return aid_list
 
-    indices = list(range(len(aid_list)))
+    gid_list = ibs.get_annot_gids(aid_list)
+    assert len(set(gid_list)) == 1
+
+    indices = np.array(list(range(len(aid_list))))
     bboxes = ibs.get_annot_bboxes(aid_list)
     thetas = ibs.get_annot_thetas(aid_list)
     confs = ibs.get_annot_detect_confidence(aid_list)
@@ -9747,7 +9750,7 @@ def nms_aids(ibs, aid_list, **kwargs):
 
     values = ibs.nms_boxes(indices, bboxes, thetas, confs, classes, **kwargs)
 
-    keep_indices = values[0]
+    keep_indices = list(values[0])
     keep_aid_list = ut.take(aid_list, keep_indices)
 
     return keep_aid_list
