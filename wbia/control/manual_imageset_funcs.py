@@ -549,7 +549,7 @@ def get_imageset_gids(ibs, imgsetid_list):
             """.format(
                 GSG_RELATION_TABLE=const.GSG_RELATION_TABLE
             )
-        ).fetchall()
+        )
     gids_list = ibs.db.get(
         const.GSG_RELATION_TABLE,
         ('image_rowid',),
