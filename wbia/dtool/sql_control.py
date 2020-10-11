@@ -776,7 +776,20 @@ class SQLDatabaseController(object):
         return self._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
 
     def check_rowid_exists(self, tablename, rowid_iter, eager=True, **kwargs):
-        rowid_list1 = self.get(tablename, ('rowid',), rowid_iter)
+        """Check for the existence of rows (``rowid_iter``) in a table (``tablename``).
+        Returns as sequence of rowids that exist in the given sequence.
+
+        The 'rowid' term is an alias for the primary key. When calling this method,
+        you should know that the primary key may be more than one column.
+
+        """
+        # BBB (10-Oct-12020) 'rowid' only exists in SQLite and auto-magically gets mapped
+        #     to an integer primary key. However, SQLAlchemy doesn't abide by this magic.
+        #     The aliased column is not part of a reflected table.
+        #     So we find and use the primary key instead.
+        table = self._reflect_table(tablename)
+        columns = tuple(c.name for c in table.primary_key.columns)
+        rowid_list1 = self.get(tablename, columns, rowid_iter)
         exists_list = [rowid is not None for rowid in rowid_list1]
         return exists_list
 
