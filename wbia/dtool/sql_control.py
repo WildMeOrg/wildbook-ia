@@ -2558,14 +2558,9 @@ class SQLDatabaseController(object):
             >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
             >>> print('L___')
         """
-        all_column_names = self.get_column_names(tablename)
-        isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.compress(all_column_names, isvalid_list)
-        column_list = [
-            self.get_column(tablename, name)
-            for name in column_names
-            if name not in exclude_columns
-        ]
+        table = self._reflect_table(tablename)
+        column_names = [c.name for c in table.columns if c.name not in exclude_columns]
+        column_list = [self.get_column(tablename, name) for name in column_names]
 
         extern_colx_list = []
         extern_tablename_list = []
