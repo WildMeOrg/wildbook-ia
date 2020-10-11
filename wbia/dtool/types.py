@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Mapping of Python types to SQL types"""
 import io
-import json
 import uuid
 
 import numpy as np
+from utool.util_cache import from_json, to_json
 from sqlalchemy.types import Integer as SAInteger
 from sqlalchemy.types import TypeDecorator, UserDefinedType
 
@@ -46,25 +46,13 @@ class JSONCodeableType(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if value is None:
-                return value
-            else:
-                if isinstance(value, self.base_py_type):
-                    return json.dumps(value)
-                else:
-                    return value
+            return to_json(value)
 
         return process
 
     def result_processor(self, dialect, coltype):
         def process(value):
-            if value is None:
-                return value
-            else:
-                if not isinstance(value, self.base_py_type):
-                    return json.loads(value)
-                else:
-                    return value
+            return from_json(value)
 
         return process
 
