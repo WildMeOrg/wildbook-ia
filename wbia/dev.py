@@ -38,6 +38,32 @@ CommandLine:
 import logging
 import sys
 import numpy as np
+
+try:
+    import multiprocessing as mp
+
+    mp.set_start_method('spawn')
+except RuntimeError:
+    pass
+
+try:
+    import torch.multiprocessing as tmp
+
+    tmp.set_start_method('spawn')
+except RuntimeError:
+    pass
+
+try:
+    import tensorflow as tf  # NOQA
+    from keras import backend as K  # NOQA
+
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.InteractiveSession(config=config)
+    K.set_session(sess)
+except RuntimeError:
+    pass
+
 from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname

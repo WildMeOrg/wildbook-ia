@@ -5,32 +5,6 @@ dev.py was moved to wbia/dev.py
 Now runnable via python -m wbia.dev
 """
 
-try:
-    import multiprocessing as mp
-
-    mp.set_start_method('spawn', force=True)
-except RuntimeError:
-    pass
-
-try:
-    import torch.multiprocessing as tmp
-
-    tmp.set_start_method('spawn', force=True)
-except RuntimeError:
-    pass
-
-
-try:
-    import tensorflow as tf  # NOQA
-    from keras import backend as K  # NOQA
-
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    K.set_session(sess)
-except RuntimeError:
-    pass
-
 # try:
 #     from os.path import abspath, exists
 #     newrelic_config_ini_filepath = abspath('newrelic.ini')
