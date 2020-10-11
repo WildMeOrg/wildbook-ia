@@ -59,7 +59,7 @@ try:
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.InteractiveSession(config=config)
+    sess = tf.Session(config=config)
     K.set_session(sess)
 except RuntimeError:
     pass
