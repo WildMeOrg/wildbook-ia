@@ -2346,9 +2346,12 @@ class SQLDatabaseController(object):
         return column_names
 
     def get_column(self, tablename, name):
-        """ Conveinience: """
-        table, (column,) = sanitize_sql(self, tablename, (name,))
-        return self.executeone(text(f'SELECT {column} FROM {table} ORDER BY rowid ASC'))
+        """Get all the values for the specified column (``name``) of the table (``tablename``)"""
+        table = self._reflect_table(tablename)
+        stmt = sqlalchemy.select([table.c[name]]).order_by(
+            *[c.asc() for c in table.primary_key.columns]
+        )
+        return self.executeone(stmt)
 
     def get_table_as_pandas(
         self, tablename, rowids=None, columns=None, exclude_columns=[]
