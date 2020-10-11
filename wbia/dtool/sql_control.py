@@ -1127,8 +1127,12 @@ class SQLDatabaseController(object):
         self, tblname, params_iter=None, superkey_colnames=None, **kwargs
     ):
         """ getter which uses the constrained superkeys instead of rowids """
-        where_clause = ' AND '.join([colname + '=?' for colname in superkey_colnames])
-        return self.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
+        # ??? Why can this be called with params_iter=None & superkey_colnames=None?
+        table = self._reflect_table(tblname)
+        columns = tuple(c.name for c in table.primary_key.columns)
+        return self.get_where_eq(
+            tblname, columns, params_iter, superkey_colnames, op='AND', **kwargs
+        )
 
     def get(
         self,
