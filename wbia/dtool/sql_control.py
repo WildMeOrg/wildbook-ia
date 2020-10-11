@@ -1225,7 +1225,11 @@ class SQLDatabaseController(object):
             else:
                 id_param_name = '_identifier'
                 where_clause = text(id_colname + f' = :{id_param_name}')
-                if id_colname != 'rowid':  # b/c rowid doesn't really exist as a column
+                if id_colname == 'rowid':
+                    # Cast all item values to in, in case values are numpy.integer*
+                    # Strangely allow for None values
+                    id_iter = [id_ is not None and int(id_) or id_ for id_ in id_iter]
+                else:  # b/c rowid doesn't really exist as a column
                     column = self._reflect_table(tblname).c[id_colname]
                     where_clause = where_clause.bindparams(
                         bindparam(id_param_name, type_=column.type)
@@ -1368,15 +1372,17 @@ class SQLDatabaseController(object):
             **{col: bindparam(f'e{i}') for i, col in enumerate(colnames)}
         )
         where_clause = text(id_colname + f' = :{id_param_name}')
-        if id_colname != 'rowid':  # b/c rowid doesn't really exist as a column
+        if id_colname == 'rowid':
+            # Cast all item values to in, in case values are numpy.integer*
+            # Strangely allow for None values
+            id_list = [id_ is not None and int(id_) or id_ for id_ in id_list]
+        else:  # b/c rowid doesn't really exist as a column
             id_column = table.c[id_colname]
             where_clause = where_clause.bindparams(
                 bindparam(id_param_name, type_=id_column.type)
             )
         stmt = stmt.where(where_clause)
         for i, id in enumerate(id_list):
-            if id_colname == 'rowid':
-                id = int(id)
             params = {id_param_name: id}
             params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
             self.connection.execute(stmt, **params)
@@ -1387,9 +1393,22 @@ class SQLDatabaseController(object):
         Optionally a different ID column can be specified via ``id_colname``.
 
         """
-        stmt = text(f'DELETE FROM {tblname} WHERE {id_colname} = :id')
+        id_param_name = '_identifier'
+        table = self._reflect_table(tblname)
+        stmt = table.delete()
+        where_clause = text(id_colname + f' = :{id_param_name}')
+        if id_colname == 'rowid':
+            # Cast all item values to in, in case values are numpy.integer*
+            # Strangely allow for None values
+            id_list = [id_ is not None and int(id_) or id_ for id_ in id_list]
+        else:  # b/c rowid doesn't really exist as a column
+            id_column = table.c[id_colname]
+            where_clause = where_clause.bindparams(
+                bindparam(id_param_name, type_=id_column.type)
+            )
+        stmt = stmt.where(where_clause)
         for id in id_list:
-            self.connection.execute(stmt, id=id)
+            self.connection.execute(stmt, {id_param_name: id})
 
     def delete_rowids(self, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """
