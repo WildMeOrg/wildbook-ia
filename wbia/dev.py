@@ -61,7 +61,7 @@ try:
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
     K.set_session(sess)
-except RuntimeError:
+except (ImportError, RuntimeError):
     pass
 
 from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
