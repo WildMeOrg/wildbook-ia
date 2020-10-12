@@ -35,10 +35,6 @@ CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
-import logging
-import sys
-import numpy as np
-
 try:
     import multiprocessing as mp
 
@@ -47,24 +43,16 @@ except RuntimeError:
     pass
 
 try:
+    import torch  # NOQA
     import torch.multiprocessing as tmp
 
     tmp.set_start_method('spawn')
-except RuntimeError:
-    pass
-
-try:
-    import tensorflow as tf  # NOQA
-    from keras import backend as K  # NOQA
-
-    config = tf.ConfigProto()
-    # config.gpu_options.allow_growth = True
-    config.device_count['CPU'] = 1
-    config.device_count['GPU'] = 0
-    sess = tf.Session(config=config)
-    K.set_session(sess)
 except (ImportError, RuntimeError):
     pass
+
+import logging
+import sys
+import numpy as np
 
 from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
