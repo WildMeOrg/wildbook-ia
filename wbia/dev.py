@@ -58,7 +58,9 @@ try:
     from keras import backend as K  # NOQA
 
     config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
+    # config.gpu_options.allow_growth = True
+    config.device_count['CPU'] = 1
+    config.device_count['GPU'] = 0
     sess = tf.Session(config=config)
     K.set_session(sess)
 except RuntimeError:
