@@ -1514,7 +1514,7 @@ class MultiClassLabels(ut.NiceRepr):
         """
         if labels.target_type == 'binary':
             yield labels
-            raise StopIteration()
+            return
         task_names_1vR = labels.one_vs_rest_task_names()
         for k in range(labels.n_classes):
             class_name = labels.class_names[k]
