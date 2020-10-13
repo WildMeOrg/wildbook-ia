@@ -775,7 +775,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
 
     def iter_children(self):
         if self.children is None:
-            raise StopIteration()
+            return
         for child in self.children:
             yield child
 
