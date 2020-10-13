@@ -1,6 +1,6 @@
 blinker
 boto>=2.20.1
-brambox
+# wbia-brambox  # already included in wbia-lightnet
 cachetools>=1.1.6
 click
 colorama>=0.3.2
@@ -17,7 +17,6 @@ gdm
 imgaug
 
 ipython>=5.0.0
-lightnet
 lockfile>=0.10.2
 mako
 matplotlib>=3.3.0
@@ -65,6 +64,7 @@ tqdm
 ubelt >= 0.8.7
 
 wbia-cnn>=3.0.2
+wbia-lightnet
 wbia-pydarknet >= 3.0.1
 wbia-pyflann >= 3.1.0
 wbia-pyhesaff >= 3.0.2
