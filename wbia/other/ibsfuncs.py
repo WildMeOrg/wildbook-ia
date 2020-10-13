@@ -1234,7 +1234,7 @@ def check_cache_purge_parallel_wrapper(func, arguments_list):
 
 
 @register_ibs_method
-def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
+def check_cache_purge(ibs, ttl_days=90, dryrun=True, squeeze=True):
     r"""
     Args:
         ibs (IBEISController):  wbia controller object
@@ -1259,23 +1259,67 @@ def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
     logger.info('Checking cached files since %r' % (expires,))
     timestamp = int(expires.timestamp())
 
-    blacklist = [
-        'engine_shelves_HOLDING',
-        'extern_chips',
-        'extern_probchip',
-        'extern_curvature_descriptor_optimized',
-        'extern_DeepsensePassport',
-        'extern_FinfindrPassport',
-        'extern_KaggleSevenChip',
-        'extern_Cropped_Chips',
+    whitelist = [
+        # './_ibsdb/_ibeis_cache/extern_chips',
+        # './_ibsdb/_ibeis_cache/extern_pchips',
+        # './_ibsdb/_ibeis_cache/extern_probchip',
+        # './_ibsdb/_ibeis_cache/engine_shelves_HOLDING',
+        # './_ibsdb/_ibeis_cache/extern_curvature_descriptor_optimized',
+        # './_ibsdb/_ibeis_cache/extern_Cropped_Chips',
+        # './_ibsdb/_ibeis_cache/extern_DeepsensePassport',
+        # './_ibsdb/_ibeis_cache/extern_FinfindrPassport',
+        # './_ibsdb/_ibeis_cache/extern_KaggleSevenChip',
+        './_ibsdb/_ibeis_cache/extern_web_src',
+        './_ibsdb/_ibeis_cache/extern_preprocess',
+        './_ibsdb/_ibeis_cache/extern_thumbnails',
+        './_ibsdb/_ibeis_cache/extern_localization',
+        './_ibsdb/_ibeis_cache/extern_refinement',
+        './_ibsdb/_ibeis_cache/extern_segmentation',
+        './_ibsdb/_ibeis_cache/extern_curvature_descriptor',
+        './logs',
+        './smart_patrol',
+        './trashed_images',
+        './_ibsdb/uploads',
+        './_ibsdb/_ibeis_backups',
+        './_ibsdb/_ibeis_logs',
+        './_ibsdb/_ibeis_cache/thumbs',
+        './_ibsdb/_ibeis_cache/chips',
+        './_ibsdb/_ibeis_cache/chips_crop',
+        './_ibsdb/_ibeis_cache/prob_chips2',
+        './_ibsdb/_ibeis_cache/shelves',
+        './_ibsdb/_ibeis_cache/engine',
+        './_ibsdb/_ibeis_cache/engine_shelves_curvrank_debug',
+        './_ibsdb/_ibeis_cache/engine_shelves',
+        './_ibsdb/_ibeis_cache/engine_shelves_background_ARCHIVE',
+        './_ibsdb/_ibeis_cache/engine_shelves_curvrank_ARCHIVE',
+        './_ibsdb/_ibeis_cache/engine_shelves_background',
+        './_ibsdb/_ibeis_cache/engine_shelves_curvrank_debug_ARCHIVE',
+        './_ibsdb/_ibeis_cache/engine_shelves_curvrank',
+        './_ibsdb/_ibeis_cache/engine_shelves_ARCHIVE',
+        './_ibsdb/_ibeis_cache/distinctiveness_model',
+        './_ibsdb/_ibeis_cache/flann',
+        './_ibsdb/_ibeis_cache/smk',
+        './_ibsdb/_ibeis_cache/qres_bigcache_new',
+        './_ibsdb/_ibeis_cache/query_match',
+        './_ibsdb/_ibeis_cache/match_thumbs',
+        './_ibsdb/_ibeis_cache/qres_new',
+        './_ibsdb/_ibeis_cache/curvrank',
+        './_ibsdb/_ibeis_cache/pie_neighbors',
     ]
+
+    entry_list = []
+    entry_list += list(os.scandir(ibs.cachedir))
+    entry_list += list(os.scandir(ibs.dbdir))
+    entry_list += list(os.scandir(join(ibs.dbdir, '_ibsdb')))
 
     squeeze_tables = []
 
     delete_path_list = []
-    for entry in os.scandir(ibs.cachedir):
+    for entry in entry_list:
         if entry.is_dir(follow_symlinks=False):
-            if entry.name in blacklist:
+            name = entry.path.replace(ibs.dbdir, '.')
+            if name not in whitelist:
+                print('Skipping: %r' % (entry,))
                 continue
 
             entry_list = list(os.scandir(entry))
@@ -1429,7 +1473,7 @@ def check_cache_purge(ibs, ttl_days=365, dryrun=True, squeeze=False):
         db_list += [table.db for table in set(squeeze_tables)]
 
         for db in tqdm.tqdm(db_list):
-            logger.info(db.fname)
+            logger.info(db.uri)
             db.squeeze()
 
     return failed_list
