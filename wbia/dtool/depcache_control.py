@@ -218,7 +218,7 @@ class _CoreDependencyCache(object):
 
         for fname in depc.fname_to_db.keys():
             if fname == ':memory:':
-                fpath = fname
+                db_uri = 'sqlite:///:memory:'
             else:
                 fname_ = ut.ensure_ext(fname, '.sqlite')
                 from os.path import dirname
@@ -227,9 +227,9 @@ class _CoreDependencyCache(object):
                 if prefix_dpath:
                     ut.ensuredir(ut.unixjoin(depc.cache_dpath, prefix_dpath))
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
+                db_uri = 'sqlite:///{}'.format(os.path.realpath(fpath))
             # if ut.get_argflag('--clear-all-depcache'):
             #     ut.delete(fpath)
-            db_uri = 'sqlite:///{}'.format(os.path.realpath(fpath))
             db = sql_control.SQLDatabaseController.from_uri(db_uri)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db
