@@ -555,7 +555,13 @@ def get_wildbook_image_uuids(ibs):
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    logger.info('Loaded %d Image ACM string UUIDs from Wildbook' % (len(file_json),))
+    logger.info(
+        'Loaded %d Image ACM string UUIDs from Wildbook: %r'
+        % (
+            len(file_json),
+            url,
+        )
+    )
 
     uuid_list = []
     for uuid_str in file_json:
@@ -621,7 +627,13 @@ def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    logger.info('Loaded %d Annot ACM string UUIDs from Wildbook' % (len(file_json),))
+    logger.info(
+        'Loaded %d Annot ACM string UUIDs from Wildbook: %r'
+        % (
+            len(file_json),
+            url,
+        )
+    )
 
     uuid_list = []
     species_list = []
