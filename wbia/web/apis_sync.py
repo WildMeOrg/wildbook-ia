@@ -32,7 +32,7 @@ if not REMOTE_TESTING:
     REMOTE_PORT = '5555'
     REMOTE_UUID = None
 else:
-    # info for flukebook background server
+    # info for wildbook background server
     REMOTE_DOMAIN = 'kaiju.dyn.wildme.io'
     REMOTE_PORT = '5015'
     # https://kaiju.dyn.wildme.io:5015/api/core/db/uuid/init/
