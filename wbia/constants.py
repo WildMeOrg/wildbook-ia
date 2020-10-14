@@ -322,18 +322,18 @@ HARD_NOTE_TAG = '<HARDCASE>'
 
 # HACK
 COMPUTER_NAME = ut.get_computer_name()
-if COMPUTER_NAME in ['wbia.cs.uic.edu']:
-    _DEFAULT_WILDBOOK_TARGET = 'lewa3'
-elif COMPUTER_NAME in ['Leviathan']:
-    _DEFAULT_WILDBOOK_TARGET = 'lewa3'
-elif COMPUTER_NAME in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']:
-    _DEFAULT_WILDBOOK_TARGET = 'quagga.princeton.edu'
-else:
-    _DEFAULT_WILDBOOK_TARGET = 'wbia'
+# if COMPUTER_NAME in ['wbia.cs.uic.edu']:
+#     _DEFAULT_WILDBOOK_TARGET = 'lewa3'
+# elif COMPUTER_NAME in ['Leviathan']:
+#     _DEFAULT_WILDBOOK_TARGET = 'lewa3'
+# elif COMPUTER_NAME in ['maasai', 'quagga', 'xadmin-Nitro-AN515-51']:
+#     _DEFAULT_WILDBOOK_TARGET = 'quagga.princeton.edu'
+# else:
+#     _DEFAULT_WILDBOOK_TARGET = 'wbia'
 WILDBOOK_TARGET = ut.get_argval(
     '--wildbook-target',
     type_=str,
-    default=_DEFAULT_WILDBOOK_TARGET,
+    default=None,
     help_='specify the Wildbook target deployment',
 )
 

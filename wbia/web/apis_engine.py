@@ -889,12 +889,12 @@ def start_web_query_all(ibs):
 
 
 @register_ibs_method
-@register_api('/api/engine/flukebook/sync/', methods=['GET'])
-def start_flukebook_sync(ibs, **kwargs):
+@register_api('/api/engine/wildbook/sync/', methods=['GET'])
+def start_wildbook_sync(ibs, **kwargs):
     """
     REST:
         Method: GET
-        URL: /api/engine/flukebook/sync/
+        URL: /api/engine/wildbook/sync/
     """
-    jobid = ibs.job_manager.jobiface.queue_job('flukebook_sync')
+    jobid = ibs.job_manager.jobiface.queue_job('wildbook_sync')
     return jobid
