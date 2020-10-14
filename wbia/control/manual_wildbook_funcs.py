@@ -47,6 +47,8 @@ from wbia.control import controller_inject
 from wbia.control import wildbook_manager as wb_man  # NOQA
 from wbia.control.controller_inject import make_ibs_register_decorator
 
+from wbia.constants import WILDBOOK_TARGET
+
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
@@ -75,7 +77,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
         raise IOError(message)
 
     wb_port = 8080
-    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
+    wb_target = WILDBOOK_TARGET if wb_target is None else wb_target
 
     if ibs.containerized:
         wb_hostname = 'nginx'
@@ -534,24 +536,26 @@ def wildbook_signal_imgsetid_list(
 
 
 @register_ibs_method
-def get_flukebook_image_uuids(ibs):
+def get_wildbook_image_uuids(ibs):
     from datetime import datetime
     import uuid
     import pytz
 
     PST = pytz.timezone('US/Pacific')
 
-    url = 'https://www.flukebook.org/acmIdSync.jsp'
+    assert WILDBOOK_TARGET is not None
+
+    url = 'https://%s/acmIdSync.jsp' % (WILDBOOK_TARGET,)
 
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
-    filename = 'flukebook.image.admid.%s.json' % (timestamp,)
+    filename = 'wildbook.image.admid.%s.json' % (timestamp,)
     filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    logger.info('Loaded %d Image ACM string UUIDs from Flukebook' % (len(file_json),))
+    logger.info('Loaded %d Image ACM string UUIDs from Wildbook' % (len(file_json),))
 
     uuid_list = []
     for uuid_str in file_json:
@@ -561,33 +565,31 @@ def get_flukebook_image_uuids(ibs):
         except ValueError:
             continue
 
-    logger.info('Validated %d Image UUIDs from Flukebook' % (len(uuid_list),))
-    flukebook_image_uuid_list = list(set(uuid_list))
+    logger.info('Validated %d Image UUIDs from Wildbook' % (len(uuid_list),))
+    wildbook_image_uuid_list = list(set(uuid_list))
     logger.info(
-        'Validated %d de-duplicated Image UUIDs from Flukebook' % (len(uuid_list),)
+        'Validated %d de-duplicated Image UUIDs from Wildbook' % (len(uuid_list),)
     )
 
-    return flukebook_image_uuid_list
+    return wildbook_image_uuid_list
 
 
 @register_ibs_method
-def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
-    flukebook_image_uuid_list = ibs.get_flukebook_image_uuids()
+def delete_wildbook_orphaned_image_uuids(ibs, auto_delete=True):
+    wildbook_image_uuid_list = ibs.get_wildbook_image_uuids()
 
     gid_list = ibs.get_valid_gids()
     local_image_uuid_list = ibs.get_image_uuids(gid_list)
 
-    unknown_uuid_list = list(set(flukebook_image_uuid_list) - set(local_image_uuid_list))
-    candidate_uuid_list = list(
-        set(local_image_uuid_list) - set(flukebook_image_uuid_list)
-    )
+    unknown_uuid_list = list(set(wildbook_image_uuid_list) - set(local_image_uuid_list))
+    candidate_uuid_list = list(set(local_image_uuid_list) - set(wildbook_image_uuid_list))
 
     logger.info(
-        'There are %d Image UUIDs in Flukebook that are not here'
+        'There are %d Image UUIDs in Wildbook that are not here'
         % (len(unknown_uuid_list),)
     )
     logger.info(
-        'There are %d Image UUIDs in here that are not in Flukebook'
+        'There are %d Image UUIDs in here that are not in Wildbook'
         % (len(candidate_uuid_list),)
     )
 
@@ -600,24 +602,26 @@ def delete_flukebook_orphaned_image_uuids(ibs, auto_delete=True):
 
 
 @register_ibs_method
-def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
+def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
     from datetime import datetime
     import uuid
     import pytz
 
     PST = pytz.timezone('US/Pacific')
 
-    url = 'https://www.flukebook.org/acmIdSync.jsp?annotations'
+    assert WILDBOOK_TARGET is not None
+
+    url = 'https://%s/acmIdSync.jsp?annotations' % (WILDBOOK_TARGET,)
 
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
-    filename = 'flukebook.annot.admid.%s.json' % (timestamp,)
+    filename = 'wildbook.annot.admid.%s.json' % (timestamp,)
     filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    logger.info('Loaded %d Annot ACM string UUIDs from Flukebook' % (len(file_json),))
+    logger.info('Loaded %d Annot ACM string UUIDs from Wildbook' % (len(file_json),))
 
     uuid_list = []
     species_list = []
@@ -660,37 +664,35 @@ def get_flukebook_annot_uuids(ibs, filter_match_against_on=True):
 
     assert len(uuid_list) == len(species_list)
     assert len(uuid_list) == len(set(uuid_list))
-    logger.info('Validated %d Annotation UUIDs from Flukebook' % (len(uuid_list),))
+    logger.info('Validated %d Annotation UUIDs from Wildbook' % (len(uuid_list),))
 
-    flukebook_annot_uuid_list = uuid_list
-    flukebook_annot_species_list = species_list
+    wildbook_annot_uuid_list = uuid_list
+    wildbook_annot_species_list = species_list
 
-    return flukebook_annot_uuid_list, flukebook_annot_species_list
+    return wildbook_annot_uuid_list, wildbook_annot_species_list
 
 
 @register_ibs_method
-def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
+def delete_wildbook_orphaned_annot_uuids(ibs, auto_delete=True):
     from wbia import constants as const
 
     (
-        flukebook_annot_uuid_list,
-        flukebook_annot_species_list,
-    ) = ibs.get_flukebook_annot_uuids()
+        wildbook_annot_uuid_list,
+        wildbook_annot_species_list,
+    ) = ibs.get_wildbook_annot_uuids()
 
     aid_list = ibs.get_valid_aids()
     local_annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
-    unknown_uuid_list = list(set(flukebook_annot_uuid_list) - set(local_annot_uuid_list))
-    candidate_uuid_list = list(
-        set(local_annot_uuid_list) - set(flukebook_annot_uuid_list)
-    )
+    unknown_uuid_list = list(set(wildbook_annot_uuid_list) - set(local_annot_uuid_list))
+    candidate_uuid_list = list(set(local_annot_uuid_list) - set(wildbook_annot_uuid_list))
 
     logger.info(
-        'There are %d Annot UUIDs in Flukebook that are not here'
+        'There are %d Annot UUIDs in Wildbook that are not here'
         % (len(unknown_uuid_list),)
     )
     logger.info(
-        'There are %d Annot UUIDs in here that are not in Flukebook'
+        'There are %d Annot UUIDs in here that are not in Wildbook'
         % (len(candidate_uuid_list),)
     )
 
@@ -703,16 +705,16 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
     aid_list = ibs.get_valid_aids()
     local_annot_uuid_list = ibs.get_annot_uuids(aid_list)
 
-    known_uuid_list = list(set(flukebook_annot_uuid_list) & set(local_annot_uuid_list))
+    known_uuid_list = list(set(wildbook_annot_uuid_list) & set(local_annot_uuid_list))
     known_aid_list = ibs.get_annot_aids_from_uuid(known_uuid_list)
     assert None not in known_aid_list
 
-    flukebook_species_dict = dict(
-        zip(flukebook_annot_uuid_list, flukebook_annot_species_list)
+    wildbook_species_dict = dict(
+        zip(wildbook_annot_uuid_list, wildbook_annot_species_list)
     )
     known_species_list = ibs.get_annot_species(known_aid_list)
 
-    flukebook_species_mapping = {
+    wildbook_species_mapping = {
         'humpback_whale': 'megaptera_novaeangliae',
         'tursiops_sp.': 'tursiops_sp',
     }
@@ -723,29 +725,29 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
     for known_aid, known_uuid, known_species in zip(
         known_aid_list, known_uuid_list, known_species_list
     ):
-        flukebook_species = flukebook_species_dict.get(known_uuid, None)
-        if flukebook_species is None:
-            flukebook_species = const.UNKNOWN
-        assert flukebook_species is not None
-        flukebook_species = flukebook_species.lower()
-        flukebook_species = flukebook_species.replace(' ', '_')
-        flukebook_species = flukebook_species_mapping.get(
-            flukebook_species, flukebook_species
+        wildbook_species = wildbook_species_dict.get(known_uuid, None)
+        if wildbook_species is None:
+            wildbook_species = const.UNKNOWN
+        assert wildbook_species is not None
+        wildbook_species = wildbook_species.lower()
+        wildbook_species = wildbook_species.replace(' ', '_')
+        wildbook_species = wildbook_species_mapping.get(
+            wildbook_species, wildbook_species
         )
 
-        if known_species != flukebook_species:
+        if known_species != wildbook_species:
 
-            if flukebook_species == const.UNKNOWN and known_species != const.UNKNOWN:
+            if wildbook_species == const.UNKNOWN and known_species != const.UNKNOWN:
                 continue
 
             update_aid_list.append(known_aid)
-            update_species_list.append(flukebook_species)
+            update_species_list.append(wildbook_species)
 
             if known_species not in update_dict:
                 update_dict[known_species] = {}
-            if flukebook_species not in update_dict[known_species]:
-                update_dict[known_species][flukebook_species] = 0
-            update_dict[known_species][flukebook_species] += 1
+            if wildbook_species not in update_dict[known_species]:
+                update_dict[known_species][wildbook_species] = 0
+            update_dict[known_species][wildbook_species] += 1
 
     assert len(update_aid_list) == len(update_species_list)
     logger.info(ut.repr3(update_dict))
@@ -756,10 +758,10 @@ def delete_flukebook_orphaned_annot_uuids(ibs, auto_delete=True):
 
 
 @register_ibs_method
-@register_api('/api/flukebook/sync/', methods=['GET', 'POST'])
-def flukebook_sync(ibs, **kwargs):
-    candidate_image_uuid_list = ibs.delete_flukebook_orphaned_image_uuids()
-    candidate_annot_uuid_list, update_dict = ibs.delete_flukebook_orphaned_annot_uuids()
+@register_api('/api/wildbook/sync/', methods=['GET', 'POST'])
+def wildbook_sync(ibs, **kwargs):
+    candidate_image_uuid_list = ibs.delete_wildbook_orphaned_image_uuids()
+    candidate_annot_uuid_list, update_dict = ibs.delete_wildbook_orphaned_annot_uuids()
 
     result_dict = {
         'deleted_images': len(candidate_image_uuid_list),
