@@ -156,6 +156,11 @@ if ut.get_argflag('--pie'):
         (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
     ]
 
+if ut.get_argflag('--lca'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-lca', '--nolca'), 'wbia_lca._plugin'),
+    ]
+
 
 """
 # Should import
