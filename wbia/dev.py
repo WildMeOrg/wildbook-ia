@@ -36,8 +36,12 @@ CommandLine:
 """
 # TODO: ADD COPYRIGHT TAG
 import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
-sentry_sdk.init('https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2')  # NOQA
+sentry_sdk.init(
+    dsn='https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2',
+    integrations=[FlaskIntegration()],
+)
 
 try:
     import multiprocessing as mp
