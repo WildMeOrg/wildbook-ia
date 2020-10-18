@@ -1,3 +1,4 @@
+blinker
 boto>=2.20.1
 brambox
 cachetools>=1.1.6
@@ -45,7 +46,7 @@ scikit-learn>=0.17.1
 scipy>=0.18.0
 
 sentry-sdk>=0.10.2
-sentry-sdk[flask]
+sentry-sdk[flask]>=0.10.2
 
 setproctitle
 
