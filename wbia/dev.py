@@ -35,6 +35,10 @@ CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
+import sentry_sdk
+
+sentry_sdk.init('https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2')  # NOQA
+
 try:
     import multiprocessing as mp
 
@@ -50,18 +54,18 @@ try:
 except (ImportError, RuntimeError):
     pass
 
-import logging
-import sys
-import numpy as np
+import logging  # NOQA
+import sys  # NOQA
+import numpy as np  # NOQA
 
-from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
-import utool as ut
-from utool.util_six import get_funcname
-import utool
+from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS  # NOQA
+import utool as ut  # NOQA
+from utool.util_six import get_funcname  # NOQA
+import utool  # NOQA
 
 # from wbia.algo.hots import smk
-import wbia.plottool as pt
-import wbia
+import wbia.plottool as pt  # NOQA
+import wbia  # NOQA
 
 # import multiprocessing
 # if __name__ == '__main__':
@@ -101,7 +105,7 @@ from wbia.init import main_helpers  # NOQA
 from wbia.other import dbinfo  # NOQA
 from wbia.expt import experiment_configs  # NOQA
 from wbia.expt import harness  # NOQA
-from wbia.expt.experiment_drawing import draw_annot_scoresep
+from wbia.expt.experiment_drawing import draw_annot_scoresep  # NOQA
 from wbia import params  # NOQA
 
 print, rrr, profile = utool.inject2(__name__)
