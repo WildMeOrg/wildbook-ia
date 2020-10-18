@@ -1244,7 +1244,7 @@ def check_cache_purge(ibs, ttl_days=90, dryrun=True, squeeze=True):
         python -m wbia.other.ibsfuncs --exec-check_cache_purge
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
         >>> ibs = wbia.opendb(defaultdb='testdb1')
