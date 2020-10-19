@@ -703,9 +703,9 @@ class SQLDatabaseController(object):
 
     def shrink_memory(self):
         logger.info('[sql] shrink_memory')
-        self.connection.commit()
+        transaction = self.connection.begin()
         self.connection.execute('PRAGMA shrink_memory;')
-        self.connection.commit()
+        transaction.commit()
 
     def vacuum(self):
         logger.info('[sql] vaccum')
@@ -715,9 +715,9 @@ class SQLDatabaseController(object):
 
     def integrity(self):
         logger.info('[sql] vaccum')
-        self.connection.commit()
+        transaction = self.connection.begin()
         self.connection.execute('PRAGMA integrity_check;')
-        self.connection.commit()
+        transaction.commit()
 
     def squeeze(self):
         logger.info('[sql] squeeze')
