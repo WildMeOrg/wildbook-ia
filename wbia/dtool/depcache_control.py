@@ -148,14 +148,14 @@ class _CoreDependencyCache(object):
         if requestclass is not None:
             self.requestclass_dict[tablename] = requestclass
         self.fname_to_db[fname] = None
-        table = depcache_table.DependencyCacheTable(
-            depc=self,
+        table = depcache_table.DependencyCacheTable.from_name(
+            fname,
+            tablename,
+            self,
             parent_tablenames=parents,
-            tablename=tablename,
             data_colnames=colnames,
             data_coltypes=coltypes,
             preproc_func=preproc_func,
-            fname=fname,
             default_to_unpack=default_to_unpack,
             **kwargs,
         )
