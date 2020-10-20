@@ -1956,6 +1956,8 @@ class DependencyCacheTable(
         self.default_to_unpack = default_to_unpack
         self.vectorized = vectorized
         self.taggable = taggable
+        #: Flag to enable the deletion of external files on associated SQL row deletion.
+        self.rm_extern_on_delete = rm_extern_on_delete
 
         # XXX (20-Oct-12020) It's not clear if these attributes are absolutely necessary.
         self.chunksize = chunksize
@@ -1964,8 +1966,6 @@ class DependencyCacheTable(
         self.isinteractive = isinteractive
         self._asobject = asobject
         self.default_onthefly = default_onthefly
-        # SQL Internals
-        self.rm_extern_on_delete = rm_extern_on_delete
         # Update internals
         self.parent_col_attrs = self._infer_parentcol()
         self.data_col_attrs = self._infer_datacol()
