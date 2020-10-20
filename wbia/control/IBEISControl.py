@@ -791,17 +791,15 @@ class IBEISController(BASE_CLASS):
     def _init_depcache(self):
         # Initialize dependency cache for images
         image_root_getters = {}
-        self.depc_image = dtool.DependencyCache(
-            root_tablename=const.IMAGE_TABLE,
-            default_fname=const.IMAGE_TABLE + '_depcache',
-            cache_dpath=self.get_cachedir(),
-            controller=self,
-            get_root_uuid=self.get_image_uuids,
+        self.depc_image = dtool.DependencyCache.as_named(
+            self,
+            const.IMAGE_TABLE,
+            self.get_image_uuids,
             root_getters=image_root_getters,
         )
         self.depc_image.initialize()
 
-        """ Need to reinit this sometimes if cache is ever deleted """
+        # Need to reinit this sometimes if cache is ever deleted
         # Initialize dependency cache for annotations
         annot_root_getters = {
             'name': self.get_annot_names,
@@ -817,13 +815,10 @@ class IBEISController(BASE_CLASS):
             'theta': self.get_annot_thetas,
             'occurrence_text': self.get_annot_occurrence_text,
         }
-        self.depc_annot = dtool.DependencyCache(
-            # root_tablename='annot',   # const.ANNOTATION_TABLE
-            root_tablename=const.ANNOTATION_TABLE,
-            default_fname=const.ANNOTATION_TABLE + '_depcache',
-            cache_dpath=self.get_cachedir(),
-            controller=self,
-            get_root_uuid=self.get_annot_visual_uuids,
+        self.depc_annot = dtool.DependencyCache.as_named(
+            self,
+            const.ANNOTATION_TABLE,
+            self.get_annot_visual_uuids,
             root_getters=annot_root_getters,
         )
         # backwards compatibility
@@ -835,12 +830,10 @@ class IBEISController(BASE_CLASS):
 
         # Initialize dependency cache for parts
         part_root_getters = {}
-        self.depc_part = dtool.DependencyCache(
-            root_tablename=const.PART_TABLE,
-            default_fname=const.PART_TABLE + '_depcache',
-            cache_dpath=self.get_cachedir(),
-            controller=self,
-            get_root_uuid=self.get_part_uuids,
+        self.depc_part = dtool.DependencyCache.as_named(
+            self,
+            const.PART_TABLE,
+            self.get_part_uuids,
             root_getters=part_root_getters,
         )
         self.depc_part.initialize()

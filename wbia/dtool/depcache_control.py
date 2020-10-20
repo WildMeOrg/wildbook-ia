@@ -1071,6 +1071,61 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
         self._debug = False
 
+    @classmethod
+    def as_named(
+        cls,
+        controller,
+        name,
+        get_root_uuid,
+        table_name=None,
+        root_getters=None,
+        use_globals=True,
+    ):
+        """
+        Args:
+            controller (IBEISController): main controller
+            name (str): name of this controller instance, which is used in naming the data storage
+            table_name (str): (optional) if not the same as the 'name'
+            get_root_uuid: ???
+            root_getters: ???
+            use_globals (bool): ??? (default: True)
+
+        """
+        if table_name is None:
+            table_name = name
+
+        self = cls.__new__(cls)
+
+        # Parent (ibs) controller
+        self.controller = controller
+        # Internal dictionary of dependant tables
+        self.cachetable_dict = {}
+        self.configclass_dict = {}
+        self.requestclass_dict = {}
+        self.resultclass_dict = {}
+
+        self.root_getters = root_getters
+        # Root of all dependencies
+        self.root_tablename = table_name
+        # XXX Directory all cachefiles are stored in
+        self.cache_dpath = ut.truepath(self.controller.get_cachedir())
+
+        # XXX Mapping of different files properties are stored in
+        self.fname_to_db = {}
+
+        # Function to map a root rowid to an object
+        self._use_globals = use_globals
+
+        # XXX remove filesystem name
+        self.default_fname = f'{table_name}_cache'
+
+        self.get_root_uuid = get_root_uuid
+        self.delete_exclude_tables = {}
+        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
+        self._debug = False
+
+        return self
+
     def get_tablenames(self):
         return list(self.cachetable_dict.keys())
 
