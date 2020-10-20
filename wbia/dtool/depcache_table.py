@@ -1950,6 +1950,8 @@ class DependencyCacheTable(
         self.data_colnames = tuple(data_colnames)
         self.data_coltypes = data_coltypes
         self.preproc_func = preproc_func
+        #: Optional specification of the amount of blobs to modify in one SQL operation
+        self.chunksize = chunksize
 
         # Behavior
         self.on_delete = None
@@ -1960,7 +1962,6 @@ class DependencyCacheTable(
         self.rm_extern_on_delete = rm_extern_on_delete
 
         # XXX (20-Oct-12020) It's not clear if these attributes are absolutely necessary.
-        self.chunksize = chunksize
         # Developmental properties
         self.subproperties = {}
         self.isinteractive = isinteractive
