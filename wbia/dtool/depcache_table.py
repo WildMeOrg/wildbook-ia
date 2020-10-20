@@ -1965,7 +1965,6 @@ class DependencyCacheTable(
         self._asobject = asobject
         self.default_onthefly = default_onthefly
         # SQL Internals
-        self.sqldb_fpath = None
         self.rm_extern_on_delete = rm_extern_on_delete
         # Update internals
         self.parent_col_attrs = self._infer_parentcol()
