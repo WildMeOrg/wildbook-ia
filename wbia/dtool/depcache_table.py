@@ -582,7 +582,7 @@ class _TableDebugHelper(object):
             # ie (depc, parent_ids, config)
             argspec = ut.get_func_argspec(self.preproc_func)
             args = argspec.args
-            if argspec.varargs and argspec.keywords:
+            if argspec.varargs and (hasattr(argspec, 'keywords') and argspec.keywords):
                 assert len(args) == 1, 'varargs and kwargs must have one arg for depcache'
             else:
                 if len(args) < 3:
