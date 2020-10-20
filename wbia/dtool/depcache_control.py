@@ -223,17 +223,14 @@ class _CoreDependencyCache(object):
         #    pip install fs
 
         for fname in self._db_by_name.keys():
-            if fname == ':memory:':
-                db_uri = 'sqlite:///:memory:'
-            else:
-                fname_ = ut.ensure_ext(fname, '.sqlite')
-                from os.path import dirname
+            fname_ = ut.ensure_ext(fname, '.sqlite')
+            from os.path import dirname
 
-                prefix_dpath = dirname(fname_)
-                if prefix_dpath:
-                    ut.ensuredir(ut.unixjoin(self.cache_dpath, prefix_dpath))
-                fpath = ut.unixjoin(self.cache_dpath, fname_)
-                db_uri = 'sqlite:///{}'.format(os.path.realpath(fpath))
+            prefix_dpath = dirname(fname_)
+            if prefix_dpath:
+                ut.ensuredir(ut.unixjoin(self.cache_dpath, prefix_dpath))
+            fpath = ut.unixjoin(self.cache_dpath, fname_)
+            db_uri = 'sqlite:///{}'.format(os.path.realpath(fpath))
             # if ut.get_argflag('--clear-all-depcache'):
             #     ut.delete(fpath)
             db = sql_control.SQLDatabaseController.from_uri(db_uri)
@@ -1050,7 +1047,6 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         if default_fname is None:
             # ??? So 'None_primary_cache' is a good name?
             default_fname = root_tablename + '_primary_cache'
-            # default_fname = ':memory:'
         self.root_getters = root_getters
         # Root of all dependencies
         self.root_tablename = root_tablename
