@@ -243,10 +243,23 @@ class SQLDatabaseController(object):
             def version(self, value):
                 if not value:
                     raise ValueError(value)
-                stmt = text(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value)'
-                    'VALUES (:key, :value)'
-                )
+                dialect = self.ctrlr.connection.engine.dialect.name
+                if dialect == 'sqlite':
+                    stmt = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value)'
+                        'VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    stmt = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
                 params = {'key': 'database_version', 'value': value}
                 self.ctrlr.executeone(stmt, params)
 
@@ -271,10 +284,23 @@ class SQLDatabaseController(object):
                     raise ValueError(value)
                 elif isinstance(value, uuid.UUID):
                     value = str(value)
-                stmt = text(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) '
-                    'VALUES (:key, :value)'
-                )
+                dialect = self.ctrlr.connection.engine.dialect.name
+                if dialect == 'sqlite':
+                    stmt = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) '
+                        'VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    stmt = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
                 params = {'key': 'database_init_uuid', 'value': value}
                 self.ctrlr.executeone(stmt, params)
 
@@ -363,11 +389,23 @@ class SQLDatabaseController(object):
                 key = self._get_key_name(name)
 
                 # Insert or update the record
-                # FIXME postgresql (4-Aug-12020) 'insert or replace' is not valid for postgresql
-                statement = text(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
-                    f'(metadata_key, metadata_value) VALUES (:key, :value)'
-                )
+                dialect = self.ctrlr.connection.engine.dialect.name
+                if dialect == 'sqlite':
+                    statement = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
+                        f'(metadata_key, metadata_value) VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    statement = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
                 params = {
                     'key': key,
                     'value': value,
@@ -1790,7 +1828,20 @@ class SQLDatabaseController(object):
             'tablename': METADATA_TABLE_NAME,
             'columns': 'metadata_key, metadata_value',
         }
-        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (:key, :val)'
+        dialect = self._engine.dialect.name
+        if dialect == 'sqlite':
+            op_fmtstr = (
+                'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (:key, :val)'
+            )
+        elif dialect == 'postgresql':
+            op_fmtstr = f"""\
+                INSERT INTO {METADATA_TABLE_NAME}
+                    (metadata_key, metadata_value)
+                VALUES (:key, :val)
+                ON CONFLICT (metadata_key) DO UPDATE
+                    SET metadata_value = EXCLUDED.metadata_value"""
+        else:
+            raise RuntimeError(f'Unknown dialect {dialect}')
         operation = text(op_fmtstr.format(**fmtkw))
         params = {'key': key, 'val': val}
         self.executeone(operation, params, verbose=False)
