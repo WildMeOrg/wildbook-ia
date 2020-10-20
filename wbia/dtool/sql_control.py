@@ -1913,6 +1913,13 @@ class SQLDatabaseController(object):
             raise ValueError(f'name cannot be an empty string paired with {definition}')
         elif not definition:
             raise ValueError(f'definition cannot be an empty string paired with {name}')
+        if self._engine.dialect.name == 'postgresql':
+            if (
+                name.endswith('rowid')
+                and 'INTEGER' in definition
+                and 'PRIMARY KEY' in definition
+            ):
+                definition = definition.replace('INTEGER', 'SERIAL')
         return f'{name} {definition}'
 
     def _make_add_table_sqlstr(
