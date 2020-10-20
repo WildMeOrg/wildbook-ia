@@ -779,6 +779,8 @@ class SQLDatabaseController(object):
         connection.close()
 
     def optimize(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
         if VERBOSE_SQL:
@@ -797,24 +799,32 @@ class SQLDatabaseController(object):
         # self.connection.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] shrink_memory')
         transaction = self.connection.begin()
         self.connection.execute('PRAGMA shrink_memory;')
         transaction.commit()
 
     def vacuum(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] vaccum')
         transaction = self.connection.begin()
         self.connection.execute('VACUUM;')
         transaction.commit()
 
     def integrity(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] vaccum')
         transaction = self.connection.begin()
         self.connection.execute('PRAGMA integrity_check;')
         transaction.commit()
 
     def squeeze(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] squeeze')
         self.shrink_memory()
         self.vacuum()
