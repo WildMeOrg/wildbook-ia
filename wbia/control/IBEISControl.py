@@ -53,6 +53,7 @@ from wbia.dtool.dump import dump
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
+
 # Import modules which define injectable functions
 
 # tuples represent conditional imports with the flags in the first part of the
@@ -361,6 +362,12 @@ class IBEISController(BASE_CLASS):
         self.table_cache = None
         self._initialize_self()
         self._init_dirs(dbdir=dbdir, ensure=ensure)
+
+        # FIXME (20-Oct-12020) Set the base URI
+        #       This is a temporary adjustment to obtain a URI where one would not
+        #       be present as part of this filesystem focused contructor.
+        self._base_uri = f'sqlite:///{self.get_ibsdir()}'
+
         # _send_wildbook_request will do nothing if no wildbook address is
         # specified
         self._send_wildbook_request(wbaddr)
@@ -389,6 +396,11 @@ class IBEISController(BASE_CLASS):
         self.https = const.HTTPS
 
         logger.info('[ibs.__init__] END new IBEISController\n')
+
+    @property
+    def base_uri(self):
+        """Base database URI without a specific database name"""
+        return self._base_uri
 
     def reset_table_cache(self):
         self.table_cache = accessor_decors.init_tablecache()
