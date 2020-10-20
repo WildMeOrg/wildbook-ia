@@ -1910,12 +1910,18 @@ class DependencyCacheTable(
 
         self._hack_chunk_cache = None
 
-    # @profile
+    @property
+    def db_name(self):
+        """Name of the database this Table belongs to"""
+        # FIXME (20-Oct-12020) 'fname' is the legacy name, but can't be changed just yet
+        #       as its fairly intertwined in the registration decorator code.
+        return self.fname
+
     def initialize(self, _debug=None):
         """
         Ensures the SQL schema for this cache table
         """
-        self.db = self.depc.fname_to_db[self.fname]
+        self.db = self.depc.get_db_by_name(self.db_name)
         # logger.info('Checking sql for table=%r' % (self.tablename,))
         if not self.db.has_table(self.tablename):
             logger.debug('Initializing table=%r' % (self.tablename,))
