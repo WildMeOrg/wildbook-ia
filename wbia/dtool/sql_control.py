@@ -68,6 +68,38 @@ METADATA_TABLE_COLUMNS = {
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
+def sqlite_uri_to_postgres_uri_schema(uri):
+    from wbia.init.sysres import get_workdir
+
+    workdir = os.path.normpath(os.path.abspath(get_workdir()))
+    base_db_uri = os.getenv('WBIA_BASE_DB_URI')
+    namespace = None
+    if base_db_uri and uri.startswith(f'sqlite:///{workdir}'):
+        # Change sqlite uri to postgres uri
+
+        # Remove sqlite:///{workdir} from uri
+        # -> /NAUT_test/_ibsdb/_ibeis_cache/chipcache4.sqlite
+        sqlite_db_path = uri[len(f'sqlite:///{workdir}') :]
+
+        # ['', 'naut_test', '_ibsdb', '_ibeis_cache', 'chipcache4.sqlite']
+        sqlite_db_path_parts = sqlite_db_path.lower().split(os.path.sep)
+
+        if len(sqlite_db_path_parts) > 2:
+            # naut_test
+            db_name = sqlite_db_path_parts[1]
+            # chipcache4
+            namespace = os.path.splitext(sqlite_db_path_parts[-1])[0]
+
+            # postgresql://wbia@db/naut_test
+            uri = f'{base_db_uri}/{db_name}'
+        else:
+            raise RuntimeError(
+                f'uri={uri} sqlite_db_path={sqlite_db_path} sqlite_db_path_parts={sqlite_db_path_parts}'
+            )
+
+    return (uri, namespace)
+
+
 def _unpacker(results):
     """ HELPER: Unpacks results if unpack_scalars is True. """
     if not results:  # Check for None or empty list
@@ -430,6 +462,10 @@ class SQLDatabaseController(object):
 
     def __init_engine(self):
         """Create the SQLAlchemy Engine"""
+        if os.getenv('POSTGRES'):
+            uri, schema = sqlite_uri_to_postgres_uri_schema(self.uri)
+            self.uri = uri
+            self.schema = schema
         self._engine = sqlalchemy.create_engine(
             self.uri,
             # The echo flag is a shortcut to set up SQLAlchemy logging
@@ -497,6 +533,9 @@ class SQLDatabaseController(object):
     def connect(self):
         """Create a connection for the instance or use the existing connection"""
         self._connection = self._engine.connect()
+        if self._engine.dialect.name == 'postgresql':
+            self._connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
+            self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
         return self._connection
 
     @property
@@ -523,11 +562,16 @@ class SQLDatabaseController(object):
         uri = self.uri
         if self.readonly:
             uri += '?mode=ro'
+        if os.getenv('POSTGRES'):
+            uri, schema = sqlite_uri_to_postgres_uri_schema(uri)
         engine = sqlalchemy.create_engine(
             uri,
             echo=False,
         )
         connection = engine.connect()
+        if engine.dialect.name == 'postgresql':
+            connection.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
+            connection.execute(text('SET SCHEMA :schema'), schema=schema)
 
         # Keep track of what thead this was started in
         threadid = threading.current_thread()
@@ -660,6 +704,9 @@ class SQLDatabaseController(object):
         # ??? May be better to use the `dispose()` method?
         self.__init_engine()
         self.connection = self._engine.connect()
+        if self._engine.dialect.name == 'postgresql':
+            self.connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
+            self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
 
     def backup(self, backup_filepath):
         """
@@ -729,8 +776,11 @@ class SQLDatabaseController(object):
         """Produces a SQLAlchemy Table object from the given ``table_name``"""
         # Note, this on introspects once. Repeated calls will pull the Table object
         # from the MetaData object.
+        kw = {}
+        if self._engine.dialect.name == 'postgresql':
+            kw = {'schema': self.schema}
         return Table(
-            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine
+            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
         )
 
     # ==============
