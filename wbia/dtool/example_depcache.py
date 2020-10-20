@@ -725,8 +725,8 @@ def dummy_example_depcacahe():
     req.execute()
 
     # ut.InstanceList(
-    db = list(depc.fname_to_db.values())[0]
-    # db_list = ut.InstanceList(depc.fname_to_db.values())
+    db = list(depc._db_by_name.values())[0]
+    # db_list = ut.InstanceList(depc._db_by_name.values())
     # db_list.print_table_csv('config', exclude_columns='config_strid')
 
     print('config table')
