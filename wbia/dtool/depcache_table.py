@@ -500,8 +500,6 @@ class _TableDebugHelper(object):
         """ debug function """
         logger.info('TABLE ATTRIBUTES')
         logger.info('self.tablename = %r' % (self.tablename,))
-        logger.info('self.isinteractive = %r' % (self.isinteractive,))
-        logger.info('self.default_onthefly = %r' % (self.default_onthefly,))
         logger.info('self.rm_extern_on_delete = %r' % (self.rm_extern_on_delete,))
         logger.info('self.chunksize = %r' % (self.chunksize,))
         logger.info('self.fname = %r' % (self.fname,))
@@ -1736,18 +1734,6 @@ class _TableComputeHelper(object):
         )
         # These are the colnames that we expect to be computed
         colnames = self.computable_colnames()
-        # def unfinished_features():
-        #    if self._asobject:
-        #        # Convinience
-        #        argsT = [self.depc.get_obj(parent, rowids)
-        #                 for parent, rowids in zip(self.parents(),
-        #                                           dirty_parent_ids_chunk)]
-        #        onthefly = None
-        #        if self.default_onthefly or onthefly:
-        #            assert not self.ismulti, ('cannot onthefly multi tables')
-        #            proptup_gen = [tuple([None] * len(self.data_col_attrs))
-        #                           for _ in range(len(dirty_parent_ids_chunk))]
-        #    pass
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
             # prog_iter = list(prog_iter)
@@ -1850,9 +1836,9 @@ class DependencyCacheTable(
         fname=None,
         asobject=False,
         chunksize=None,
-        isinteractive=False,
+        isinteractive=False,  # no-op
         default_to_unpack=False,
-        default_onthefly=False,
+        default_onthefly=False,  # no-op
         rm_extern_on_delete=False,
         vectorized=True,
         taggable=False,
@@ -1891,11 +1877,6 @@ class DependencyCacheTable(
         # self.store_delete_time = True
 
         self.chunksize = chunksize
-        # Developmental properties
-        self.subproperties = {}
-        self.isinteractive = isinteractive
-        self._asobject = asobject
-        self.default_onthefly = default_onthefly
         # SQL Internals
         self.sqldb_fpath = None
         self.rm_extern_on_delete = rm_extern_on_delete
@@ -1924,9 +1905,7 @@ class DependencyCacheTable(
         docstr='no docstr',
         asobject=False,
         chunksize=None,
-        isinteractive=False,
         default_to_unpack=False,
-        default_onthefly=False,
         rm_extern_on_delete=False,
         vectorized=True,
         taggable=False,
@@ -1953,6 +1932,11 @@ class DependencyCacheTable(
         #: Optional specification of the amount of blobs to modify in one SQL operation
         self.chunksize = chunksize
 
+        # FIXME (20-Oct-12020) This definition of behavior by external means is a scope issue
+        #       Another object should not be directly manipulating this object.
+        #: functions defined and populated through DependencyCache._register_subprop
+        self.subproperties = {}
+
         # Behavior
         self.on_delete = None
         self.default_to_unpack = default_to_unpack
@@ -1962,11 +1946,6 @@ class DependencyCacheTable(
         self.rm_extern_on_delete = rm_extern_on_delete
 
         # XXX (20-Oct-12020) It's not clear if these attributes are absolutely necessary.
-        # Developmental properties
-        self.subproperties = {}
-        self.isinteractive = isinteractive
-        self._asobject = asobject
-        self.default_onthefly = default_onthefly
         # Update internals
         self.parent_col_attrs = self._infer_parentcol()
         self.data_col_attrs = self._infer_datacol()
@@ -2721,12 +2700,6 @@ class DependencyCacheTable(
 
         idxs2 = ut.index_complement(idxs1, len(tbl_rowids))
 
-        ####
-        # Read data stored in SQL
-        # FIXME: understand unpack_scalars and keepwrap
-        # if self.default_onthefly:
-        # self._onthefly_dataget
-        # else:
         if nInput is None and ut.is_listlike(nonNone_tbl_rowids):
             nInput = len(nonNone_tbl_rowids)
 
@@ -2973,7 +2946,6 @@ class DependencyCacheTable(
             # Evaulate to external and internal storage
             self.db.set(self.tablename, colnames, dirty_params_iter, rowids)
 
-    # _onthefly_dataget
     # togroup_args = [parent_rowids]
     # grouped_parent_ids = ut.apply_grouping(parent_rowids, groupxs)
     # unique_args_list = [unique_configs]
