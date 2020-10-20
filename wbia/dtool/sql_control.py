@@ -514,7 +514,6 @@ class SQLDatabaseController(object):
                 raise AssertionError('Cannot open a new database in readonly mode')
         # Open the SQL database connection with support for custom types
         # lite.enable_callback_tracebacks(True)
-        # self.fpath = ':memory:'
 
         # References:
         # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
