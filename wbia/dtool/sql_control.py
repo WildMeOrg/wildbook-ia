@@ -608,8 +608,15 @@ class SQLDatabaseController(object):
         """
         try:
             orig_table_kw = self.get_table_autogen_dict(METADATA_TABLE_NAME)
-        except (sqlalchemy.exc.OperationalError, NameError):
+        except (
+            sqlalchemy.exc.OperationalError,  # sqlite error
+            sqlalchemy.exc.ProgrammingError,  # postgres error
+            NameError,
+        ):
             orig_table_kw = None
+            # Reset connection because schema was rolled back due to
+            # the error
+            self._connection = None
 
         meta_table_kw = ut.odict(
             [
