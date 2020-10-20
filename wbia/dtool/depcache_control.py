@@ -135,6 +135,8 @@ class _CoreDependencyCache(object):
             raise ValueError('must specify coltypes of %s' % (tablename,))
             coltypes = [np.ndarray] * len(colnames)
         if fname is None:
+            # FIXME (20-Oct-12020) Base class doesn't define this property
+            #       and thus expects the subclass to know it should be assigned.
             fname = self.default_fname
         if configclass is None:
             # Make a default config with no parameters
@@ -147,7 +149,7 @@ class _CoreDependencyCache(object):
         # Register a new table and configuration
         if requestclass is not None:
             self.requestclass_dict[tablename] = requestclass
-        self.fname_to_db[fname] = None
+        self._db_by_name.setdefault(fname, None)
         table = depcache_table.DependencyCacheTable.from_name(
             fname,
             tablename,
@@ -182,18 +184,16 @@ class _CoreDependencyCache(object):
         table = self.cachetable_dict[tablename]
         table.subproperties[propname] = preproc_func
 
-    def close(self):
-        """
-        Close all managed SQL databases
-        """
-        for fname, db in self.fname_to_db.items():
-            db.close()
-
     def get_db_by_name(self, name):
         """Get the database (i.e. SQLController) for the given database name"""
         # FIXME (20-Oct-12020) Currently handled via a mapping of 'fname'
         #       to database controller objects.
-        return self.fname_to_db[name]
+        return self._db_by_name[name]
+
+    def close(self):
+        """Close all managed SQL databases"""
+        for db_inst in self._db_by_name.values():
+            db_inst.close()
 
     @profile
     def initialize(self, _debug=None):
@@ -222,7 +222,7 @@ class _CoreDependencyCache(object):
         #    # http://docs.pyfilesystem.org/en/latest/getting_started.html
         #    pip install fs
 
-        for fname in self.fname_to_db.keys():
+        for fname in self._db_by_name.keys():
             if fname == ':memory:':
                 db_uri = 'sqlite:///:memory:'
             else:
@@ -238,7 +238,7 @@ class _CoreDependencyCache(object):
             #     ut.delete(fpath)
             db = sql_control.SQLDatabaseController.from_uri(db_uri)
             depcache_table.ensure_config_table(db)
-            self.fname_to_db[fname] = db
+            self._db_by_name[fname] = db
         logger.info('[depc] Finished initialization')
 
         for table in self.cachetable_dict.values():
@@ -1048,6 +1048,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         use_globals=True,
     ):
         if default_fname is None:
+            # ??? So 'None_primary_cache' is a good name?
             default_fname = root_tablename + '_primary_cache'
             # default_fname = ':memory:'
         self.root_getters = root_getters
@@ -1062,8 +1063,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         self.configclass_dict = {}
         self.requestclass_dict = {}
         self.resultclass_dict = {}
-        # Mapping of different files properties are stored in
-        self.fname_to_db = {}
+        # Mapping of database connections by name
+        #  - names populated by _CoreDependencyCache._register_prop
+        #  - values populated by _CoreDependencyCache.initialize
+        self._db_by_name = {}
         # Function to map a root rowid to an object
         # self._root_asobject = root_asobject
         self._use_globals = use_globals
@@ -1116,8 +1119,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         # XXX Directory all cachefiles are stored in
         self.cache_dpath = ut.truepath(self.controller.get_cachedir())
 
-        # XXX Mapping of different files properties are stored in
-        self.fname_to_db = {}
+        # Mapping of database connections by name
+        #  - names populated by _CoreDependencyCache._register_prop
+        #  - values populated by _CoreDependencyCache.initialize
+        self._db_by_name = {}
 
         # Function to map a root rowid to an object
         self._use_globals = use_globals
@@ -1144,8 +1149,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         return self.get_tablenames()
 
     def print_schemas(self):
-        for fname, db in self.fname_to_db.items():
-            logger.info('fname = %r' % (fname,))
+        for name, db in self._db_by_name.items():
+            logger.info('name = %r' % (name,))
             db.print_schema()
 
     # def print_table_csv(self, tablename):
@@ -1161,10 +1166,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             # db.print_table_csv(tablename)
 
     def print_config_tables(self):
-        for fname in self.fname_to_db:
+        for name in self._db_by_name:
             logger.info('---')
-            logger.info('db_fname = %r' % (fname,))
-            self.fname_to_db[fname].print_table_csv('config')
+            logger.info('db_name = %r' % (name,))
+            self._db_by_name[name].print_table_csv('config')
 
     def get_edges(self, data=False):
         """
