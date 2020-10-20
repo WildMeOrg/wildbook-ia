@@ -189,6 +189,12 @@ class _CoreDependencyCache(object):
         for fname, db in self.fname_to_db.items():
             db.close()
 
+    def get_db_by_name(self, name):
+        """Get the database (i.e. SQLController) for the given database name"""
+        # FIXME (20-Oct-12020) Currently handled via a mapping of 'fname'
+        #       to database controller objects.
+        return self.fname_to_db[name]
+
     @profile
     def initialize(self, _debug=None):
         """
