@@ -2581,7 +2581,34 @@ class SQLDatabaseController(object):
         """
         # check if the table exists first. Throws an error if it does not exist.
         self.connection.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
-        result = self.connection.execute("PRAGMA TABLE_INFO('" + tablename + "')")
+        dialect = self._engine.dialect.name
+        if dialect == 'sqlite':
+            stmt = f"PRAGMA TABLE_INFO('{tablename}')"
+            params = {}
+        elif dialect == 'postgresql':
+            stmt = text(
+                """SELECT
+                       row_number() over () - 1,
+                       column_name,
+                       coalesce(domain_name, data_type),
+                       is_nullable,
+                       column_default,
+                       column_name = (
+                           SELECT column_name
+                           FROM information_schema.table_constraints
+                           NATURAL JOIN information_schema.constraint_column_usage
+                           WHERE table_name = :table_name
+                           AND constraint_type = 'PRIMARY KEY'
+                           AND table_schema = :table_schema
+                           LIMIT 1
+                       ) AS pk
+                FROM information_schema.columns
+                WHERE table_name = :table_name
+                AND table_schema = :table_schema"""
+            )
+            params = {'table_name': tablename, 'table_schema': self.schema}
+
+        result = self.connection.execute(stmt, **params)
         colinfo_list = result.fetchall()
         colrichinfo_list = [SQLColumnRichInfo(*colinfo) for colinfo in colinfo_list]
         return colrichinfo_list
