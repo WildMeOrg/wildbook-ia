@@ -1865,7 +1865,6 @@ class DependencyCacheTable(
         except Exception:
             # HACK: jedi type hinting. Need to have non-obvious condition
             self.db = SQLDatabaseController()
-        self.fpath_to_db = {}
         assert (
             re.search('[0-9]', tablename) is None
         ), 'tablename=%r cannot contain numbers' % (tablename,)
