@@ -2443,9 +2443,21 @@ class SQLDatabaseController(object):
     def get_table_names(self, lazy=False):
         """ Conveinience: """
         if not lazy or self._tablenames is None:
-            result = self.connection.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
+            dialect = self.connection.engine.dialect.name
+            if dialect == 'sqlite':
+                stmt = "SELECT name FROM sqlite_master WHERE type='table'"
+                params = {}
+            elif dialect == 'postgresql':
+                stmt = text(
+                    """\
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_type='BASE TABLE'
+                    AND table_schema = :schema"""
+                )
+                params = {'schema': self.schema}
+            else:
+                raise RuntimeError(f'Unknown dialect {dialect}')
+            result = self.connection.execute(stmt, **params)
             tablename_list = result.fetchall()
             self._tablenames = {str(tablename[0]) for tablename in tablename_list}
         return self._tablenames
