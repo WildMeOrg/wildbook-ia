@@ -1877,7 +1877,7 @@ class DependencyCacheTable(
         self.data_colnames = tuple(data_colnames)
         self.data_coltypes = data_coltypes
         self.preproc_func = preproc_func
-        self.fname = fname
+        self._db_name = fname
         # Behavior
         self.on_delete = None
         self.default_to_unpack = default_to_unpack
@@ -1908,20 +1908,93 @@ class DependencyCacheTable(
         if ut.SUPER_STRICT:
             self._assert_self()
 
+        # ??? Clearly a hack, but to what end?
         self._hack_chunk_cache = None
 
+    @classmethod
+    def from_name(
+        cls,
+        db_name,
+        table_name,
+        depcache_controller,
+        parent_tablenames=None,
+        data_colnames=None,
+        data_coltypes=None,
+        preproc_func=None,
+        docstr='no docstr',
+        asobject=False,
+        chunksize=None,
+        isinteractive=False,
+        default_to_unpack=False,
+        default_onthefly=False,
+        rm_extern_on_delete=False,
+        vectorized=True,
+        taggable=False,
+    ):
+        """Build the instance based on a database and table name."""
+        self = cls.__new__(cls)
+
+        self._db_name = db_name
+
+        # Set the table name
+        if re.search('[0-9]', table_name):
+            raise ValueError(f"tablename = '{table_name}' cannot contain numbers")
+        self.tablename = table_name
+
+        # Set the parent depcache controller
+        self.depc = depcache_controller
+
+        # Definitions
+        self.docstr = docstr
+        self.parent_tablenames = parent_tablenames
+        self.data_colnames = tuple(data_colnames)
+        self.data_coltypes = data_coltypes
+        self.preproc_func = preproc_func
+
+        # Behavior
+        self.on_delete = None
+        self.default_to_unpack = default_to_unpack
+        self.vectorized = vectorized
+        self.taggable = taggable
+
+        # XXX (20-Oct-12020) It's not clear if these attributes are absolutely necessary.
+        self.chunksize = chunksize
+        # Developmental properties
+        self.subproperties = {}
+        self.isinteractive = isinteractive
+        self._asobject = asobject
+        self.default_onthefly = default_onthefly
+        # SQL Internals
+        self.sqldb_fpath = None
+        self.rm_extern_on_delete = rm_extern_on_delete
+        # Update internals
+        self.parent_col_attrs = self._infer_parentcol()
+        self.data_col_attrs = self._infer_datacol()
+        self.internal_col_attrs = self._infer_allcol()
+        # /XXX
+
+        # Check for errors
+        # FIXME (20-Oct-12020) This seems like a bad idea...
+        #       Why would you sometimes want to check and not at other times?
+        if ut.SUPER_STRICT:
+            self._assert_self()
+
+        # ??? Clearly a hack, but to what end?
+        self._hack_chunk_cache = None
+
+        return self
+
     @property
-    def db_name(self):
-        """Name of the database this Table belongs to"""
-        # FIXME (20-Oct-12020) 'fname' is the legacy name, but can't be changed just yet
-        #       as its fairly intertwined in the registration decorator code.
-        return self.fname
+    def fname(self):
+        """Backwards compatible name of the database this Table belongs to"""
+        # BBB (20-Oct-12020) 'fname' is the legacy name for the database name
+        return self._db_name
 
     def initialize(self, _debug=None):
         """
         Ensures the SQL schema for this cache table
         """
-        self.db = self.depc.get_db_by_name(self.db_name)
+        self.db = self.depc.get_db_by_name(self._db_name)
         # logger.info('Checking sql for table=%r' % (self.tablename,))
         if not self.db.has_table(self.tablename):
             logger.debug('Initializing table=%r' % (self.tablename,))
