@@ -83,11 +83,111 @@ def make_depcache_decors(root_tablename):
     return _depcdecors
 
 
-class _CoreDependencyCache(object):
-    """
-    Core worker functions for the depcache
-    Inherited by a calss with some "nice extras
-    """
+class DependencyCache:
+    def __init__(
+        self,
+        root_tablename=None,
+        cache_dpath='./DEPCACHE',
+        controller=None,
+        default_fname=None,
+        # root_asobject=None,
+        get_root_uuid=None,
+        root_getters=None,
+        use_globals=True,
+    ):
+        if default_fname is None:
+            # ??? So 'None_primary_cache' is a good name?
+            default_fname = root_tablename + '_primary_cache'
+        self.root_getters = root_getters
+        # Root of all dependencies
+        self.root_tablename = root_tablename
+        self.name = root_tablename
+        # Directory all cachefiles are stored in
+        self.cache_dpath = ut.truepath(cache_dpath)
+        # Parent (ibs) controller
+        self.controller = controller
+        # Internal dictionary of dependant tables
+        self.cachetable_dict = {}
+        self.configclass_dict = {}
+        self.requestclass_dict = {}
+        self.resultclass_dict = {}
+        # Mapping of database connections by name
+        #  - names populated by _CoreDependencyCache._register_prop
+        #  - values populated by _CoreDependencyCache.initialize
+        self._db_by_name = {}
+        # Function to map a root rowid to an object
+        # self._root_asobject = root_asobject
+        self._use_globals = use_globals
+        self.default_fname = default_fname
+        if get_root_uuid is None:
+            logger.info('WARNING NEED UUID FUNCTION')
+            # HACK
+            get_root_uuid = ut.identity
+        self.get_root_uuid = get_root_uuid
+        self.delete_exclude_tables = {}
+        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
+        self._debug = False
+
+    @classmethod
+    def as_named(
+        cls,
+        controller,
+        name,
+        get_root_uuid,
+        table_name=None,
+        root_getters=None,
+        use_globals=True,
+    ):
+        """
+        Args:
+            controller (IBEISController): main controller
+            name (str): name of this controller instance, which is used in naming the data storage
+            table_name (str): (optional) if not the same as the 'name'
+            get_root_uuid: ???
+            root_getters: ???
+            use_globals (bool): ??? (default: True)
+
+        """
+        if table_name is None:
+            table_name = name
+
+        self = cls.__new__(cls)
+
+        self.name = name
+        # Parent (ibs) controller
+        self.controller = controller
+        # Internal dictionary of dependant tables
+        self.cachetable_dict = {}
+        self.configclass_dict = {}
+        self.requestclass_dict = {}
+        self.resultclass_dict = {}
+
+        self.root_getters = root_getters
+        # Root of all dependencies
+        self.root_tablename = table_name
+        # XXX Directory all cachefiles are stored in
+        self.cache_dpath = self.controller.get_cachedir()
+
+        # Mapping of database connections by name
+        #  - names populated by _register_prop
+        #  - values populated by initialize
+        self._db_by_name = {}
+
+        # Function to map a root rowid to an object
+        self._use_globals = use_globals
+
+        # FIXME (20-Oct-12020) remove filesystem name
+        self.default_fname = f'{table_name}_cache'
+
+        self.get_root_uuid = get_root_uuid
+        self.delete_exclude_tables = {}
+        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
+        self._debug = False
+
+        return self
+
+    def __repr__(self):
+        return f'<DependencyCache(controller={self.controller} name={self.name})>'
 
     @profile
     def _register_prop(
@@ -1006,115 +1106,6 @@ class _CoreDependencyCache(object):
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
 
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
-    """
-    Currently, to use this class a user must:
-        * on root modification, call depc.on_root_modified
-        * use decorators to register relevant functions
-    """
-
-    def __init__(
-        self,
-        root_tablename=None,
-        cache_dpath='./DEPCACHE',
-        controller=None,
-        default_fname=None,
-        # root_asobject=None,
-        get_root_uuid=None,
-        root_getters=None,
-        use_globals=True,
-    ):
-        if default_fname is None:
-            # ??? So 'None_primary_cache' is a good name?
-            default_fname = root_tablename + '_primary_cache'
-        self.root_getters = root_getters
-        # Root of all dependencies
-        self.root_tablename = root_tablename
-        # Directory all cachefiles are stored in
-        self.cache_dpath = ut.truepath(cache_dpath)
-        # Parent (ibs) controller
-        self.controller = controller
-        # Internal dictionary of dependant tables
-        self.cachetable_dict = {}
-        self.configclass_dict = {}
-        self.requestclass_dict = {}
-        self.resultclass_dict = {}
-        # Mapping of database connections by name
-        #  - names populated by _CoreDependencyCache._register_prop
-        #  - values populated by _CoreDependencyCache.initialize
-        self._db_by_name = {}
-        # Function to map a root rowid to an object
-        # self._root_asobject = root_asobject
-        self._use_globals = use_globals
-        self.default_fname = default_fname
-        if get_root_uuid is None:
-            logger.info('WARNING NEED UUID FUNCTION')
-            # HACK
-            get_root_uuid = ut.identity
-        self.get_root_uuid = get_root_uuid
-        self.delete_exclude_tables = {}
-        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
-        self._debug = False
-
-    @classmethod
-    def as_named(
-        cls,
-        controller,
-        name,
-        get_root_uuid,
-        table_name=None,
-        root_getters=None,
-        use_globals=True,
-    ):
-        """
-        Args:
-            controller (IBEISController): main controller
-            name (str): name of this controller instance, which is used in naming the data storage
-            table_name (str): (optional) if not the same as the 'name'
-            get_root_uuid: ???
-            root_getters: ???
-            use_globals (bool): ??? (default: True)
-
-        """
-        if table_name is None:
-            table_name = name
-
-        self = cls.__new__(cls)
-
-        # Parent (ibs) controller
-        self.controller = controller
-        # Internal dictionary of dependant tables
-        self.cachetable_dict = {}
-        self.configclass_dict = {}
-        self.requestclass_dict = {}
-        self.resultclass_dict = {}
-
-        self.root_getters = root_getters
-        # Root of all dependencies
-        self.root_tablename = table_name
-        # XXX Directory all cachefiles are stored in
-        self.cache_dpath = ut.truepath(self.controller.get_cachedir())
-
-        # Mapping of database connections by name
-        #  - names populated by _CoreDependencyCache._register_prop
-        #  - values populated by _CoreDependencyCache.initialize
-        self._db_by_name = {}
-
-        # Function to map a root rowid to an object
-        self._use_globals = use_globals
-
-        # XXX remove filesystem name
-        self.default_fname = f'{table_name}_cache'
-
-        self.get_root_uuid = get_root_uuid
-        self.delete_exclude_tables = {}
-        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
-        self._debug = False
-
-        return self
-
     def get_tablenames(self):
         return list(self.cachetable_dict.keys())
 
@@ -1641,8 +1632,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             uuid_list = self.get_root_uuid(root_rowids)
         return uuid_list
 
-    get_native_property = _CoreDependencyCache.get_native
-    get_property = _CoreDependencyCache.get
+    get_native_property = get_native
+    get_property = get
 
     def stacked_config(self, source, dest, config):
         r"""
