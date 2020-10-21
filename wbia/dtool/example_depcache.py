@@ -34,6 +34,19 @@ if False:
             yield 'dummy'
 
 
+class DummyController:
+    """Just enough (IBEIS) controller to make the dependency cache examples work"""
+
+    def __init__(self, cache_dpath):
+        self.cache_dpath = cache_dpath
+
+    def make_cache_db_uri(self, name):
+        return f"sqlite:///{self.cache_dpath}/{name}.sqlite"
+
+    def get_cachedir(self):
+        return self.cache_dpath
+
+
 class DummyKptsConfig(dtool.Config):
     def get_param_info_list(self):
         return [
@@ -224,12 +237,16 @@ def testdata_depc(fname=None):
     dtool_repo = dirname(ut.get_module_dir(dtool))
     cache_dpath = join(dtool_repo, 'DEPCACHE')
 
-    depc = dtool.DependencyCache(
-        root_tablename=dummy_root,
-        default_fname=fname,
-        cache_dpath=cache_dpath,
-        get_root_uuid=get_root_uuid,
-        # root_asobject=root_asobject,
+    if not fname:
+        fname = dummy_root
+
+    controller = DummyController(cache_dpath)
+    depc = dtool.DependencyCache.as_named(
+        controller,
+        fname,
+        get_root_uuid,
+        table_name=dummy_root,
+        root_getters=None,
         use_globals=False,
     )
 
