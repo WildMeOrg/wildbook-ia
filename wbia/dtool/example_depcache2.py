@@ -1,9 +1,35 @@
 # -*- coding: utf-8 -*-
-import utool as ut
+from pathlib import Path
 
-# import numpy as np
-from os.path import join, dirname
+import utool as ut
 from six.moves import zip
+
+from wbia.dtool.depcache_control import DependencyCache
+from wbia.dtool.example_depcache import DummyController
+
+
+HERE = Path(__file__).parent.resolve()
+
+
+def _depc_factory(name, cache_dir):
+    """DependencyCache factory for the examples
+
+    Args:
+        name (str): name of the cache (e.g. 'annot')
+        cache_dir (str): name of the cache directory
+
+    """
+    cache_dpath = HERE / cache_dir
+    controller = DummyController(cache_dpath)
+    depc = DependencyCache.as_named(
+        controller,
+        name,
+        ut.identity,
+        table_name=None,
+        root_getters=None,
+        use_globals=False,
+    )
+    return depc
 
 
 def depc_34_helper(depc):
@@ -85,23 +111,7 @@ def testdata_depc3(in_memory=True):
         >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    from wbia import dtool
-    from wbia.dtool.example_depcache import DummyController
-
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE3')
-
-    controller = DummyController(cache_dpath)
-    root = 'annot'
-    depc = dtool.DependencyCache.as_named(
-        controller,
-        root,
-        ut.identity,
-        table_name=None,
-        root_getters=None,
-        use_globals=False,
-    )
+    depc = _depc_factory('annot', 'DEPCACHE3')
 
     # ----------
     # dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
@@ -155,23 +165,7 @@ def testdata_depc4(in_memory=True):
         >>> #depc['viewpoint_classification'].show_input_graph()
         >>> ut.show_if_requested()
     """
-    from wbia import dtool
-    from wbia.dtool.example_depcache import DummyController
-
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE3')
-
-    controller = DummyController(cache_dpath)
-    root = 'annot'
-    depc = dtool.DependencyCache.as_named(
-        controller,
-        root,
-        ut.identity,
-        table_name=None,
-        root_getters=None,
-        use_globals=False,
-    )
+    depc = _depc_factory('annot', 'DEPCACHE4')
 
     # ----------
     # dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
@@ -201,23 +195,7 @@ def testdata_depc4(in_memory=True):
 
 
 def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
-    from wbia import dtool
-    from wbia.dtool.example_depcache import DummyController
-
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE5')
-
-    controller = DummyController(cache_dpath)
-    root = 'annot'
-    depc = dtool.DependencyCache.as_named(
-        controller,
-        root,
-        ut.identity,
-        table_name=None,
-        root_getters=None,
-        use_globals=False,
-    )
+    depc = _depc_factory('annot', 'DEPCACHE5')
 
     # ----------
     register_dummy_config = depc_34_helper(depc)
