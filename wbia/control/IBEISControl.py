@@ -403,6 +403,10 @@ class IBEISController(BASE_CLASS):
         """Base database URI without a specific database name"""
         return self._base_uri
 
+    def make_cache_db_uri(self, name):
+        """Given a name of the cache produce a database connection URI"""
+        return f'sqlite:///{self.get_cachedir()}/{name}.sqlite'
+
     def reset_table_cache(self):
         self.table_cache = accessor_decors.init_tablecache()
 
