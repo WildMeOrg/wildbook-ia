@@ -199,9 +199,6 @@ class _CoreDependencyCache(object):
         """
         Creates all registered tables
         """
-        logger.info(
-            '[depc] Initialize %s depcache in %r' % (self.root.upper(), self.cache_dpath)
-        )
         if self._use_globals:
             reg_preproc = PREPROC_REGISTER[self.root]
             reg_subprop = SUBPROP_REGISTER[self.root]
@@ -232,10 +229,9 @@ class _CoreDependencyCache(object):
         class InjectedDepc(object):
             pass
 
+        # ??? What's the significance of 'd' and 'w'? Do the mean anything?
         self.d = InjectedDepc()
         self.w = InjectedDepc()
-        d = self.d
-        w = self.w
         inject_patterns = [
             ('get_{tablename}_rowids', self.get_rowids),
             ('get_{tablename}_config_history', self.get_config_history),
@@ -243,20 +239,20 @@ class _CoreDependencyCache(object):
         for table in self.cachetable_dict.values():
             wobj = InjectedDepc()
             # Set nested version
-            setattr(w, table.tablename, wobj)
+            setattr(self.w, table.tablename, wobj)
             for dfmtstr, func in inject_patterns:
                 funcname = ut.get_funcname(func)
                 attrname = dfmtstr.format(tablename=table.tablename)
-                get_rowids = ut.partial(func, table.tablename)
+                partial_func = ut.partial(func, table.tablename)
                 # Set flat version
-                setattr(d, attrname, get_rowids)
+                setattr(self.d, attrname, partial_func)
                 setattr(wobj, funcname, func)
             dfmtstr = 'get_{tablename}_{colname}'
             for colname in table.data_colnames:
                 get_prop = ut.partial(self.get, table.tablename, colnames=colname)
                 attrname = dfmtstr.format(tablename=table.tablename, colname=colname)
                 # Set flat version
-                setattr(d, attrname, get_prop)
+                setattr(self.d, attrname, get_prop)
                 setattr(wobj, 'get_' + colname, get_prop)
 
     # -----------------------------
