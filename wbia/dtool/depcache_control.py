@@ -3,7 +3,6 @@
 implicit version of dependency cache from wbia/templates/template_generator
 """
 import logging
-import os.path
 
 import utool as ut
 import numpy as np
@@ -215,28 +214,15 @@ class _CoreDependencyCache(object):
             for args_, _kwargs in reg_subprop:
                 self._register_subprop(*args_, **_kwargs)
 
-        ut.ensuredir(self.cache_dpath)
-
-        # Memory filestore
-        # if False:
-        #    # http://docs.pyfilesystem.org/en/latest/getting_started.html
-        #    pip install fs
-
-        for fname in self._db_by_name.keys():
-            fname_ = ut.ensure_ext(fname, '.sqlite')
-            from os.path import dirname
-
-            prefix_dpath = dirname(fname_)
-            if prefix_dpath:
-                ut.ensuredir(ut.unixjoin(self.cache_dpath, prefix_dpath))
-            fpath = ut.unixjoin(self.cache_dpath, fname_)
-            db_uri = 'sqlite:///{}'.format(os.path.realpath(fpath))
-            # if ut.get_argflag('--clear-all-depcache'):
-            #     ut.delete(fpath)
-            db = sql_control.SQLDatabaseController.from_uri(db_uri)
+        for name in self._db_by_name.keys():
+            # FIXME (20-Oct-12020) 'smk/smk_agg_rvecs' is known to have issues.
+            #       Either fix the name or find a better normalizer/slugifier.
+            normalized_name = name.replace('/', '__')
+            uri = self.controller.make_cache_db_uri(normalized_name)
+            db = sql_control.SQLDatabaseController.from_uri(uri)
+            # ??? This seems out of place. Shouldn't this be within the depcachetable instance?
             depcache_table.ensure_config_table(db)
-            self._db_by_name[fname] = db
-        logger.info('[depc] Finished initialization')
+            self._db_by_name[name] = db
 
         for table in self.cachetable_dict.values():
             table.initialize()
