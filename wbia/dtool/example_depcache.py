@@ -245,7 +245,7 @@ def testdata_depc(fname=None):
 
     cache_dpath = HERE / 'DEPCACHE'
     controller = DummyController(cache_dpath)
-    depc = dtool.DependencyCache.as_named(
+    depc = dtool.DependencyCache(
         controller,
         fname,
         get_root_uuid,
