@@ -86,51 +86,6 @@ def make_depcache_decors(root_tablename):
 class DependencyCache:
     def __init__(
         self,
-        root_tablename=None,
-        cache_dpath='./DEPCACHE',
-        controller=None,
-        default_fname=None,
-        # root_asobject=None,
-        get_root_uuid=None,
-        root_getters=None,
-        use_globals=True,
-    ):
-        if default_fname is None:
-            # ??? So 'None_primary_cache' is a good name?
-            default_fname = root_tablename + '_primary_cache'
-        self.root_getters = root_getters
-        # Root of all dependencies
-        self.root_tablename = root_tablename
-        self.name = root_tablename
-        # Directory all cachefiles are stored in
-        self.cache_dpath = ut.truepath(cache_dpath)
-        # Parent (ibs) controller
-        self.controller = controller
-        # Internal dictionary of dependant tables
-        self.cachetable_dict = {}
-        self.configclass_dict = {}
-        self.requestclass_dict = {}
-        self.resultclass_dict = {}
-        # Mapping of database connections by name
-        #  - names populated by _CoreDependencyCache._register_prop
-        #  - values populated by _CoreDependencyCache.initialize
-        self._db_by_name = {}
-        # Function to map a root rowid to an object
-        # self._root_asobject = root_asobject
-        self._use_globals = use_globals
-        self.default_fname = default_fname
-        if get_root_uuid is None:
-            logger.info('WARNING NEED UUID FUNCTION')
-            # HACK
-            get_root_uuid = ut.identity
-        self.get_root_uuid = get_root_uuid
-        self.delete_exclude_tables = {}
-        # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
-        self._debug = False
-
-    @classmethod
-    def as_named(
-        cls,
         controller,
         name,
         get_root_uuid,
@@ -150,8 +105,6 @@ class DependencyCache:
         """
         if table_name is None:
             table_name = name
-
-        self = cls.__new__(cls)
 
         self.name = name
         # Parent (ibs) controller
@@ -183,8 +136,6 @@ class DependencyCache:
         self.delete_exclude_tables = {}
         # BBB (25-Sept-12020) `_debug` remains around to be backwards compatible
         self._debug = False
-
-        return self
 
     def __repr__(self):
         return f'<DependencyCache(controller={self.controller} name={self.name})>'

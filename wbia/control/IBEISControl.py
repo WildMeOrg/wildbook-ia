@@ -806,7 +806,7 @@ class IBEISController(BASE_CLASS):
     def _init_depcache(self):
         # Initialize dependency cache for images
         image_root_getters = {}
-        self.depc_image = dtool.DependencyCache.as_named(
+        self.depc_image = dtool.DependencyCache(
             self,
             const.IMAGE_TABLE,
             self.get_image_uuids,
@@ -830,7 +830,7 @@ class IBEISController(BASE_CLASS):
             'theta': self.get_annot_thetas,
             'occurrence_text': self.get_annot_occurrence_text,
         }
-        self.depc_annot = dtool.DependencyCache.as_named(
+        self.depc_annot = dtool.DependencyCache(
             self,
             const.ANNOTATION_TABLE,
             self.get_annot_visual_uuids,
@@ -845,7 +845,7 @@ class IBEISController(BASE_CLASS):
 
         # Initialize dependency cache for parts
         part_root_getters = {}
-        self.depc_part = dtool.DependencyCache.as_named(
+        self.depc_part = dtool.DependencyCache(
             self,
             const.PART_TABLE,
             self.get_part_uuids,

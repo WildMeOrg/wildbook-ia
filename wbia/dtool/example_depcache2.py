@@ -21,7 +21,7 @@ def _depc_factory(name, cache_dir):
     """
     cache_dpath = HERE / cache_dir
     controller = DummyController(cache_dpath)
-    depc = DependencyCache.as_named(
+    depc = DependencyCache(
         controller,
         name,
         ut.identity,
