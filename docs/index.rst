@@ -6,6 +6,11 @@
 Welcome to Wildbook IA's documentation!
 =======================================
 
+For details about the Wildbook project see the `Wild Me <https://wildme.org>`_ website.
+
+Wildbook's Image Analysis is colloquially known as Wildbook-IA and by developers as wbia (wib-ee-A). Any references to WBIA in this documentation should be assumed to therefore mean Wildbook-IA.
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
