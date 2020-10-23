@@ -10,7 +10,7 @@ Welcome to Wildbook IA's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   wbia
+   api.rst
 
 Indices and tables
 ==================
