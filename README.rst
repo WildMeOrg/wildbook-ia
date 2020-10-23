@@ -50,6 +50,20 @@ to install the software. Then the command to run the GUI is:
 
 We highly recommend using a Python virtual environment: https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv
 
+Documentation
+~~~~~~~~~~~~~
+
+The documentation is built and available online at `wildbook-ia.readthedocs.io <http://wildbook-ia.readthedocs.io/en/latest/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
+
+.. code:: bash
+
+   pip install -e .
+   pip install -r requirements/docs.txt
+   cd docs
+   make html
+
+Then open the html file at ``docs/build/html/index.html``.
+
 Docker
 ~~~~~~
 
@@ -62,6 +76,7 @@ The WBIA software is built and deployed as a Docker image `wildme/wbia`.  You ca
     docker container run -p <external port>:5000 --name wildbook-ia -v /path/to/local/database/:/data/docker/ wildme/wbia:latest
 
 This image is built using the multi-stage Dockerfiles in `devops/`.
+
 
 Source
 ~~~~~~
