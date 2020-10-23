@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Wildbook IA's documentation!
-=======================================
+Wildbook's Image Analysis (IA)
+==============================
 
 For details about the Wildbook project see the `Wild Me <https://wildme.org>`_ website.
 
