@@ -22,7 +22,7 @@ API
    wbia.web
 
 wbia.\_\_main\_\_
-----------
+-----------------
 
 .. automodule:: wbia.__main__
    :members:
@@ -151,7 +151,7 @@ wbia.tag\_funcs
 
 
 Module contents
---------
+---------------
 
 .. automodule:: wbia
    :members:
