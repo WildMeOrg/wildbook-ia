@@ -119,7 +119,7 @@ class TestSchemaModifiers:
             'indexer_id INTEGER NOT NULL, '
             'config_id INTEGER DEFAULT 0, '
             'data TEXT, '
-            'CONSTRAINT unique_meta_labeler_id_indexer_id_config_id '
+            'CONSTRAINT unique_foobars_meta_labeler_id_indexer_id_config_id '
             'UNIQUE (meta_labeler_id, indexer_id, config_id) )'
         )
         assert sql.text == expected
@@ -160,7 +160,7 @@ class TestSchemaModifiers:
             ('PrimaryKeyConstraint', None, ['bars_id']),
             (
                 'UniqueConstraint',
-                'unique_meta_labeler_id_indexer_id_config_id',
+                'unique_bars_meta_labeler_id_indexer_id_config_id',
                 ['meta_labeler_id', 'indexer_id', 'config_id'],
             ),
         ]

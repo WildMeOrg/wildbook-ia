@@ -1906,14 +1906,14 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         self.executeone(operation, [], verbose=False)
 
-    def __make_unique_constraint(self, column_or_columns):
+    def __make_unique_constraint(self, table_name, column_or_columns):
         """Creates a SQL ``CONSTRAINT`` clause for ``UNIQUE`` column data"""
         if not isinstance(column_or_columns, (list, tuple)):
             columns = [column_or_columns]
         else:
             # Cast as list incase it's a tuple, b/c tuple + list = error
             columns = list(column_or_columns)
-        constraint_name = '_'.join(['unique'] + columns)
+        constraint_name = '_'.join(['unique', table_name] + columns)
         columns_listing = ', '.join(columns)
         return f'CONSTRAINT {constraint_name} UNIQUE ({columns_listing})'
 
@@ -1967,7 +1967,7 @@ class SQLDatabaseController(object):
         # Make a list of constraints to place on the table
         # superkeys = [(<column-name>, ...), ...]
         constraint_list = [
-            self.__make_unique_constraint(x)
+            self.__make_unique_constraint(tablename, x)
             for x in metadata_keyval.get('superkeys') or []
         ]
         constraint_list = ut.unique_ordered(constraint_list)
