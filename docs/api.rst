@@ -1,5 +1,5 @@
-wbia - Wildbook IA
-==================
+API
+===
 
 .. toctree::
    :maxdepth: 1
