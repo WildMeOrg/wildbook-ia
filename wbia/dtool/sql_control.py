@@ -27,6 +27,7 @@ from sqlalchemy.sql import bindparam, text, ClauseElement
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
 from wbia.dtool.types import Integer, TYPE_TO_SQLTYPE
+from wbia.dtool.types import initialize_postgresql_types
 
 
 print, rrr, profile = ut.inject2(__name__)
@@ -536,6 +537,7 @@ class SQLDatabaseController(object):
         if self._engine.dialect.name == 'postgresql':
             self._connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
             self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
+            initialize_postgresql_types(self.connection, self.schema)
         return self._connection
 
     @property

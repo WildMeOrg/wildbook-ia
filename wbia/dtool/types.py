@@ -5,6 +5,8 @@ import uuid
 
 import numpy as np
 from utool.util_cache import from_json, to_json
+import sqlalchemy
+from sqlalchemy.sql import text
 from sqlalchemy.types import Integer as SAInteger
 from sqlalchemy.types import TypeDecorator, UserDefinedType
 
@@ -40,6 +42,7 @@ class JSONCodeableType(UserDefinedType):
     # Abstract properties
     base_py_type = None
     col_spec = None
+    postgresql_base_type = 'json'
 
     def get_col_spec(self, **kw):
         return self.col_spec
@@ -68,6 +71,7 @@ class NumPyPicklableType(UserDefinedType):
     # Abstract properties
     base_py_types = None
     col_spec = None
+    postgresql_base_type = 'bytea'
 
     def get_col_spec(self, **kw):
         return self.col_spec
@@ -180,3 +184,18 @@ _USER_DEFINED_TYPES = (Dict, List, NDArray, Number, UUID)
 # SQL type (e.g. 'DICT') to SQLAlchemy type:
 SQL_TYPE_TO_SA_TYPE = {cls().get_col_spec(): cls for cls in _USER_DEFINED_TYPES}
 SQL_TYPE_TO_SA_TYPE['INTEGER'] = Integer
+
+
+def initialize_postgresql_types(conn, schema):
+    domain_names = conn.execute(
+        """\
+        SELECT domain_name FROM information_schema.domains
+        WHERE domain_schema = (select current_schema)"""
+    ).fetchall()
+    for type_name, cls in SQL_TYPE_TO_SA_TYPE.items():
+        if type_name not in domain_names and hasattr(cls, 'postgresql_base_type'):
+            base_type = cls.postgresql_base_type
+            try:
+                conn.execute(f'CREATE DOMAIN {type_name} AS {base_type}')
+            except sqlalchemy.exc.ProgrammingError:
+                conn.execute(text('SET SCHEMA :schema'), schema=schema)
