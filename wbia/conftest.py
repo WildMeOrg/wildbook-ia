@@ -6,6 +6,7 @@ from functools import wraps
 from pathlib import Path
 
 import pytest
+import sqlalchemy
 
 from wbia.dbio import ingest_database
 from wbia.init.sysres import (
@@ -114,6 +115,15 @@ def set_up_db(request):
     # FIXME (16-Jul-12020) this fixture does not cleanup after itself to preserve exiting usage behavior
     for dbname in TEST_DBNAMES:
         delete_dbdir(dbname)
+        if os.getenv('POSTGRES'):
+            engine = sqlalchemy.create_engine(os.getenv('WBIA_BASE_DB_URI'))
+            engine.execution_options(isolation_level='AUTOCOMMIT').execute(
+                f'DROP DATABASE IF EXISTS {dbname}'
+            )
+            engine.execution_options(isolation_level='AUTOCOMMIT').execute(
+                f'CREATE DATABASE {dbname}'
+            )
+            engine.dispose()
 
     # Set up DBs
     ingest_database.ingest_standard_database('testdb1')
