@@ -759,6 +759,9 @@ class SQLDatabaseController(object):
         """
         backup_filepath = dst_fpath
         """
+        if self._engine.dialect.name == 'postgresql':
+            # TODO postgresql backup
+            return
         # Create a brand new conenction to lock out current thread and any others
         connection, uri = self._create_connection()
         # Start Exclusive transaction, lock out all other writers from making database changes

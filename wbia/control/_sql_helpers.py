@@ -359,6 +359,10 @@ def update_schema_version(
     clearbackup = False
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
+    if db._engine.dialect.name != 'sqlite':
+        # Backup is based on copying files so if we're not using sqlite, skip
+        # backup
+        dobackup = False
 
     def _check_superkeys():
         all_tablename_list = db.get_table_names()
