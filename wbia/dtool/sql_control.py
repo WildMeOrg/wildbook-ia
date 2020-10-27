@@ -2243,8 +2243,10 @@ class SQLDatabaseController(object):
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        operation = text(f'DROP TABLE IF EXISTS {tablename}')
-        self.executeone(operation, [])
+        operation = f'DROP TABLE IF EXISTS {tablename}'
+        if self.uri.startswith('postgresql'):
+            operation = f'{operation} CASCADE'
+        self.executeone(text(operation), [])
 
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
