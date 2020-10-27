@@ -1953,6 +1953,11 @@ class SQLDatabaseController(object):
         if not coldef_list:
             raise ValueError(f'empty coldef_list specified for {tablename}')
 
+        if self._engine.dialect.name == 'postgresql' and 'rowid' not in [
+            name for name, _ in coldef_list
+        ]:
+            coldef_list = [('rowid', 'SERIAL UNIQUE')] + list(coldef_list)
+
         # Check for invalid keyword arguments
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
         if len(bad_kwargs) > 0:
