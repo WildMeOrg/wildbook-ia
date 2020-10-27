@@ -5,7 +5,7 @@ import alabaster  # NOQA
 # sys.path.insert(0, os.path.abspath('.'))
 
 try:
-    import wbia  # noqa
+    import wbia
 except ImportError:
     raise RuntimeError("Wildbook-IA (the 'wbia' package) must be installed")
 
@@ -19,11 +19,8 @@ project = 'Wildbook Image Analysis (IA)'
 copyright = '2020, Wild Me'
 author = 'Jon Crall, Jason Parham, WildMe Developers'
 
-# The short X.Y version
-version = '3.3.0'
+version = release = wbia.__version__
 
-# The full version, including alpha/beta/rc tags
-release = '3.3.0'
 
 # -- General configuration ---------------------------------------------------
 
