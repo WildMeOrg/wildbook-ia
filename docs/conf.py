@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
+import sys
+from subprocess import run
+
 from sphinx.ext.autodoc import between
 import alabaster  # NOQA
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
 
-try:
-    import wbia
-except ImportError:
-    raise RuntimeError("Wildbook-IA (the 'wbia' package) must be installed")
 
 autosummary_generate = True
 
@@ -19,8 +16,19 @@ project = 'Wildbook Image Analysis (IA)'
 copyright = '2020, Wild Me'
 author = 'Jon Crall, Jason Parham, WildMe Developers'
 
-version = release = wbia.__version__
+def get_version():
+    completed_proc = run(
+        [sys.executable, 'setup.py', '--version'],
+        capture_output=True,
+        cwd='../',
+        text=True,
+    )
+    # Grab the version, other libs may output prior to the version,
+    # So only grab the last line.
+    version = completed_proc.stdout.strip().split('\n')[-1]
+    return version
 
+version = release = get_version()
 
 # -- General configuration ---------------------------------------------------
 
