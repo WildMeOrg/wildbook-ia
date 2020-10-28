@@ -40,21 +40,27 @@ TEST_ROWID = 'test_rowid'
 
 @profile
 def update_1_0_0(db, ibs=None):
+    columns = [
+        ('review_rowid', 'INTEGER PRIMARY KEY'),
+        ('annot_1_rowid', 'INTEGER NOT NULL'),
+        ('annot_2_rowid', 'INTEGER NOT NULL'),
+        ('review_count', 'INTEGER NOT NULL'),
+        ('review_decision', 'INTEGER NOT NULL'),
+        (
+            'review_time_posix',
+            """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
+        ),  # this should probably be UCT
+        ('review_identity', 'TEXT'),
+        ('review_tags', 'TEXT'),
+    ]
+    if db._engine.dialect.name == 'postgresql':
+        columns[5] = (
+            'review_time_posix',
+            "INTEGER DEFAULT (CAST(EXTRACT(EPOCH FROM NOW() AT TIME ZONE 'UTC') AS INTEGER))",
+        )
     db.add_table(
         const.REVIEW_TABLE,
-        (
-            ('review_rowid', 'INTEGER PRIMARY KEY'),
-            ('annot_1_rowid', 'INTEGER NOT NULL'),
-            ('annot_2_rowid', 'INTEGER NOT NULL'),
-            ('review_count', 'INTEGER NOT NULL'),
-            ('review_decision', 'INTEGER NOT NULL'),
-            (
-                'review_time_posix',
-                """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
-            ),  # this should probably be UCT
-            ('review_identity', 'TEXT'),
-            ('review_tags', 'TEXT'),
-        ),
+        columns,
         superkeys=[('annot_1_rowid', 'annot_2_rowid', 'review_count')],
         docstr="""
         Used to store completed user review states of two matched annotations
@@ -104,20 +110,26 @@ def update_1_0_3(db, ibs=None):
 
 
 def update_1_1_0(db, ibs=None):
+    columns = [
+        ('test_rowid', 'INTEGER PRIMARY KEY'),
+        ('test_uuid', 'UUID'),
+        ('test_user_identity', 'TEXT'),
+        ('test_challenge_json', 'TEXT'),
+        ('test_response_json', 'TEXT'),
+        ('test_result', 'INTEGER'),
+        (
+            'test_time_posix',
+            """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
+        ),  # this should probably be UCT
+    ]
+    if db._engine.dialect.name == 'postgresql':
+        columns[6] = (
+            'test_time_posix',
+            "INTEGER DEFAULT (CAST(EXTRACT(EPOCH FROM NOW() AT TIME ZONE 'UTC') AS INTEGER))",
+        )
     db.add_table(
         const.TEST_TABLE,
-        (
-            ('test_rowid', 'INTEGER PRIMARY KEY'),
-            ('test_uuid', 'UUID'),
-            ('test_user_identity', 'TEXT'),
-            ('test_challenge_json', 'TEXT'),
-            ('test_response_json', 'TEXT'),
-            ('test_result', 'INTEGER'),
-            (
-                'test_time_posix',
-                """INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))""",
-            ),  # this should probably be UCT
-        ),
+        columns,
         superkeys=[('test_uuid',)],
         docstr="""
         Used to store tests given to the user, their responses, and their results
