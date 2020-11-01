@@ -183,7 +183,12 @@ class UUID(UserDefinedType):
 _USER_DEFINED_TYPES = (Dict, List, NDArray, Number, UUID)
 # SQL type (e.g. 'DICT') to SQLAlchemy type:
 SQL_TYPE_TO_SA_TYPE = {cls().get_col_spec(): cls for cls in _USER_DEFINED_TYPES}
+# Map postgresql types to SQLAlchemy types (postgresql type names are lowercase)
+SQL_TYPE_TO_SA_TYPE.update(
+    {cls().get_col_spec().lower(): cls for cls in _USER_DEFINED_TYPES}
+)
 SQL_TYPE_TO_SA_TYPE['INTEGER'] = Integer
+SQL_TYPE_TO_SA_TYPE['integer'] = Integer
 
 
 def initialize_postgresql_types(conn, schema):
