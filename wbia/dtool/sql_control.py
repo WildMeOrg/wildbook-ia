@@ -2118,6 +2118,9 @@ class SQLDatabaseController(object):
                             '[sql] WARNING: multiple index inserted add '
                             'columns, may cause alignment issues'
                         )
+                    if self._engine.dialect.name == 'postgresql':
+                        # adjust for the additional "rowid" field
+                        src += 1
                     colname_list.insert(src, dst)
                     coltype_list.insert(src, type_)
                     insert = True
