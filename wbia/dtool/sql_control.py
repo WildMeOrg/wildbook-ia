@@ -2084,6 +2084,14 @@ class SQLDatabaseController(object):
         colname_list = ut.take_column(coldef_list, 0)
         coltype_list = ut.take_column(coldef_list, 1)
 
+        # Find all dependent sequences so we can change the owners of the
+        # sequences to the new table (for postgresql)
+        dependent_sequences = [
+            (colname, re.search(r"nextval\('([^']*)'", coldef).group(1))
+            for colname, coldef in self.get_coldef_list(tablename)
+            if 'nextval' in coldef
+        ]
+
         colname_original_list = colname_list[:]
         colname_dict = {colname: colname for colname in colname_list}
         colmap_dict = {}
@@ -2171,6 +2179,17 @@ class SQLDatabaseController(object):
                 metadata_keyval2[suffix] = val
 
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
+
+        # Change owners of sequences from old table to new table
+        if self._engine.dialect.name == 'postgresql':
+            new_colnames = [name for name, _ in coldef_list]
+            for colname, sequence in dependent_sequences:
+                if colname in new_colnames:
+                    self.executeone(
+                        text(
+                            f'ALTER SEQUENCE {sequence} OWNED BY {tablename_temp}.{colname}'
+                        )
+                    )
 
         # Copy data
         src_list = []
