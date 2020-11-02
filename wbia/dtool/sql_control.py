@@ -2375,7 +2375,7 @@ class SQLDatabaseController(object):
                 col_type += ' PRIMARY KEY'
             elif column[3] == 1:
                 col_type += ' NOT NULL'
-            elif column[4] is not None:
+            if column[4] is not None:
                 default_value = six.text_type(column[4])
                 # HACK: add parens if the value contains parens in the future
                 # all default values should contain parens
