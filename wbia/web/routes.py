@@ -4764,6 +4764,43 @@ def review_identification_graph_refer(
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
         )
+    elif option in ['census']:
+        # https://cthulhu.dyn.wildme.io:5004/turk/identification/graph/refer/?option=census&imgsetid=15&species=zebra_grevys
+
+        imgsetid_ = ibs.get_imageset_imgsetids_from_text('*All Images')
+
+        assert imgsetid == imgsetid_
+        assert species in ['zebra_grevys']
+
+        gid_list = ibs.get_imageset_gids(imgsetid)
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+
+        species_list = ibs.get_annot_species_texts(aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        quality_list = ibs.get_annot_qualities(aid_list)
+
+        aid_list_ = []
+        zipped = list(zip(aid_list, species_list, viewpoint_list, quality_list))
+        for aid, species_, viewpoint_, quality_ in zipped:
+            assert None not in [species_, viewpoint_, quality_]
+            species_ = species_.lower()
+            viewpoint_ = viewpoint_.lower()
+            quality_ = int(quality_)
+            if species_ != 'zebra_grevys':
+                continue
+            if 'right' not in viewpoint_:
+                continue
+            if quality_ < 3:
+                continue
+            aid_list_.append(aid)
+
+        imageset_text = ibs.get_imageset_text(imgsetid).lower()
+        annot_uuid_list = ibs.get_annot_uuids(aid_list_)
+        return turk_identification_graph(
+            annot_uuid_list=annot_uuid_list,
+            hogwild_species=species,
+            creation_imageset_rowid_list=[imgsetid],
+        )
     elif ibs.dbname == 'WD_Master' or option in ['wilddog']:
         imgsetid = 1
 

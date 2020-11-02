@@ -1502,6 +1502,7 @@ def query_chips_graph_v2(
     finished_callback_url=None,
     finished_callback_method='POST',
     creation_imageset_rowid_list=None,
+    backend='graph_algorithm',
     **kwargs,
 ):
     """
@@ -1545,6 +1546,18 @@ def query_chips_graph_v2(
     """
     from wbia.web.graph_server import GraphClient
 
+    backend = backend.lower()
+    if backend in ['graph_algorithm', 'graph', 'ga']:
+        from wbia.web.graph_server import GraphAlgorithmActor
+
+        backend_cls = GraphAlgorithmActor
+    elif backend in ['lca', 'clusters']:
+        from wbia_lca._plugin import LCAActor
+
+        backend_cls = LCAActor
+    else:
+        raise NotImplementedError('Requested backend %r not supported' % (backend,))
+
     logger.info('[apis_query] Creating GraphClient')
 
     if annot_uuid_list is None:
@@ -1575,7 +1588,9 @@ def query_chips_graph_v2(
             'review': (review_callback_url, review_callback_method),
             'finished': (finished_callback_url, finished_callback_method),
         }
-        graph_client = GraphClient(graph_uuid, callbacks=callback_dict, autoinit=True)
+        graph_client = GraphClient(
+            graph_uuid, callbacks=callback_dict, autoinit=True, backend_cls=backend_cls
+        )
 
         if creation_imageset_rowid_list is not None:
             graph_client.imagesets = creation_imageset_rowid_list
@@ -1617,7 +1632,7 @@ def query_chips_graph_v2(
         graph_client.extr = future.result()
 
         # Start main loop
-        future = graph_client.post({'action': 'continue_review'})
+        future = graph_client.post({'action': 'resume'})
         future.graph_client = graph_client
         future.add_done_callback(query_graph_v2_on_request_review)
 
@@ -1910,11 +1925,11 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     logger.info(ut.repr4(payload))
     graph_client.post(payload)
 
-    # Clean any old continue_reviews
+    # Clean any old resumes
     graph_client.cleanup()
 
     # Continue review
-    future = graph_client.post({'action': 'continue_review'})
+    future = graph_client.post({'action': 'resume'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
@@ -2026,7 +2041,7 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     future.result()  # Guarantee that this has happened before calling refresh
 
     # Start main loop
-    future = graph_client.post({'action': 'continue_review'})
+    future = graph_client.post({'action': 'resume'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
@@ -2055,7 +2070,7 @@ def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     future.result()  # Guarantee that this has happened before calling refresh
 
     # Start main loop
-    future = graph_client.post({'action': 'continue_review'})
+    future = graph_client.post({'action': 'resume'})
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 

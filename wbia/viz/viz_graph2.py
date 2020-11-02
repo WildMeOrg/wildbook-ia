@@ -206,7 +206,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         else:
             if self.infr._gen is None:
                 self.infr.start_id_review()
-            self.continue_review()
+            self.resume()
 
     @property
     def total(self):
@@ -231,7 +231,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         edge = self.annot_review.edge
         if self.infr:
             self.infr.skip(edge)
-            self.continue_review()
+            self.resume()
 
     def accept(self):
         logger.info('[viz] accept')
@@ -257,13 +257,13 @@ class AnnotPairDialog(gt.GuitoolWidget):
             if self.infr is not None:
                 self.infr.accept(feedback)
                 if need_next:
-                    self.continue_review()
+                    self.resume()
             if not need_next:
                 self.goto_next()
 
-    def continue_review(self):
+    def resume(self):
         logger.info('[viz] continue review')
-        user_request = self.infr.continue_review()
+        user_request = self.infr.resume()
         logger.info('user_request = {!r}'.format(user_request))
         if user_request is None:
             self.on_finished()
