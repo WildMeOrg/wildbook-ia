@@ -627,13 +627,26 @@ def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
     with open(filepath, 'r') as file:
         file_content = file.read()
         file_json = ut.from_json(file_content)
-    logger.info(
+    print(
         'Loaded %d Annot ACM string UUIDs from Wildbook: %r'
         % (
             len(file_json),
             url,
         )
     )
+
+    # KEY = 'species'
+    SPECIES_KEY = 'iaClass'
+
+    bad_mapping = {
+        'None,whale_fluke': 'whale_fluke',
+        'dolphin_bottlenose+fin_dorsal,tursiops_truncatus': 'dolphin_bottlenose+fin_dorsal',
+        'dolphin_bottlenose_fin,tursiops_truncatus': 'dolphin_bottlenose_fin',
+        'dolphin_spotted,stenella_frontalis': 'dolphin_spotted',
+        'tursiops_truncatus,whale_orca+fin_dorsal': 'whale_orca+fin_dorsal',
+        'turtle_hawksbill,turtle_hawksbill+head': 'turtle_hawksbill+head',
+    }
+    bad_list = []
 
     uuid_list = []
     species_list = []
@@ -645,7 +658,7 @@ def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
             continue
 
         match = content.get('match', None)
-        species = content.get('species', None)
+        species = content.get(SPECIES_KEY, None)
         assert None not in [match, species]
         assert len(match) == len(species)
 
@@ -672,11 +685,24 @@ def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
                 uuid_list.append(uuid_)
                 species_list.append(species)
         else:
-            logger.info(match, species)
+            species_ = ['None' if val is None else val for val in species]
+            species_ = set(species_)
+            species_ = sorted(species_)
+            bad_species = ','.join(species_)
+            fixed_species = bad_mapping.get(bad_species, None)
+            if fixed_species is not None:
+                if filter_match_against_on is None or match == filter_match_against_on:
+                    uuid_list.append(uuid_)
+                    species_list.append(fixed_species)
+            else:
+                print(match, species)
+                bad_list.append(bad_species)
 
+    if len(bad_list) > 0:
+        print('Found bad species: %r' % (set(bad_list),))
     assert len(uuid_list) == len(species_list)
     assert len(uuid_list) == len(set(uuid_list))
-    logger.info('Validated %d Annotation UUIDs from Wildbook' % (len(uuid_list),))
+    print('Validated %d Annotation UUIDs from Wildbook' % (len(uuid_list),))
 
     wildbook_annot_uuid_list = uuid_list
     wildbook_annot_species_list = species_list
