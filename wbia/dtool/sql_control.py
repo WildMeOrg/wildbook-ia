@@ -101,6 +101,24 @@ def sqlite_uri_to_postgres_uri_schema(uri):
     return (uri, namespace)
 
 
+def compare_coldef_lists(coldef_list1, coldef_list2):
+    # Remove "rowid" which is added to postgresql tables
+    coldef_list1 = [(name, coldef) for name, coldef in coldef_list1 if name != 'rowid']
+    coldef_list2 = [(name, coldef) for name, coldef in coldef_list2 if name != 'rowid']
+    if len(coldef_list1) != len(coldef_list2):
+        return False
+    for i in range(len(coldef_list1)):
+        name1, coldef1 = coldef_list1[i]
+        name2, coldef2 = coldef_list2[i]
+        if name1 != name2:
+            return False
+        coldef1 = re.sub(r' DEFAULT \(nextval\(.*', '', coldef1)
+        coldef2 = re.sub(r' DEFAULT \(nextval\(.*', '', coldef2)
+        if coldef1.lower() != coldef2.lower():
+            return False
+    return True
+
+
 def _unpacker(results):
     """ HELPER: Unpacks results if unpack_scalars is True. """
     if not results:  # Check for None or empty list

@@ -32,7 +32,7 @@ import ubelt as ub
 from six.moves import zip, range
 
 from wbia.dtool import sqlite3 as lite
-from wbia.dtool.sql_control import SQLDatabaseController
+from wbia.dtool.sql_control import SQLDatabaseController, compare_coldef_lists
 from wbia.dtool.types import TYPE_TO_SQLTYPE
 
 import time
@@ -159,7 +159,9 @@ def ensure_config_table(db):
     else:
         current_state = db.get_table_autogen_dict(CONFIG_TABLE)
         new_state = config_addtable_kw
-        if current_state['coldef_list'] != new_state['coldef_list']:
+        if not compare_coldef_lists(
+            current_state['coldef_list'], new_state['coldef_list']
+        ):
             if predrop_grace_period(CONFIG_TABLE):
                 db.drop_all_tables()
                 db.add_table(**new_state)
@@ -1996,7 +1998,9 @@ class DependencyCacheTable(
                 self.clear_table()
                 current_state = self.db.get_table_autogen_dict(self.tablename)
 
-            if current_state['coldef_list'] != new_state['coldef_list']:
+            if not compare_coldef_lists(
+                current_state['coldef_list'], new_state['coldef_list']
+            ):
                 logger.info('WARNING TABLE IS MODIFIED')
                 if predrop_grace_period(self.tablename):
                     self.clear_table()
