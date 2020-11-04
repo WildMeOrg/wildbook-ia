@@ -69,6 +69,22 @@ METADATA_TABLE_COLUMNS = {
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
+def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
+    kw = {
+        # The echo flag is a shortcut to set up SQLAlchemy logging
+        'echo': False,
+    }
+    if uri.startswith('sqlite:') and ':memory:' in uri:
+        # Don't share engines for in memory sqlite databases
+        return sqlalchemy.create_engine(uri, **kw)
+    if uri not in ENGINES:
+        if uri.startswith('postgresql:'):
+            # pool_size is not available for sqlite
+            kw['pool_size'] = POSTGRESQL_POOL_SIZE
+        ENGINES[uri] = sqlalchemy.create_engine(uri, **kw)
+    return ENGINES[uri]
+
+
 def sqlite_uri_to_postgres_uri_schema(uri):
     from wbia.init.sysres import get_workdir
 
@@ -523,11 +539,7 @@ class SQLDatabaseController(object):
             uri, schema = sqlite_uri_to_postgres_uri_schema(self.uri)
             self.uri = uri
             self.schema = schema
-        self._engine = sqlalchemy.create_engine(
-            self.uri,
-            # The echo flag is a shortcut to set up SQLAlchemy logging
-            echo=False,
-        )
+        self._engine = create_engine(self.uri)
 
     @classmethod
     def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
@@ -622,10 +634,7 @@ class SQLDatabaseController(object):
             uri += '?mode=ro'
         if os.getenv('POSTGRES'):
             uri, schema = sqlite_uri_to_postgres_uri_schema(uri)
-        engine = sqlalchemy.create_engine(
-            uri,
-            echo=False,
-        )
+        engine = create_engine(uri)
         connection = engine.connect()
         if engine.dialect.name == 'postgresql':
             connection.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
