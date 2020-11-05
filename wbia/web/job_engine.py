@@ -1739,10 +1739,8 @@ def on_engine_request(
             exec_status = 'completed'
         except Exception as ex:
             # Remove __jobid__ from kwargs if it's not accepted by the action_func
-            if isinstance(ex, TypeError) and "unexpected keyword argument '{}'".format(
-                key
-            ):
-                kwargs.pop(key)
+            if key in kwargs:
+                kwargs.pop(key, None)
                 continue
             result = ut.formatex(ex, keys=['jobid'], tb=True)
             result = ut.strip_ansi(result)
