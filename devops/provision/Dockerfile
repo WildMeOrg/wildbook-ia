@@ -174,6 +174,10 @@ RUN set -ex \
         'keras==2.2.5' \
         'h5py<=3.0.0'
 
+RUN set -ex \
+ && /virtualenv/env3/bin/pip freeze | grep wbia \
+ && /virtualenv/env3/bin/pip freeze | grep wildbook
+
 # Restore copy of our build OpenCV
 # When opencv-python is installed and subsequently un-installed is clobbers our version
 RUN set -ex \
