@@ -98,9 +98,9 @@ STOPSIGNAL SIGTERM
 # Port for the web server
 EXPOSE 5000
 
-ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
+ENTRYPOINT ["/bin/entrypoint"]
 
 ##########################################################################################
 FROM org.wildme.wbia.install as org.wildme.wbia.configure
 
-CMD []
+CMD ["/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
