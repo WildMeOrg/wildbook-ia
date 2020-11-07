@@ -936,6 +936,12 @@ class SQLDatabaseController(object):
         parameterized_values = [
             {col: val for col, val in zip(colnames, params)} for params in params_iter
         ]
+        if self._engine.dialect.name == 'postgresql':
+            # postgresql column names are lowercase
+            parameterized_values = [
+                {col.lower(): val for col, val in params.items()}
+                for params in parameterized_values
+            ]
         table = self._reflect_table(tblname)
 
         # It would be possible to do one insert,
