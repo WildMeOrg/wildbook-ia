@@ -1656,7 +1656,7 @@ class SQLDatabaseController(object):
         if id_colname == 'rowid':
             # Cast all item values to in, in case values are numpy.integer*
             # Strangely allow for None values
-            id_list = [id_ is not None and int(id_) or id_ for id_ in id_list]
+            id_list = [id_ if id_ is None else int(id_) for id_ in id_list]
         else:  # b/c rowid doesn't really exist as a column
             id_column = table.c[id_colname]
             where_clause = where_clause.bindparams(
@@ -1681,7 +1681,7 @@ class SQLDatabaseController(object):
         if id_colname == 'rowid':
             # Cast all item values to in, in case values are numpy.integer*
             # Strangely allow for None values
-            id_list = [id_ is not None and int(id_) or id_ for id_ in id_list]
+            id_list = [id_ if id_ is None else int(id_) for id_ in id_list]
         else:  # b/c rowid doesn't really exist as a column
             id_column = table.c[id_colname]
             where_clause = where_clause.bindparams(
