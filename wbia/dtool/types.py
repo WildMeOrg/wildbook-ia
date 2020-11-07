@@ -201,6 +201,7 @@ SQL_TYPE_TO_SA_TYPE.update(
 )
 SQL_TYPE_TO_SA_TYPE['INTEGER'] = Integer
 SQL_TYPE_TO_SA_TYPE['integer'] = Integer
+SQL_TYPE_TO_SA_TYPE['bigint'] = Integer
 
 
 def initialize_postgresql_types(conn, schema):
