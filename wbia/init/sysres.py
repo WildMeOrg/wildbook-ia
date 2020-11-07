@@ -11,6 +11,7 @@ import utool as ut
 import ubelt as ub
 from six.moves import input, zip, map
 from wbia import constants as const
+from wbia.dtool.copy_sqlite_to_postgres import copy_sqlite_to_postgres
 
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -421,6 +422,8 @@ def ensure_pz_mtest():
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
     mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     logger.info('have mtest_dir=%r' % (mtest_dir,))
+    if os.getenv('POSTGRES'):
+        copy_sqlite_to_postgres(mtest_dir)
     # update the the newest database version
     import wbia
 
@@ -881,6 +884,8 @@ def ensure_db_from_url(zipped_db_url):
     dbdir = ut.grab_zipped_url(
         zipped_url=zipped_db_url, ensure=True, download_dir=workdir
     )
+    if os.getenv('POSTGRES'):
+        copy_sqlite_to_postgres(dbdir)
     logger.info('have %s=%r' % (zipped_db_url, dbdir))
     return dbdir
 
