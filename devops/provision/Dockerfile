@@ -172,7 +172,7 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install \
         'tensorflow-gpu==1.15.4' \
         'keras==2.2.5' \
-        'h5py<=3.0.0'
+        'h5py<3.0.0'
 
 RUN set -ex \
  && /virtualenv/env3/bin/pip freeze | grep wbia \
