@@ -60,6 +60,9 @@ class JSONCodeableType(UserDefinedType):
         def process(value):
             if value is None:
                 return value
+            elif dialect.name == 'postgresql':
+                # postgresql doesn't need the value to be json decoded
+                return value
             else:
                 return from_json(value)
 
