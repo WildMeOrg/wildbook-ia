@@ -5146,7 +5146,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
     species_rowid = ibs.get_species_rowids_from_text(species)
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
-        operation = 'SELECT rowid from annotations WHERE (species_rowid == {species_rowid}) AND rowid IN ({aids})'
+        operation = 'SELECT rowid from annotations WHERE (species_rowid = {species_rowid}) AND rowid IN ({aids})'
         operation = operation.format(aids=list_repr, species_rowid=species_rowid)
         aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
