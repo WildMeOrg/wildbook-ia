@@ -1,0 +1,33 @@
+name: Build documentation
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          # Fetch all history for .GitInfo and .Lastmod
+          fetch-depth: 0
+
+      # We need a live installation of all the code in order for sphinx to successfully import all of the in-code documentation.
+      - name: Build documentation
+        run: |
+          docker run \
+            --rm \
+            --volume $GITHUB_WORKSPACE:/code \
+            --env EXEC_PRIVILEGED=1 \
+            wildme/wildbook-ia:latest \
+            /code/scripts/build-docs.sh
+
+      - name: Package up the documenatation
+        run: |
+          cd docs/build/html
+          zip -r $GITHUB_WORKSPACE/docs-html.zip ./*
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docs-html
+          path: docs-html.zip
