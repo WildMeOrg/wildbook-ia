@@ -13,6 +13,11 @@ fi
 
 echo "*** $0 --- progressing to main execution"
 
-# Catch all for CMD or 'command' in docker-compose
-# Executes as `wbia` with PID 1
-exec gosu wbia:wbia $@
+# Supply EXEC_PRIVILEGED=1 to run your given command as the privileged user.
+if [ $EXEC_PRIVILEGED ]; then
+    exec "$@"
+else
+    # Catch all for CMD or 'command' in docker-compose
+    # Executes as `wbia` with PID 1
+    exec gosu wbia:wbia "$@"
+fi
