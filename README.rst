@@ -50,6 +50,21 @@ to install the software. Then the command to run the GUI is:
 
 We highly recommend using a Python virtual environment: https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv
 
+Documentation
+~~~~~~~~~~~~~
+
+The documentation is built and available online at `wildbookorg.github.io/wildbook-ia/ <http://wildbookorg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
+
+.. code:: bash
+
+   # checkout the source code
+   # install the project in development mode
+   pip install -e .
+   # build the docs
+   scripts/build-docs.sh
+
+Then open the html file at ``docs/build/html/index.html``.
+
 Docker
 ~~~~~~
 
