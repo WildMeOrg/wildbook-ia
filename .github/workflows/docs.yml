@@ -12,6 +12,9 @@ jobs:
           # Fetch all history for .GitInfo and .Lastmod
           fetch-depth: 0
 
+      - name: Log into GitHub Packages
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
       # We need a live installation of all the code in order for sphinx to successfully import all of the in-code documentation.
       - name: Build documentation
         run: |
@@ -19,7 +22,7 @@ jobs:
             --rm \
             --volume $GITHUB_WORKSPACE:/code \
             --env EXEC_PRIVILEGED=1 \
-            wildme/wildbook-ia:latest \
+            docker.pkg.github.com/wildbookorg/wildbook-ia:latest \
             /code/scripts/build-docs.sh
 
       - name: Package up the documenatation
