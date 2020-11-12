@@ -8,7 +8,11 @@ on:
   pull_request:
     paths:
       - '.github/workflows/nightly.yml'
+      # Include any change to the development containers
       - 'devops/**'
+      # Include changes to the runtime container or assets
+      - 'Dockerfile'
+      - '.dockerfiles/*'
 
 jobs:
   devops:
