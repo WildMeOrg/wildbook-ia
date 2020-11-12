@@ -3230,6 +3230,12 @@ class SQLDatabaseController(object):
                 extern_tablename_list,
                 extern_primarycolnames_list,
             ) = new_transferdata
+            if column_names[0] == 'rowid':
+                # This is a postgresql database, ignore the rowid column
+                # which is built-in to sqlite
+                column_names = column_names[1:]
+                column_list = column_list[1:]
+                extern_colx_list = [i - 1 for i in extern_colx_list]
             # FIXME: extract the primary rowid column a little bit nicer
             assert column_names[0].endswith('_rowid')
             old_rowid_list = column_list[0]
