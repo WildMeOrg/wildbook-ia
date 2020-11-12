@@ -1,6 +1,15 @@
 name: Build documentation
 
-on: [push]
+on:
+  # Build when there have been changes to the docs,
+  # but don't publish the results.
+  pull_request:
+    paths:
+      - 'docs/**'
+  # Build when changes are pushed to master branch (release branch)
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -36,6 +45,8 @@ jobs:
           path: docs-html.zip
 
       - name: Deploy documentation
+        # only deploy if on 'master' branch
+        if: github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
