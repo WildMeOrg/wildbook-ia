@@ -12,7 +12,8 @@ ENV DISPLAY :1
 
 # Make a copy of our build OpenCV
 RUN set -ex \
- && cp -r /virtualenv/env3/lib/python3.7/site-packages/cv2 /tmp/cv2
+ && rm -rf /tmp/cv2 \
+ && mv /virtualenv/env3/lib/python3.7/site-packages/cv2 /tmp/cv2
 
 # Clone WBIA repository
 RUN set -ex \
@@ -189,7 +190,7 @@ RUN set -ex \
 # When opencv-python is installed and subsequently un-installed is clobbers our version
 RUN set -ex \
  && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
- && cp -r /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \
+ && mv /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \
  && rm -rf /tmp/cv2
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]
