@@ -1,7 +1,8 @@
 ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
+
 ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
-FROM $WBIA_PROVISION_IMAGE as org.wildme.wbia.build
+FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.build
 
 # Grab latest code and remove all Git histories from code repositories
 RUN set -ex \
@@ -35,7 +36,7 @@ RUN set -ex \
 
 ##########################################################################################
 
-FROM $WBIA_BASE_IMAGE as org.wildme.wbia.install
+FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.install
 
 LABEL autoheal=true
 
@@ -51,10 +52,10 @@ LABEL org.wildme.vendor="Wild Me" \
       org.wildme.url="https://wildme.org" \
       org.wildme.name="Wildbook IA" \
       org.wildme.description="Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation" \
-      org.wildme.version=$VERSION \
-      org.wildme.vcs-url=$VCS_URL \
-      org.wildme.vcs-ref=$VCS_REF \
-      org.wildme.build-date=$BUILD_DATE \
+      org.wildme.version=${VERSION} \
+      org.wildme.vcs-url=${VCS_URL} \
+      org.wildme.vcs-ref=${VCS_REF} \
+      org.wildme.build-date=${BUILD_DATE} \
       org.wildme.docker.schema-version="1.0"
 
 ENV HOST_USER root

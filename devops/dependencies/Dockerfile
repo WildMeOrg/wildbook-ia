@@ -1,7 +1,8 @@
 ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
-ARG OPENCV_VERSION=3.4.11
 
-FROM $WBIA_BASE_IMAGE as org.wildme.wbia.dependencies
+FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.dependencies
+
+ARG OPENCV_VERSION="3.4.11"
 
 # Install OpenCV
 RUN set -ex \
@@ -10,9 +11,9 @@ RUN set -ex \
  && git clone https://github.com/opencv/opencv.git \
  && git clone https://github.com/opencv/opencv_contrib.git \
  && cd /tmp/opencv \
- && git checkout $OPENCV_VERSION \
+ && git checkout ${OPENCV_VERSION} \
  && cd /tmp/opencv_contrib \
- && git checkout $OPENCV_VERSION \
+ && git checkout ${OPENCV_VERSION} \
  && rm -rf /tmp/opencv/build \
  && mkdir -p /tmp/opencv/build \
  && cd /tmp/opencv/build \
