@@ -34,6 +34,8 @@ CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_on=True
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
+import os
+
 # TODO: ADD COPYRIGHT TAG
 try:
     import sentry_sdk
@@ -41,10 +43,15 @@ try:
 except ImportError:
     pass
 else:
+    dsn = os.getenv(
+        'WBIA_SENTRY_DSN',
+        default='https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2',
+    )
     sentry_sdk.init(
-        dsn='https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2',
+        dsn=dsn,
         integrations=[FlaskIntegration()],
     )
+    del dsn
 
 try:
     import multiprocessing as mp
