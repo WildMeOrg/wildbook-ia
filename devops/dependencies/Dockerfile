@@ -1,6 +1,7 @@
-FROM wildme/wbia-base:latest as org.wildme.wbia.dependencies
-
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 ARG OPENCV_VERSION=3.4.11
+
+FROM $WBIA_BASE_IMAGE as org.wildme.wbia.dependencies
 
 # Install OpenCV
 RUN set -ex \
