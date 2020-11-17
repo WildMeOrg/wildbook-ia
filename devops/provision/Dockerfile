@@ -1,4 +1,6 @@
-FROM wildme/wbia-dependencies:latest as org.wildme.wbia.provision
+ARG WBIA_DEPENDENCIES_IMAGE=wildme/wbia-dependencies:latest
+
+FROM $WBIA_DEPENDENCIES_IMAGE as org.wildme.wbia.provision
 
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1

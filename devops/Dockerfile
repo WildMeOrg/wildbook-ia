@@ -1,4 +1,7 @@
-FROM wildme/wbia-provision:latest as org.wildme.wbia.build
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
+ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
+
+FROM $WBIA_PROVISION_IMAGE as org.wildme.wbia.build
 
 # Grab latest code and remove all Git histories from code repositories
 RUN set -ex \
@@ -31,7 +34,8 @@ RUN set -ex \
  && find /wbia/wildbook* -name '*.so' -print0 | xargs -0 -i /bin/bash -c 'echo {} && ld -d {}'
 
 ##########################################################################################
-FROM wildme/wbia-base:latest as org.wildme.wbia.install
+
+FROM $WBIA_BASE_IMAGE as org.wildme.wbia.install
 
 LABEL autoheal=true
 
