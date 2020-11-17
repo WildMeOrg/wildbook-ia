@@ -35,13 +35,16 @@ CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-
-sentry_sdk.init(
-    dsn='https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2',
-    integrations=[FlaskIntegration()],
-)
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+except ImportError:
+    pass
+else:
+    sentry_sdk.init(
+        dsn='https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2',
+        integrations=[FlaskIntegration()],
+    )
 
 try:
     import multiprocessing as mp
