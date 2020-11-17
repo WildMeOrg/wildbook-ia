@@ -1,4 +1,9 @@
 ARG WBIA_DEPENDENCIES_IMAGE=wildme/wbia-dependencies:latest
+# Wildbook IA version
+ARG VERSION="3.3.0"
+ARG VCS_URL="https://github.com/WildbookOrg/wildbook-ia"
+ARG VCS_REF="develop"
+ARG BUILD_DATE="2020"
 
 FROM $WBIA_DEPENDENCIES_IMAGE as org.wildme.wbia.provision
 
@@ -12,7 +17,7 @@ RUN set -ex \
 # Clone WBIA repository
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildbookOrg/wildbook-ia.git
+ && git clone --branch $VCS_REF $VCS_URL
 
 # Clone WBIA toolkit repositories
 RUN set -ex \
