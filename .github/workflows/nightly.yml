@@ -14,44 +14,280 @@ on:
       - 'Dockerfile'
       - '.dockerfiles/*'
 
+# Required secrets
+#  - WBIA_WILDMEBOT_DOCKER_HUB_TOKEN - token used to authenticate the wildmebot against Docker Hub
+#  - GHCR_PAT - ghcr.io (GitHub Container Registry) Personal Authentication Token (PAT)
+
 jobs:
-  devops:
-    name: DevOps nightly image build
+  wildbook-ia:
+    name: Building wildme/wildbook-ia:nightly
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        images:
-          - wildbook-ia
-          - wbia-base wbia-dependencies wbia-provision wbia
-
     steps:
-      - uses: actions/checkout@v2
-        if: github.event_name == 'schedule'
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        env:
+          # Cache invalidated when Dockerfile or ./.dockerfiles have changed.
+          # Docker will automatically handle cache invalidation for any changes to codebase.
+          cache-name: cache-wildbook-ia-${{ hashFiles('Dockerfile', '.dockerfiles/**') }}
         with:
-          ref: develop
-      - uses: actions/checkout@v2
-        if: github.event_name != 'schedule'
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ env.cache-name }}
+          restore-keys: ${{ runner.os }}-buildx-${{ env.cache-name }}
 
-      # Build images
-      - name: Build images
-        run: bash devops/build.sh ${{ matrix.images }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
 
-      # Log into image registries
-      - name: Log into Docker Hub
-        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
-      - name: Log into GitHub Packages
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/wildbookorg/wildbook-ia:nightly
+            wildme/wildbook-ia:nightly
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
-      # Push images out to image registries
-      - name: Push to GitHub Packages
-        run: bash devops/publish.sh -t nightly -r docker.pkg.github.com ${{ matrix.images }}
-      - name: Push to Docker Hub
-        if: github.event_name == 'schedule'
-        run: bash devops/publish.sh -t nightly ${{ matrix.images }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
 
+
+  wbia-base-image:
+    name: Building wildme/wbia-base
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.docker_build.outputs.digest }}
+      # TODO: Shorten the digest so that cach-names that use it aren't as long.
+      # short-digest: ${{ ... }}
+      image-name: ghcr.io/wildbookorg/wbia-base
+      # fully qualified image name
+      fq-image-name: ghcr.io/wildbookorg/wbia-base@${{ steps.docker_build.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-base-${{ hashFiles('devops/base/**') }}
+        with:
+          path: /tmp/.buildx-cache
+          # Cache invalidated when any file in the 'devops' directory changes
+          key: ${{ runner.os }}-buildx-${{ env.cache-name }}
+          restore-keys: ${{ runner.os }}-buildx-${{ env.cache-name }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+      - name: Build and push wbia-base:nightly
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./devops/base/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/wildbookorg/wbia-base:nightly
+            wildme/wbia-base:nightly
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  wbia-dependencies-image:
+    name: Building wildme/wbia-dependencies:nightly
+    runs-on: ubuntu-latest
+    needs: [ wbia-base-image ]
+    outputs:
+      digest: ${{ steps.docker_build.outputs.digest }}
+      image-name: ghcr.io/wildbookorg/wbia-dependencies
+      # fully qualified image name
+      fq-image-name: ghcr.io/wildbookorg/wbia-dependencies@${{ steps.docker_build.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        env:
+          # Base the cache on the previous image's build
+          # Cache invalidation when the previous image changes, to prevent building up unused layers in the cache
+          # or when any file in the 'devops' directory changes
+          # TODO: Cache invalidation based on date, where every 7 days (Sunday preferably) the cache becomes stale.
+          cache-name: cache-dependencies-${{ needs.wbia-base-image.outputs.digest }}-${{ hashFiles('devops/dependencies/**') }}
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ env.cache-name }}
+          restore-keys: ${{ runner.os }}-buildx-${{ env.cache-name }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+      - name: Build and push wbia-dependencies:nightly
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./devops/dependencies/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/wildbookorg/wbia-dependencies:nightly
+            wildme/wbia-dependencies:nightly
+          build-args: |
+            WBIA_BASE_IMAGE=${{ needs.wbia-base-image.outputs.fq-image-name }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  wbia-provision-image:
+    name: Building wildme/wbia-provision:nightly
+    runs-on: ubuntu-latest
+    needs: [ wbia-dependencies-image ]
+    outputs:
+      digest: ${{ steps.docker_build.outputs.digest }}
+      image-name: ghcr.io/wildbookorg/wbia-provision
+      # fully qualified image name
+      fq-image-name: ghcr.io/wildbookorg/wbia-provision@${{ steps.docker_build.outputs.digest }}
+    # Note, we cannot cache this step, because it's too large.
+    # Enabling caching causes the build to run into an 'out of space' issue.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      # - name: Cache Docker layers
+      #   uses: actions/cache@v2
+      #   env:
+      #     # Base the cache on the previous image's build
+      #     # Cache invalidation when the previous image changes, to prevent building up unused layers in the cache
+      #     # or when any file in the 'devops' directory changes
+      #     cache-name: cache-provision-${{ needs.wbia-dependencies-image.outputs.digest }}-${{ hashFiles('devops/provision/**') }}
+      #   with:
+      #     path: /tmp/.buildx-cache
+      #     key: ${{ runner.os }}-buildx-${{ env.cache-name }}
+      #     restore-keys: ${{ runner.os }}-buildx-${{ env.cache-name }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+      - name: Build and push wbia-provision:nightly
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./devops/provision/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/wildbookorg/wbia-provision:nightly
+            wildme/wbia-provision:nightly
+          build-args: |
+            WBIA_DEPENDENCIES_IMAGE=${{ needs.wbia-dependencies-image.outputs.fq-image-name }}
+          #   VCS_REF=develop
+          #   VCS_URL=https://github.com/wildbookorg/wildbook-ia
+          # cache-from: type=local,src=/tmp/.buildx-cache
+          # cache-to: type=local,dest=/tmp/.buildx-cache
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  wbia-image:
+    name: Building wildme/wbia:nightly
+    runs-on: ubuntu-latest
+    needs: [ wbia-base-image, wbia-provision-image ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+      - name: Build and push wbia:nightly
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./devops/
+          file: ./devops/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/wildbookorg/wbia:nightly
+            wildme/wbia:nightly
+          build-args: |
+            WBIA_BASE_IMAGE=${{ needs.wbia-base-image.outputs.fq-image-name }}
+            WBIA_PROVISION_IMAGE=${{ needs.wbia-provision-image.outputs.fq-image-name }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  on-failure:
+    name: Notify developers on Slack about a failure
+    runs-on: ubuntu-latest
+    needs: [ wildbook-ia, wbia-base-image, wbia-dependencies-image, wbia-provision-image, wbia-image ]
+    steps:
       # Notify status in Slack
       - name: Slack Notification
-        if: ${{ failure() && github.event_name == 'schedule' }}
+        if: ${{ github.event_name == 'schedule' && needs.wildbook-ia.result != 'success' && needs.wbia-base-image.result != 'success' && needs.wbia-dependencies-image.result != 'success' && needs.wbia-provision-image.result != 'success' && needs.wbia-image.result != 'success' }}
         uses: rtCamp/action-slack-notify@master
         env:
           SLACK_CHANNEL: ia-development
