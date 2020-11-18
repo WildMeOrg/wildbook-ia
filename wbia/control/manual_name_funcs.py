@@ -617,7 +617,7 @@ def get_name_exemplar_aids(ibs, nid_list):
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list = ibs.get_annot_name_rowids(aid_list)
         >>> exemplar_aids_list = ibs.get_name_exemplar_aids(nid_list)
-        >>> result = exemplar_aids_list
+        >>> result = [sorted(i) for i in exemplar_aids_list]
         >>> print(result)
         [[], [2, 3], [2, 3], [], [5, 6], [5, 6], [7], [8], [], [10], [], [12], [13]]
     """
@@ -659,7 +659,7 @@ def get_name_gids(ibs, nid_list):
         >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_name_rowids()
         >>> gids_list = ibs.get_name_gids(nid_list)
-        >>> result = gids_list
+        >>> result = [sorted(gids) for gids in gids_list]
         >>> print(result)
         [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
     """
@@ -1042,9 +1042,8 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> result += str(ibs._get_all_known_name_rowids())
         >>> print('----')
         >>> ibs.print_name_table()
+        >>> assert result == f'{name_rowid_list}\n[1, 2, 3, 4, 5, 6, 7]'
         >>> print(result)
-        [8, 9, 0, 10, 11, 0]
-        [1, 2, 3, 4, 5, 6, 7]
     """
     if ensure:
         name_rowid_list = ibs.add_names(name_text_list)
