@@ -255,6 +255,7 @@ def request_IBEISController(
         >>> print(result)
     """
     global __IBEIS_CONTROLLER_CACHE__
+    dbdir = str(dbdir)
 
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
