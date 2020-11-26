@@ -2173,7 +2173,11 @@ def compute_aoi2(depc, aid_list, config=None):
 
 class OrienterConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('orienter_algo', 'deepsense', valid_values=['deepsense']),
+        ut.ParamInfo(
+            'orienter_algo',
+            'plugin:orientation',
+            valid_values=['deepsense, plugin:orientation'],
+        ),
         ut.ParamInfo('orienter_weight_filepath', None),
     ]
     _sub_config_list = [ChipConfig]
@@ -2201,9 +2205,10 @@ def compute_orients_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m wbia.core_annots --exec-compute_orients_annotations --deepsense
+        pytest wbia/core_annots.py::compute_orients_annotations:0
+        pytest wbia/core_annots.py::compute_orients_annotations:1
 
-    Example:
+    Doctest:
         >>> # DISABLE_DOCTEST
         >>> from wbia.core_images import *  # NOQA
         >>> import wbia
@@ -2212,6 +2217,29 @@ def compute_orients_annotations(depc, aid_list, config=None):
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[-16:-8]
         >>> config = {'orienter_algo': 'deepsense'}
+        >>> # depc.delete_property('orienter', aid_list)
+        >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
+        >>> xtl_list    = list(map(int, map(np.around, ut.take_column(result_list, 0))))
+        >>> ytl_list    = list(map(int, map(np.around, ut.take_column(result_list, 1))))
+        >>> w_list      = list(map(int, map(np.around, ut.take_column(result_list, 2))))
+        >>> h_list      = list(map(int, map(np.around, ut.take_column(result_list, 3))))
+        >>> theta_list  = ut.take_column(result_list, 4)
+        >>> bbox_list   = list(zip(xtl_list, ytl_list, w_list, h_list))
+        >>> ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
+        >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
+        >>> print(result_list)
+
+    Doctest:
+        >>> # ENABLE_DOCTEST
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
+        >>> defaultdb = 'testdb_identification'
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
+        >>> import utool as ut
+        >>> ut.embed()
+        >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[-16:-8]
+        >>> config = {'orienter_algo': 'plugin:orientation'}
         >>> # depc.delete_property('orienter', aid_list)
         >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
         >>> xtl_list    = list(map(int, map(np.around, ut.take_column(result_list, 0))))
@@ -2265,6 +2293,15 @@ def compute_orients_annotations(depc, aid_list, config=None):
                 result_gen.append(result)
         except Exception:
             raise RuntimeError('Deepsense orienter not working!')
+    elif config['orienter_algo'] in ['plugin:orientation']:
+        logger.info('[ibs] orienting using Orientation Plug-in')
+        try:
+            import utool as ut
+
+            ut.embed()
+            from wbia_orientation import _plugin  # NOQA
+        except Exception:
+            raise RuntimeError('Orientation plug-in not working!')
     else:
         raise ValueError(
             'specified orienter algo is not supported in config = %r' % (config,)

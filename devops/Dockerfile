@@ -18,6 +18,8 @@ RUN set -ex \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wbia-plugin-orientation/ \
  && git stash && git pull && git stash pop || git reset --hard origin/compatibility \
+ && cd /wbia/wildbook-ia/ \
+ && git stash && git pull && git stash pop || git reset --hard origin/add-orientation-plugin \
  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
  && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
