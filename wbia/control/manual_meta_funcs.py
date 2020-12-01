@@ -1011,14 +1011,10 @@ def _init_config(ibs):
     try:
         general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
     except IOError as ex:
-        if ut.VERBOSE:
-            ut.printex(ex, 'failed to genral load config', iswarning=True)
+        logger.error('*** failed to load general config', exc_info=ex)
         general_config = {}
     current_species = general_config.get('current_species', None)
-    if ut.VERBOSE and ut.NOT_QUIET:
-        logger.info(
-            '[_init_config] general_config.current_species = %r' % (current_species,)
-        )
+    logger.info('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
     # species_list = ibs.get_database_species()
