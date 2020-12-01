@@ -43,7 +43,6 @@ import ubelt as ub
 from six.moves import zip
 from os.path import join, split, realpath
 from wbia.init import sysres
-from wbia.dbio import ingest_hsdb
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.dtool.dump import dump
@@ -265,21 +264,15 @@ def request_IBEISController(
         if force_serial:
             assert ibs.force_serial, 'set use_cache=False in wbia.opendb'
     else:
-        # Convert hold hotspotter dirs if necessary
-        if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
-            ibs = ingest_hsdb.convert_hsdb_to_wbia(
-                dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose
-            )
-        else:
-            ibs = IBEISController(
-                dbdir=dbdir,
-                ensure=ensure,
-                wbaddr=wbaddr,
-                verbose=verbose,
-                force_serial=force_serial,
-                request_dbversion=request_dbversion,
-                request_stagingversion=request_stagingversion,
-            )
+        ibs = IBEISController(
+            dbdir=dbdir,
+            ensure=ensure,
+            wbaddr=wbaddr,
+            verbose=verbose,
+            force_serial=force_serial,
+            request_dbversion=request_dbversion,
+            request_stagingversion=request_stagingversion,
+        )
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
