@@ -58,6 +58,7 @@ def web_embed(*args, **kwargs):
     '/api/image/src/<rowid>.jpg',
     methods=['GET'],
     __route_prefix_check__=False,
+    __route_postfix_check__=False,
     __route_authenticate__=False,
 )
 def image_src_api_ext(*args, **kwargs):
