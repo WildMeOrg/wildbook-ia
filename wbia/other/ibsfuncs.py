@@ -17,6 +17,7 @@ import six
 import types
 import functools
 import re
+from collections import OrderedDict
 from six.moves import zip, range, map, reduce
 from os.path import split, join, exists
 import numpy as np
@@ -3611,15 +3612,41 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
             return 'zebra_grevys'
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_staged=None)
-    species_list = ibs.get_annot_species_texts(aid_list)
-    species_hist = ut.dict_hist(species_list)
-    if len(species_hist) == 0:
+
+    annotations = ibs.db._reflect_table('annotations')
+    species = ibs.db._reflect_table('species')
+
+    from sqlalchemy.sql import select, func, desc
+
+    stmt = (
+        select(
+            [
+                species.c.species_text,
+                func.count(annotations.c.annot_rowid).label('num_annots'),
+            ]
+        )
+        .select_from(
+            annotations.outerjoin(
+                species, annotations.c.species_rowid == species.c.species_rowid
+            )
+        )
+        .where(annotations.c.annot_rowid.in_(aid_list))
+        .group_by('species_text')
+        .order_by(desc('num_annots'))
+    )
+    results = ibs.db.connection.execute(stmt)
+
+    species_count = OrderedDict()
+    for row in results:
+        species_text = row.species_text
+        if species_text is None:
+            species_text = const.UNKNOWN
+        species_count[species_text] = row.num_annots
+
+    if not species_count:
         primary_species = const.UNKNOWN
     else:
-        frequent_species = sorted(
-            species_hist.items(), key=lambda item: item[1], reverse=True
-        )
-        primary_species = frequent_species[0][0]
+        primary_species = species_count.popitem(last=False)[0]  # FIFO
     return primary_species
 
 
