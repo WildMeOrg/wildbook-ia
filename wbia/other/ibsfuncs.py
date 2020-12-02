@@ -3648,7 +3648,7 @@ def get_dominant_species(ibs, aid_list):
 
 
 @register_ibs_method
-def get_database_species_count(ibs, aid_list=None):
+def get_database_species_count(ibs, aid_list=None, BATCH_SIZE=25000):
     """
 
     CommandLine:
@@ -3660,9 +3660,9 @@ def get_database_species_count(ibs, aid_list=None):
         >>> import wbia  # NOQA
         >>> #print(ut.repr2(wbia.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = wbia.opendb('testdb1')
-        >>> result = ut.repr2(ibs.get_database_species_count(), nl=False)
+        >>> result = ut.repr2(ibs.get_database_species_count(BATCH_SIZE=2), nl=False)
         >>> print(result)
-        {'zebra_plains': 6, '____': 3, 'bear_polar': 2, 'zebra_grevys': 2}
+        {'zebra_plains': 6, '____': 3, 'zebra_grevys': 2, 'bear_polar': 2}
 
     """
     if aid_list is None:
@@ -3671,8 +3671,9 @@ def get_database_species_count(ibs, aid_list=None):
     annotations = ibs.db._reflect_table('annotations')
     species = ibs.db._reflect_table('species')
 
-    from sqlalchemy.sql import select, func, desc
+    from sqlalchemy.sql import select, func, desc, bindparam
 
+    species_count = OrderedDict()
     stmt = (
         select(
             [
@@ -3685,18 +3686,21 @@ def get_database_species_count(ibs, aid_list=None):
                 species, annotations.c.species_rowid == species.c.species_rowid
             )
         )
-        .where(annotations.c.annot_rowid.in_(aid_list))
+        .where(annotations.c.annot_rowid.in_(bindparam('aids', expanding=True)))
         .group_by('species_text')
         .order_by(desc('num_annots'))
     )
-    results = ibs.db.connection.execute(stmt)
+    for batch in range(int(len(aid_list) / BATCH_SIZE) + 1):
+        aids = aid_list[batch * BATCH_SIZE : (batch + 1) * BATCH_SIZE]
+        results = ibs.db.connection.execute(stmt, {'aids': aids})
 
-    species_count = OrderedDict()
-    for row in results:
-        species_text = row.species_text
-        if species_text is None:
-            species_text = const.UNKNOWN
-        species_count[species_text] = row.num_annots
+        for row in results:
+            species_text = row.species_text
+            if species_text is None:
+                species_text = const.UNKNOWN
+            species_count[species_text] = (
+                species_count.get(species_text, 0) + row.num_annots
+            )
     return species_count
 
 
