@@ -49,6 +49,10 @@ PST = pytz.timezone('US/Pacific')
 logger = logging.getLogger('wbia')
 
 
+logging.getLogger().setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
+
+
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
