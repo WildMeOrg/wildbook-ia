@@ -3613,36 +3613,7 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_staged=None)
 
-    annotations = ibs.db._reflect_table('annotations')
-    species = ibs.db._reflect_table('species')
-
-    from sqlalchemy.sql import select, func, desc
-
-    stmt = (
-        select(
-            [
-                species.c.species_text,
-                func.count(annotations.c.annot_rowid).label('num_annots'),
-            ]
-        )
-        .select_from(
-            annotations.outerjoin(
-                species, annotations.c.species_rowid == species.c.species_rowid
-            )
-        )
-        .where(annotations.c.annot_rowid.in_(aid_list))
-        .group_by('species_text')
-        .order_by(desc('num_annots'))
-    )
-    results = ibs.db.connection.execute(stmt)
-
-    species_count = OrderedDict()
-    for row in results:
-        species_text = row.species_text
-        if species_text is None:
-            species_text = const.UNKNOWN
-        species_count[species_text] = row.num_annots
-
+    species_count = ibs.get_database_species_count(aid_list)
     if not species_count:
         primary_species = const.UNKNOWN
     else:
@@ -3691,14 +3662,42 @@ def get_database_species_count(ibs, aid_list=None):
         >>> ibs = wbia.opendb('testdb1')
         >>> result = ut.repr2(ibs.get_database_species_count(), nl=False)
         >>> print(result)
-        {'____': 3, 'bear_polar': 2, 'zebra_grevys': 2, 'zebra_plains': 6}
+        {'zebra_plains': 6, '____': 3, 'bear_polar': 2, 'zebra_grevys': 2}
 
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species_texts(aid_list)
-    species_count_dict = ut.item_hist(species_list)
-    return species_count_dict
+
+    annotations = ibs.db._reflect_table('annotations')
+    species = ibs.db._reflect_table('species')
+
+    from sqlalchemy.sql import select, func, desc
+
+    stmt = (
+        select(
+            [
+                species.c.species_text,
+                func.count(annotations.c.annot_rowid).label('num_annots'),
+            ]
+        )
+        .select_from(
+            annotations.outerjoin(
+                species, annotations.c.species_rowid == species.c.species_rowid
+            )
+        )
+        .where(annotations.c.annot_rowid.in_(aid_list))
+        .group_by('species_text')
+        .order_by(desc('num_annots'))
+    )
+    results = ibs.db.connection.execute(stmt)
+
+    species_count = OrderedDict()
+    for row in results:
+        species_text = row.species_text
+        if species_text is None:
+            species_text = const.UNKNOWN
+        species_count[species_text] = row.num_annots
+    return species_count
 
 
 @register_ibs_method
