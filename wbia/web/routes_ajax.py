@@ -38,6 +38,13 @@ def _resize_src(image, resize=False, **kwargs):
     return image_src
 
 
+@register_route(
+    '/ajax/image/src/<gid>.jpg', methods=['GET'], __route_postfix_check__=False
+)
+def image_src_ext(*args, **kwargs):
+    return image_src(*args, **kwargs)
+
+
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
 def image_src(gid=None, thumbnail=False, ibs=None, **kwargs):
     if ibs is None:
