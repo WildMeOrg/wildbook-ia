@@ -2206,7 +2206,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
 
     CommandLine:
         pytest wbia/core_annots.py::compute_orients_annotations:0
-        pytest wbia/core_annots.py::compute_orients_annotations:1
+        python -m wbia.core_annots --exec-compute_orients_annotations:1 --orient
 
     Doctest:
         >>> # DISABLE_DOCTEST
@@ -2231,14 +2231,22 @@ def compute_orients_annotations(depc, aid_list, config=None):
 
     Doctest:
         >>> # ENABLE_DOCTEST
-        >>> from wbia.core_annots import *  # NOQA
         >>> import wbia
-        >>> defaultdb = 'testdb_identification'
-        >>> ibs = wbia.opendb(defaultdb=defaultdb)
+        >>> import random
         >>> import utool as ut
-        >>> ut.embed()
+        >>> from wbia.init import sysres
+        >>> import numpy as np
+        >>> dbdir = sysres.ensure_testdb_orientation()
+        >>> ibs = wbia.opendb(dbdir=dbdir)
+        >>> aid_list = ibs.get_valid_aids()
+        >>> note_list = ibs.get_annot_notes(aid_list)
+        >>> species_list = ibs.get_annot_species(aid_list)
+        >>> flag_list = [
+        >>>     note == 'random-01' and species == 'right_whale_head'
+        >>>     for note, species in zip(note_list, species_list)
+        >>> ]
+        >>> aid_list = ut.compress(aid_list, flag_list)
         >>> depc = ibs.depc_annot
-        >>> aid_list = ibs.get_valid_aids()[-16:-8]
         >>> config = {'orienter_algo': 'plugin:orientation'}
         >>> # depc.delete_property('orienter', aid_list)
         >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
@@ -2296,10 +2304,43 @@ def compute_orients_annotations(depc, aid_list, config=None):
     elif config['orienter_algo'] in ['plugin:orientation']:
         logger.info('[ibs] orienting using Orientation Plug-in')
         try:
+            from wbia_orientation import _plugin  # NOQA
+
+            species_tag_mapping = {'right_whale_head': 'rightwhale'}
+
+            species_list = ibs.get_annot_species(aid_list)
+
+            species_dict = {}
+            for aid, species in zip(aid_list, species_list):
+                if species not in species_dict:
+                    species_dict[species] = []
+                species_dict[species].append(aid)
+
+            results_dict = {}
+            species_key_list = sorted(species_dict.keys())
+            for species in species_key_list:
+                species_tag = species_tag_mapping.get(species, species)
+                message = 'Orientation plug-in does not support species_tag = %r' % (
+                    species_tag,
+                )
+                assert species_tag in _plugin.MODEL_URLS, message
+                assert species_tag in _plugin.CONFIGS, message
+                aid_list_ = sorted(species_dict[species])
+                print(
+                    'Computing %d orientations for species = %r'
+                    % (
+                        len(aid_list_),
+                        species,
+                    )
+                )
+
+                output_list, theta_list = _plugin.wbia_plugin_detect_oriented_box(
+                    ibs, aid_list_, species_tag, plot_samples=False
+                )
+
             import utool as ut
 
             ut.embed()
-            from wbia_orientation import _plugin  # NOQA
         except Exception:
             raise RuntimeError('Orientation plug-in not working!')
     else:
@@ -2310,3 +2351,9 @@ def compute_orients_annotations(depc, aid_list, config=None):
     # yield detections
     for result in result_gen:
         yield result
+
+
+if __name__ == '__main__':
+    import xdoctest as xdoc
+
+    xdoc.doctest_module(__file__)
