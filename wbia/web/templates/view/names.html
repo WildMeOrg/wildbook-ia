@@ -150,7 +150,7 @@ var loading = [];
       removeIndexFromArray(index, loading);
     }
 
-    $(".ajax-image-load").filter(":visible").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
       load_image_src(this);
     });
   }
@@ -161,7 +161,7 @@ var loading = [];
     if(!contains(loading, aid) && requests.length <= buffer)
     {
       // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
-      request = $.ajax( "/ajax/annot/src/" + aid )
+      request = $.ajax("/ajax/annot/src/" + aid + "/")
       .done(function( response ) {
         // Load SRC into Image
         $(element).attr('src', response);

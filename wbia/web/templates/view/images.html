@@ -125,7 +125,7 @@
       removeIndexFromArray(index, loading);
     }
 
-    $(".ajax-image-load").filter(":visible").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
       load_image_src(this);
     });
   }
@@ -136,7 +136,7 @@
     if(!contains(loading, gid) && loading.length <= buffer)
     {
       // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
-      request = $.ajax( "/ajax/image/src/" + gid + "?thumbnail=true")
+      request = $.ajax("/ajax/image/src/" + gid + "/?thumbnail=true")
       .done(function( response ) {
         // Load SRC into Image
         $(element).attr('src', response);

@@ -132,7 +132,7 @@
     if(!contains(loading, pid) && requests.length <= buffer)
     {
       // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
-      request = $.ajax( "/ajax/part/src/" + pid )
+      request = $.ajax("/ajax/part/src/" + pid + "/")
       .done(function( response ) {
         // Load SRC into Image
         $(element).attr('src', response);
