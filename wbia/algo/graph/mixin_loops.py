@@ -80,85 +80,95 @@ class InfrLoops(object):
         infr.init_refresh()
 
         infr.phase = 0
-        # Phase 0.1: Ensure the user sees something immediately
-        if infr.params['algo.quickstart']:
-            infr.loop_phase = 'quickstart_init'
-            # quick startup. Yield a bunch of random edges
-            num = infr.params['manual.n_peek']
-            user_request = []
-            for edge in ut.random_combinations(infr.aids, 2, num=num):
-                user_request += [infr._make_review_tuple(edge, None)]
-                yield user_request
+        try:
+            # Phase 0.1: Ensure the user sees something immediately
+            if infr.params['algo.quickstart']:
+                infr.loop_phase = 'quickstart_init'
+                # quick startup. Yield a bunch of random edges
+                num = infr.params['manual.n_peek']
+                user_request = []
+                for edge in ut.random_combinations(infr.aids, 2, num=num):
+                    user_request += [infr._make_review_tuple(edge, None)]
+                    yield user_request
 
-        if infr.params['algo.hardcase']:
-            infr.loop_phase = 'hardcase_init'
-            # Check previously labeled edges that where the groundtruth and the
-            # verifier disagree.
-            for _ in infr.hardcase_review_gen():
-                yield _
+            if infr.params['algo.hardcase']:
+                infr.loop_phase = 'hardcase_init'
+                # Check previously labeled edges that where the groundtruth and the
+                # verifier disagree.
+                for _ in infr.hardcase_review_gen():
+                    yield _
 
-        if infr.params['inference.enabled']:
-            infr.loop_phase = 'incon_recover_init'
-            # First, fix any inconsistencies
-            for _ in infr.incon_recovery_gen():
-                yield _
+            if infr.params['inference.enabled']:
+                infr.loop_phase = 'incon_recover_init'
+                # First, fix any inconsistencies
+                for _ in infr.incon_recovery_gen():
+                    yield _
 
-        # Phase 0.2: Ensure positive redundancy (this is generally quick)
-        # so the user starts seeing real work after one random review is made
-        # unless the graph is already positive redundant.
-        if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
-            infr.loop_phase = 'pos_redun_init'
-            # Fix positive redundancy of anything within the loop
-            for _ in infr.pos_redun_gen():
-                yield _
+            # Phase 0.2: Ensure positive redundancy (this is generally quick)
+            # so the user starts seeing real work after one random review is made
+            # unless the graph is already positive redundant.
+            if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
+                infr.loop_phase = 'pos_redun_init'
+                # Fix positive redundancy of anything within the loop
+                for _ in infr.pos_redun_gen():
+                    yield _
+        except StopIteration:
+            pass
 
         infr.phase = 1
         if infr.params['ranking.enabled']:
             for count in it.count(0):
+                try:
+                    infr.print('Outer loop iter %d ' % (count,))
 
-                infr.print('Outer loop iter %d ' % (count,))
-
-                # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-                infr.loop_phase = 'ranking_{}'.format(count)
-                for _ in infr.ranked_list_gen(use_refresh):
-                    yield _
-
-                terminate = infr.refresh.num_meaningful == 0
-                if terminate:
-                    infr.print('Triggered break criteria', 1, color='red')
-
-                # Phase 2: Ensure positive redundancy.
-                infr.phase = 2
-                infr.loop_phase = 'posredun_{}'.format(count)
-                if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
-                    # Fix positive redundancy of anything within the loop
-                    for _ in infr.pos_redun_gen():
+                    # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                    infr.loop_phase = 'ranking_{}'.format(count)
+                    for _ in infr.ranked_list_gen(use_refresh):
                         yield _
 
-                logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-                logger.info(
-                    'infr.refresh.num_meaningful = {!r}'.format(
-                        infr.refresh.num_meaningful
+                    terminate = infr.refresh.num_meaningful == 0
+                    if terminate:
+                        infr.print('Triggered break criteria', 1, color='red')
+
+                    # Phase 2: Ensure positive redundancy.
+                    infr.phase = 2
+                    infr.loop_phase = 'posredun_{}'.format(count)
+                    if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
+                        # Fix positive redundancy of anything within the loop
+                        for _ in infr.pos_redun_gen():
+                            yield _
+
+                    logger.info(
+                        'prob_any_remain = %r' % (infr.refresh.prob_any_remain(),)
                     )
-                )
+                    logger.info(
+                        'infr.refresh.num_meaningful = {!r}'.format(
+                            infr.refresh.num_meaningful
+                        )
+                    )
 
-                if (count + 1) >= max_loops:
-                    infr.print('early stop', 1, color='red')
-                    break
+                    if (count + 1) >= max_loops:
+                        infr.print('early stop', 1, color='red')
+                        break
 
-                if terminate:
-                    infr.print('break triggered')
-                    break
+                    if terminate:
+                        infr.print('break triggered')
+                        break
+                except StopIteration:
+                    pass
 
         infr.phase = 3
-        # Phase 0.3: Ensure positive redundancy (this is generally quick)
-        if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
-            # Phase 3: Try to automatically acheive negative redundancy without
-            # asking the user to do anything but resolve inconsistency.
-            infr.print('Entering phase 3', 1, color='red')
-            infr.loop_phase = 'negredun'
-            for _ in infr.neg_redun_gen():
-                yield _
+        try:
+            # Phase 0.3: Ensure positive redundancy (this is generally quick)
+            if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
+                # Phase 3: Try to automatically acheive negative redundancy without
+                # asking the user to do anything but resolve inconsistency.
+                infr.print('Entering phase 3', 1, color='red')
+                infr.loop_phase = 'negredun'
+                for _ in infr.neg_redun_gen():
+                    yield _
+        except StopIteration:
+            pass
 
         infr.phase = 4
         infr.print('Terminate', 1, color='red')
