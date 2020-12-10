@@ -24,6 +24,7 @@ from sqlalchemy.sql import bindparam, text, ClauseElement
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
+from wbia.dtool.types import Integer
 
 
 print, rrr, profile = ut.inject2(__name__)
@@ -1141,6 +1142,7 @@ class SQLDatabaseController(object):
         id_colname='rowid',
         eager=True,
         assume_unique=False,
+        BATCH_SIZE=250000,
         **kwargs,
     ):
         """Get rows of data by ID
@@ -1203,23 +1205,52 @@ class SQLDatabaseController(object):
             if id_iter is None:
                 where_clause = None
                 params_iter = []
-            else:
-                id_param_name = '_identifier'
-                where_clause = text(id_colname + f' = :{id_param_name}')
-                if id_colname == 'rowid':
-                    # Cast all item values to in, in case values are numpy.integer*
-                    # Strangely allow for None values
-                    id_iter = [id_ is not None and int(id_) or id_ for id_ in id_iter]
-                else:  # b/c rowid doesn't really exist as a column
-                    column = self._reflect_table(tblname).c[id_colname]
-                    where_clause = where_clause.bindparams(
-                        bindparam(id_param_name, type_=column.type)
-                    )
-                params_iter = [{id_param_name: id} for id in id_iter]
 
-            return self.get_where(
-                tblname, colnames, params_iter, where_clause, eager=eager, **kwargs
-            )
+                return self.get_where(
+                    tblname, colnames, params_iter, where_clause, eager=eager, **kwargs
+                )
+
+            id_iter = list(id_iter)  # id_iter could be a set
+            table = self._reflect_table(tblname)
+            result_map = {}
+            if id_colname == 'rowid':  # rowid isn't an actual column in sqlite
+                id_column = sqlalchemy.sql.column('rowid', Integer)
+            else:
+                id_column = table.c[id_colname]
+            stmt = sqlalchemy.select([id_column] + [table.c[c] for c in colnames])
+            stmt = stmt.where(id_column.in_(bindparam('value', expanding=True)))
+            for batch in range(int(len(id_iter) / BATCH_SIZE) + 1):
+                val_list = self.executeone(
+                    stmt,
+                    {'value': id_iter[batch * BATCH_SIZE : (batch + 1) * BATCH_SIZE]},
+                )
+
+                for val in val_list:
+                    if not kwargs.get('keepwrap', False) and len(val[1:]) == 1:
+                        values = val[1]
+                    else:
+                        values = val[1:]
+                    existing = result_map.setdefault(val[0], set())
+                    if isinstance(existing, set):
+                        try:
+                            existing.add(values)
+                        except TypeError:
+                            # unhashable type
+                            result_map[val[0]] = list(result_map[val[0]])
+                            if values not in result_map[val[0]]:
+                                result_map[val[0]].append(values)
+                    elif values not in existing:
+                        existing.append(values)
+
+            results = []
+            for id_ in id_iter:
+                result = sorted(list(result_map.get(id_, set())))
+                if kwargs.get('unpack_scalars', True) and isinstance(result, list):
+                    results.append(_unpacker(result))
+                else:
+                    results.append(result)
+
+            return results
 
     def set(
         self,
