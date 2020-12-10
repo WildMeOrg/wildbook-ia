@@ -1080,13 +1080,10 @@ def graph_iden_cut_demo():
 
         from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 
-        try:
-            while True:
-                edge, priority = infr.pop()
-                feedback = infr.request_user_review(edge)
-                infr.add_feedback(edge=edge, **feedback)
-        except StopIteration:
-            pass
+        while True:
+            edge, priority = infr.pop()
+            feedback = infr.request_user_review(edge)
+            infr.add_feedback(edge=edge, **feedback)
     else:
         infr.ensure_full()
 
