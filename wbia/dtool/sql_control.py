@@ -955,6 +955,7 @@ class SQLDatabaseController(object):
         where_colnames,
         unpack_scalars=True,
         op='AND',
+        BATCH_SIZE=250000,
         **kwargs,
     ):
         """Executes a SQL select where the given parameters match/equal
@@ -973,23 +974,82 @@ class SQLDatabaseController(object):
                                    (default: True)
 
         """
+        if len(where_colnames) == 1:
+            return self.get(
+                tblname,
+                colnames,
+                id_iter=(p[0] for p in params_iter),
+                id_colname=where_colnames[0],
+                unpack_scalars=unpack_scalars,
+                BATCH_SIZE=BATCH_SIZE,
+                **kwargs,
+            )
+        params_iter = list(params_iter)
         table = self._reflect_table(tblname)
-        # Build the equality conditions using column type information.
-        # This allows us to bind the parameter with the correct type.
-        equal_conditions = [
-            (table.c[c] == bindparam(c, type_=table.c[c].type)) for c in where_colnames
-        ]
-        gate_func = {'and': sqlalchemy.and_, 'or': sqlalchemy.or_}[op.lower()]
-        where_clause = gate_func(*equal_conditions)
-        params = [dict(zip(where_colnames, p)) for p in params_iter]
-        return self.get_where(
-            tblname,
-            colnames,
-            params,
-            where_clause,
-            unpack_scalars=unpack_scalars,
-            **kwargs,
+        if op.lower() != 'and' or not params_iter:
+            # Build the equality conditions using column type information.
+            # This allows us to bind the parameter with the correct type.
+            equal_conditions = [
+                (table.c[c] == bindparam(c, type_=table.c[c].type))
+                for c in where_colnames
+            ]
+            gate_func = {'and': sqlalchemy.and_, 'or': sqlalchemy.or_}[op.lower()]
+            where_clause = gate_func(*equal_conditions)
+            params = [dict(zip(where_colnames, p)) for p in params_iter]
+            return self.get_where(
+                tblname,
+                colnames,
+                params,
+                where_clause,
+                unpack_scalars=unpack_scalars,
+                **kwargs,
+            )
+
+        params_per_batch = int(BATCH_SIZE / len(params_iter[0]))
+        result_map = {}
+        stmt = sqlalchemy.select(
+            [table.c[c] for c in tuple(where_colnames) + tuple(colnames)]
         )
+        stmt = stmt.where(
+            sqlalchemy.tuple_(*[table.c[c] for c in where_colnames]).in_(
+                sqlalchemy.sql.bindparam('params', expanding=True)
+            )
+        )
+        for batch in range(int(len(params_iter) / params_per_batch) + 1):
+            val_list = self.executeone(
+                stmt,
+                {
+                    'params': params_iter[
+                        batch * params_per_batch : (batch + 1) * params_per_batch
+                    ]
+                },
+            )
+            for val in val_list:
+                key = val[: len(params_iter[0])]
+                values = val[len(params_iter[0]) :]
+                if not kwargs.get('keepwrap', False) and len(values) == 1:
+                    values = values[0]
+                existing = result_map.setdefault(key, set())
+                if isinstance(existing, set):
+                    try:
+                        existing.add(values)
+                    except TypeError:
+                        # unhashable type
+                        result_map[key] = list(result_map[key])
+                        if values not in result_map[key]:
+                            result_map[key].append(values)
+                elif values not in existing:
+                    existing.append(values)
+
+        results = []
+        for id_ in params_iter:
+            result = sorted(list(result_map.get(tuple(id_), set())))
+            if unpack_scalars and isinstance(result, list):
+                results.append(_unpacker(result))
+            else:
+                results.append(result)
+
+        return results
 
     def get_where_eq_set(
         self,
