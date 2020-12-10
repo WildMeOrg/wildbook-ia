@@ -179,6 +179,10 @@ class Feedback(object):
             infr.verbose = verbose
         edge = aid1, aid2 = nxu.e_(*edge)
 
+        if aid1 is None or aid2 is None:
+            logger.error('add_feedback(aid1=None, aid2=None) called, ignoring')
+            return
+
         if not infr.has_edge(edge):
             if True:
                 # Allow new aids
