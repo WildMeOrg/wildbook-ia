@@ -369,6 +369,7 @@ class IBEISController(BASE_CLASS):
             request_dbversion=request_dbversion,
             request_stagingversion=request_stagingversion,
         )
+        ibs._init_config()
         if not ut.get_argflag('--noclean') and not ibs.readonly:
             # ibs._init_burned_in_species()
             ibs._clean_species()

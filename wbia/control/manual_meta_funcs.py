@@ -1022,11 +1022,11 @@ def _init_config(ibs):
     # </GENERAL CONFIG>
     #####
     # species_list = ibs.get_database_species()
-    if current_species is None:
-        # species_list = ibs.get_database_species()
-        # species_list[0] if len(species_list) == 1 else None
-        primary_species = ibs.get_primary_database_species()
-        current_species = primary_species
+    # if current_species is None:
+    #     # species_list = ibs.get_database_species()
+    #     # species_list[0] if len(species_list) == 1 else None
+    #     primary_species = ibs.get_primary_database_species()
+    #     current_species = primary_species
     cfgname = 'cfg' if current_species is None else current_species
     if ut.VERBOSE and ut.NOT_QUIET:
         # logger.info('[_init_config] Loading database with species_list = %r ' % (species_list,))
