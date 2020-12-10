@@ -101,9 +101,8 @@ def get_lblimage_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
     """
     colnames = ('lblimage_rowid',)
     params_iter = zip(lbltype_rowid_list, value_list)
-    where_clause = 'lbltype_rowid=? AND lblimage_value=?'
-    lblimage_rowid_list = ibs.db.get_where(
-        const.LBLIMAGE_TABLE, colnames, params_iter, where_clause
+    lblimage_rowid_list = ibs.db.get_where_eq(
+        const.LBLIMAGE_TABLE, colnames, params_iter, ('lbltype_rowid', 'lblimage_value')
     )
     return lblimage_rowid_list
 
@@ -172,13 +171,12 @@ def get_lblimage_gids(ibs, lblimage_rowid_list):
     # FIXME: SLOW
     # if verbose:
     #    logger.info(ut.get_caller_name(N=list(range(0, 20))))
-    where_clause = 'lblimage_rowid=?'
     params_iter = [(lblimage_rowid,) for lblimage_rowid in lblimage_rowid_list]
-    gids_list = ibs.db.get_where(
+    gids_list = ibs.db.get_where_eq(
         const.GL_RELATION_TABLE,
         ('image_rowid',),
         params_iter,
-        where_clause,
+        ('lblimage_rowid',),
         unpack_scalars=False,
     )
     return gids_list
@@ -226,9 +224,8 @@ def get_glrid_from_superkey(ibs, gid_list, lblimage_rowid_list):
     """
     colnames = ('image_rowid',)
     params_iter = zip(gid_list, lblimage_rowid_list)
-    where_clause = 'image_rowid=? AND lblimage_rowid=?'
-    glrid_list = ibs.db.get_where(
-        const.GL_RELATION_TABLE, colnames, params_iter, where_clause
+    glrid_list = ibs.db.get_where_eq(
+        const.GL_RELATION_TABLE, colnames, params_iter, ('image_rowid', 'lblimage_rowid')
     )
     return glrid_list
 
@@ -242,12 +239,11 @@ def get_image_glrids(ibs, gid_list):
     be only of a specific lbltype/category/type
     """
     params_iter = ((gid,) for gid in gid_list)
-    where_clause = 'image_rowid=?'
-    glrids_list = ibs.db.get_where(
+    glrids_list = ibs.db.get_where_eq(
         const.GL_RELATION_TABLE,
         ('glr_rowid',),
         params_iter,
-        where_clause=where_clause,
+        ('image_rowid',),
         unpack_scalars=False,
     )
     return glrids_list

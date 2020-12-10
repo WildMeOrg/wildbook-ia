@@ -100,9 +100,8 @@ def get_lblannot_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
     """
     colnames = ('lblannot_rowid',)
     params_iter = zip(lbltype_rowid_list, value_list)
-    where_clause = 'lbltype_rowid=? AND lblannot_value=?'
-    lblannot_rowid_list = ibs.db.get_where(
-        const.LBLANNOT_TABLE, colnames, params_iter, where_clause
+    lblannot_rowid_list = ibs.db.get_where_eq(
+        const.LBLANNOT_TABLE, colnames, params_iter, ('lbltype_rowid', 'lblannot_value')
     )
     # BIG HACK FOR ENFORCING UNKNOWN LBLANNOTS HAVE ROWID 0
     lblannot_rowid_list = [
@@ -169,13 +168,12 @@ def get_alr_annot_rowids_from_lblannot_rowid(ibs, lblannot_rowid_list):
     # FIXME: SLOW
     # if verbose:
     #    logger.info(ut.get_caller_name(N=list(range(0, 20))))
-    where_clause = 'lblannot_rowid=?'
     params_iter = [(lblannot_rowid,) for lblannot_rowid in lblannot_rowid_list]
-    aids_list = ibs.db.get_where(
+    aids_list = ibs.db.get_where_eq(
         const.AL_RELATION_TABLE,
         ('annot_rowid',),
         params_iter,
-        where_clause,
+        ('lblannot_rowid',),
         unpack_scalars=False,
     )
     return aids_list
@@ -223,9 +221,8 @@ def get_alrid_from_superkey(ibs, aid_list, lblannot_rowid_list):
     """
     colnames = ('annot_rowid',)
     params_iter = zip(aid_list, lblannot_rowid_list)
-    where_clause = 'annot_rowid=? AND lblannot_rowid=?'
-    alrid_list = ibs.db.get_where(
-        const.AL_RELATION_TABLE, colnames, params_iter, where_clause
+    alrid_list = ibs.db.get_where_eq(
+        const.AL_RELATION_TABLE, colnames, params_iter, ('annot_rowid', 'lblannot_rowid')
     )
     return alrid_list
 

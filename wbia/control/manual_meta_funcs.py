@@ -900,13 +900,12 @@ def get_metadata_value(ibs, metadata_key_list, db):
         URL:    /api/metadata/value/
     """
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-    where_clause = 'metadata_key=?'
     # list of relationships for each image
-    metadata_value_list = db.get_where(
+    metadata_value_list = db.get_where_eq(
         const.METADATA_TABLE,
         ('metadata_value',),
         params_iter,
-        where_clause,
+        ('metadata_key',),
         unpack_scalars=True,
     )
     return metadata_value_list
@@ -924,13 +923,12 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     """
     db = db[0]  # Unwrap tuple, required by @accessor_decors.getter_1to1 decorator
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-    where_clause = 'metadata_key=?'
     # list of relationships for each image
-    metadata_rowid_list = db.get_where(
+    metadata_rowid_list = db.get_where_eq(
         const.METADATA_TABLE,
         ('metadata_rowid',),
         params_iter,
-        where_clause,
+        ('metadata_key',),
         unpack_scalars=True,
     )
     return metadata_rowid_list

@@ -1675,10 +1675,11 @@ class SQLDatabaseController(object):
         """
         val is the repr string unless eval_ is true
         """
-        where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         params_iter = [(key,)]
-        vals = self.get_where(METADATA_TABLE_NAME, colnames, params_iter, where_clause)
+        vals = self.get_where_eq(
+            METADATA_TABLE_NAME, colnames, params_iter, ('metadata_key',)
+        )
         assert len(vals) == 1, 'duplicate keys in metadata table'
         val = vals[0]
         if val is None:

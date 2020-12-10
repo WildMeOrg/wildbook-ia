@@ -566,9 +566,8 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
         REVIEW_EVIDENCE_DECISION,
     )
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID1)
-    review_tuple_decisions_list = ibs.staging.get_where(
-        const.REVIEW_TABLE, colnames, params_iter, where_clause, unpack_scalars=False
+    review_tuple_decisions_list = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, (REVIEW_AID1,), unpack_scalars=False
     )
     return review_tuple_decisions_list
 
@@ -586,9 +585,8 @@ def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
     """
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID1)
-    review_rowids = ibs.staging.get_where(
-        const.REVIEW_TABLE, colnames, params_iter, where_clause, unpack_scalars=False
+    review_rowids = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, (REVIEW_AID1,), unpack_scalars=False
     )
     return review_rowids
 
