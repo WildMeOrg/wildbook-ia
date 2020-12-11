@@ -2484,11 +2484,12 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
     """
     # FIXME: This index should when the database is defined.
     # Ensure that an index exists on the image column of the annotation table
-    ibs.db.connection.execute(
-        """
-        CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
-        """
-    )
+    with ibs.db.connect() as conn:
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
+            """
+        )
     # The index maxes the following query very efficient
     part_rowids_list = ibs.db.get(
         ibs.const.PART_TABLE,

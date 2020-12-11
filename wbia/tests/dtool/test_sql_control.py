@@ -6,12 +6,10 @@ import numpy as np
 import pytest
 import sqlalchemy.exc
 from sqlalchemy import MetaData, Table
-from sqlalchemy.engine import Connection
 from sqlalchemy.sql import select, text
 
 from wbia.dtool.sql_control import (
     METADATA_TABLE_COLUMNS,
-    TIMEOUT,
     SQLDatabaseController,
 )
 
@@ -39,16 +37,6 @@ def make_table_definition(name, depends_on=[]):
         'dependson': depends_on,
     }
     return definition
-
-
-def test_instantiation(ctrlr):
-    # Check for basic connection information
-    assert ctrlr.uri == 'sqlite:///:memory:'
-    assert ctrlr.timeout == TIMEOUT
-
-    # Check for a connection, that would have been made during instantiation
-    assert isinstance(ctrlr.connection, Connection)
-    assert not ctrlr.connection.closed
 
 
 def test_instantiation_with_table_reflection(tmp_path):
@@ -171,7 +159,7 @@ class TestSchemaModifiers:
         assert sorted(found_constraint_info) == expected_constraint_info
 
         # Check for metadata entries
-        results = self.ctrlr.connection.execute(
+        results = self.ctrlr._engine.execute(
             select([metadata.c.metadata_key, metadata.c.metadata_value]).where(
                 metadata.c.metadata_key.like('bars_%')
             )
@@ -200,7 +188,7 @@ class TestSchemaModifiers:
         self.reflect_table(new_table_name, md)
 
         # Check for metadata entries have been renamed.
-        results = self.ctrlr.connection.execute(
+        results = self.ctrlr._engine.execute(
             select([metadata.c.metadata_key, metadata.c.metadata_value]).where(
                 metadata.c.metadata_key.like(f'{new_table_name}_%')
             )
@@ -232,7 +220,7 @@ class TestSchemaModifiers:
             self.reflect_table(table_name, md)
 
         # Check for metadata entries have been renamed.
-        results = self.ctrlr.connection.execute(
+        results = self.ctrlr._engine.execute(
             select([metadata.c.metadata_key, metadata.c.metadata_value]).where(
                 metadata.c.metadata_key.like(f'{table_name}_%')
             )
@@ -258,7 +246,7 @@ class TestSchemaModifiers:
                 self.reflect_table(name, md)
 
         # Check for the absents of metadata for the removed tables.
-        results = self.ctrlr.connection.execute(select([metadata.c.metadata_key]))
+        results = self.ctrlr._engine.execute(select([metadata.c.metadata_key]))
         expected_metadata_rows = [
             ('database_init_uuid',),
             ('database_version',),
@@ -302,7 +290,7 @@ class TestMetadataProperty:
             unprefixed_name = key.split('_')[-1]
             if METADATA_TABLE_COLUMNS[unprefixed_name]['is_coded_data']:
                 value = repr(value)
-            self.ctrlr.connection.execute(insert_stmt, key=key, value=value)
+            self.ctrlr._engine.execute(insert_stmt, key=key, value=value)
 
     def monkey_get_table_names(self, *args, **kwargs):
         return ['foo', 'metadata']
@@ -360,7 +348,7 @@ class TestMetadataProperty:
         assert new_value == value
 
         # Also check the table does not have the record
-        assert not self.ctrlr.connection.execute(
+        assert not self.ctrlr._engine.execute(
             f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
         ).fetchone()
 
@@ -381,7 +369,7 @@ class TestMetadataProperty:
         assert self.ctrlr.metadata.foo.docstr is None
 
         # Also check the table does not have the record
-        assert not self.ctrlr.connection.execute(
+        assert not self.ctrlr._engine.execute(
             f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
         ).fetchone()
 
@@ -484,7 +472,7 @@ class TestMetadataProperty:
         assert self.ctrlr.metadata.foo.docstr is None
 
         # Also check the table does not have the record
-        assert not self.ctrlr.connection.execute(
+        assert not self.ctrlr._engine.execute(
             f"SELECT * FROM metadata WHERE metadata_key = 'foo_{key}'"
         ).fetchone()
 
@@ -513,7 +501,7 @@ class BaseAPITestCase:
         self.ctrlr = ctrlr
 
     def make_table(self, name):
-        self.ctrlr.connection.execute(
+        self.ctrlr._engine.execute(
             f'CREATE TABLE IF NOT EXISTS {name} '
             '(id INTEGER PRIMARY KEY, x TEXT, y INTEGER, z REAL)'
         )
@@ -530,7 +518,7 @@ class BaseAPITestCase:
                 i,
                 i * 2.01,
             )
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+            self.ctrlr._engine.execute(insert_stmt, x=x, y=y, z=z)
 
 
 class TestExecutionAPI(BaseAPITestCase):
@@ -587,7 +575,7 @@ class TestExecutionAPI(BaseAPITestCase):
         assert result == [11]  # the result list with one unwrapped value
 
         # Check for the actual value associated with the resulting id
-        inserted_value = self.ctrlr.connection.execute(
+        inserted_value = self.ctrlr._engine.execute(
             text(f'SELECT id, y FROM {table_name} WHERE rowid = :rowid'),
             rowid=result[0],
         ).fetchone()
@@ -632,7 +620,7 @@ class TestExecutionAPI(BaseAPITestCase):
             results = self.ctrlr.executemany(insert, params)
 
         # Check for results
-        results = self.ctrlr.connection.execute(f'select count(*) from {table_name}')
+        results = self.ctrlr._engine.execute(f'select count(*) from {table_name}')
         assert results.fetchone()[0] == 0
 
     def test_executeone_for_single_column(self):
@@ -670,7 +658,7 @@ class TestAdditionAPI(BaseAPITestCase):
         # Verify the resulting ids
         assert ids == [i + 1 for i in range(0, len(parameter_values))]
         # Verify addition of records
-        results = self.ctrlr.connection.execute(f'SELECT id, x, y, z FROM {table_name}')
+        results = self.ctrlr._engine.execute(f'SELECT id, x, y, z FROM {table_name}')
         expected = [(i + 1, x, y, z) for i, (x, y, z) in enumerate(parameter_values)]
         assert results.fetchall() == expected
 
@@ -762,14 +750,15 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
-        # Build the expect results of the testing target
-        results = self.ctrlr.connection.execute(f'SELECT id, x, z FROM {table_name}')
-        rows = results.fetchall()
-        row_mapping = {row[0]: row[1:] for row in rows if row[1]}
+            # Build the expect results of the testing target
+            results = conn.execute(f'SELECT id, x, z FROM {table_name}')
+            rows = results.fetchall()
+            row_mapping = {row[0]: row[1:] for row in rows if row[1]}
 
         # Call the testing target
         data = self.ctrlr.get(table_name, ['x', 'z'])
@@ -784,9 +773,10 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
         requested_ids = [2, 4, 6]
@@ -794,10 +784,11 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Build the expect results of the testing target
         sql_array = ', '.join([str(id) for id in requested_ids])
-        results = self.ctrlr.connection.execute(
-            f'SELECT x, z FROM {table_name} WHERE id in ({sql_array})'
-        )
-        expected = results.fetchall()
+        with self.ctrlr.connect() as conn:
+            results = conn.execute(
+                f'SELECT x, z FROM {table_name} WHERE id in ({sql_array})'
+            )
+            expected = results.fetchall()
         # Verify getting
         assert data == expected
 
@@ -808,9 +799,10 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
         requested_ids = np.array([2, 4, 6])
@@ -818,10 +810,11 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Build the expect results of the testing target
         sql_array = ', '.join([str(id) for id in requested_ids])
-        results = self.ctrlr.connection.execute(
-            f'SELECT x, z FROM {table_name} WHERE id in ({sql_array})'
-        )
-        expected = results.fetchall()
+        with self.ctrlr.connect() as conn:
+            results = conn.execute(
+                f'SELECT x, z FROM {table_name} WHERE id in ({sql_array})'
+            )
+            expected = results.fetchall()
         # Verify getting
         assert data == expected
 
@@ -835,9 +828,10 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
         # Call the testing target
         # The table has a INTEGER PRIMARY KEY, which essentially maps to the rowid
@@ -847,11 +841,12 @@ class TestGettingAPI(BaseAPITestCase):
 
         # Build the expect results of the testing target
         sql_array = ', '.join([str(id) for id in requested_ids])
-        results = self.ctrlr.connection.execute(
-            f'SELECT x FROM {table_name} WHERE id in ({sql_array})'
-        )
-        # ... recall that the controller unpacks single values
-        expected = [row[0] for row in results]
+        with self.ctrlr.connect() as conn:
+            results = conn.execute(
+                f'SELECT x FROM {table_name} WHERE id in ({sql_array})'
+            )
+            # ... recall that the controller unpacks single values
+            expected = [row[0] for row in results]
         # Verify getting
         assert data == expected
 
@@ -865,14 +860,13 @@ class TestSettingAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
-        results = self.ctrlr.connection.execute(
-            f'SELECT id, CAST((y%2) AS BOOL) FROM {table_name}'
-        )
-        rows = results.fetchall()
+            results = conn.execute(f'SELECT id, CAST((y%2) AS BOOL) FROM {table_name}')
+            rows = results.fetchall()
         ids = [row[0] for row in rows if row[1]]
 
         # Call the testing target
@@ -882,11 +876,12 @@ class TestSettingAPI(BaseAPITestCase):
 
         # Verify setting
         sql_array = ', '.join([str(id) for id in ids])
-        results = self.ctrlr.connection.execute(
-            f'SELECT id, x, z FROM {table_name} ' f'WHERE id in ({sql_array})'
-        )
-        expected = sorted(map(lambda a: tuple([a] + ['even', 0.0]), ids))
-        set_rows = sorted(results)
+        with self.ctrlr.connect() as conn:
+            results = conn.execute(
+                f'SELECT id, x, z FROM {table_name} ' f'WHERE id in ({sql_array})'
+            )
+            expected = sorted(map(lambda a: tuple([a] + ['even', 0.0]), ids))
+            set_rows = sorted(results)
         assert set_rows == expected
 
 
@@ -898,14 +893,13 @@ class TestDeletionAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
-        results = self.ctrlr.connection.execute(
-            f'SELECT id, CAST((y % 2) AS BOOL) FROM {table_name}'
-        )
-        rows = results.fetchall()
+            results = conn.execute(f'SELECT id, CAST((y % 2) AS BOOL) FROM {table_name}')
+            rows = results.fetchall()
         del_ids = [row[0] for row in rows if row[1]]
         remaining_ids = sorted([row[0] for row in rows if not row[1]])
 
@@ -913,8 +907,9 @@ class TestDeletionAPI(BaseAPITestCase):
         self.ctrlr.delete(table_name, del_ids, 'id')
 
         # Verify the deletion
-        results = self.ctrlr.connection.execute(f'SELECT id FROM {table_name}')
-        assert sorted([r[0] for r in results]) == remaining_ids
+        with self.ctrlr.connect() as conn:
+            results = conn.execute(f'SELECT id FROM {table_name}')
+            assert sorted([r[0] for r in results]) == remaining_ids
 
     def test_delete_rowid(self):
         # Make a table for records
@@ -923,14 +918,15 @@ class TestDeletionAPI(BaseAPITestCase):
 
         # Create some dummy records
         insert_stmt = text(f'INSERT INTO {table_name} (x, y, z) VALUES (:x, :y, :z)')
-        for i in range(0, 10):
-            x, y, z = (str(i), i, i * 2.01)
-            self.ctrlr.connection.execute(insert_stmt, x=x, y=y, z=z)
+        with self.ctrlr.connect() as conn:
+            for i in range(0, 10):
+                x, y, z = (str(i), i, i * 2.01)
+                conn.execute(insert_stmt, x=x, y=y, z=z)
 
-        results = self.ctrlr.connection.execute(
-            f'SELECT rowid, CAST((y % 2) AS BOOL) FROM {table_name}'
-        )
-        rows = results.fetchall()
+            results = conn.execute(
+                f'SELECT rowid, CAST((y % 2) AS BOOL) FROM {table_name}'
+            )
+            rows = results.fetchall()
         del_ids = [row[0] for row in rows if row[1]]
         remaining_ids = sorted([row[0] for row in rows if not row[1]])
 
@@ -938,5 +934,6 @@ class TestDeletionAPI(BaseAPITestCase):
         self.ctrlr.delete_rowids(table_name, del_ids)
 
         # Verify the deletion
-        results = self.ctrlr.connection.execute(f'SELECT rowid FROM {table_name}')
-        assert sorted([r[0] for r in results]) == remaining_ids
+        with self.ctrlr.connect() as conn:
+            results = conn.execute(f'SELECT rowid FROM {table_name}')
+            assert sorted([r[0] for r in results]) == remaining_ids

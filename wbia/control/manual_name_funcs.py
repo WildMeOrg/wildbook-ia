@@ -489,11 +489,12 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
         # logger.info(len(nid_list_))
-        ibs.db.connection.execute(
-            """
-            CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
-            """
-        )
+        with ibs.db.connect() as conn:
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
+                """
+            )
         aids_list = ibs.db.get(
             const.ANNOTATION_TABLE,
             (ANNOT_ROWID,),
@@ -516,7 +517,8 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         """.format(
             input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE
         )
-        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        with ibs.db.connect() as conn:
+            pair_list = conn.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         nidscol = np.array(ut.get_list_column(pair_list, 1))
         unique_nids, groupx = vt.group_indices(nidscol)
