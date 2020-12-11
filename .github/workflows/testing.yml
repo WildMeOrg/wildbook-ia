@@ -71,3 +71,20 @@ jobs:
           mkdir -p data/work
           python -m wbia --set-workdir data/work --preload-exit
           pytest --slow
+
+  on-failure:
+    # This is not in the 'test' job itself because it would otherwise notify once per matrix combination.
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      # Notify status in Slack
+      - name: Slack Notification
+        if: ${{ needs.test.result != 'success' && contains(github.ref, 'develop') }}
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: ia-development
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
+          SLACK_MESSAGE: '*develop* branch is FAILING TESTS :exclamation: :face_with_head_bandage:'
+          SLACK_USERNAME: "WBIA"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
