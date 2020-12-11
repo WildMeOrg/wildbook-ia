@@ -240,8 +240,11 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
             )
         # Do eager evaulation so we can catch any exceptions
         # Before executing partial code.
-        for edge in list(aug_edges):
-            yield edge
+        try:
+            for edge in list(aug_edges):
+                yield edge
+        except RuntimeError:
+            return
     except nx.NetworkXUnfeasible:
         if partial:
             # Return all available edges
@@ -253,8 +256,11 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
                 aug_edges = partial_k_edge_augmentation(
                     G, k=k, avail=avail, weight=weight
                 )
-            for edge in aug_edges:
-                yield edge
+            try:
+                for edge in aug_edges:
+                    yield edge
+            except RuntimeError:
+                return
         else:
             raise
 
