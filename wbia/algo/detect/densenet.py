@@ -48,6 +48,7 @@ ARCHIVE_URL_DICT = {
     'orca_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_orca.v0.zip',
     'fins_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v0.zip',
     'fins_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.zip',
+    'fins_v1.1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.1.zip',
     'wilddog_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v0.zip',
     'wilddog_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v1.zip',
     'wilddog_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v2.zip',
