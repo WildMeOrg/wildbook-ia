@@ -3066,10 +3066,10 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> result = ut.repr4(names)
         >>> print(result)
         (
-            ['IBEIS_UNKNOWN_0008', 'IBEIS_PZ_0042', 'IBEIS_UNKNOWN_0004', 'IBEIS_GZ_0008'],
-            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
-            ['IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046', 'IBEIS_PZ_0047', 'IBEIS_PZ_0048'],
-            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
+            ['IBEIS_UNKNOWN_0008', 'IBEIS_UNKNOWN_0042', 'IBEIS_UNKNOWN_0004', 'IBEIS_GZ_0008'],
+            ['IBEIS_UNKNOWN_0042', 'IBEIS_UNKNOWN_0043', 'IBEIS_UNKNOWN_0044', 'IBEIS_UNKNOWN_0045', 'IBEIS_UNKNOWN_0046'],
+            ['IBEIS_UNKNOWN_0044', 'IBEIS_UNKNOWN_0045', 'IBEIS_UNKNOWN_0046', 'IBEIS_UNKNOWN_0047', 'IBEIS_UNKNOWN_0048'],
+            ['IBEIS_UNKNOWN_0042', 'IBEIS_UNKNOWN_0043', 'IBEIS_UNKNOWN_0044', 'IBEIS_UNKNOWN_0045', 'IBEIS_UNKNOWN_0046'],
         )
 
     """

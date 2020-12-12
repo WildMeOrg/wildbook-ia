@@ -437,9 +437,9 @@ class IBEISIO(object):
             >>> print(result)
                 old_name       new_name
             aid
-            1     06_410  IBEIS_PZ_0042
-            5     07_061         06_410
-            6     07_061         06_410
+            1     06_410  IBEIS_UNKNOWN_0042
+            5     07_061              06_410
+            6     07_061              06_410
 
         Doctest:
             >>> from wbia.algo.graph.mixin_wbia import *  # NOQA
