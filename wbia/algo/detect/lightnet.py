@@ -53,7 +53,7 @@ CONFIG_URL_DICT = {
     'orca_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_orca.v0.py',
     'fins_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v0.py',
     'fins_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.py',
-    'fins_v1.1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py',
+    'fins_v1-1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py',
     'nassau_grouper_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v0.py',
     'spotted_dolphin_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.dolphin_spotted.v0.py',
     'spotted_skunk_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.skunk_spotted.v0.py',
