@@ -54,7 +54,7 @@ simplejson>=3.6.5
 
 sip
 six>=1.10.0
-sqlalchemy
+sqlalchemy>=1.4.0b1
 statsmodels>=0.6.1
 
 torch
