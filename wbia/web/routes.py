@@ -1484,7 +1484,7 @@ def view_imagesets(**kwargs):
     all_gid_list = ibs.get_valid_gids()
     all_aid_list = ibs.get_valid_aids()
 
-    gids_list = [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
+    gids_list = ibs.get_valid_gids(imgsetid_list=imgsetid_list)
     num_gids = list(map(len, gids_list))
 
     ######################################################################################
@@ -1777,9 +1777,7 @@ def view_images(**kwargs):
             None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
             for imgsetid_ in imgsetid_list
         ]
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
     else:
         gid_list = ibs.get_valid_gids()
         filtered = False
@@ -1868,9 +1866,7 @@ def view_annotations(**kwargs):
             None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
             for imgsetid_ in imgsetid_list
         ]
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     else:
         aid_list = ibs.get_valid_aids()
@@ -2028,9 +2024,7 @@ def view_names(**kwargs):
             None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
             for imgsetid_ in imgsetid_list
         ]
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         nid_list = ibs.get_annot_name_rowids(aid_list)
     else:
