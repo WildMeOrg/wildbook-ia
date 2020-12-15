@@ -62,6 +62,7 @@ from wbia.algo.hots import neighbor_index
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
+CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 derived_attribute = register_preprocs['annot']
 register_subprop = register_subprops['annot']
@@ -2473,7 +2474,175 @@ def compute_orients_annotations(depc, aid_list, config=None):
         yield result
 
 
-if __name__ == '__main__':
-    import xdoctest as xdoc
+# for assigning part-annots to body-annots of the same individual:
+class PartAssignmentFeatureConfig(dtool.Config):
+    _param_info_list = []
 
-    xdoc.doctest_module(__file__)
+
+@derived_attribute(
+    tablename='part_assignment_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_xtl', 'p_ytl', 'p_w', 'p_h',
+        'b_xtl', 'b_ytl', 'b_w', 'b_h',
+        'int_xtl', 'int_ytl', 'int_w', 'int_h',
+        'intersect_area_relative_part',
+        'intersect_area_relative_body',
+        'part_area_relative_body'
+    ],
+    coltypes=[
+        int, int, int, int,
+        int, int, int, int,
+        int, int, int, int,
+        float, float, float
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='part_assignment_features',
+    rm_extern_on_delete=True,
+    chunksize=256,
+)
+def compute_assignment_features(depc, part_aid_list, body_aid_list, config=None):
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
+    parts_are_parts = _are_part_annots(part_aid_list)
+    assert all(are_parts_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    part_area_relative_body = [part_area / body_area
+                               for (part_area, body_area) in zip(part_areas, body_areas)]
+
+    intersect_bboxes = _bbox_intersections(part_bboxes, body_bboxes)
+    # note that intesect w and h could be negative if there is no intersection, in which case it is the x/y distance between the annots.
+    intersect_areas = [w * h if w > 0 and h > 0 else 0
+                       for (_, _, w, h) in intersect_bboxes]
+
+    int_area_relative_part = [int_area / part_area for int_area, part_area
+                              in zip(intersect_areas, part_areas)]
+    int_area_relative_body = [int_area / body_area for int_area, body_area
+                              in zip(intersect_areas, body_areas)]
+
+    result_list = list(zip(
+        part_bboxes, body_bboxes, intersect_bboxes,
+        int_area_relative_part, int_area_relative_body, part_area_relative_body
+    ))
+
+    for (part_bbox, body_bbox, intersect_bbox, int_area_relative_part,
+         int_area_relative_body, part_area_relative_body) in result_list:
+        yield (part_bbox[0], part_bbox[1], part_bbox[2], part_bbox[3],
+               body_bbox[0], body_bbox[1], body_bbox[2], body_bbox[3],
+               intersect_bbox[0], intersect_bbox[1], intersect_bbox[2], intersect_bbox[3],
+               int_area_relative_part,
+               int_area_relative_body,
+               part_area_relative_body)
+
+
+def _are_part_annots(ibs, aid_list):
+    species = ibs.get_annot_species(aid_list)
+    are_parts = ['+' in specie for specie in species]
+    return are_parts
+
+
+def _bbox_intersections(bboxes_a, bboxes_b):
+    corner_bboxes_a = _bbox_to_corner_format(bboxes_a)
+    corner_bboxes_b = _bbox_to_corner_format(bboxes_b)
+
+    intersect_xtls = [max(xtl_a, xtl_b)
+                      for ((xtl_a, _, _, _), (xtl_b, _, _, _))
+                      in zip(corner_bboxes_a, corner_bboxes_b)]
+
+    intersect_ytls = [max(ytl_a, ytl_b)
+                      for ((_, ytl_a, _, _), (_, ytl_b, _, _))
+                      in zip(corner_bboxes_a, corner_bboxes_b)]
+
+    intersect_xbrs = [min(xbr_a, xbr_b)
+                      for ((_, _, xbr_a, _), (_, _, xbr_b, _))
+                      in zip(corner_bboxes_a, corner_bboxes_b)]
+
+    intersect_ybrs = [min(ybr_a, ybr_b)
+                      for ((_, _, _, ybr_a), (_, _, _, ybr_b))
+                      in zip(corner_bboxes_a, corner_bboxes_b)]
+
+    intersect_widths = [int_xbr - int_xtl for int_xbr, int_xtl
+                        in zip(intersect_xbrs, intersect_xtls)]
+
+    intersect_heights = [int_ybr - int_ytl for int_ybr, int_ytl
+                         in zip(intersect_ybrs, intersect_ytls)]
+
+    intersect_bboxes = list(zip(
+        intersect_xtls, intersect_ytls, intersect_widths, intersect_heights))
+
+    return intersect_bboxes
+
+
+# converts bboxes from (xtl, ytl, w, h) to (xtl, ytl, xbr, ybr)
+def _bbox_to_corner_format(bboxes):
+    corner_bboxes = [(bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
+                     for bbox in bboxes]
+    return corner_bboxes
+
+
+def all_part_pairs(ibs, gid_list):
+    all_aids = ibs.get_image_aids(gid_list)
+    all_aids_are_parts = [_are_part_annots(ibs, aids) for aids in all_aids]
+    all_part_aids = [[aid for (aid, part) in zip(aids, are_parts) if part] for (aids, are_parts) in zip(all_aids, all_aids_are_parts)]
+    all_body_aids = [[aid for (aid, part) in zip(aids, are_parts) if not part] for (aids, are_parts) in zip(all_aids, all_aids_are_parts)]
+    part_body_parallel_lists = [_all_pairs_parallel(parts, bodies) for parts, bodies in zip(all_part_aids, all_body_aids)]
+    all_parts  = [aid for part_body_parallel_list in part_body_parallel_lists
+                  for aid in part_body_parallel_list[0]]
+    all_bodies = [aid for part_body_parallel_list in part_body_parallel_lists
+                  for aid in part_body_parallel_list[1]]
+    return all_parts, all_bodies
+
+
+def _all_pairs_parallel(list_a, list_b):
+    pairs = [(a, b) for a in list_a for b in list_b]
+    pairs_a = [pair[0] for pair in pairs]
+    pairs_b = [pair[1] for pair in pairs]
+    return pairs_a, pairs_b
+
+
+# for wild dog dev
+def wd_assigner_data(ibs):
+    all_aids = ibs.get_valid_aids()
+    ia_classes = ibs.get_annot_species(all_aids)
+    part_aids = [aid for aid, ia_class in zip(all_aids, ia_classes) if '+' in ia_class]
+    part_gids = list(set(ibs.get_annot_gids(part_aids)))
+    all_pairs = all_part_pairs(ibs, part_gids)
+    all_feats = ibs.depc_annot.get('part_assignment_features', all_pairs)
+    names = [ibs.get_annot_names(all_pairs[0]), ibs.get_annot_names(all_pairs[1])]
+    ground_truth = [n1 == n2 for (n1, n2) in zip(names[0],names[1])]
+    # we now have all features and the ground truths, time to to a train/test split
+    train_feats, test_feats = train_test_split(all_feats)
+    train_truth, test_truth = train_test_split(ground_truth)
+    assigner_data = {'data': train_feats, 'target': train_truth,
+                     'test': test_feats, 'test_truth': test_truth}
+    return assigner_data
+
+
+def train_test_split(item_list, random_seed=777, test_size=0.1):
+    import random
+    import math
+    random.seed(random_seed)
+    sample_size = math.floor(len(item_list) * test_size)
+    all_indices = list(range(len(item_list)))
+    test_indices = random.sample(all_indices, sample_size)
+    test_items = [item_list[i] for i in test_indices]
+    train_indices = sorted(list(
+        set(all_indices) - set(test_indices)
+    ))
+    train_items = [item_list[i] for i in train_indices]
+    return train_items, test_items
+
+
+
+

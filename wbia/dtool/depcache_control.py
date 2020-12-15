@@ -470,6 +470,8 @@ class DependencyCache:
                         input_tuple_ = (input_tuple_,)
         if len(exi_inputs) != len(input_tuple_):
             msg = '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple_))
+            print(msg)
+            ut.embed()
             raise ValueError(msg)
 
         # rectify input depth

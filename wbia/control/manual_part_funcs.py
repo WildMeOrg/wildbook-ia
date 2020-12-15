@@ -29,7 +29,7 @@ register_api = controller_inject.get_wbia_flask_api(__name__)
 PART_NOTE = 'part_note'
 PART_NUM_VERTS = 'part_num_verts'
 PART_ROWID = 'part_rowid'
-# PART_TAG_TEXT           = 'part_tag_text'
+PART_TAG_TEXT           = 'part_tag_text'
 PART_THETA = 'part_theta'
 PART_VERTS = 'part_verts'
 PART_UUID = 'part_uuid'
@@ -1088,21 +1088,21 @@ def set_part_viewpoints(ibs, part_rowid_list, viewpoint_list):
     ibs.db.set(const.PART_TABLE, ('part_viewpoint',), val_iter, id_iter)
 
 
-# @register_ibs_method
-# @accessor_decors.setter
-# def set_part_tag_text(ibs, part_rowid_list, part_tags_list, duplicate_behavior='error'):
-#     r""" part_tags_list -> part.part_tags[part_rowid_list]
+@register_ibs_method
+@accessor_decors.setter
+def set_part_tag_text(ibs, part_rowid_list, part_tags_list, duplicate_behavior='error'):
+    r""" part_tags_list -> part.part_tags[part_rowid_list]
 
-#     Args:
-#         part_rowid_list
-#         part_tags_list
+    Args:
+        part_rowid_list
+        part_tags_list
 
-#     """
-#     #logger.info('[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r' % (part_rowid_list, part_tags_list))
-#     id_iter = part_rowid_list
-#     colnames = (PART_TAG_TEXT,)
-#     ibs.db.set(const.PART_TABLE, colnames, part_tags_list,
-#                id_iter, duplicate_behavior=duplicate_behavior)
+    """
+    #logger.info('[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r' % (part_rowid_list, part_tags_list))
+    id_iter = part_rowid_list
+    colnames = (PART_TAG_TEXT,)
+    ibs.db.set(const.PART_TABLE, colnames, part_tags_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
 
 
 @register_ibs_method
@@ -1483,6 +1483,48 @@ def set_part_contour(ibs, part_rowid_list, contour_dict_list):
         contour_str_list.append(contour_str)
     val_list = ((contour_str,) for contour_str in contour_str_list)
     ibs.db.set(const.PART_TABLE, ('part_contour_json',), val_list, id_iter)
+
+
+# setting up the Wild Dog data for assigner training
+# def get_corresponding_aids(ibs, part_rowid_list, from_aids=None):
+#     if from_aids is None:
+#         from_aids = ibs.get_valid_aids()
+
+
+def get_corresponding_aids_slow(ibs, part_rowid_list, from_aids):
+    part_bboxes = ibs.get_part_bboxes(part_rowid_list)
+    annot_bboxes = ibs.get_annot_bboxes(from_aids)
+    annot_gids = ibs.get_annot_gids(from_aids)
+    from collections import defaultdict
+    bbox_gid_to_aids = defaultdict(int)
+    for aid, gid, bbox in zip(from_aids, annot_gids, annot_bboxes):
+        bbox_gid_to_aids[(bbox[0], bbox[1], bbox[2], bbox[3], gid)] = aid
+    part_gids = ibs.get_part_image_rowids(parts)
+    part_rowid_to_aid = {part_id: bbox_gid_to_aids[(bbox[0], bbox[1], bbox[2], bbox[3], gid)] for part_id, gid, bbox in zip(part_rowid_list, part_gids, part_bboxes)}
+
+    part_aids = [part_rowid_to_aid[partid] for partid in parts]
+    part_parent_aids = ibs.get_part_aids(part_rowid_list)
+
+    # parents might be non-unique so we gotta make a unique name for each parent
+    parent_aid_to_part_rowids = defaultdict(list)
+    for part_rowid, parent_aid in zip(part_rowid_list, part_parent_aids):
+        parent_aid_to_part_rowids[parent_aid] += [part_rowid]
+
+    part_annot_names = [','.join(str(p) for p in parent_aid_to_part_rowids[parent_aid]) for parent_aid in part_parent_aids]
+
+
+    # now assign names so we can associate the part annots with the non-part annots
+    new_part_names = ['part-%s' % part_rowid for part_rowid in part_rowid_list]
+
+
+def sort_parts_by_tags(ibs, part_rowid_list):
+    tags = ibs.get_part_tag_text(part_rowid_list)
+    from collections import defaultdict
+    tag_to_rowids = new defaultdict(list)
+    for tag, part_rowid in zip(tags, part_rowid_list):
+        tag_to_rowids[tag] += [part_rowid]
+    parts_by_tags = [tag_to_rowdids[tag] for tag in tag_to_rowdids.keys()]
+    return parts_by_tags
 
 
 # ==========
