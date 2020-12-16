@@ -1322,6 +1322,9 @@ def filter_annots_independent(
             logger.info('No annot filter returning')
         return avail_aids
 
+    if not avail_aids:  # no need to filter if empty
+        return avail_aids
+
     VerbosityContext = verb_context('FILTER_INDEPENDENT', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
 
@@ -1597,6 +1600,9 @@ def filter_annots_intragroup(
     if aidcfg is None:
         if verbose:
             logger.info('No annot filter returning')
+        return avail_aids
+
+    if not avail_aids:  # no need to filter if empty
         return avail_aids
 
     VerbosityContext = verb_context('FILTER_INTRAGROUP', aidcfg, verbose)

@@ -150,6 +150,8 @@ def filter_junk_annotations(ibs, aid_list):
         >>> result = str(filtered_aid_list)
         >>> print(result)
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     isjunk_list = ibs.get_annot_isjunk(aid_list)
     filtered_aid_list = ut.filterfalse_items(aid_list, isjunk_list)
     return filtered_aid_list
@@ -4897,6 +4899,8 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
         >>> x1 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=True)
         >>> x2 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=False)
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
         minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
@@ -4923,6 +4927,8 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
 
     valid_yaws = ['primary', 'primary1', 'primary-1']
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
 
     def rectify_view_category(view):
         @ut.memoize
@@ -4983,6 +4989,8 @@ def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
         >>> assert np.all(np.array(annots2_.nids) < 0)
         >>> assert len(annots2_) == 4
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
         if invert:
@@ -5037,6 +5045,8 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> wbia.other.dbinfo.hackshow_names(ibs, filtered_aids)
         >>> ut.show_if_requested()
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     import vtool as vt
 
     # min_timedelta = 60 * 60 * 24
@@ -5092,6 +5102,8 @@ def filter_aids_without_timestamps(ibs, aid_list, invert=False):
     Removes aids without timestamps
     aid_list = ibs.get_valid_aids()
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
     flag_list = [unixtime != -1 for unixtime in unixtime_list]
     if invert:
@@ -5126,6 +5138,8 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> print(result)
         aid_list_ = [9, 10]
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     species_rowid = ibs.get_species_rowids_from_text(species)
     if speedhack:
         list_repr = ','.join(map(str, aid_list))

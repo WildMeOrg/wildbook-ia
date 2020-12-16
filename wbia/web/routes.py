@@ -279,6 +279,8 @@ def view_advanced0(**kwargs):
         return date_list
 
     def filter_annots_imageset(aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -296,6 +298,8 @@ def view_advanced0(**kwargs):
         return aid_list
 
     def filter_images_imageset(gid_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -313,6 +317,8 @@ def view_advanced0(**kwargs):
         return gid_list
 
     def filter_names_imageset(nid_list):
+        if not nid_list:  # no need to filter if empty
+            return nid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -333,6 +339,8 @@ def view_advanced0(**kwargs):
         return nid_list
 
     def filter_annots_general(ibs, aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         if ibs.dbname == 'GGR-IBEIS':
             # Grevy's
             filter_kw = {
@@ -1013,6 +1021,8 @@ def view_advanced2(**kwargs):
         return date_list
 
     def filter_annots_imageset(aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -1030,6 +1040,8 @@ def view_advanced2(**kwargs):
         return aid_list
 
     def filter_annots_general(ibs, aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         if ibs.dbname == 'GGR-IBEIS':
             # Grevy's
             filter_kw = {
@@ -1233,6 +1245,8 @@ def view_advanced4(**kwargs):
         return date_list
 
     def filter_species_of_interest(gid_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         wanted_set = set(['zebra_plains', 'zebra_grevys', 'giraffe_masai'])
         aids_list = ibs.get_image_aids(gid_list)
         speciess_list = ut.unflat_map(ibs.get_annot_species_texts, aids_list)
@@ -1245,6 +1259,8 @@ def view_advanced4(**kwargs):
         return gid_list_filtered
 
     def filter_viewpoints_of_interest(gid_list, allowed_viewpoint_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         aids_list = ibs.get_image_aids(gid_list)
         wanted_set = set(allowed_viewpoint_list)
         viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
@@ -1257,6 +1273,8 @@ def view_advanced4(**kwargs):
         return gid_list_filtered
 
     def filter_bad_metadata(gid_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         wanted_set = set(['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31'])
         date_list = _date_list(gid_list)
         gps_list = ibs.get_image_gps(gid_list)
@@ -1267,6 +1285,8 @@ def view_advanced4(**kwargs):
         return gid_list_filtered
 
     def filter_bad_quality(gid_list, allowed_quality_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         aids_list = ibs.get_image_aids(gid_list)
         wanted_set = set(allowed_quality_list)
         qualities_list = ut.unflat_map(ibs.get_annot_quality_texts, aids_list)

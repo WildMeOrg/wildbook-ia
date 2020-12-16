@@ -838,6 +838,8 @@ def filter_annotation_set(
     is_canonical=None,
     min_timedelta=None,
 ):
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
