@@ -20,7 +20,7 @@ import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
-from sqlalchemy.engine import RowProxy
+from sqlalchemy.engine import LegacyRow
 from sqlalchemy.schema import Table
 from sqlalchemy.sql import bindparam, text, ClauseElement
 
@@ -1265,7 +1265,7 @@ class SQLDatabaseController(object):
 
         result = []
         for val in val_list:
-            if isinstance(val, RowProxy):
+            if isinstance(val, LegacyRow):
                 result.append(tuple(val[returned_columns.index(c)] for c in colnames))
             else:
                 result.append(val)
