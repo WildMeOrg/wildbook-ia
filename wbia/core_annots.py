@@ -55,9 +55,11 @@ import vtool as vt
 import numpy as np
 import cv2
 import wbia.constants as const
-from wbia.control.controller_inject import register_preprocs, register_subprops
+from wbia.control.controller_inject import register_preprocs, register_subprops, make_ibs_register_decorator
 from wbia.algo.hots.chip_match import ChipMatch
 from wbia.algo.hots import neighbor_index
+
+from sklearn import preprocessing
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -2508,9 +2510,9 @@ def compute_assignment_features(depc, part_aid_list, body_aid_list, config=None)
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(part_aid_list)
-    assert all(are_parts_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(body_aid_list)
+    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     part_bboxes = ibs.get_annot_bboxes(part_aid_list)
@@ -2544,6 +2546,485 @@ def compute_assignment_features(depc, part_aid_list, body_aid_list, config=None)
                int_area_relative_part,
                int_area_relative_body,
                part_area_relative_body)
+
+
+@derived_attribute(
+    tablename='normalized_assignment_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_xtl', 'p_ytl', 'p_w', 'p_h',
+        'b_xtl', 'b_ytl', 'b_w', 'b_h',
+        'int_xtl', 'int_ytl', 'int_w', 'int_h',
+        'intersect_area_relative_part',
+        'intersect_area_relative_body',
+        'part_area_relative_body'
+    ],
+    coltypes=[
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='normalized_assignment_features',
+    rm_extern_on_delete=True,
+    chunksize=256,
+)
+def normalized_assignment_features(depc, part_aid_list, body_aid_list, config=None):
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
+    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+    im_widths = ibs.get_image_widths(part_gids)
+    im_heights = ibs.get_image_heights(part_gids)
+    part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
+    body_bboxes = _norm_bboxes(body_bboxes, im_widths, im_heights)
+
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    part_area_relative_body = [part_area / body_area
+                               for (part_area, body_area) in zip(part_areas, body_areas)]
+
+    intersect_bboxes = _bbox_intersections(part_bboxes, body_bboxes)
+    # note that intesect w and h could be negative if there is no intersection, in which case it is the x/y distance between the annots.
+    intersect_areas = [w * h if w > 0 and h > 0 else 0
+                       for (_, _, w, h) in intersect_bboxes]
+
+    int_area_relative_part = [int_area / part_area for int_area, part_area
+                              in zip(intersect_areas, part_areas)]
+    int_area_relative_body = [int_area / body_area for int_area, body_area
+                              in zip(intersect_areas, body_areas)]
+
+    result_list = list(zip(
+        part_bboxes, body_bboxes, intersect_bboxes,
+        int_area_relative_part, int_area_relative_body, part_area_relative_body
+    ))
+
+    for (part_bbox, body_bbox, intersect_bbox, int_area_relative_part,
+         int_area_relative_body, part_area_relative_body) in result_list:
+        yield (part_bbox[0], part_bbox[1], part_bbox[2], part_bbox[3],
+               body_bbox[0], body_bbox[1], body_bbox[2], body_bbox[3],
+               intersect_bbox[0], intersect_bbox[1], intersect_bbox[2], intersect_bbox[3],
+               int_area_relative_part,
+               int_area_relative_body,
+               part_area_relative_body)
+
+
+@derived_attribute(
+    tablename='standardized_assignment_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_xtl', 'p_ytl', 'p_w', 'p_h',
+        'b_xtl', 'b_ytl', 'b_w', 'b_h',
+        'int_xtl', 'int_ytl', 'int_w', 'int_h',
+        'intersect_area_relative_part',
+        'intersect_area_relative_body',
+        'part_area_relative_body'
+    ],
+    coltypes=[
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='standardized_assignment_features',
+    rm_extern_on_delete=True,
+    chunksize=256000000,  # chunk size is huge bc we need accurate means and stdevs of various traits
+)
+def standardized_assignment_features(depc, part_aid_list, body_aid_list, config=None):
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
+    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+    im_widths = ibs.get_image_widths(part_gids)
+    im_heights = ibs.get_image_heights(part_gids)
+    part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
+    body_bboxes = _norm_bboxes(body_bboxes, im_widths, im_heights)
+
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    part_area_relative_body = [part_area / body_area
+                               for (part_area, body_area) in zip(part_areas, body_areas)]
+
+    intersect_bboxes = _bbox_intersections(part_bboxes, body_bboxes)
+    # note that intesect w and h could be negative if there is no intersection, in which case it is the x/y distance between the annots.
+    intersect_areas = [w * h if w > 0 and h > 0 else 0
+                       for (_, _, w, h) in intersect_bboxes]
+
+    int_area_relative_part = [int_area / part_area for int_area, part_area
+                              in zip(intersect_areas, part_areas)]
+    int_area_relative_body = [int_area / body_area for int_area, body_area
+                              in zip(intersect_areas, body_areas)]
+
+    int_area_relative_part = preprocessing.scale(int_area_relative_part)
+    int_area_relative_body = preprocessing.scale(int_area_relative_body)
+    part_area_relative_body = preprocessing.scale(part_area_relative_body)
+
+    result_list = list(zip(
+        part_bboxes, body_bboxes, intersect_bboxes,
+        int_area_relative_part, int_area_relative_body, part_area_relative_body
+    ))
+
+    for (part_bbox, body_bbox, intersect_bbox, int_area_relative_part,
+         int_area_relative_body, part_area_relative_body) in result_list:
+        yield (part_bbox[0], part_bbox[1], part_bbox[2], part_bbox[3],
+               body_bbox[0], body_bbox[1], body_bbox[2], body_bbox[3],
+               intersect_bbox[0], intersect_bbox[1], intersect_bbox[2], intersect_bbox[3],
+               int_area_relative_part,
+               int_area_relative_body,
+               part_area_relative_body)
+
+
+# like the above but bboxes are also standardized
+@derived_attribute(
+    tablename='mega_standardized_assignment_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_xtl', 'p_ytl', 'p_w', 'p_h',
+        'b_xtl', 'b_ytl', 'b_w', 'b_h',
+        'int_xtl', 'int_ytl', 'int_w', 'int_h',
+        'intersect_area_relative_part',
+        'intersect_area_relative_body',
+        'part_area_relative_body'
+    ],
+    coltypes=[
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float, float,
+        float, float, float
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='mega_standardized_assignment_features',
+    rm_extern_on_delete=True,
+    chunksize=256000000,  # chunk size is huge bc we need accurate means and stdevs of various traits
+)
+def mega_standardized_assignment_features(depc, part_aid_list, body_aid_list, config=None):
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
+    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+    im_widths = ibs.get_image_widths(part_gids)
+    im_heights = ibs.get_image_heights(part_gids)
+    part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
+    body_bboxes = _norm_bboxes(body_bboxes, im_widths, im_heights)
+
+    part_bboxes = _standardized_bboxes(part_bboxes)
+    body_bboxes = _standardized_bboxes(body_bboxes)
+
+
+
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    part_area_relative_body = [part_area / body_area
+                               for (part_area, body_area) in zip(part_areas, body_areas)]
+
+    intersect_bboxes = _bbox_intersections(part_bboxes, body_bboxes)
+    # note that intesect w and h could be negative if there is no intersection, in which case it is the x/y distance between the annots.
+    intersect_areas = [w * h if w > 0 and h > 0 else 0
+                       for (_, _, w, h) in intersect_bboxes]
+
+    int_area_relative_part = [int_area / part_area for int_area, part_area
+                              in zip(intersect_areas, part_areas)]
+    int_area_relative_body = [int_area / body_area for int_area, body_area
+                              in zip(intersect_areas, body_areas)]
+
+    int_area_relative_part = preprocessing.scale(int_area_relative_part)
+    int_area_relative_body = preprocessing.scale(int_area_relative_body)
+    part_area_relative_body = preprocessing.scale(part_area_relative_body)
+
+    result_list = list(zip(
+        part_bboxes, body_bboxes, intersect_bboxes,
+        int_area_relative_part, int_area_relative_body, part_area_relative_body
+    ))
+
+    for (part_bbox, body_bbox, intersect_bbox, int_area_relative_part,
+         int_area_relative_body, part_area_relative_body) in result_list:
+        yield (part_bbox[0], part_bbox[1], part_bbox[2], part_bbox[3],
+               body_bbox[0], body_bbox[1], body_bbox[2], body_bbox[3],
+               intersect_bbox[0], intersect_bbox[1], intersect_bbox[2], intersect_bbox[3],
+               int_area_relative_part,
+               int_area_relative_body,
+               part_area_relative_body)
+
+
+@derived_attribute(
+    tablename='theta_assignment_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_v1_x', 'p_v1_y', 'p_v2_x', 'p_v2_y', 'p_v3_x', 'p_v3_y', 'p_v4_x', 'p_v4_y',
+        'p_center_x', 'p_center_y',
+        'b_xtl', 'b_ytl', 'b_xbr', 'b_ybr', 'b_center_x', 'b_center_y',
+        'int_area_scalar', 'part_body_distance',
+        'part_body_centroid_dist',
+        'int_over_union',
+        'int_over_part',
+        'int_over_body',
+        'part_over_body'
+    ],
+    coltypes=[
+        float, float, float, float, float, float, float, float, float, float,
+        float, float, float, float, float, float,
+        float, float, float, float, float, float, float
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='theta_assignment_features',
+    rm_extern_on_delete=True,
+    chunksize=256,  # chunk size is huge bc we need accurate means and stdevs of various traits
+)
+def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
+
+    from shapely import geometry
+    import math
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
+    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    im_widths = ibs.get_image_widths(part_gids)
+    im_heights = ibs.get_image_heights(part_gids)
+
+    part_verts = ibs.get_annot_rotated_verts(part_aid_list)
+    body_verts = ibs.get_annot_rotated_verts(body_aid_list)
+    part_verts = _norm_vertices(part_verts, im_widths, im_heights)
+    body_verts = _norm_vertices(body_verts, im_widths, im_heights)
+    part_polys = [geometry.Polygon(vert) for vert in part_verts]
+    body_polys = [geometry.Polygon(vert) for vert in body_verts]
+    intersect_polys = [part.intersection(body)
+                       for part, body in zip(part_polys, body_polys)]
+    intersect_areas = [poly.area for poly in intersect_polys]
+    # just to make int_areas more comparable via ML methods, and since all distances < 1
+    int_area_scalars = [math.sqrt(area) for area in intersect_areas]
+
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+    part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
+    body_bboxes = _norm_bboxes(body_bboxes, im_widths, im_heights)
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    union_areas = [part + body - intersect for (part, body, intersect)
+                   in zip(part_areas, body_areas, intersect_areas)]
+    int_over_unions = [intersect / union for (intersect, union)
+                      in zip(intersect_areas, union_areas)]
+
+    part_body_distances = [part.distance(body)
+                           for part, body in zip(part_polys, body_polys)]
+
+    part_centroids = [poly.centroid for poly in part_polys]
+    body_centroids = [poly.centroid for poly in body_polys]
+
+    part_body_centroid_dists = [part.distance(body) for part, body
+                               in zip(part_centroids, body_centroids)]
+
+    int_over_parts = [int_area / part_area for part_area, int_area
+                     in zip(part_areas, intersect_areas)]
+
+    int_over_bodys = [int_area / body_area for body_area, int_area
+                     in zip(body_areas, intersect_areas)]
+
+    part_over_bodys = [part_area / body_area for part_area, body_area
+                      in zip(part_areas, body_areas)]
+
+    # note that here only parts have thetas, hence only returning body bboxes
+    result_list = list(zip(
+        part_verts, part_centroids, body_bboxes, body_centroids,
+        int_area_scalars, part_body_distances, part_body_centroid_dists,
+        int_over_unions, int_over_parts, int_over_bodys, part_over_bodys
+    ))
+
+    for (part_vert, part_center, body_bbox, body_center,
+        int_area_scalar, part_body_distance, part_body_centroid_dist,
+        int_over_union, int_over_part, int_over_body, part_over_body) in result_list:
+        yield (part_vert[0][0], part_vert[0][1], part_vert[1][0], part_vert[1][1],
+               part_vert[2][0], part_vert[2][1], part_vert[3][0], part_vert[3][1],
+               part_center.x, part_center.y,
+               body_bbox[0], body_bbox[1], body_bbox[2], body_bbox[3],
+               body_center.x, body_center.y,
+               int_area_scalar, part_body_distance,
+               part_body_centroid_dist,
+               int_over_union,
+               int_over_part,
+               int_over_body,
+               part_over_body,
+        )
+
+
+@derived_attribute(
+    tablename='theta_standardized_assignment_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_v1_x', 'p_v1_y', 'p_v2_x', 'p_v2_y', 'p_v3_x', 'p_v3_y', 'p_v4_x', 'p_v4_y',
+        'p_center_x', 'p_center_y',
+        'b_xtl', 'b_ytl', 'b_xbr', 'b_ybr', 'b_center_x', 'b_center_y',
+        'int_area_scalar', 'part_body_distance',
+        'part_body_centroid_dist',
+        'int_over_union',
+        'int_over_part',
+        'int_over_body',
+        'part_over_body'
+    ],
+    coltypes=[
+        float, float, float, float, float, float, float, float, float, float,
+        float, float, float, float, float, float,
+        float, float, float, float, float, float, float
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='theta_standardized_assignment_features',
+    rm_extern_on_delete=True,
+    chunksize=2560000,  # chunk size is huge bc we need accurate means and stdevs of various traits
+)
+def theta_standardized_assignment_features(depc, part_aid_list, body_aid_list, config=None):
+
+    from shapely import geometry
+    import math
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
+    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    im_widths = ibs.get_image_widths(part_gids)
+    im_heights = ibs.get_image_heights(part_gids)
+
+    part_verts = ibs.get_annot_rotated_verts(part_aid_list)
+    body_verts = ibs.get_annot_rotated_verts(body_aid_list)
+    part_verts = _norm_vertices(part_verts, im_widths, im_heights)
+    body_verts = _norm_vertices(body_verts, im_widths, im_heights)
+    part_polys = [geometry.Polygon(vert) for vert in part_verts]
+    body_polys = [geometry.Polygon(vert) for vert in body_verts]
+    intersect_polys = [part.intersection(body)
+                       for part, body in zip(part_polys, body_polys)]
+    intersect_areas = [poly.area for poly in intersect_polys]
+    # just to make int_areas more comparable via ML methods, and since all distances < 1
+    int_area_scalars = [math.sqrt(area) for area in intersect_areas]
+    int_area_scalars = preprocessing.scale(int_area_scalars)
+
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+    part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
+    body_bboxes = _norm_bboxes(body_bboxes, im_widths, im_heights)
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    union_areas = [part + body - intersect for (part, body, intersect)
+                   in zip(part_areas, body_areas, intersect_areas)]
+    int_over_unions = [intersect / union for (intersect, union)
+                      in zip(intersect_areas, union_areas)]
+    int_over_unions = preprocessing.scale(int_over_unions)
+
+    part_body_distances = [part.distance(body)
+                           for part, body in zip(part_polys, body_polys)]
+    part_body_distances = preprocessing.scale(part_body_distances)
+
+    part_centroids = [poly.centroid for poly in part_polys]
+    body_centroids = [poly.centroid for poly in body_polys]
+
+    part_body_centroid_dists = [part.distance(body) for part, body
+                               in zip(part_centroids, body_centroids)]
+    part_body_centroid_dists = preprocessing.scale(part_body_centroid_dists)
+
+    int_over_parts = [int_area / part_area for part_area, int_area
+                     in zip(part_areas, intersect_areas)]
+    int_over_parts = preprocessing.scale(int_over_parts)
+
+    int_over_bodys = [int_area / body_area for body_area, int_area
+                     in zip(body_areas, intersect_areas)]
+    int_over_bodys = preprocessing.scale(int_over_bodys)
+
+    part_over_bodys = [part_area / body_area for part_area, body_area
+                      in zip(part_areas, body_areas)]
+    part_over_bodys = preprocessing.scale(part_over_bodys)
+
+
+
+    #standardization
+
+    # note that here only parts have thetas, hence only returning body bboxes
+    result_list = list(zip(
+        part_verts, part_centroids, body_bboxes, body_centroids,
+        int_area_scalars, part_body_distances, part_body_centroid_dists,
+        int_over_unions, int_over_parts, int_over_bodys, part_over_bodys
+    ))
+
+    for (part_vert, part_center, body_bbox, body_center,
+        int_area_scalar, part_body_distance, part_body_centroid_dist,
+        int_over_union, int_over_part, int_over_body, part_over_body) in result_list:
+        yield (part_vert[0][0], part_vert[0][1], part_vert[1][0], part_vert[1][1],
+               part_vert[2][0], part_vert[2][1], part_vert[3][0], part_vert[3][1],
+               part_center.x, part_center.y,
+               body_bbox[0], body_bbox[1], body_bbox[2], body_bbox[3],
+               body_center.x, body_center.y,
+               int_area_scalar, part_body_distance,
+               part_body_centroid_dist,
+               int_over_union,
+               int_over_part,
+               int_over_body,
+               part_over_body,
+        )
+
+
+def _norm_bboxes(bbox_list, width_list, height_list):
+    normed_boxes = [(bbox[0]/w, bbox[1]/h, bbox[2]/w, bbox[3]/h)
+                    for (bbox, w, h)
+                    in zip(bbox_list, width_list, height_list)]
+    return normed_boxes
+
+
+def _norm_vertices(verts_list, width_list, height_list):
+    normed_verts = [[[x / w , y / h] for x, y in vert]
+                    for vert, w, h
+                    in zip(verts_list, width_list, height_list)
+                    ]
+    return normed_verts
+
+
+# does this even make any sense? let's find out experimentally
+def _standardized_bboxes(bbox_list):
+    xtls = preprocessing.scale([bbox[0] for bbox in bbox_list])
+    ytls = preprocessing.scale([bbox[1] for bbox in bbox_list])
+    wids = preprocessing.scale([bbox[2] for bbox in bbox_list])
+    heis = preprocessing.scale([bbox[3] for bbox in bbox_list])
+    standardized_bboxes = list(zip(xtls, ytls, wids, heis))
+    return standardized_bboxes
 
 
 def _are_part_annots(ibs, aid_list):
@@ -2583,6 +3064,30 @@ def _bbox_intersections(bboxes_a, bboxes_b):
 
     return intersect_bboxes
 
+def _theta_aware_intersect_areas(verts_list_a, verts_list_b):
+    import shapely
+    polys_a = [shapely.geometry.Polygon(vert) for vert in verts_list_a]
+    polys_b = [shapely.geometry.Polygon(vert) for vert in verts_list_b]
+    intersect_areas = [poly1.intersection(poly2).area
+                       for poly1, poly2 in zip(polys_a, polys_b)]
+    return intersect_areas
+
+
+def _all_centroids(verts_list_a, verts_list_b):
+    import shapely
+    polys_a = [shapely.geometry.Polygon(vert) for vert in verts_list_a]
+    polys_b = [shapely.geometry.Polygon(vert) for vert in verts_list_b]
+    intersect_polys = [poly1.intersection(poly2) for poly1, poly2 in zip(polys_a, polys_b)]
+
+    centroids_a = [poly.centroid for poly in polys_a]
+    centroids_b = [poly.centroid for poly in polys_b]
+    centroids_int = [poly.centroid for poly in intersect_polys]
+
+    return centroids_a, centroids_b, centroids_int
+
+def _polygons_to_centroid_coords(polygon_list):
+    centroids = [poly.centroid for poly in polygon_list]
+
 
 # converts bboxes from (xtl, ytl, w, h) to (xtl, ytl, xbr, ybr)
 def _bbox_to_corner_format(bboxes):
@@ -2612,21 +3117,33 @@ def _all_pairs_parallel(list_a, list_b):
 
 
 # for wild dog dev
+@register_ibs_method
 def wd_assigner_data(ibs):
+    return wd_training_data('part_assignment_features')
+
+
+@register_ibs_method
+def wd_normed_assigner_data(ibs):
+    return wd_training_data('normalized_assignment_features')
+
+
+@register_ibs_method
+def wd_training_data(ibs, depc_table_name='part_assignment_features'):
     all_aids = ibs.get_valid_aids()
     ia_classes = ibs.get_annot_species(all_aids)
     part_aids = [aid for aid, ia_class in zip(all_aids, ia_classes) if '+' in ia_class]
     part_gids = list(set(ibs.get_annot_gids(part_aids)))
     all_pairs = all_part_pairs(ibs, part_gids)
-    all_feats = ibs.depc_annot.get('part_assignment_features', all_pairs)
+    all_feats = ibs.depc_annot.get(depc_table_name, all_pairs)
     names = [ibs.get_annot_names(all_pairs[0]), ibs.get_annot_names(all_pairs[1])]
     ground_truth = [n1 == n2 for (n1, n2) in zip(names[0],names[1])]
-    # we now have all features and the ground truths, time to to a train/test split
+
     train_feats, test_feats = train_test_split(all_feats)
     train_truth, test_truth = train_test_split(ground_truth)
     assigner_data = {'data': train_feats, 'target': train_truth,
                      'test': test_feats, 'test_truth': test_truth}
     return assigner_data
+
 
 
 def train_test_split(item_list, random_seed=777, test_size=0.1):
@@ -2642,7 +3159,3 @@ def train_test_split(item_list, random_seed=777, test_size=0.1):
     ))
     train_items = [item_list[i] for i in train_indices]
     return train_items, test_items
-
-
-
-
