@@ -17,6 +17,7 @@ import six
 import types
 import functools
 import re
+from collections import OrderedDict
 from six.moves import zip, range, map, reduce
 from os.path import split, join, exists
 import numpy as np
@@ -149,6 +150,8 @@ def filter_junk_annotations(ibs, aid_list):
         >>> result = str(filtered_aid_list)
         >>> print(result)
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     isjunk_list = ibs.get_annot_isjunk(aid_list)
     filtered_aid_list = ut.filterfalse_items(aid_list, isjunk_list)
     return filtered_aid_list
@@ -3611,15 +3614,12 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
             return 'zebra_grevys'
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_staged=None)
-    species_list = ibs.get_annot_species_texts(aid_list)
-    species_hist = ut.dict_hist(species_list)
-    if len(species_hist) == 0:
+
+    species_count = ibs.get_database_species_count(aid_list)
+    if not species_count:
         primary_species = const.UNKNOWN
     else:
-        frequent_species = sorted(
-            species_hist.items(), key=lambda item: item[1], reverse=True
-        )
-        primary_species = frequent_species[0][0]
+        primary_species = species_count.popitem(last=False)[0]  # FIFO
     return primary_species
 
 
@@ -3650,7 +3650,7 @@ def get_dominant_species(ibs, aid_list):
 
 
 @register_ibs_method
-def get_database_species_count(ibs, aid_list=None):
+def get_database_species_count(ibs, aid_list=None, BATCH_SIZE=25000):
     """
 
     CommandLine:
@@ -3662,16 +3662,48 @@ def get_database_species_count(ibs, aid_list=None):
         >>> import wbia  # NOQA
         >>> #print(ut.repr2(wbia.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = wbia.opendb('testdb1')
-        >>> result = ut.repr2(ibs.get_database_species_count(), nl=False)
+        >>> result = ut.repr2(ibs.get_database_species_count(BATCH_SIZE=2), nl=False)
         >>> print(result)
-        {'____': 3, 'bear_polar': 2, 'zebra_grevys': 2, 'zebra_plains': 6}
+        {'zebra_plains': 6, '____': 3, 'zebra_grevys': 2, 'bear_polar': 2}
 
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species_texts(aid_list)
-    species_count_dict = ut.item_hist(species_list)
-    return species_count_dict
+
+    annotations = ibs.db._reflect_table('annotations')
+    species = ibs.db._reflect_table('species')
+
+    from sqlalchemy.sql import select, func, desc, bindparam
+
+    species_count = OrderedDict()
+    stmt = (
+        select(
+            [
+                species.c.species_text,
+                func.count(annotations.c.annot_rowid).label('num_annots'),
+            ]
+        )
+        .select_from(
+            annotations.outerjoin(
+                species, annotations.c.species_rowid == species.c.species_rowid
+            )
+        )
+        .where(annotations.c.annot_rowid.in_(bindparam('aids', expanding=True)))
+        .group_by('species_text')
+        .order_by(desc('num_annots'))
+    )
+    for batch in range(int(len(aid_list) / BATCH_SIZE) + 1):
+        aids = aid_list[batch * BATCH_SIZE : (batch + 1) * BATCH_SIZE]
+        results = ibs.db.connection.execute(stmt, {'aids': aids})
+
+        for row in results:
+            species_text = row.species_text
+            if species_text is None:
+                species_text = const.UNKNOWN
+            species_count[species_text] = (
+                species_count.get(species_text, 0) + row.num_annots
+            )
+    return species_count
 
 
 @register_ibs_method
@@ -4867,6 +4899,8 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
         >>> x1 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=True)
         >>> x2 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=False)
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
         minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
@@ -4875,7 +4909,7 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
         else:
             operation = 'SELECT rowid from annotations WHERE annot_quality NOTNULL AND annot_quality>={minqual_int} AND rowid IN ({aids})'
         operation = operation.format(aids=list_repr, minqual_int=minqual_int)
-        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+        aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
         qual_flags = list(
             ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok)
@@ -4893,6 +4927,8 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
 
     valid_yaws = ['primary', 'primary1', 'primary-1']
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
 
     def rectify_view_category(view):
         @ut.memoize
@@ -4953,6 +4989,8 @@ def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
         >>> assert np.all(np.array(annots2_.nids) < 0)
         >>> assert len(annots2_) == 4
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
         if invert:
@@ -4965,7 +5003,7 @@ def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
                 'SELECT rowid from annotations WHERE name_rowid>0 AND rowid IN (%s)'
                 % (list_repr,)
             )
-        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+        aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
         flag_list = ibs.is_aid_unknown(aid_list)
         if not invert:
@@ -5007,6 +5045,8 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> wbia.other.dbinfo.hackshow_names(ibs, filtered_aids)
         >>> ut.show_if_requested()
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     import vtool as vt
 
     # min_timedelta = 60 * 60 * 24
@@ -5062,6 +5102,8 @@ def filter_aids_without_timestamps(ibs, aid_list, invert=False):
     Removes aids without timestamps
     aid_list = ibs.get_valid_aids()
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
     flag_list = [unixtime != -1 for unixtime in unixtime_list]
     if invert:
@@ -5096,12 +5138,14 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> print(result)
         aid_list_ = [9, 10]
     """
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     species_rowid = ibs.get_species_rowids_from_text(species)
     if speedhack:
         list_repr = ','.join(map(str, aid_list))
         operation = 'SELECT rowid from annotations WHERE (species_rowid == {species_rowid}) AND rowid IN ({aids})'
         operation = operation.format(aids=list_repr, species_rowid=species_rowid)
-        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+        aid_list_ = ut.take_column(ibs.db.connection.execute(operation).fetchall(), 0)
     else:
         species_rowid_list = ibs.get_annot_species_rowids(aid_list)
         is_valid_species = [sid == species_rowid for sid in species_rowid_list]

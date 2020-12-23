@@ -1686,9 +1686,7 @@ class MainWindowBackend(GUIBACK_BASE):
             destination_imgsetid = imgsetid_list[destination_index]
         deprecated_imgsetids = list(imgsetid_list)
         deprecated_imgsetids.pop(destination_index)
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
         imgsetid_list = [destination_imgsetid] * len(gid_list)
         ibs.set_image_imgsetids(gid_list, imgsetid_list)
         ibs.delete_imagesets(deprecated_imgsetids)

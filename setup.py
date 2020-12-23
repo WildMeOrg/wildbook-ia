@@ -279,6 +279,7 @@ KWARGS = OrderedDict(
     entry_points="""\
     [console_scripts]
     wbia-init-testdbs = wbia.cli.testdbs:main
+    wbia-convert-hsdb = wbia.cli.convert_hsdb:main
     """,
 )
 

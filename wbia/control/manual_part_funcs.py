@@ -107,6 +107,8 @@ def filter_part_set(
     viewpoint='no-filter',
     minqual=None,
 ):
+    if not part_rowid_list:  # no need to filter if empty
+        return part_rowid_list
     # -- valid part_rowid filtering --
 
     # filter by is_staged

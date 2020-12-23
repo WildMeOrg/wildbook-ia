@@ -838,6 +838,8 @@ def filter_annotation_set(
     is_canonical=None,
     min_timedelta=None,
 ):
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
@@ -2486,7 +2488,7 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
         """
         CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
         """
-    ).fetchall()
+    )
     # The index maxes the following query very efficient
     part_rowids_list = ibs.db.get(
         ibs.const.PART_TABLE,

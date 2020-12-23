@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Mapping of Python types to SQL types"""
 import io
-import json
 import uuid
 
 import numpy as np
+from utool.util_cache import from_json, to_json
 from sqlalchemy.types import Integer as SAInteger
 from sqlalchemy.types import TypeDecorator, UserDefinedType
 
@@ -46,25 +46,13 @@ class JSONCodeableType(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if value is None:
-                return value
-            else:
-                if isinstance(value, self.base_py_type):
-                    return json.dumps(value)
-                else:
-                    return value
+            return to_json(value)
 
         return process
 
     def result_processor(self, dialect, coltype):
         def process(value):
-            if value is None:
-                return value
-            else:
-                if not isinstance(value, self.base_py_type):
-                    return json.loads(value)
-                else:
-                    return value
+            return from_json(value)
 
         return process
 
@@ -119,7 +107,8 @@ class Integer(TypeDecorator):
     impl = SAInteger
 
     def process_bind_param(self, value, dialect):
-        return int(value)
+        if value is not None:
+            return int(value)
 
 
 class List(JSONCodeableType):
@@ -161,10 +150,10 @@ class UUID(UserDefinedType):
                 return value
             else:
                 if not isinstance(value, uuid.UUID):
-                    return '%.32x' % uuid.UUID(value).int
+                    return uuid.UUID(value).bytes
                 else:
                     # hexstring
-                    return '%.32x' % value.int
+                    return value.bytes
 
         return process
 
@@ -174,7 +163,7 @@ class UUID(UserDefinedType):
                 return value
             else:
                 if not isinstance(value, uuid.UUID):
-                    return uuid.UUID(value)
+                    return uuid.UUID(bytes=value)
                 else:
                     return value
 
@@ -184,3 +173,4 @@ class UUID(UserDefinedType):
 _USER_DEFINED_TYPES = (Dict, List, NDArray, Number, UUID)
 # SQL type (e.g. 'DICT') to SQLAlchemy type:
 SQL_TYPE_TO_SA_TYPE = {cls().get_col_spec(): cls for cls in _USER_DEFINED_TYPES}
+SQL_TYPE_TO_SA_TYPE['INTEGER'] = Integer

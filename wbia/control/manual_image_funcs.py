@@ -112,7 +112,13 @@ def _get_all_image_rowids(ibs):
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
 def get_valid_gids(
-    ibs, imgsetid=None, require_unixtime=False, require_gps=None, reviewed=None, **kwargs
+    ibs,
+    imgsetid=None,
+    imgsetid_list=(),
+    require_unixtime=False,
+    require_gps=None,
+    reviewed=None,
+    **kwargs
 ):
     r"""
     Args:
@@ -147,8 +153,10 @@ def get_valid_gids(
         >>> print(result)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     """
-    if imgsetid is None:
+    if imgsetid is None and not imgsetid_list:
         gid_list = ibs._get_all_gids()
+    elif imgsetid_list:
+        gid_list = ibs.get_imageset_gids(imgsetid_list)
     else:
         assert not ut.isiterable(imgsetid)
         gid_list = ibs.get_imageset_gids(imgsetid)
@@ -2178,7 +2186,7 @@ def get_image_imgsetids(ibs, gid_list):
             """.format(
                 GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID
             )
-        ).fetchall()
+        )
     colnames = ('imageset_rowid',)
     imgsetids_list = ibs.db.get(
         const.GSG_RELATION_TABLE,
@@ -2280,7 +2288,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
             """
             CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
             """
-        ).fetchall()
+        )
 
         # The index maxes the following query very efficient
         if __check_staged__:

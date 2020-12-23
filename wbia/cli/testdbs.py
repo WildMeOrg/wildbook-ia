@@ -6,7 +6,13 @@ from shutil import rmtree
 import click
 
 from wbia.dbio import ingest_database
-from wbia.init.sysres import get_workdir
+from wbia.init.sysres import (
+    ensure_nauts,
+    ensure_pz_mtest,
+    ensure_testdb2,
+    ensure_wilddogs,
+    get_workdir,
+)
 
 
 @click.command()
@@ -18,6 +24,10 @@ def main(force_replace):
     dbs = {
         # <name>: <factory>
         'testdb1': lambda: ingest_database.ingest_standard_database('testdb1'),
+        'PZ_MTEST': ensure_pz_mtest,
+        'NAUT_test': ensure_nauts,
+        'wd_peter2': ensure_wilddogs,
+        'testdb2': ensure_testdb2,
     }
 
     for db in dbs:
