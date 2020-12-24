@@ -41,7 +41,7 @@ pyzmq>=14.7.0
 
 requests>=2.5.0
 scikit-image>=0.12.3
-scikit-learn>=0.17.1,<0.24.0
+scikit-learn>=0.24.0
 scipy>=0.18.0
 
 sentry-sdk>=0.10.2
@@ -70,5 +70,5 @@ wbia-pyflann >= 3.1.0
 wbia-pyhesaff >= 3.0.2
 wbia-pyrf >= 3.0.0
 
-wbia-utool >= 3.3.1
+wbia-utool >= 3.3.3
 wbia-vtool >= 3.2.1
