@@ -512,11 +512,9 @@ def classification_report2(
     # and BM * MK MCC?
 
     def matthews_corrcoef(y_true, y_pred, sample_weight=None):
-        from sklearn.metrics.classification import (
-            _check_targets,
-            LabelEncoder,
-            confusion_matrix,
-        )
+        from sklearn.preprocessing import LabelEncoder
+        from sklearn.metrics import confusion_matrix
+        from sklearn.metrics._classification import _check_targets
 
         y_type, y_true, y_pred = _check_targets(y_true, y_pred)
         if y_type not in {'binary', 'multiclass'}:
