@@ -150,10 +150,10 @@ class UUID(UserDefinedType):
                 return value
             else:
                 if not isinstance(value, uuid.UUID):
-                    return uuid.UUID(value).bytes
+                    return uuid.UUID(value).bytes_le
                 else:
                     # hexstring
-                    return value.bytes
+                    return value.bytes_le
 
         return process
 
@@ -163,7 +163,7 @@ class UUID(UserDefinedType):
                 return value
             else:
                 if not isinstance(value, uuid.UUID):
-                    return uuid.UUID(bytes=value)
+                    return uuid.UUID(bytes_le=value)
                 else:
                     return value
 
