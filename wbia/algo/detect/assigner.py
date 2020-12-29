@@ -34,18 +34,26 @@ from sklearn.model_selection import GridSearchCV
 
 # bunch of classifier models for training
 
-
-(print, rrr, profile) = ut.inject2(__name__, '[orientation]')
+(print, rrr, profile) = ut.inject2(__name__, '[assigner]')
 logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
-
 
 PARALLEL = not const.CONTAINERIZED
 INPUT_SIZE = 224
 
 ARCHIVE_URL_DICT = {}
 
+INMEM_ASSIGNER_MODELS = {}
+
+SPECIES_TO_ASSIGNER_MODELFILE = {
+    'wild_dog': '/tmp/assigner_model.joblib',
+    'wild_dog_dark': '/tmp/assigner_model.joblib',
+    'wild_dog_light': '/tmp/assigner_model.joblib',
+    'wild_dog_puppy': '/tmp/assigner_model.joblib',
+    'wild_dog_standard': '/tmp/assigner_model.joblib',
+    'wild_dog_tan': '/tmp/assigner_model.joblib',
+}
 
 CLASSIFIER_OPTIONS = [
     # {
@@ -76,43 +84,43 @@ CLASSIFIER_OPTIONS = [
     # },
     {
         "name": "Decision Tree",
-        "clf": DecisionTreeClassifier(),  #max_depth=5
+        "clf": DecisionTreeClassifier(),  # max_depth=5
         "param_options": {
-            'max_depth': np.arange(1,12),
+            'max_depth': np.arange(1, 12),
             'max_leaf_nodes': [2, 5, 10, 20, 50, 100]
         }
     },
-    {
-        "name": "Random Forest",
-        "clf": RandomForestClassifier(),  #max_depth=5, n_estimators=10, max_features=1
-        "param_options": {
-            'bootstrap': [True, False],
-            'max_depth': [10, 50, 100, None],
-            'max_features': ['auto', 'sqrt'],
-            'min_samples_leaf': [1, 2, 4],
-            'min_samples_split': [2, 5, 10],
-            'n_estimators': [200, 1000, 1500, 2000]
-        }
-    },
-    {
-        "name": "Neural Net",
-        "clf": MLPClassifier(),  #alpha=1, max_iter=1000
-        "param_options": {
-            'hidden_layer_sizes': [(10,30,10),(20,)],
-            'activation': ['tanh', 'relu'],
-            'solver': ['sgd', 'adam'],
-            'alpha': [0.0001, 0.05],
-            'learning_rate': ['constant','adaptive'],
-        }
-    },
-    {
-        "name": "AdaBoost",
-        "clf": AdaBoostClassifier(),
-        "param_options": {
-             'n_estimators': np.arange(10, 310, 50),
-             'learning_rate': [0.01, 0.05, 0.1, 1],
-         }
-    },
+    # {
+    #     "name": "Random Forest",
+    #     "clf": RandomForestClassifier(),  #max_depth=5, n_estimators=10, max_features=1
+    #     "param_options": {
+    #         'bootstrap': [True, False],
+    #         'max_depth': [10, 50, 100, None],
+    #         'max_features': ['auto', 'sqrt'],
+    #         'min_samples_leaf': [1, 2, 4],
+    #         'min_samples_split': [2, 5, 10],
+    #         'n_estimators': [200, 1000, 1500, 2000]
+    #     }
+    # },
+    # {
+    #     "name": "Neural Net",
+    #     "clf": MLPClassifier(),  #alpha=1, max_iter=1000
+    #     "param_options": {
+    #         'hidden_layer_sizes': [(10,30,10),(20,)],
+    #         'activation': ['tanh', 'relu'],
+    #         'solver': ['sgd', 'adam'],
+    #         'alpha': [0.0001, 0.05],
+    #         'learning_rate': ['constant','adaptive'],
+    #     }
+    # },
+    # {
+    #     "name": "AdaBoost",
+    #     "clf": AdaBoostClassifier(),
+    #     "param_options": {
+    #          'n_estimators': np.arange(10, 310, 50),
+    #          'learning_rate': [0.01, 0.05, 0.1, 1],
+    #      }
+    # },
     # {
     #     "name": "Naive Bayes",
     #     "clf": GaussianNB(),
@@ -127,12 +135,10 @@ CLASSIFIER_OPTIONS = [
     # }
 ]
 
-
-
 # for model exploration
 classifier_names = ["Nearest Neighbors", "Linear SVM", "RBF SVM",
-         "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
-         "Naive Bayes", "QDA"]
+                    "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
+                    "Naive Bayes", "QDA"]
 
 classifiers = [
     KNeighborsClassifier(3),
@@ -204,7 +210,6 @@ def tune_ass_classifiers(ibs, depc_table_name='theta_assignment_features'):
             best_clf_name = classifier['name']
             best_clf_params = best_params
 
-
     print('best performance: %s using %s with params %s' %
           best_acc, best_clf_name, best_clf_params)
 
@@ -221,7 +226,7 @@ def _tune_grid_search(ibs, clf, parameters, assigner_data=None):
     X_test  = assigner_data['test']
     y_test  = assigner_data['test_truth']
 
-    tune_search = GridSearchCV(
+    tune_search = TuneGridSearchCV(
         clf,
         parameters,
     )
@@ -285,19 +290,22 @@ def wd_training_data(ibs, depc_table_name='theta_assignment_features'):
     all_pairs = all_part_pairs(ibs, part_gids)
     all_feats = ibs.depc_annot.get(depc_table_name, all_pairs)
     names = [ibs.get_annot_names(all_pairs[0]), ibs.get_annot_names(all_pairs[1])]
-    ground_truth = [n1 == n2 for (n1, n2) in zip(names[0],names[1])]
+    ground_truth = [n1 == n2 for (n1, n2) in zip(names[0], names[1])]
 
     # train_feats, test_feats = train_test_split(all_feats)
     # train_truth, test_truth = train_test_split(ground_truth)
-    pairs_in_train = ibs.gid_train_test_split(all_pairs[0]) # we could pass just the pair aids or just the body aids bc gids are the same
-    train_feats, test_feats = _split_list(all_feats, pairs_in_train)
-    train_truth, test_truth = _split_list(ground_truth, pairs_in_train)
+    pairs_in_train = ibs.gid_train_test_split(all_pairs[0])  # we could pass just the pair aids or just the body aids bc gids are the same
+    train_feats, test_feats = split_list(all_feats, pairs_in_train)
+    train_truth, test_truth = split_list(ground_truth, pairs_in_train)
+
+    all_pairs_tuple = [(part, body) for part, body in zip(all_pairs[0], all_pairs[1])]
+    train_pairs, test_pairs = split_list(all_pairs_tuple, pairs_in_train)
 
     assigner_data = {'data': train_feats, 'target': train_truth,
-                     'test': test_feats, 'test_truth': test_truth}
+                     'test': test_feats, 'test_truth': test_truth,
+                     'train_pairs': train_pairs, 'test_pairs': test_pairs}
 
     return assigner_data
-
 
 
 @register_ibs_method
@@ -344,6 +352,39 @@ def train_test_split(item_list, random_seed=777, test_size=0.1):
 
 @register_ibs_method
 def gid_train_test_split(ibs, aid_list, random_seed=777, test_size=0.1):
+    r"""
+    Makes a gid-wise train-test split. This avoids potential overfitting when a network
+    is trained on some annots from one image and tested on others from the same image.
+
+    Args:
+        ibs         (IBEISController): IBEIS / WBIA controller object
+        aid_list  (int): annot ids to split
+        random_seed: to make this split reproducible
+        test_size: portion of gids reserved for test data
+
+    Yields:
+        a boolean flag_list of which aids are in the training set. Returning the flag_list
+        allows the user to filter multiple lists with one gid_train_test_split call
+
+
+    CommandLine:
+        python -m algo.detect.assigner gid_train_test_split
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> from wbia.algo.detect.assigner import *
+        >>> ibs = assigner_testdb_ibs()
+        >>> #TODO: get input aids somehow
+        >>> train_flag_list = ibs.gid_train_test_split(aids)
+        >>> train_aids, test_aids = split_list(aids, train_flag_list)
+        >>> train_gids = ibs.get_annot_gids(train_aids)
+        >>> test_gids = ibs.get_annot_gids(test_aids)
+        >>> train_gid_set = set(train_gids)
+        >>> test_gid_set = set(test_gids)
+        >>> assert len(train_gid_set & test_gid_set) is 0
+        >>> assert len(train_gids) + len(test_gids) == len(aids)
+    """
     print('calling gid_train_test_split')
     gid_list = ibs.get_annot_gids(aid_list)
     gid_set = list(set(gid_list))
@@ -356,7 +397,7 @@ def gid_train_test_split(ibs, aid_list, random_seed=777, test_size=0.1):
     return aid_in_train
 
 
-def _split_list(item_list, is_in_first_group_list):
+def split_list(item_list, is_in_first_group_list):
     first_group = ut.compress(item_list, is_in_first_group_list)
     is_in_second_group = [not b for b in is_in_first_group_list]
     second_group = ut.compress(item_list, is_in_second_group)
@@ -364,30 +405,30 @@ def _split_list(item_list, is_in_first_group_list):
 
 
 @register_ibs_method
-def _assign_parts(ibs, all_aids):
+def assign_parts(ibs, all_aids, cutoff_score=0.5):
     gids = ibs.get_annot_gids(all_aids)
-    gid_to_aids = DefaultDict(list)
+    gid_to_aids = defaultdict(list)
     for gid, aid in zip(gids, all_aids):
-        gid_to_aids[gid] += aid
+        gid_to_aids[gid] += [aid]
 
     all_pairs = []
     all_unassigned_aids = []
 
     for gid in gid_to_aids.keys():
-        this_pairs, this_unassigned = _assign_parts_one_image(ibs, gid_to_aids[gid])
-        all_pairs.append(this_pairs)
-        all_unassigned_aids.append(this_unassigned)
+        this_pairs, this_unassigned = _assign_parts_one_image(ibs, gid_to_aids[gid], cutoff_score)
+        all_pairs += (this_pairs)
+        all_unassigned_aids += this_unassigned
 
     return all_pairs, all_unassigned_aids
 
 
 
 @register_ibs_method
-def _assign_parts_one_image(ibs, aid_list):
+def _assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
 
-    are_part_aids = _are_part_annots(ibs, all_aids)
-    part_aids = ut.compress(all_aids, are_part_aids)
-    body_aids = ut.compress(all_aids, [not p for p in are_part_aids])
+    are_part_aids = _are_part_annots(ibs, aid_list)
+    part_aids = ut.compress(aid_list, are_part_aids)
+    body_aids = ut.compress(aid_list, [not p for p in are_part_aids])
 
     gids = ibs.get_annot_gids(list(set(part_aids)) + list(set(body_aids)))
     num_images = len(set(gids))
@@ -399,10 +440,13 @@ def _assign_parts_one_image(ibs, aid_list):
 
 
     assigner_features   = ibs.depc_annot.get('theta_assignment_features', all_pairs_parallel)
-    assigner_classifier = _load_assigner_classifier(part_aids)
+    assigner_classifier = load_assigner_classifier(ibs, part_aids)
 
-    assigner_scores = assigner_classifier.predict(assigner_features)
-    good_pairs, unassigned_aids = _make_assignments(pair_parts, pair_bodies, assigner_scores)
+    assigner_scores = assigner_classifier.predict_proba(assigner_features)
+    #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
+    assigner_scores = [score[1] for score in assigner_scores]
+    good_pairs, unassigned_aids = _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score)
+    return good_pairs, unassigned_aids
 
 
 def _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5):
@@ -437,6 +481,129 @@ def _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5
     unassigned_aids = sorted(list(unassigned_parts) + list(unassigned_bodies))
 
     return assigned_pairs, unassigned_aids
+
+
+def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
+    species_with_part = ibs.get_annot_species(aid_list[0])
+    species = species_with_part.split('+')[0]
+    if species in INMEM_ASSIGNER_MODELS.keys():
+        clf = INMEM_ASSIGNER_MODELS[species]
+    else:
+        if species not in SPECIES_TO_ASSIGNER_MODELFILE.keys():
+            print("WARNING: Assigner called for species %s which does not have an assigner modelfile specified. Falling back to the model for %s" % species, fallback_species)
+            species = fallback_species
+
+        model_fpath = SPECIES_TO_ASSIGNER_MODELFILE[species]
+        from joblib import load
+        clf = load(model_fpath)
+
+    return clf
+
+
+def check_accuracy(ibs, assigner_data, cutoff_score=0.5):
+
+    all_aids = []
+    for pair in assigner_data['test_pairs']:
+        all_aids.extend(list(pair))
+    all_aids = sorted(list(set(all_aids)))
+
+    all_pairs, all_unassigned_aids = ibs.assign_parts(all_aids, cutoff_score)
+
+    gid_to_assigner_results = gid_keyed_assigner_results(ibs, all_pairs, all_unassigned_aids)
+    gid_to_ground_truth = gid_keyed_ground_truth(ibs, assigner_data)
+
+    correct_gids = []
+    incorrect_gids = []
+    gids_with_false_positives = 0
+    n_false_positives = 0
+    gids_with_false_negatives = 0
+    n_false_negatives = 0
+    gids_with_both_errors = 0
+    for gid in gid_to_assigner_results.keys():
+        assigned_pairs = set(gid_to_assigner_results[gid]['pairs'])
+        ground_t_pairs = set(gid_to_ground_truth[gid]['pairs'])
+        false_negatives = len(ground_t_pairs - assigned_pairs)
+        false_positives = len(assigned_pairs - ground_t_pairs)
+        n_false_negatives += false_negatives
+
+        if false_negatives > 0:
+            gids_with_false_negatives += 1
+        n_false_positives += false_positives
+        if false_positives > 0:
+            gids_with_false_positives += 1
+        if false_negatives > 0 and false_positives > 0:
+            gids_with_both_errors += 1
+
+        pairs_equal = sorted(gid_to_assigner_results[gid]['pairs']) == sorted(gid_to_ground_truth[gid]['pairs'])
+        if pairs_equal:
+            correct_gids += [gid]
+        else:
+            incorrect_gids +=[gid]
+
+    accuracy = len(correct_gids) / len(gid_to_assigner_results.keys())
+    print('accuracy with cutoff of %s: %s' % (cutoff_score, accuracy))
+    print('        %s false positives on %s error images' % (n_false_positives, gids_with_false_positives))
+    print('        %s false negatives on %s error images' % (n_false_negatives, gids_with_false_negatives))
+    print('        %s images with both errors' % (gids_with_both_errors))
+    return accuracy
+
+
+def gid_keyed_assigner_results(ibs, all_pairs, all_unassigned_aids):
+    one_from_each_pair = [p[0] for p in all_pairs]
+    pair_gids = ibs.get_annot_gids(one_from_each_pair)
+    unassigned_gids = ibs.get_annot_gids(all_unassigned_aids)
+
+    gid_to_pairs = defaultdict(list)
+    for pair, gid in zip(all_pairs, pair_gids):
+        gid_to_pairs[gid] += [pair]
+
+    gid_to_unassigned = defaultdict(list)
+    for aid, gid in zip(all_unassigned_aids, unassigned_gids):
+        gid_to_unassigned[gid] += [aid]
+
+    gid_to_assigner_results = {}
+    for gid in (set(gid_to_pairs.keys()) | set(gid_to_unassigned.keys())):
+        gid_to_assigner_results[gid] = {
+            'pairs': gid_to_pairs[gid],
+            'unassigned': gid_to_unassigned[gid]
+        }
+
+    return gid_to_assigner_results
+
+
+def gid_keyed_ground_truth(ibs, assigner_data):
+    test_pairs = assigner_data['test_pairs']
+    test_truth = assigner_data['test_truth']
+    assert len(test_pairs) == len(test_truth)
+
+    aid_from_each_pair = [p[0] for p in test_pairs]
+    gids_for_pairs = ibs.get_annot_gids(aid_from_each_pair)
+
+    gid_to_pairs = defaultdict(list)
+    gid_to_paired_aids = defaultdict(set)  # to know which have not been in any pair
+    gid_to_all_aids = defaultdict(set)
+    for pair, is_true_pair, gid in zip(test_pairs, test_truth, gids_for_pairs):
+        gid_to_all_aids[gid] = gid_to_all_aids[gid] | set(pair)
+        if is_true_pair:
+            gid_to_pairs[gid] += [pair]
+            gid_to_paired_aids[gid] = gid_to_paired_aids[gid] | set(pair)
+
+    gid_to_unassigned_aids = defaultdict(list)
+    for gid in gid_to_all_aids.keys():
+        gid_to_unassigned_aids[gid] = list(gid_to_all_aids[gid] - gid_to_paired_aids[gid])
+
+
+    gid_to_assigner_results = {}
+    for gid in (set(gid_to_pairs.keys()) | set(gid_to_unassigned_aids.keys())):
+        gid_to_assigner_results[gid] = {
+            'pairs': gid_to_pairs[gid],
+            'unassigned': gid_to_unassigned_aids[gid]
+        }
+
+    return gid_to_assigner_results
+
+
+
 
 
 

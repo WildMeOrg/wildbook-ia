@@ -2510,9 +2510,9 @@ def compute_assignment_features(depc, part_aid_list, body_aid_list, config=None)
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
     assert all(parts_are_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     part_bboxes = ibs.get_annot_bboxes(part_aid_list)
@@ -2577,9 +2577,9 @@ def normalized_assignment_features(depc, part_aid_list, body_aid_list, config=No
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
     assert all(parts_are_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     part_bboxes = ibs.get_annot_bboxes(part_aid_list)
@@ -2648,9 +2648,9 @@ def standardized_assignment_features(depc, part_aid_list, body_aid_list, config=
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
     assert all(parts_are_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     part_bboxes = ibs.get_annot_bboxes(part_aid_list)
@@ -2724,9 +2724,9 @@ def mega_standardized_assignment_features(depc, part_aid_list, body_aid_list, co
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
     assert all(parts_are_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     part_bboxes = ibs.get_annot_bboxes(part_aid_list)
@@ -2738,8 +2738,6 @@ def mega_standardized_assignment_features(depc, part_aid_list, body_aid_list, co
 
     part_bboxes = _standardized_bboxes(part_bboxes)
     body_bboxes = _standardized_bboxes(body_bboxes)
-
-
 
     part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
     body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
@@ -2809,9 +2807,9 @@ def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
     assert all(parts_are_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     im_widths = ibs.get_image_widths(part_gids)
@@ -2829,7 +2827,6 @@ def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
     # just to make int_areas more comparable via ML methods, and since all distances < 1
     int_area_scalars = [math.sqrt(area) for area in intersect_areas]
 
-
     part_bboxes = ibs.get_annot_bboxes(part_aid_list)
     body_bboxes = ibs.get_annot_bboxes(body_aid_list)
     part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
@@ -2839,7 +2836,7 @@ def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
     union_areas = [part + body - intersect for (part, body, intersect)
                    in zip(part_areas, body_areas, intersect_areas)]
     int_over_unions = [intersect / union for (intersect, union)
-                      in zip(intersect_areas, union_areas)]
+                       in zip(intersect_areas, union_areas)]
 
     part_body_distances = [part.distance(body)
                            for part, body in zip(part_polys, body_polys)]
@@ -2848,16 +2845,16 @@ def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
     body_centroids = [poly.centroid for poly in body_polys]
 
     part_body_centroid_dists = [part.distance(body) for part, body
-                               in zip(part_centroids, body_centroids)]
+                                in zip(part_centroids, body_centroids)]
 
     int_over_parts = [int_area / part_area for part_area, int_area
-                     in zip(part_areas, intersect_areas)]
+                      in zip(part_areas, intersect_areas)]
 
     int_over_bodys = [int_area / body_area for body_area, int_area
-                     in zip(body_areas, intersect_areas)]
+                      in zip(body_areas, intersect_areas)]
 
     part_over_bodys = [part_area / body_area for part_area, body_area
-                      in zip(part_areas, body_areas)]
+                       in zip(part_areas, body_areas)]
 
     # note that here only parts have thetas, hence only returning body bboxes
     result_list = list(zip(
@@ -2917,9 +2914,9 @@ def theta_standardized_assignment_features(depc, part_aid_list, body_aid_list, c
     part_gids = ibs.get_annot_gids(part_aid_list)
     body_gids = ibs.get_annot_gids(body_aid_list)
     assert part_gids == body_gids, 'can only compute assignment features on aids in the same image'
-    parts_are_parts = _are_part_annots(ibs, part_aid_list)
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
     assert all(parts_are_parts), 'all part_aids must be part annots.'
-    bodies_are_parts = _are_part_annots(ibs, body_aid_list)
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
     assert not any(bodies_are_parts), 'body_aids cannot be part annots'
 
     im_widths = ibs.get_image_widths(part_gids)
@@ -3027,12 +3024,6 @@ def _standardized_bboxes(bbox_list):
     return standardized_bboxes
 
 
-def _are_part_annots(ibs, aid_list):
-    species = ibs.get_annot_species(aid_list)
-    are_parts = ['+' in specie for specie in species]
-    return are_parts
-
-
 def _bbox_intersections(bboxes_a, bboxes_b):
     corner_bboxes_a = _bbox_to_corner_format(bboxes_a)
     corner_bboxes_b = _bbox_to_corner_format(bboxes_b)
@@ -3096,3 +3087,4 @@ def _bbox_to_corner_format(bboxes):
     return corner_bboxes
 
 
+core_annots.py
