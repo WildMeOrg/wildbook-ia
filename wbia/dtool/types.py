@@ -46,13 +46,19 @@ class JSONCodeableType(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            return to_json(value)
+            if value is None:
+                return None
+            else:
+                return to_json(value)
 
         return process
 
     def result_processor(self, dialect, coltype):
         def process(value):
-            return from_json(value)
+            if value is None:
+                return value
+            else:
+                return from_json(value)
 
         return process
 
