@@ -193,3 +193,20 @@ def test_uuid(db):
     results = db.execute(stmt)
     selected_value = results.fetchone()[0]
     assert selected_value == insert_value
+
+
+def test_le_uuid(db):
+    db.execute(text('CREATE TABLE test(x UUID)'))
+
+    # Insert a uuid value but explicitly stored as little endian
+    # (the way uuids were stored before sqlalchemy)
+    insert_value = uuid.uuid4()
+    stmt = text('INSERT INTO test(x) VALUES (:x)')
+    db.execute(stmt, x=insert_value.bytes_le)
+
+    # Query for the value
+    stmt = text('SELECT x FROM test')
+    stmt = stmt.columns(x=UUID)
+    results = db.execute(stmt)
+    selected_value = results.fetchone()[0]
+    assert selected_value == insert_value
