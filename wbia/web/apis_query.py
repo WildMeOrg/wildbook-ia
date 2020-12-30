@@ -1468,13 +1468,12 @@ def query_chips_graph_v2(
         >>> # Open local instance
         >>> ibs = wbia.opendb('PZ_MTEST')
         >>> uuid_list = ibs.annots().uuids[0:10]
-        >>> # Start up the web instance
-        >>> web_ibs = wbia.opendb_bg_web(db='PZ_MTEST', web=True, browser=False)
         >>> data = dict(annot_uuid_list=uuid_list)
-        >>> resp = web_ibs.send_wbia_request('/api/query/graph/v2/', **data)
-        >>> print('resp = %r' % (resp,))
-        >>> #cmdict_list = json_dict['response']
-        >>> #assert 'score_list' in cmdict_list[0]
+        >>> # Start up the web instance
+        >>> with wbia.opendb_with_web(db='PZ_MTEST') as (ibs, client):
+        ...     resp = client.post('/api/query/graph/v2/', data=data)
+        >>> resp.json
+        {'status': {'success': False, 'code': 608, 'message': 'Invalid image and/or annotation UUIDs (0, 1)', 'cache': -1}, 'response': {'invalid_image_uuid_list': [], 'invalid_annot_uuid_list': [[0, 'c544d25f-fd03-5a2d-6611-cd77430ca251']]}}
 
     Example:
         >>> # DEBUG_SCRIPT
