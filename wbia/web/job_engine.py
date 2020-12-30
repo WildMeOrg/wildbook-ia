@@ -347,6 +347,7 @@ def get_job_metadata(ibs, jobid):
         python -m wbia.web.job_engine --exec-get_job_metadata:0 --fg
 
     Example:
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> # xdoctest: +REQUIRES(--slow)
         >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> # xdoctest: +REQUIRES(--web-tests)
