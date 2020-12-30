@@ -1153,20 +1153,15 @@ class IBEISController(BASE_CLASS):
     @register_api('/log/current/', methods=['GET'])
     def get_current_log_text(self):
         r"""
-        CommandLine:
-            python -m wbia.control.IBEISControl --exec-get_current_log_text
-            python -m wbia.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
 
         Example:
             >>> # xdoctest: +REQUIRES(--web-tests)
-            >>> from wbia.control.IBEISControl import *  # NOQA
             >>> import wbia
-            >>> import wbia.web
-            >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
-            ...     resp = web_ibs.send_wbia_request('/log/current/', 'get')
-            >>> print('\n-------Logs ----: \n' )
-            >>> print(resp)
-            >>> print('\nL____ END LOGS ___\n')
+            >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+            ...     resp = client.get('/log/current/')
+            >>> resp.json
+            {'status': {'success': True, 'code': 200, 'message': '', 'cache': -1}, 'response': None}
+
         """
         text = ut.get_current_log_text()
         return text
