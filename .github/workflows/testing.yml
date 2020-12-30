@@ -70,7 +70,7 @@ jobs:
         run: |
           mkdir -p data/work
           python -m wbia --set-workdir data/work --preload-exit
-          pytest --slow
+          pytest --slow --web-tests
 
   on-failure:
     # This is not in the 'test' job itself because it would otherwise notify once per matrix combination.
