@@ -52,7 +52,7 @@ RUN set -ex \
 
 RUN set -ex \
  && cd /wbia \
- && git clone --branch compatibility https://github.com/WildbookOrg/wbia-plugin-orientation.git
+ && git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-orientation.git
 
 # git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-2d-orientation.git
 

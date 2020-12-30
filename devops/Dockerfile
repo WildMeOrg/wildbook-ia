@@ -17,7 +17,7 @@ RUN set -ex \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wbia-plugin-orientation/ \
- && git stash && git pull && git stash pop || git reset --hard origin/compatibility \
+ && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wildbook-ia/ \
  && git stash && git pull && git stash pop || git reset --hard origin/add-orientation-plugin \
  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
