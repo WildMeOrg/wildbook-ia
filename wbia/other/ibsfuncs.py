@@ -4909,7 +4909,7 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
         list_repr = ','.join(map(str, aid_list))
         minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
         if unknown_ok:
-            operation = 'SELECT rowid from annotations WHERE (annot_quality ISNULL OR annot_quality==-1 OR annot_quality>={minqual_int}) AND rowid IN ({aids})'
+            operation = 'SELECT rowid from annotations WHERE (annot_quality ISNULL OR annot_quality=-1 OR annot_quality>={minqual_int}) AND rowid IN ({aids})'
         else:
             operation = 'SELECT rowid from annotations WHERE annot_quality NOTNULL AND annot_quality>={minqual_int} AND rowid IN ({aids})'
         operation = operation.format(aids=list_repr, minqual_int=minqual_int)
