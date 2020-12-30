@@ -590,7 +590,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
         output = func(**kwargs)
     except TypeError:
         try:
-            output = func(ibs=ibs, **kwargs)
+            output = func(ibs, **kwargs)
         except WebException:
             raise
         except Exception as ex2:  # NOQA
