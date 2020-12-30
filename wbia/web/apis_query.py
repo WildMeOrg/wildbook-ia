@@ -544,16 +544,6 @@ def review_graph_match_html(
 
 @register_route('/test/review/query/chip/', methods=['GET'])
 def review_query_chips_test(**kwargs):
-    """
-    CommandLine:
-        python -m wbia.web.apis_query review_query_chips_test --show
-
-    Example:
-        >>> # SCRIPT
-        >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web(
-        >>>     browser=True, url_suffix='/test/review/query/chip/?__format__=true')
-    """
     ibs = current_app.ibs
 
     # the old block curvature dtw
