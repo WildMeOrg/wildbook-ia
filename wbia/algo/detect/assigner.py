@@ -204,16 +204,16 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
         >>> assert (set(assigned_aids) | set(unassigned_aids) == set(aids))
         >>> ([(3, 1), (6, 5), (8, 7)], [2, 4])
     """
+
     gids = ibs.get_annot_gids(all_aids)
     gid_to_aids = defaultdict(list)
     for gid, aid in zip(gids, all_aids):
         gid_to_aids[gid] += [aid]
 
     all_assignments = []
-    all_unassigned_aids = []
 
     for gid in gid_to_aids.keys():
-        this_pairs, this_unassigned = _assign_parts_one_image(
+        this_pairs, this_unassigned = assign_parts_one_image(
             ibs, gid_to_aids[gid], cutoff_score
         )
         all_assignments += this_pairs
@@ -223,7 +223,7 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
 
 
 @register_ibs_method
-def _assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
+def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
     r"""
     Main assigner method; makes assignments on all_aids based on assigner scores.
 
@@ -247,7 +247,7 @@ def _assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
         >>> ibs = assigner_testdb_ibs()
         >>> gid = 1
         >>> aids = ibs.get_image_aids(gid)
-        >>> result = ibs._assign_parts_one_image(aids)
+        >>> result = ibs.assign_parts_one_image(aids)
         >>> assigned_pairs = result[0]
         >>> unassigned_aids = result[1]
         >>> assigned_aids = [item for pair in assigned_pairs for item in pair]
@@ -257,13 +257,21 @@ def _assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
         >>> assert (set(assigned_aids) | set(unassigned_aids) == set(aids))
         >>> ([(3, 1)], [2, 4])
     """
+    all_species = ibs.get_annot_species(aid_list)
+    # put unsupported species into the all_unassigned_aids list
+    assign_flag_list = [species in SPECIES_CONFIG_MAP.keys()
+                        for species in all_species]
+
+    unassigned_aids_noconfig = ut.filterfalse_items(aid_list, assign_flag_list)
+    aid_list = ut.compress(aid_list, assign_flag_list)
+
     are_part_aids = _are_part_annots(ibs, aid_list)
     part_aids = ut.compress(aid_list, are_part_aids)
     body_aids = ut.compress(aid_list, [not p for p in are_part_aids])
 
     gids = ibs.get_annot_gids(list(set(part_aids)) + list(set(body_aids)))
     num_images = len(set(gids))
-    assert num_images == 1, "_assign_parts_one_image called on multiple images' aids"
+    assert num_images == 1, "assign_parts_one_image called on multiple images' aids"
 
     # parallel lists representing all possible part/body pairs
     all_pairs_parallel = _all_pairs_parallel(part_aids, body_aids)
@@ -280,6 +288,7 @@ def _assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
     good_pairs, unassigned_aids = _make_assignments(
         pair_parts, pair_bodies, assigner_scores, cutoff_score
     )
+    unassigned_aids = unassigned_aids_noconfig + unassigned_aids
     return good_pairs, unassigned_aids
 
 
@@ -483,7 +492,7 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 @register_ibs_method
 def assigner_testdb_ibs():
     import wbia
-    import sysres
+    from wbia import sysres
 
     dbdir = sysres.ensure_testdb_assigner()
     #  dbdir = '/data/testdb_assigner'
