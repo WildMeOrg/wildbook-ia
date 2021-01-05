@@ -1,29 +1,41 @@
-import logging
-from os.path import expanduser, join
-from wbia import constants as const
-from wbia.control.controller_inject import register_preprocs, register_subprops, make_ibs_register_decorator
+# -*- coding: utf-8 -*-
+# import logging
+# from os.path import expanduser, join
+# from wbia import constants as const
+from wbia.control.controller_inject import (
+    # register_preprocs,
+    # register_subprops,
+    make_ibs_register_decorator,
+)
 
-from wbia.algo.detect.assigner import gid_keyed_assigner_results, gid_keyed_ground_truth, illustrate_all_assignments
+from wbia.algo.detect.assigner import (
+    gid_keyed_assigner_results,
+    gid_keyed_ground_truth,
+    illustrate_all_assignments,
+    all_part_pairs,
+)
 
 import utool as ut
 import numpy as np
 import random
-import os
-from collections import OrderedDict, defaultdict
+
+# import os
+from collections import OrderedDict
+
+# from collections import defaultdict
 from datetime import datetime
 import time
 
 # illustration imports
-from shutil import copy
-from PIL import Image, ImageDraw
-import wbia.plottool as pt
+# from shutil import copy
+# from PIL import Image, ImageDraw
+# import wbia.plottool as pt
 
 
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.datasets import make_moons, make_circles, make_classification
+# import matplotlib.pyplot as plt
+# from matplotlib.colors import ListedColormap
+# from sklearn.model_selection import train_test_split
+# from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -41,38 +53,38 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 CLASSIFIER_OPTIONS = [
     {
-        "name": "Nearest Neighbors",
-        "clf": KNeighborsClassifier(3),
-        "param_options": {
+        'name': 'Nearest Neighbors',
+        'clf': KNeighborsClassifier(3),
+        'param_options': {
             'n_neighbors': [3, 5, 11, 19],
             'weights': ['uniform', 'distance'],
             'metric': ['euclidean', 'manhattan'],
-        }
-    },
-    {
-        "name": "Linear SVM",
-        "clf": SVC(kernel="linear", C=0.025),
-        "param_options": {
-            'C': [1, 10, 100, 1000],
-            'kernel': ['linear'],
-        }
-    },
-    {
-        "name": "RBF SVM",
-        "clf": SVC(gamma=2, C=1),
-        "param_options": {
-            'C': [1, 10, 100, 1000],
-            'gamma': [0.001, 0.0001],
-            'kernel': ['rbf']
         },
     },
     {
-        "name": "Decision Tree",
-        "clf": DecisionTreeClassifier(),  # max_depth=5
-        "param_options": {
+        'name': 'Linear SVM',
+        'clf': SVC(kernel='linear', C=0.025),
+        'param_options': {
+            'C': [1, 10, 100, 1000],
+            'kernel': ['linear'],
+        },
+    },
+    {
+        'name': 'RBF SVM',
+        'clf': SVC(gamma=2, C=1),
+        'param_options': {
+            'C': [1, 10, 100, 1000],
+            'gamma': [0.001, 0.0001],
+            'kernel': ['rbf'],
+        },
+    },
+    {
+        'name': 'Decision Tree',
+        'clf': DecisionTreeClassifier(),  # max_depth=5
+        'param_options': {
             'max_depth': np.arange(1, 12),
-            'max_leaf_nodes': [2, 5, 10, 20, 50, 100]
-        }
+            'max_leaf_nodes': [2, 5, 10, 20, 50, 100],
+        },
     },
     # {
     #     "name": "Random Forest",
@@ -98,46 +110,53 @@ CLASSIFIER_OPTIONS = [
     #     }
     # },
     {
-        "name": "AdaBoost",
-        "clf": AdaBoostClassifier(),
-        "param_options": {
+        'name': 'AdaBoost',
+        'clf': AdaBoostClassifier(),
+        'param_options': {
             'n_estimators': np.arange(10, 310, 50),
             'learning_rate': [0.01, 0.05, 0.1, 1],
-        }
+        },
     },
     {
-        "name": "Naive Bayes",
-        "clf": GaussianNB(),
-        "param_options": {}  # no hyperparams to optimize
+        'name': 'Naive Bayes',
+        'clf': GaussianNB(),
+        'param_options': {},  # no hyperparams to optimize
     },
     {
-        "name": "QDA",
-        "clf": QuadraticDiscriminantAnalysis(),
-        "param_options": {
-            'reg_param': [0.1, 0.2, 0.3, 0.4, 0.5]
-        }
-    }
+        'name': 'QDA',
+        'clf': QuadraticDiscriminantAnalysis(),
+        'param_options': {'reg_param': [0.1, 0.2, 0.3, 0.4, 0.5]},
+    },
 ]
 
 
-classifier_names = ["Nearest Neighbors", "Linear SVM", "RBF SVM",
-                    "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
-                    "Naive Bayes", "QDA"]
+classifier_names = [
+    'Nearest Neighbors',
+    'Linear SVM',
+    'RBF SVM',
+    'Decision Tree',
+    'Random Forest',
+    'Neural Net',
+    'AdaBoost',
+    'Naive Bayes',
+    'QDA',
+]
 
 classifiers = [
     KNeighborsClassifier(3),
-    SVC(kernel="linear", C=0.025),
+    SVC(kernel='linear', C=0.025),
     SVC(gamma=2, C=1),
     DecisionTreeClassifier(max_depth=5),
     RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
     MLPClassifier(alpha=1, max_iter=1000),
     AdaBoostClassifier(),
     GaussianNB(),
-    QuadraticDiscriminantAnalysis()]
+    QuadraticDiscriminantAnalysis(),
+]
 
 
-slow_classifier_names = "Gaussian Process"
-slow_classifiers = GaussianProcessClassifier(1.0 * RBF(1.0)),
+slow_classifier_names = 'Gaussian Process'
+slow_classifiers = (GaussianProcessClassifier(1.0 * RBF(1.0)),)
 
 
 def classifier_report(clf, name, assigner_data):
@@ -155,7 +174,9 @@ def classifier_report(clf, name, assigner_data):
 
 
 @register_ibs_method
-def compare_ass_classifiers(ibs, depc_table_name='assigner_viewpoint_features', print_accs=False):
+def compare_ass_classifiers(
+    ibs, depc_table_name='assigner_viewpoint_features', print_accs=False
+):
 
     assigner_data = ibs.wd_training_data(depc_table_name)
 
@@ -182,20 +203,24 @@ def tune_ass_classifiers(ibs, depc_table_name='assigner_viewpoint_unit_features'
     best_clf_name = ''
     best_clf_params = {}
     for classifier in CLASSIFIER_OPTIONS:
-        print("Tuning %s" % classifier['name'])
-        accuracy, best_params = ibs._tune_grid_search(classifier['clf'], classifier['param_options'], assigner_data)
+        print('Tuning %s' % classifier['name'])
+        accuracy, best_params = ibs._tune_grid_search(
+            classifier['clf'], classifier['param_options'], assigner_data
+        )
         print()
         accuracies[classifier['name']] = {
             'accuracy': accuracy,
-            'best_params': best_params
+            'best_params': best_params,
         }
         if accuracy > best_acc:
             best_acc = accuracy
             best_clf_name = classifier['name']
             best_clf_params = best_params
 
-    print('best performance: %s using %s with params %s' %
-          (best_acc, best_clf_name, best_clf_params))
+    print(
+        'best performance: %s using %s with params %s'
+        % (best_acc, best_clf_name, best_clf_params)
+    )
 
     return accuracies
 
@@ -218,11 +243,11 @@ def _tune_grid_search(ibs, clf, parameters, assigner_data=None):
     start = time.time()
     tune_search.fit(X_train, y_train)
     end = time.time()
-    print("Tune Fit Time: %s" % (end - start))
+    print('Tune Fit Time: %s' % (end - start))
     pred = tune_search.predict(X_test)
     accuracy = np.count_nonzero(np.array(pred) == np.array(y_test)) / len(pred)
-    print("Tune Accuracy: %s" % accuracy)
-    print("best parms   : %s" % tune_search.best_params_)
+    print('Tune Accuracy: %s' % accuracy)
+    print('best parms   : %s' % tune_search.best_params_)
 
     return accuracy, tune_search.best_params_
 
@@ -245,11 +270,11 @@ def _tune_random_search(ibs, clf, parameters, assigner_data=None):
     start = time.time()
     tune_search.fit(X_train, y_train)
     end = time.time()
-    print("Tune Fit Time: %s" % (end - start))
+    print('Tune Fit Time: %s' % (end - start))
     pred = tune_search.predict(X_test)
     accuracy = np.count_nonzero(np.array(pred) == np.array(y_test)) / len(pred)
-    print("Tune Accuracy: %s" % accuracy)
-    print("best parms   : %s" % tune_search.best_params_)
+    print('Tune Accuracy: %s' % accuracy)
+    print('best parms   : %s' % tune_search.best_params_)
 
     return accuracy, tune_search.best_params_
 
@@ -266,7 +291,9 @@ def wd_normed_assigner_data(ibs):
 
 
 @register_ibs_method
-def wd_training_data(ibs, depc_table_name='assigner_viewpoint_features', balance_t_f=True):
+def wd_training_data(
+    ibs, depc_table_name='assigner_viewpoint_features', balance_t_f=True
+):
     all_aids = ibs.get_valid_aids()
     ia_classes = ibs.get_annot_species(all_aids)
     part_aids = [aid for aid, ia_class in zip(all_aids, ia_classes) if '+' in ia_class]
@@ -278,7 +305,9 @@ def wd_training_data(ibs, depc_table_name='assigner_viewpoint_features', balance
 
     # train_feats, test_feats = train_test_split(all_feats)
     # train_truth, test_truth = train_test_split(ground_truth)
-    pairs_in_train = ibs.gid_train_test_split(all_pairs[0])  # we could pass just the pair aids or just the body aids bc gids are the same
+    pairs_in_train = ibs.gid_train_test_split(
+        all_pairs[0]
+    )  # we could pass just the pair aids or just the body aids bc gids are the same
     train_feats, test_feats = split_list(all_feats, pairs_in_train)
     train_truth, test_truth = split_list(ground_truth, pairs_in_train)
 
@@ -296,10 +325,14 @@ def wd_training_data(ibs, depc_table_name='assigner_viewpoint_features', balance
         test_feats = ut.compress(test_feats, test_balance_flags)
         test_pairs = ut.compress(test_pairs, test_balance_flags)
 
-
-    assigner_data = {'data': train_feats, 'target': train_truth,
-                     'test': test_feats, 'test_truth': test_truth,
-                     'train_pairs': train_pairs, 'test_pairs': test_pairs}
+    assigner_data = {
+        'data': train_feats,
+        'target': train_truth,
+        'test': test_feats,
+        'test_truth': test_truth,
+        'train_pairs': train_pairs,
+        'test_pairs': test_pairs,
+    }
 
     return assigner_data
 
@@ -310,28 +343,30 @@ def balance_true_false_training_pairs(ground_truth, seed=777):
     # there's always more false samples than true when we're looking at all pairs
     false_indices = [i for i, ground_t in enumerate(ground_truth) if not ground_t]
     import random
+
     random.seed(seed)
     subsampled_false_indices = random.sample(false_indices, n_true)
     # for quick membership check
     subsampled_false_indices = set(subsampled_false_indices)
     # keep all true flags, and the subsampled false ones
-    keep_flags = [gt or (i in subsampled_false_indices) for i, gt in enumerate(ground_truth)]
+    keep_flags = [
+        gt or (i in subsampled_false_indices) for i, gt in enumerate(ground_truth)
+    ]
     return keep_flags
 
 
-def train_test_split(item_list, random_seed=777, test_size=0.1):
-    import random
-    import math
-    random.seed(random_seed)
-    sample_size = math.floor(len(item_list) * test_size)
-    all_indices = list(range(len(item_list)))
-    test_indices = random.sample(all_indices, sample_size)
-    test_items = [item_list[i] for i in test_indices]
-    train_indices = sorted(list(
-        set(all_indices) - set(test_indices)
-    ))
-    train_items = [item_list[i] for i in train_indices]
-    return train_items, test_items
+# def train_test_split(item_list, random_seed=777, test_size=0.1):
+#     import random
+#     import math
+
+#     random.seed(random_seed)
+#     sample_size = math.floor(len(item_list) * test_size)
+#     all_indices = list(range(len(item_list)))
+#     test_indices = random.sample(all_indices, sample_size)
+#     test_items = [item_list[i] for i in test_indices]
+#     train_indices = sorted(list(set(all_indices) - set(test_indices)))
+#     train_items = [item_list[i] for i in train_indices]
+#     return train_items, test_items
 
 
 @register_ibs_method
@@ -380,6 +415,7 @@ def gid_train_test_split(ibs, aid_list, random_seed=777, test_size=0.1):
     gid_list = ibs.get_annot_gids(aid_list)
     gid_set = list(set(gid_list))
     import math
+
     random.seed(random_seed)
     n_test_gids = math.floor(len(gid_set) * test_size)
     test_gids = set(random.sample(gid_set, n_test_gids))
@@ -406,7 +442,9 @@ def check_accuracy(ibs, assigner_data=None, cutoff_score=0.5, illustrate=False):
 
     all_pairs, all_unassigned_aids = ibs.assign_parts(all_aids, cutoff_score)
 
-    gid_to_assigner_results = gid_keyed_assigner_results(ibs, all_pairs, all_unassigned_aids)
+    gid_to_assigner_results = gid_keyed_assigner_results(
+        ibs, all_pairs, all_unassigned_aids
+    )
     gid_to_ground_truth = gid_keyed_ground_truth(ibs, assigner_data)
 
     if illustrate:
@@ -431,10 +469,12 @@ def check_accuracy(ibs, assigner_data=None, cutoff_score=0.5, illustrate=False):
         if false_negatives > 0:
             gids_with_false_negatives += 1
             if false_negatives >= 2:
-                false_neg_log_index = min(false_negatives - 2, max_allowed_errors - 1)  # ie, if we have 2 errors, we have a false neg even allowing 1 error, in index 0 of that list
+                false_neg_log_index = min(
+                    false_negatives - 2, max_allowed_errors - 1
+                )  # ie, if we have 2 errors, we have a false neg even allowing 1 error, in index 0 of that list
                 try:
                     gids_with_false_neg_allowing_errors[false_neg_log_index] += 1
-                except:
+                except Exception:
                     ut.embed()
 
         n_false_positives += false_positives
@@ -443,7 +483,9 @@ def check_accuracy(ibs, assigner_data=None, cutoff_score=0.5, illustrate=False):
         if false_negatives > 0 and false_positives > 0:
             gids_with_both_errors += 1
 
-        pairs_equal = sorted(gid_to_assigner_results[gid]['pairs']) == sorted(gid_to_ground_truth[gid]['pairs'])
+        pairs_equal = sorted(gid_to_assigner_results[gid]['pairs']) == sorted(
+            gid_to_ground_truth[gid]['pairs']
+        )
         if pairs_equal:
             correct_gids += [gid]
         else:
@@ -452,13 +494,20 @@ def check_accuracy(ibs, assigner_data=None, cutoff_score=0.5, illustrate=False):
     n_gids = len(gid_to_assigner_results.keys())
     accuracy = len(correct_gids) / n_gids
     incorrect_gids = n_gids - len(correct_gids)
-    acc_allowing_errors = [1 - (nerrors / n_gids)
-                           for nerrors in gids_with_false_neg_allowing_errors]
+    acc_allowing_errors = [
+        1 - (nerrors / n_gids) for nerrors in gids_with_false_neg_allowing_errors
+    ]
     print('accuracy with cutoff of %s: %s' % (cutoff_score, accuracy))
     for i, acc_allowing_error in enumerate(acc_allowing_errors):
         print('        allowing %s errors, acc = %s' % (i + 1, acc_allowing_error))
-    print('        %s false positives on %s error images' % (n_false_positives, gids_with_false_positives))
-    print('        %s false negatives on %s error images' % (n_false_negatives, gids_with_false_negatives))
+    print(
+        '        %s false positives on %s error images'
+        % (n_false_positives, gids_with_false_positives)
+    )
+    print(
+        '        %s false negatives on %s error images'
+        % (n_false_negatives, gids_with_false_negatives)
+    )
     print('        %s images with both errors' % (gids_with_both_errors))
     return accuracy
 
@@ -474,4 +523,3 @@ if __name__ == '__main__':
     import utool as ut  # NOQA
 
     ut.doctest_funcs()
-

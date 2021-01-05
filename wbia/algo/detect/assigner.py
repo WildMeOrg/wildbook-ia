@@ -1,14 +1,24 @@
+# -*- coding: utf-8 -*-
 import logging
-from os.path import expanduser, join
+
+# from os.path import expanduser, join
 from wbia import constants as const
-from wbia.control.controller_inject import register_preprocs, register_subprops, make_ibs_register_decorator
+from wbia.control.controller_inject import (
+    # register_preprocs,
+    # register_subprops,
+    make_ibs_register_decorator,
+)
 import utool as ut
-import numpy as np
-import random
+
+# import numpy as np
+# import random
 import os
-from collections import OrderedDict, defaultdict
-from datetime import datetime
-import time
+
+# from collections import OrderedDict
+from collections import defaultdict
+
+# from datetime import datetime
+# import time
 
 # illustration imports
 from shutil import copy
@@ -16,11 +26,11 @@ from PIL import Image, ImageDraw
 import wbia.plottool as pt
 
 
-from sklearn import preprocessing
-from tune_sklearn import TuneGridSearchCV
+# from sklearn import preprocessing
+# from tune_sklearn import TuneGridSearchCV
 
 # shitload of scikit classifiers
-import numpy as np
+# import numpy as np
 
 # bunch of classifier models for training
 
@@ -38,33 +48,33 @@ SPECIES_CONFIG_MAP = {
     'wild_dog': {
         'model_file': '/tmp/balanced_wd.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_features',
+    },
     'wild_dog_dark': {
         'model_file': '/tmp/balanced_wd.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_features',
+    },
     'wild_dog_light': {
         'model_file': '/tmp/balanced_wd.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_features',
+    },
     'wild_dog_puppy': {
         'model_file': '/tmp/balanced_wd.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_features',
+    },
     'wild_dog_standard': {
         'model_file': '/tmp/balanced_wd.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_features',
+    },
     'wild_dog_tan': {
         'model_file': '/tmp/balanced_wd.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_features',
+    },
 }
 
 
@@ -127,13 +137,28 @@ def all_part_pairs(ibs, gid_list):
     """
     all_aids = ibs.get_image_aids(gid_list)
     all_aids_are_parts = [ibs._are_part_annots(aids) for aids in all_aids]
-    all_part_aids = [[aid for (aid, part) in zip(aids, are_parts) if part] for (aids, are_parts) in zip(all_aids, all_aids_are_parts)]
-    all_body_aids = [[aid for (aid, part) in zip(aids, are_parts) if not part] for (aids, are_parts) in zip(all_aids, all_aids_are_parts)]
-    part_body_parallel_lists = [_all_pairs_parallel(parts, bodies) for parts, bodies in zip(all_part_aids, all_body_aids)]
-    all_parts  = [aid for part_body_parallel_list in part_body_parallel_lists
-                  for aid in part_body_parallel_list[0]]
-    all_bodies = [aid for part_body_parallel_list in part_body_parallel_lists
-                  for aid in part_body_parallel_list[1]]
+    all_part_aids = [
+        [aid for (aid, part) in zip(aids, are_parts) if part]
+        for (aids, are_parts) in zip(all_aids, all_aids_are_parts)
+    ]
+    all_body_aids = [
+        [aid for (aid, part) in zip(aids, are_parts) if not part]
+        for (aids, are_parts) in zip(all_aids, all_aids_are_parts)
+    ]
+    part_body_parallel_lists = [
+        _all_pairs_parallel(parts, bodies)
+        for parts, bodies in zip(all_part_aids, all_body_aids)
+    ]
+    all_parts = [
+        aid
+        for part_body_parallel_list in part_body_parallel_lists
+        for aid in part_body_parallel_list[0]
+    ]
+    all_bodies = [
+        aid
+        for part_body_parallel_list in part_body_parallel_lists
+        for aid in part_body_parallel_list[1]
+    ]
     return all_parts, all_bodies
 
 
@@ -188,12 +213,13 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
     all_unassigned_aids = []
 
     for gid in gid_to_aids.keys():
-        this_pairs, this_unassigned = _assign_parts_one_image(ibs, gid_to_aids[gid], cutoff_score)
-        all_assignments += (this_pairs)
+        this_pairs, this_unassigned = _assign_parts_one_image(
+            ibs, gid_to_aids[gid], cutoff_score
+        )
+        all_assignments += this_pairs
         all_unassigned_aids += this_unassigned
 
     return all_assignments, all_unassigned_aids
-
 
 
 @register_ibs_method
@@ -231,54 +257,66 @@ def _assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
         >>> assert (set(assigned_aids) | set(unassigned_aids) == set(aids))
         >>> ([(3, 1)], [2, 4])
     """
-
     are_part_aids = _are_part_annots(ibs, aid_list)
     part_aids = ut.compress(aid_list, are_part_aids)
     body_aids = ut.compress(aid_list, [not p for p in are_part_aids])
 
     gids = ibs.get_annot_gids(list(set(part_aids)) + list(set(body_aids)))
     num_images = len(set(gids))
-    assert num_images is 1, "_assign_parts_one_image called on multiple images' aids"
+    assert num_images == 1, "_assign_parts_one_image called on multiple images' aids"
 
     # parallel lists representing all possible part/body pairs
     all_pairs_parallel = _all_pairs_parallel(part_aids, body_aids)
     pair_parts, pair_bodies = all_pairs_parallel
 
-    assigner_features   = ibs.depc_annot.get('assigner_viewpoint_features', all_pairs_parallel)
+    assigner_features = ibs.depc_annot.get(
+        'assigner_viewpoint_features', all_pairs_parallel
+    )
     assigner_classifier = load_assigner_classifier(ibs, part_aids)
 
     assigner_scores = assigner_classifier.predict_proba(assigner_features)
     #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
     assigner_scores = [score[1] for score in assigner_scores]
-    good_pairs, unassigned_aids = _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score)
+    good_pairs, unassigned_aids = _make_assignments(
+        pair_parts, pair_bodies, assigner_scores, cutoff_score
+    )
     return good_pairs, unassigned_aids
 
 
 def _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5):
 
-    sorted_scored_pairs = [(part, body, score) for part, body, score in
-                           sorted(zip(pair_parts, pair_bodies, assigner_scores),
-                           key=lambda pbscore: pbscore[2], reverse=True)]
+    sorted_scored_pairs = [
+        (part, body, score)
+        for part, body, score in sorted(
+            zip(pair_parts, pair_bodies, assigner_scores),
+            key=lambda pbscore: pbscore[2],
+            reverse=True,
+        )
+    ]
 
     assigned_pairs = []
     assigned_parts = set()
     assigned_bodies = set()
     n_bodies = len(set(pair_bodies))
-    n_parts  = len(set(pair_parts))
+    n_parts = len(set(pair_parts))
     n_true_pairs = min(n_bodies, n_parts)
     for part_aid, body_aid, score in sorted_scored_pairs:
-        assign_this_pair = part_aid not in assigned_parts and \
-                           body_aid not in assigned_bodies and \
-                           score >= cutoff_score
+        assign_this_pair = (
+            part_aid not in assigned_parts
+            and body_aid not in assigned_bodies
+            and score >= cutoff_score
+        )
 
         if assign_this_pair:
             assigned_pairs.append((part_aid, body_aid))
             assigned_parts.add(part_aid)
             assigned_bodies.add(body_aid)
 
-        if len(assigned_parts) is n_true_pairs \
-           or len(assigned_bodies) is n_true_pairs \
-           or score > cutoff_score:
+        if (
+            len(assigned_parts) is n_true_pairs
+            or len(assigned_bodies) is n_true_pairs
+            or score > cutoff_score
+        ):
             break
 
     unassigned_parts = set(pair_parts) - set(assigned_parts)
@@ -295,36 +333,58 @@ def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
         clf = INMEM_ASSIGNER_MODELS[species]
     else:
         if species not in SPECIES_CONFIG_MAP.keys():
-            print("WARNING: Assigner called for species %s which does not have an assigner modelfile specified. Falling back to the model for %s" % species, fallback_species)
+            print(
+                'WARNING: Assigner called for species %s which does not have an assigner modelfile specified. Falling back to the model for %s'
+                % species,
+                fallback_species,
+            )
             species = fallback_species
 
         model_url = SPECIES_CONFIG_MAP[species]['model_url']
         model_fpath = ut.grab_file_url(model_url)
         from joblib import load
+
         clf = load(model_fpath)
 
     return clf
 
 
-def illustrate_all_assignments(ibs, gid_to_assigner_results, gid_to_ground_truth,
-                               target_dir='/tmp/assigner-illustrations-2/', limit=20):
+def illustrate_all_assignments(
+    ibs,
+    gid_to_assigner_results,
+    gid_to_ground_truth,
+    target_dir='/tmp/assigner-illustrations-2/',
+    limit=20,
+):
 
     correct_dir = os.path.join(target_dir, 'correct/')
     incorrect_dir = os.path.join(target_dir, 'incorrect/')
 
     for gid, assigned_aid_dict in gid_to_assigner_results.items()[:limit]:
         ground_t_dict = gid_to_ground_truth[gid]
-        assigned_correctly = sorted(assigned_aid_dict['pairs']) == sorted(ground_t_dict['pairs'])
+        assigned_correctly = sorted(assigned_aid_dict['pairs']) == sorted(
+            ground_t_dict['pairs']
+        )
         if assigned_correctly:
-            illustrate_assignments(ibs, gid, assigned_aid_dict, None, correct_dir)  # don't need to illustrate gtruth if it's identical to assignment
+            illustrate_assignments(
+                ibs, gid, assigned_aid_dict, None, correct_dir
+            )  # don't need to illustrate gtruth if it's identical to assignment
         else:
-            illustrate_assignments(ibs, gid, assigned_aid_dict, ground_t_dict, incorrect_dir)
+            illustrate_assignments(
+                ibs, gid, assigned_aid_dict, ground_t_dict, incorrect_dir
+            )
 
     print('illustrated assignments and saved them in %s' % target_dir)
 
 
 # works on a single gid's worth of gid_keyed_assigner_results output
-def illustrate_assignments(ibs, gid, assigned_aid_dict, gtruth_aid_dict, target_dir='/tmp/assigner-illustrations/'):
+def illustrate_assignments(
+    ibs,
+    gid,
+    assigned_aid_dict,
+    gtruth_aid_dict,
+    target_dir='/tmp/assigner-illustrations/',
+):
     impath = ibs.get_image_paths(gid)
     imext = os.path.splitext(impath)[1]
     new_fname = os.path.join(target_dir, '%s%s' % (gid, imext))
@@ -338,7 +398,7 @@ def illustrate_assignments(ibs, gid, assigned_aid_dict, gtruth_aid_dict, target_
 
 def _draw_all_annots(ibs, image, assigned_aid_dict, gtruth_aid_dict):
     n_pairs = len(assigned_aid_dict['pairs'])
-    n_missing_pairs = 0
+    # n_missing_pairs = 0
     #  TODO: missing pair shit
     n_unass = len(assigned_aid_dict['unassigned'])
     n_groups = n_pairs + n_unass
@@ -380,10 +440,10 @@ def gid_keyed_assigner_results(ibs, all_pairs, all_unassigned_aids):
         gid_to_unassigned[gid] += [aid]
 
     gid_to_assigner_results = {}
-    for gid in (set(gid_to_pairs.keys()) | set(gid_to_unassigned.keys())):
+    for gid in set(gid_to_pairs.keys()) | set(gid_to_unassigned.keys()):
         gid_to_assigner_results[gid] = {
             'pairs': gid_to_pairs[gid],
-            'unassigned': gid_to_unassigned[gid]
+            'unassigned': gid_to_unassigned[gid],
         }
 
     return gid_to_assigner_results
@@ -410,12 +470,11 @@ def gid_keyed_ground_truth(ibs, assigner_data):
     for gid in gid_to_all_aids.keys():
         gid_to_unassigned_aids[gid] = list(gid_to_all_aids[gid] - gid_to_paired_aids[gid])
 
-
     gid_to_assigner_results = {}
-    for gid in (set(gid_to_pairs.keys()) | set(gid_to_unassigned_aids.keys())):
+    for gid in set(gid_to_pairs.keys()) | set(gid_to_unassigned_aids.keys()):
         gid_to_assigner_results[gid] = {
             'pairs': gid_to_pairs[gid],
-            'unassigned': gid_to_unassigned_aids[gid]
+            'unassigned': gid_to_unassigned_aids[gid],
         }
 
     return gid_to_assigner_results
@@ -424,6 +483,8 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 @register_ibs_method
 def assigner_testdb_ibs():
     import wbia
+    import sysres
+
     dbdir = sysres.ensure_testdb_assigner()
     #  dbdir = '/data/testdb_assigner'
     ibs = wbia.opendb(dbdir=dbdir)
@@ -441,4 +502,3 @@ if __name__ == '__main__':
     import utool as ut  # NOQA
 
     ut.doctest_funcs()
-
