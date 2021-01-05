@@ -299,7 +299,7 @@ def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
             species = fallback_species
 
         model_url = SPECIES_CONFIG_MAP[species]['model_url']
-        model_fpath =
+        model_fpath = ut.grab_file_url(model_url)
         from joblib import load
         clf = load(model_fpath)
 
