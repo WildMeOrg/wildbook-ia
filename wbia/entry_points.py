@@ -76,7 +76,7 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     # Set up logging
     # TODO (30-Nov-12020) This is intended to be a temporary fix to logging.
     # logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
+    # logger.addHandler(logging.StreamHandler())
 
     if verbose is None:
         verbose = ut.VERBOSE
