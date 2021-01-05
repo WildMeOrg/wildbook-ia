@@ -280,7 +280,8 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
     assigner_features = ibs.depc_annot.get(
         'assigner_viewpoint_features', all_pairs_parallel
     )
-    assigner_classifier = load_assigner_classifier(ibs, part_aids)
+    # send all aids to this call just so it can find the right classifier model
+    assigner_classifier = load_assigner_classifier(ibs, body_aids+part_aids)
 
     assigner_scores = assigner_classifier.predict_proba(assigner_features)
     #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
