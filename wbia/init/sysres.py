@@ -865,6 +865,10 @@ def ensure_testdb_identification_example():
     return ensure_db_from_url(const.ZIPPED_URLS.ID_EXAMPLE)
 
 
+def ensure_testdb_assigner():
+    return ensure_db_from_url(const.ZIPPED_URLS.ASSIGNER)
+
+
 def ensure_testdb_kaggle7():
     return ensure_db_from_url(const.ZIPPED_URLS.K7_EXAMPLE)
 
