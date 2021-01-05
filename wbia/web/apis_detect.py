@@ -11,7 +11,6 @@ from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
 from wbia.web import appfuncs as appf
 import numpy as np
 
-(print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -440,6 +439,7 @@ def process_detection_html(ibs, **kwargs):
     return result_dict
 
 
+# this is where the aids_list response from commit_localization_results is packaged & returned in json
 @register_ibs_method
 @accessor_decors.getter_1to1
 def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
@@ -465,40 +465,54 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
         >>> print(results_dict)
     """
     # TODO: Return confidence here as well
+    def _json_result(ibs, aid):
+        result = {
+            'id': aid,
+            'uuid': ibs.get_annot_uuids(aid),
+            'xtl': ibs.get_annot_bboxes(aid)[0],
+            'ytl': ibs.get_annot_bboxes(aid)[1],
+            'left': ibs.get_annot_bboxes(aid)[0],
+            'top': ibs.get_annot_bboxes(aid)[1],
+            'width': ibs.get_annot_bboxes(aid)[2],
+            'height': ibs.get_annot_bboxes(aid)[3],
+            'theta': round(ibs.get_annot_thetas(aid), 4),
+            'confidence': round(ibs.get_annot_detect_confidence(aid), 4),
+            'class': ibs.get_annot_species_texts(aid),
+            'species': ibs.get_annot_species_texts(aid),
+            'viewpoint': ibs.get_annot_viewpoints(aid),
+            'quality': ibs.get_annot_qualities(aid),
+            'multiple': ibs.get_annot_multiple(aid),
+            'interest': ibs.get_annot_interest(aid),
+        }
+        return result
+
     image_uuid_list = ibs.get_image_uuids(gid_list)
     ibs.assert_valid_gids(gid_list)
-    # Get detections from depc
+    # Get detections from depc --- this output will be affected by assigner
     aids_list = detect_func(gid_list, **config)
-    results_list = [
-        [
-            {
-                'id': aid,
-                'uuid': ibs.get_annot_uuids(aid),
-                'xtl': ibs.get_annot_bboxes(aid)[0],
-                'ytl': ibs.get_annot_bboxes(aid)[1],
-                'left': ibs.get_annot_bboxes(aid)[0],
-                'top': ibs.get_annot_bboxes(aid)[1],
-                'width': ibs.get_annot_bboxes(aid)[2],
-                'height': ibs.get_annot_bboxes(aid)[3],
-                'theta': round(ibs.get_annot_thetas(aid), 4),
-                'confidence': round(ibs.get_annot_detect_confidence(aid), 4),
-                'class': ibs.get_annot_species_texts(aid),
-                'species': ibs.get_annot_species_texts(aid),
-                'viewpoint': ibs.get_annot_viewpoints(aid),
-                'quality': ibs.get_annot_qualities(aid),
-                'multiple': ibs.get_annot_multiple(aid),
-                'interest': ibs.get_annot_interest(aid),
-            }
-            for aid in aid_list
-        ]
-        for aid_list in aids_list
-    ]
+    results_list = []
+    has_assignments = False
+    for aid_list in aids_list:
+        result_list = []
+        for aid in aid_list:
+            if not isinstance(aid, tuple):  # we have an assignment
+                result = _json_result(ibs, aid)
+            else:
+                assert len(aid) > 0
+                has_assignments = True
+                result = []
+                for val in aid:
+                    result.append(_json_result(ibs, val))
+            result_list.append(result)
+        results_list.append(result_list)
+
     score_list = [0.0] * len(gid_list)
     # Wrap up results with other information
     results_dict = {
         'image_uuid_list': image_uuid_list,
         'results_list': results_list,
         'score_list': score_list,
+        'has_assignments': has_assignments,
     }
     return results_dict
 
@@ -626,7 +640,6 @@ def models_cnn_lightnet(ibs, **kwargs):
         Method: PUT, GET
         URL:    /api/labels/cnn/lightnet/
     """
-
     def identity(x):
         return x
 
@@ -895,6 +908,8 @@ def commit_localization_results(
     use_labeler_species=False,
     orienter_algo=None,
     orienter_model_tag=None,
+    assigner_algo=None,
+    assigner_model_tag=None,
     update_json_log=True,
     apply_nms_post_use_labeler_species=True,
     **kwargs,
@@ -981,10 +996,21 @@ def commit_localization_results(
         if len(bbox_list) > 0:
             ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
 
+    if assigner_algo is not None:
+        # aids_list is a list of lists of aids, now we want a list of lists of <tuples or singletons of aids>
+        all_assignments = []
+        for aids in aids_list:
+            assigned, unassigned = ibs.assign_parts_one_image(aids)
+            # unassigned aids should also be tuples to indicate they went through the assigner
+            unassigned = [(aid,) for aid in unassigned]
+            all_assignments.append(assigned + unassigned)
+            aids_list = all_assignments
+
     ibs._clean_species()
     if update_json_log:
         ibs.log_detections(aid_list)
 
+    # list of list of ints
     return aids_list
 
 
