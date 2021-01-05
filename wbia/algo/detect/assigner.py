@@ -3,22 +3,10 @@ import logging
 
 # from os.path import expanduser, join
 from wbia import constants as const
-from wbia.control.controller_inject import (
-    # register_preprocs,
-    # register_subprops,
-    make_ibs_register_decorator,
-)
+from wbia.control.controller_inject import make_ibs_register_decorator
 import utool as ut
-
-# import numpy as np
-# import random
 import os
-
-# from collections import OrderedDict
 from collections import defaultdict
-
-# from datetime import datetime
-# import time
 
 # illustration imports
 from shutil import copy
@@ -26,15 +14,6 @@ from PIL import Image, ImageDraw
 import wbia.plottool as pt
 
 
-# from sklearn import preprocessing
-# from tune_sklearn import TuneGridSearchCV
-
-# shitload of scikit classifiers
-# import numpy as np
-
-# bunch of classifier models for training
-
-(print, rrr, profile) = ut.inject2(__name__, '[assigner]')
 logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -204,13 +183,13 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
         >>> assert (set(assigned_aids) | set(unassigned_aids) == set(aids))
         >>> ([(3, 1), (6, 5), (8, 7)], [2, 4])
     """
-
     gids = ibs.get_annot_gids(all_aids)
     gid_to_aids = defaultdict(list)
     for gid, aid in zip(gids, all_aids):
         gid_to_aids[gid] += [aid]
 
     all_assignments = []
+    all_unassigned_aids = []
 
     for gid in gid_to_aids.keys():
         this_pairs, this_unassigned = assign_parts_one_image(
@@ -259,8 +238,9 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
     """
     all_species = ibs.get_annot_species(aid_list)
     # put unsupported species into the all_unassigned_aids list
+    all_species_no_parts = [species.split('+')[0] for species in all_species]
     assign_flag_list = [species in SPECIES_CONFIG_MAP.keys()
-                        for species in all_species]
+                        for species in all_species_no_parts]
 
     unassigned_aids_noconfig = ut.filterfalse_items(aid_list, assign_flag_list)
     aid_list = ut.compress(aid_list, assign_flag_list)
@@ -281,7 +261,7 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
         'assigner_viewpoint_features', all_pairs_parallel
     )
     # send all aids to this call just so it can find the right classifier model
-    assigner_classifier = load_assigner_classifier(ibs, body_aids+part_aids)
+    assigner_classifier = load_assigner_classifier(ibs, body_aids + part_aids)
 
     assigner_scores = assigner_classifier.predict_proba(assigner_features)
     #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
