@@ -7,6 +7,7 @@ from wbia.algo.detect import randomforest
 from wbia.algo.detect import yolo
 from wbia.algo.detect import assigner
 
+# from wbia.algo.detect import train_assigner
 # from wbia.algo.detect import selectivesearch
 # from wbia.algo.detect import ssd
 # from wbia.algo.detect import fasterrcnn
