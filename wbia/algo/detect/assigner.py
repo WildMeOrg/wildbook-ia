@@ -32,17 +32,39 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 PARALLEL = not const.CONTAINERIZED
 INPUT_SIZE = 224
 
-ARCHIVE_URL_DICT = {}
-
 INMEM_ASSIGNER_MODELS = {}
 
-SPECIES_TO_ASSIGNER_MODELFILE = {
-    'wild_dog': '/tmp/balanced_wd.joblib',
-    'wild_dog_dark': '/tmp/balanced_wd.joblib',
-    'wild_dog_light': '/tmp/balanced_wd.joblib',
-    'wild_dog_puppy': '/tmp/balanced_wd.joblib',
-    'wild_dog_standard': '/tmp/balanced_wd.joblib',
-    'wild_dog_tan': '/tmp/balanced_wd.joblib',
+SPECIES_CONFIG_MAP = {
+    'wild_dog': {
+        'model_file': '/tmp/balanced_wd.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_features'
+    }
+    'wild_dog_dark': {
+        'model_file': '/tmp/balanced_wd.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_features'
+    }
+    'wild_dog_light': {
+        'model_file': '/tmp/balanced_wd.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_features'
+    }
+    'wild_dog_puppy': {
+        'model_file': '/tmp/balanced_wd.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_features'
+    }
+    'wild_dog_standard': {
+        'model_file': '/tmp/balanced_wd.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_features'
+    }
+    'wild_dog_tan': {
+        'model_file': '/tmp/balanced_wd.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_features'
+    }
 }
 
 
@@ -272,11 +294,12 @@ def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
     if species in INMEM_ASSIGNER_MODELS.keys():
         clf = INMEM_ASSIGNER_MODELS[species]
     else:
-        if species not in SPECIES_TO_ASSIGNER_MODELFILE.keys():
+        if species not in SPECIES_CONFIG_MAP.keys():
             print("WARNING: Assigner called for species %s which does not have an assigner modelfile specified. Falling back to the model for %s" % species, fallback_species)
             species = fallback_species
 
-        model_fpath = SPECIES_TO_ASSIGNER_MODELFILE[species]
+        model_url = SPECIES_CONFIG_MAP[species]['model_url']
+        model_fpath =
         from joblib import load
         clf = load(model_fpath)
 
@@ -400,9 +423,9 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 
 @register_ibs_method
 def assigner_testdb_ibs():
-    # dbdir = sysres.ensure_testdb_assigner()
     import wbia
-    dbdir = '/data/testdb_assigner'
+    dbdir = sysres.ensure_testdb_assigner()
+    #  dbdir = '/data/testdb_assigner'
     ibs = wbia.opendb(dbdir=dbdir)
     return ibs
 
