@@ -78,6 +78,7 @@ def _are_part_annots(ibs, aid_list):
         >>> ibs = assigner_testdb_ibs()
         >>> aids = ibs.get_valid_aids()
         >>> result = ibs._are_part_annots(aids)
+        >>> print(result)
         [False, False, True, True, False, True, False, True]
     """
     species = ibs.get_annot_species(aid_list)
@@ -112,6 +113,7 @@ def all_part_pairs(ibs, gid_list):
         >>> assert (set(parts) & set(bodies)) == set({})
         >>> assert (set(parts) | set(bodies)) == set(all_aids)
         >>> result = all_part_pairs
+        >>> print(result)
         ([3, 3, 4, 4, 6, 8], [1, 2, 1, 2, 5, 7])
     """
     all_aids = ibs.get_image_aids(gid_list)
@@ -239,8 +241,9 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
     all_species = ibs.get_annot_species(aid_list)
     # put unsupported species into the all_unassigned_aids list
     all_species_no_parts = [species.split('+')[0] for species in all_species]
-    assign_flag_list = [species in SPECIES_CONFIG_MAP.keys()
-                        for species in all_species_no_parts]
+    assign_flag_list = [
+        species in SPECIES_CONFIG_MAP.keys() for species in all_species_no_parts
+    ]
 
     unassigned_aids_noconfig = ut.filterfalse_items(aid_list, assign_flag_list)
     aid_list = ut.compress(aid_list, assign_flag_list)

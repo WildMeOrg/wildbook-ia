@@ -409,6 +409,7 @@ def gid_train_test_split(ibs, aid_list, random_seed=777, test_size=0.1):
         >>> assert len(train_gids) is 2
         >>> assert len(test_gids) is 1
         >>> result = aid_in_train  # note one gid has 4 aids, the other two 2
+        >>> print(result)
         [False, False, False, False, True, True, True, True]
     """
     print('calling gid_train_test_split')

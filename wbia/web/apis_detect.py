@@ -640,6 +640,7 @@ def models_cnn_lightnet(ibs, **kwargs):
         Method: PUT, GET
         URL:    /api/labels/cnn/lightnet/
     """
+
     def identity(x):
         return x
 
