@@ -366,7 +366,9 @@ def sync_get_training_data(ibs, species_name, force_update=False, **kwargs):
     name_texts = ibs._sync_get_annot_endpoint('/api/annot/name/text/', aid_list)
     name_uuids = ibs._sync_get_annot_endpoint('/api/annot/name/uuid/', aid_list)
     images = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
-    gpaths = [ibs._construct_route_url_ibs('/api/image/src/%s.jpg' % gid) for gid in images]
+    gpaths = [
+        ibs._construct_route_url_ibs('/api/image/src/%s.jpg' % gid) for gid in images
+    ]
     specieses = [species_name] * len(aid_list)
 
     gid_list = ibs.add_images(gpaths)

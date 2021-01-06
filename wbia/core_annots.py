@@ -2735,3 +2735,9 @@ def _norm_vertices(verts_list, width_list, height_list):
         for vert, w, h in zip(verts_list, width_list, height_list)
     ]
     return normed_verts
+
+
+if __name__ == '__main__':
+    import xdoctest as xdoc
+
+    xdoc.doctest_module(__file__)
