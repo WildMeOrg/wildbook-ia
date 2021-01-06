@@ -78,12 +78,12 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     Returns the image file of image <gid>
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
         ...     resp = web_ibs.send_wbia_request('/api/image/src/1/', type_='get', json=False)
         >>> print(resp)
+        b'\xff\xd8\xff\xe0\x00\x10JFIF...
 
     RESTful:
         Method: GET

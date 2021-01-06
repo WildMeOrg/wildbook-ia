@@ -5,6 +5,7 @@ Interface into SQL for the IBEIS Controller
 TODO; need to use some sort of sticky bit so
 sql files are created with reasonable permissions.
 """
+import functools
 import logging
 import collections
 import os
@@ -24,7 +25,7 @@ from sqlalchemy.sql import bindparam, text, ClauseElement
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
-from wbia.dtool.types import Integer
+from wbia.dtool.types import Integer, TYPE_TO_SQLTYPE
 
 
 print, rrr, profile = ut.inject2(__name__)
@@ -1042,6 +1043,34 @@ class SQLDatabaseController(object):
                     existing.append(values)
 
         results = []
+        processors = []
+        for c in tuple(where_colnames):
+
+            def process(column, a):
+                processor = column.type.bind_processor(self._engine.dialect)
+                if processor:
+                    a = processor(a)
+                result_processor = column.type.result_processor(
+                    self._engine.dialect, str(column.type)
+                )
+                if result_processor:
+                    return result_processor(a)
+                return a
+
+            processors.append(functools.partial(process, table.c[c]))
+
+        if params_iter:
+            first_params = params_iter[0]
+            if any(
+                not isinstance(a, bool)
+                and TYPE_TO_SQLTYPE.get(type(a)) != str(table.c[c].type)
+                for a, c in zip(first_params, where_colnames)
+            ):
+                params_iter = (
+                    (processor(raw_id) for raw_id, processor in zip(id_, processors))
+                    for id_ in params_iter
+                )
+
         for id_ in params_iter:
             result = sorted(list(result_map.get(tuple(id_), set())))
             if unpack_scalars and isinstance(result, list):
@@ -1303,6 +1332,25 @@ class SQLDatabaseController(object):
                         existing.append(values)
 
             results = []
+
+            def process(a):
+                processor = id_column.type.bind_processor(self._engine.dialect)
+                if processor:
+                    a = processor(a)
+                result_processor = id_column.type.result_processor(
+                    self._engine.dialect, str(id_column.type)
+                )
+                if result_processor:
+                    return result_processor(a)
+                return a
+
+            if id_iter:
+                first_id = id_iter[0]
+                if isinstance(first_id, bool) or TYPE_TO_SQLTYPE.get(
+                    type(first_id)
+                ) != str(id_column.type):
+                    id_iter = (process(id_) for id_ in id_iter)
+
             for id_ in id_iter:
                 result = sorted(list(result_map.get(id_, set())))
                 if kwargs.get('unpack_scalars', True) and isinstance(result, list):
