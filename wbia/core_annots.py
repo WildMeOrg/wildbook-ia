@@ -55,18 +55,13 @@ import vtool as vt
 import numpy as np
 import cv2
 import wbia.constants as const
-from wbia.control.controller_inject import (
-    register_preprocs,
-    register_subprops,
-    make_ibs_register_decorator,
-)
+from wbia.control.controller_inject import register_preprocs, register_subprops
 from wbia.algo.hots.chip_match import ChipMatch
 from wbia.algo.hots import neighbor_index
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
-CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 derived_attribute = register_preprocs['annot']
 register_subprop = register_subprops['annot']
