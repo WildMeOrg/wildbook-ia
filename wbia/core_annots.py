@@ -2173,7 +2173,11 @@ def compute_aoi2(depc, aid_list, config=None):
 
 class OrienterConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('orienter_algo', 'deepsense', valid_values=['deepsense']),
+        ut.ParamInfo(
+            'orienter_algo',
+            'plugin:orientation',
+            valid_values=['deepsense', 'plugin:orientation'],
+        ),
         ut.ParamInfo('orienter_weight_filepath', None),
     ]
     _sub_config_list = [ChipConfig]
@@ -2201,9 +2205,10 @@ def compute_orients_annotations(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        python -m wbia.core_annots --exec-compute_orients_annotations --deepsense
+        pytest wbia/core_annots.py::compute_orients_annotations:0
+        python -m xdoctest /Users/jason.parham/code/wildbook-ia/wbia/core_annots.py compute_orients_annotations:1 --orient
 
-    Example:
+    Doctest:
         >>> # DISABLE_DOCTEST
         >>> from wbia.core_images import *  # NOQA
         >>> import wbia
@@ -2221,7 +2226,37 @@ def compute_orients_annotations(depc, aid_list, config=None):
         >>> theta_list  = ut.take_column(result_list, 4)
         >>> bbox_list   = list(zip(xtl_list, ytl_list, w_list, h_list))
         >>> ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
+        >>> print(result_list)
+
+    Doctest:
+        >>> # DISABLE_DOCTEST
+        >>> import wbia
+        >>> import random
+        >>> import utool as ut
+        >>> from wbia.init import sysres
+        >>> import numpy as np
+        >>> dbdir = sysres.ensure_testdb_orientation()
+        >>> ibs = wbia.opendb(dbdir=dbdir)
+        >>> aid_list = ibs.get_valid_aids()
+        >>> note_list = ibs.get_annot_notes(aid_list)
+        >>> species_list = ibs.get_annot_species(aid_list)
+        >>> flag_list = [
+        >>>     note == 'random-01' and species == 'right_whale_head'
+        >>>     for note, species in zip(note_list, species_list)
+        >>> ]
+        >>> aid_list = ut.compress(aid_list, flag_list)
+        >>> aid_list = aid_list[:10]
+        >>> depc = ibs.depc_annot
+        >>> config = {'orienter_algo': 'plugin:orientation'}
+        >>> # depc.delete_property('orienter', aid_list)
         >>> result_list = depc.get_property('orienter', aid_list, None, config=config)
+        >>> xtl_list    = list(map(int, map(np.around, ut.take_column(result_list, 0))))
+        >>> ytl_list    = list(map(int, map(np.around, ut.take_column(result_list, 1))))
+        >>> w_list      = list(map(int, map(np.around, ut.take_column(result_list, 2))))
+        >>> h_list      = list(map(int, map(np.around, ut.take_column(result_list, 3))))
+        >>> theta_list  = ut.take_column(result_list, 4)
+        >>> bbox_list   = list(zip(xtl_list, ytl_list, w_list, h_list))
+        >>> # ibs.set_annot_bboxes(aid_list, bbox_list, theta_list=theta_list)
         >>> print(result_list)
     """
     logger.info('[ibs] Process Annotation Labels')
@@ -2265,6 +2300,169 @@ def compute_orients_annotations(depc, aid_list, config=None):
                 result_gen.append(result)
         except Exception:
             raise RuntimeError('Deepsense orienter not working!')
+    elif config['orienter_algo'] in ['plugin:orientation']:
+        logger.info('[ibs] orienting using Orientation Plug-in')
+        try:
+            from wbia_orientation import _plugin  # NOQA
+            from wbia_orientation.utils.data_manipulation import get_object_aligned_box
+            import vtool as vt
+
+            species_list = ibs.get_annot_species(aid_list)
+
+            species_dict = {}
+            for aid, species in zip(aid_list, species_list):
+                if species not in species_dict:
+                    species_dict[species] = []
+                species_dict[species].append(aid)
+
+            results_dict = {}
+            species_key_list = sorted(species_dict.keys())
+            for species in species_key_list:
+                species_tag = _plugin.SPECIES_MODEL_TAG_MAPPING.get(species, species)
+                message = 'Orientation plug-in does not support species_tag = %r' % (
+                    species_tag,
+                )
+                assert species_tag in _plugin.MODEL_URLS, message
+                assert species_tag in _plugin.CONFIGS, message
+                aid_list_ = sorted(species_dict[species])
+                print(
+                    'Computing %d orientations for species = %r'
+                    % (
+                        len(aid_list_),
+                        species,
+                    )
+                )
+
+                output_list, theta_list = _plugin.wbia_plugin_detect_oriented_box(
+                    ibs, aid_list_, species_tag, plot_samples=False
+                )
+
+                for aid_, predicted_output, predicted_theta in zip(
+                    aid_list_, output_list, theta_list
+                ):
+                    xc, yc, xt, yt, w = predicted_output
+                    predicted_verts = get_object_aligned_box(xc, yc, xt, yt, w)
+                    predicted_verts = np.around(np.array(predicted_verts)).astype(
+                        np.int64
+                    )
+                    predicted_verts = tuple(map(tuple, predicted_verts.tolist()))
+
+                    calculated_theta = np.arctan2(yt - yc, xt - xc) + np.deg2rad(90)
+                    predicted_rot = vt.rotation_around_mat3x3(
+                        calculated_theta * -1.0, xc, yc
+                    )
+                    predicted_aligned_verts = vt.transform_points_with_homography(
+                        predicted_rot, np.array(predicted_verts).T
+                    ).T
+                    predicted_aligned_verts = np.around(predicted_aligned_verts).astype(
+                        np.int64
+                    )
+                    predicted_aligned_verts = tuple(
+                        map(tuple, predicted_aligned_verts.tolist())
+                    )
+
+                    predicted_bbox = vt.bboxes_from_vert_list([predicted_aligned_verts])[
+                        0
+                    ]
+                    (
+                        predicted_xtl,
+                        predicted_ytl,
+                        predicted_w,
+                        predicted_h,
+                    ) = predicted_bbox
+
+                    result = (
+                        predicted_xtl,
+                        predicted_ytl,
+                        predicted_w,
+                        predicted_h,
+                        calculated_theta,
+                        # predicted_theta,
+                    )
+                    results_dict[aid_] = result
+
+                    if False:
+                        from itertools import combinations
+
+                        predicted_bbox_verts = vt.verts_list_from_bboxes_list(
+                            [predicted_bbox]
+                        )[0]
+                        predicted_bbox_rot = vt.rotation_around_bbox_mat3x3(
+                            calculated_theta, predicted_bbox
+                        )
+                        predicted_bbox_rotated_verts = (
+                            vt.transform_points_with_homography(
+                                predicted_bbox_rot, np.array(predicted_bbox_verts).T
+                            ).T
+                        )
+                        predicted_bbox_rotated_verts = np.around(
+                            predicted_bbox_rotated_verts
+                        ).astype(np.int64)
+                        predicted_bbox_rotated_verts = tuple(
+                            map(tuple, predicted_bbox_rotated_verts.tolist())
+                        )
+
+                        gid_ = ibs.get_annot_gids(aid_)
+                        image = ibs.get_images(gid_)
+
+                        original_bbox = ibs.get_annot_bboxes(aid_)
+                        original_theta = ibs.get_annot_thetas(aid_)
+                        original_verts = vt.verts_list_from_bboxes_list([original_bbox])[
+                            0
+                        ]
+                        original_rot = vt.rotation_around_bbox_mat3x3(
+                            original_theta, original_bbox
+                        )
+                        rotated_verts = vt.transform_points_with_homography(
+                            original_rot, np.array(original_verts).T
+                        ).T
+                        rotated_verts = np.around(rotated_verts).astype(np.int64)
+                        rotated_verts = tuple(map(tuple, rotated_verts.tolist()))
+
+                        color = (255, 0, 0)
+                        for vert in original_verts:
+                            cv2.circle(image, vert, 20, color, -1)
+
+                        for vert1, vert2 in combinations(original_verts, 2):
+                            cv2.line(image, vert1, vert2, color, 5)
+
+                        color = (0, 0, 255)
+                        for vert in rotated_verts:
+                            cv2.circle(image, vert, 20, color, -1)
+
+                        for vert1, vert2 in combinations(rotated_verts, 2):
+                            cv2.line(image, vert1, vert2, color, 5)
+
+                        color = (0, 255, 0)
+                        for vert in predicted_verts:
+                            cv2.circle(image, vert, 20, color, -1)
+
+                        for vert1, vert2 in combinations(predicted_verts, 2):
+                            cv2.line(image, vert1, vert2, color, 5)
+
+                        color = (255, 255, 0)
+                        for vert in predicted_aligned_verts:
+                            cv2.circle(image, vert, 20, color, -1)
+
+                        for vert1, vert2 in combinations(predicted_aligned_verts, 2):
+                            cv2.line(image, vert1, vert2, color, 5)
+
+                        color = (0, 255, 255)
+                        for vert in predicted_bbox_rotated_verts:
+                            cv2.circle(image, vert, 10, color, -1)
+
+                        for vert1, vert2 in combinations(predicted_bbox_rotated_verts, 2):
+                            cv2.line(image, vert1, vert2, color, 1)
+
+                        cv2.imwrite('/tmp/image.%d.png' % (aid_), image)
+
+            result_gen = []
+            for aid in aid_list:
+                result = results_dict[aid]
+                result_gen.append(result)
+
+        except Exception:
+            raise RuntimeError('Orientation plug-in not working!')
     else:
         raise ValueError(
             'specified orienter algo is not supported in config = %r' % (config,)
@@ -2273,3 +2471,9 @@ def compute_orients_annotations(depc, aid_list, config=None):
     # yield detections
     for result in result_gen:
         yield result
+
+
+if __name__ == '__main__':
+    import xdoctest as xdoc
+
+    xdoc.doctest_module(__file__)

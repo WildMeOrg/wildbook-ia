@@ -48,6 +48,9 @@ PST = pytz.timezone('US/Pacific')
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
 logger = logging.getLogger('wbia')
 
+# logging.getLogger().setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
+
 
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(

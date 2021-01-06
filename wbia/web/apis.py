@@ -54,6 +54,17 @@ def web_embed(*args, **kwargs):
     ut.embed()
 
 
+@register_route(
+    '/api/image/src/<rowid>.jpg',
+    methods=['GET'],
+    __route_prefix_check__=False,
+    __route_postfix_check__=False,
+    __route_authenticate__=False,
+)
+def image_src_api_ext(*args, **kwargs):
+    return image_src_api(*args, **kwargs)
+
+
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
 @register_route(
