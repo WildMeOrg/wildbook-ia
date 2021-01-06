@@ -5,7 +5,9 @@ import logging
 from wbia.algo.detect import grabmodels
 from wbia.algo.detect import randomforest
 from wbia.algo.detect import yolo
+from wbia.algo.detect import assigner
 
+# from wbia.algo.detect import train_assigner
 # from wbia.algo.detect import selectivesearch
 # from wbia.algo.detect import ssd
 # from wbia.algo.detect import fasterrcnn
@@ -93,6 +95,7 @@ IMPORT_TUPLES = [
     ('grabmodels', None),
     ('randomforest', None),
     ('yolo', None),
+    ('assigner', None),
     # ('selectivesearch', None),
     # ('ssd', None),
     # ('fasterrcnn', None),

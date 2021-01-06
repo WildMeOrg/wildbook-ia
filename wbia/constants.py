@@ -354,6 +354,7 @@ class ZIPPED_URLS(object):  # NOQA
     ORIENTATION = (
         'https://wildbookiarepository.azureedge.net/databases/testdb_orientation.zip'
     )
+    ASSIGNER = 'https://wildbookiarepository.azureedge.net/databases/testdb_assigner.zip'
     K7_EXAMPLE = 'https://wildbookiarepository.azureedge.net/databases/testdb_kaggle7.zip'
 
 
