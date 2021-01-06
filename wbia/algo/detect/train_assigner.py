@@ -3,7 +3,7 @@
 # from os.path import expanduser, join
 # from wbia import constants as const
 from wbia.control.controller_inject import (
-    # register_preprocs,
+    register_preprocs,
     # register_subprops,
     make_ibs_register_decorator,
 )
@@ -17,6 +17,7 @@ from wbia.algo.detect.assigner import (
 
 import utool as ut
 import numpy as np
+from wbia import dtool
 import random
 
 # import os
@@ -25,6 +26,10 @@ from collections import OrderedDict
 # from collections import defaultdict
 from datetime import datetime
 import time
+
+from math import sqrt
+
+from sklearn import preprocessing
 
 # illustration imports
 # from shutil import copy
@@ -46,6 +51,9 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.model_selection import GridSearchCV
+
+
+derived_attribute = register_preprocs['annot']
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -529,6 +537,7 @@ if __name__ == '__main__':
 # additional assigner features to explore
 class PartAssignmentFeatureConfig(dtool.Config):
     _param_info_list = []
+
 
 @derived_attribute(
     tablename='part_assignment_features',
@@ -1019,6 +1028,7 @@ def mega_standardized_assignment_features(
             part_area_relative_body,
         )
 
+
 @derived_attribute(
     tablename='theta_assignment_features',
     parents=['annotations', 'annotations'],
@@ -1422,6 +1432,7 @@ def assigner_viewpoint_unit_features(depc, part_aid_list, body_aid_list, config=
         ans += tuple(body_lrudfb_vect)
         yield ans
 
+
 @derived_attribute(
     tablename='theta_standardized_assignment_features',
     parents=['annotations', 'annotations'],
@@ -1617,7 +1628,10 @@ def theta_standardized_assignment_features(
             part_over_body,
         )
 
+
 def get_annot_lrudfb_unit_vector(ibs, aid_list):
+    from wbia.core_annots import get_annot_lrudfb_bools
+
     bool_arrays = get_annot_lrudfb_bools(ibs, aid_list)
     float_arrays = [[float(b) for b in lrudfb] for lrudfb in bool_arrays]
     lrudfb_lengths = [sqrt(lrudfb.count(True)) for lrudfb in bool_arrays]
@@ -1629,6 +1643,7 @@ def get_annot_lrudfb_unit_vector(ibs, aid_list):
     ]
 
     return unit_float_array
+
 
 def _norm_bboxes(bbox_list, width_list, height_list):
     normed_boxes = [
@@ -1733,5 +1748,3 @@ def _bbox_to_corner_format(bboxes):
 def _polygons_to_centroid_coords(polygon_list):
     centroids = [poly.centroid for poly in polygon_list]
     return centroids
-
-

@@ -63,10 +63,6 @@ from wbia.control.controller_inject import (
 from wbia.algo.hots.chip_match import ChipMatch
 from wbia.algo.hots import neighbor_index
 
-from math import sqrt
-
-from sklearn import preprocessing
-
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
