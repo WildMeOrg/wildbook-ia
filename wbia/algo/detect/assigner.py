@@ -254,24 +254,29 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
 
     gids = ibs.get_annot_gids(list(set(part_aids)) + list(set(body_aids)))
     num_images = len(set(gids))
-    assert num_images == 1, "assign_parts_one_image called on multiple images' aids"
+    assert num_images <= 1, "assign_parts_one_image called on multiple images' aids"
 
     # parallel lists representing all possible part/body pairs
     all_pairs_parallel = _all_pairs_parallel(part_aids, body_aids)
     pair_parts, pair_bodies = all_pairs_parallel
 
-    assigner_features = ibs.depc_annot.get(
-        'assigner_viewpoint_features', all_pairs_parallel
-    )
-    # send all aids to this call just so it can find the right classifier model
-    assigner_classifier = load_assigner_classifier(ibs, body_aids + part_aids)
+    if len(pair_parts) > 0 and len(pair_bodies) > 0:
+        assigner_features = ibs.depc_annot.get(
+            'assigner_viewpoint_features', all_pairs_parallel
+        )
+        # send all aids to this call just so it can find the right classifier model
+        assigner_classifier = load_assigner_classifier(ibs, body_aids + part_aids)
 
-    assigner_scores = assigner_classifier.predict_proba(assigner_features)
-    #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
-    assigner_scores = [score[1] for score in assigner_scores]
-    good_pairs, unassigned_aids = _make_assignments(
-        pair_parts, pair_bodies, assigner_scores, cutoff_score
-    )
+        assigner_scores = assigner_classifier.predict_proba(assigner_features)
+        #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
+        assigner_scores = [score[1] for score in assigner_scores]
+        good_pairs, unassigned_aids = _make_assignments(
+            pair_parts, pair_bodies, assigner_scores, cutoff_score
+        )
+    else:
+        good_pairs = []
+        unassigned_aids = aid_list
+
     unassigned_aids = unassigned_aids_noconfig + unassigned_aids
     return good_pairs, unassigned_aids
 
