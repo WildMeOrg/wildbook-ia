@@ -763,6 +763,24 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 
 
 @register_ibs_method
+def log_render_status(ibs, *args):
+    import os
+
+    json_log_path = ibs.get_logdir_local()
+    json_log_filename = 'render.log'
+    json_log_filepath = os.path.join(json_log_path, json_log_filename)
+    logger.info('Logging renders added to: %r' % (json_log_filepath,))
+
+    try:
+        with open(json_log_filepath, 'a') as json_log_file:
+            line = ','.join(['%s' % (arg,) for arg in args])
+            line = '%s\n' % (line,)
+            json_log_file.write(line)
+    except Exception:
+        logger.info('WRITE RENDER.LOG FAILED')
+
+
+@register_ibs_method
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(
     ibs,
@@ -772,7 +790,7 @@ def query_chips_graph(
     query_config_dict={},
     echo_query_params=True,
     cache_images=True,
-    n=16,
+    n=30,
     view_orientation='horizontal',
     return_summary=True,
     **kwargs,
@@ -963,6 +981,20 @@ def query_chips_graph(
                     except Exception:
                         filepath_matches = None
                         extern_flag = 'error'
+                    log_render_status(
+                        ibs,
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        True,
+                        False,
+                        filepath_matches,
+                        extern_flag,
+                    )
                     try:
                         _, filepath_heatmask = ensure_review_image(
                             ibs,
@@ -976,6 +1008,20 @@ def query_chips_graph(
                     except Exception:
                         filepath_heatmask = None
                         extern_flag = 'error'
+                    log_render_status(
+                        ibs,
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        False,
+                        True,
+                        filepath_heatmask,
+                        extern_flag,
+                    )
                     try:
                         _, filepath_clean = ensure_review_image(
                             ibs,
@@ -989,6 +1035,20 @@ def query_chips_graph(
                     except Exception:
                         filepath_clean = None
                         extern_flag = 'error'
+                    log_render_status(
+                        ibs,
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        False,
+                        False,
+                        filepath_clean,
+                        extern_flag,
+                    )
 
                     if filepath_matches is not None:
                         args = (
