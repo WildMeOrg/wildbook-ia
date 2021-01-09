@@ -325,6 +325,9 @@ def review_graph_match_html(
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
+        >>> # DISABLE_DOCTEST
+        >>> # Disabled because this test uses opendb_bg_web, which hangs the test runner and leaves zombie processes
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
         >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -377,6 +380,7 @@ def review_graph_match_html(
 
     Example2:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> # This starts off using web to get information, but finishes the rest in python
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
