@@ -37,14 +37,13 @@ def tst_html_error():
     r"""
     This test will show what our current errors look like
 
-    CommandLine:
-        python -m wbia.web.app --exec-tst_html_error
-
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> from wbia.web.app import *  # NOQA
         >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/image/imagesettext/?__format__=True')
+        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+        ...     resp = client.get('/api/image/imagesettext/?__format__=True')
+        >>> print(resp)
+        <Response streamed [500 INTERNAL SERVER ERROR]>
+
     """
     pass
 
