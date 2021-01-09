@@ -29,7 +29,8 @@ def add_rowids(engine):
     create_table_stmts = connection.execute(
         """\
         SELECT name, sql FROM sqlite_master
-        WHERE name NOT LIKE 'sqlite_%'"""
+        WHERE name NOT LIKE 'sqlite_%' AND type = 'table'
+        """
     ).fetchall()
     for table, stmt in create_table_stmts:
         # Create a new table with suffix "_with_rowid"
