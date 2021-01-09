@@ -27,6 +27,7 @@ TEST_DBNAMES = (
     'testdb2',
     'testdb_guiall',
     'wd_peter2',
+    'testdb_assigner',
 )
 
 
