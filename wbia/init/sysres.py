@@ -6,7 +6,9 @@ but without the need for an actual IBEIS Controller
 """
 import logging
 import os
+from functools import lru_cache
 from os.path import exists, join, realpath
+
 import utool as ut
 import ubelt as ub
 from six.moves import input, zip, map
@@ -864,6 +866,7 @@ def ensure_testdb_orientation():
     return ensure_db_from_url(const.ZIPPED_URLS.ORIENTATION)
 
 
+@lru_cache(maxsize=None)
 def ensure_testdb_assigner():
     return ensure_db_from_url(const.ZIPPED_URLS.ASSIGNER)
 
