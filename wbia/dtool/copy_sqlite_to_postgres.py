@@ -135,9 +135,9 @@ def copy_sqlite_to_postgres(parent_dir):
         for sqlite_db_path in get_sqlite_db_paths(parent_dir):
             # create new tables with sqlite built-in rowid column
             sqlite_engine = create_engine(f'sqlite:///{sqlite_db_path}')
-            add_rowids(sqlite_engine)
 
             try:
+                add_rowids(sqlite_engine)
                 uri, schema = sqlite_uri_to_postgres_uri_schema(
                     f'sqlite:///{os.path.realpath(sqlite_db_path)}'
                 )
