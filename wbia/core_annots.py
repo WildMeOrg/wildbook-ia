@@ -2711,7 +2711,9 @@ def get_annot_lrudfb_bools(ibs, aid_list):
             'front' in view,
             'back' in view,
         ]
-        if view is not None else [False] * 6 for view in views
+        if view is not None
+        else [False] * 6
+        for view in views
     ]
     return bool_arrays
 
