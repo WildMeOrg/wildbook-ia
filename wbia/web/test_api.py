@@ -87,7 +87,7 @@ def run_test_api():
         python -m wbia.web.test_api --test-run_test_api
 
     Example:
-        >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # DISABLE_DOCTEST
         >>> from wbia.web.test_api import *  # NOQA
         >>> response = run_test_api()
         >>> print('Server response: %r' % (response, ))
@@ -103,6 +103,8 @@ def run_test_api():
 
     # Get the application port from the background process
     if APPLICATION_PORT is None:
+        # FIXME web_instance is a KillableProcess, not IBEISController,
+        # it doesn't have get_web_port_via_scan
         web_port = web_instance.get_web_port_via_scan()
         if web_port is None:
             raise ValueError('IA web server is not running on any expected port')

@@ -325,6 +325,9 @@ def review_graph_match_html(
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
+        >>> # DISABLE_DOCTEST
+        >>> # Disabled because this test uses opendb_bg_web, which hangs the test runner and leaves zombie processes
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
         >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -377,6 +380,7 @@ def review_graph_match_html(
 
     Example2:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> # This starts off using web to get information, but finishes the rest in python
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
@@ -544,16 +548,6 @@ def review_graph_match_html(
 
 @register_route('/test/review/query/chip/', methods=['GET'])
 def review_query_chips_test(**kwargs):
-    """
-    CommandLine:
-        python -m wbia.web.apis_query review_query_chips_test --show
-
-    Example:
-        >>> # SCRIPT
-        >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web(
-        >>>     browser=True, url_suffix='/test/review/query/chip/?__format__=true')
-    """
     ibs = current_app.ibs
 
     # the old block curvature dtw
@@ -1468,13 +1462,12 @@ def query_chips_graph_v2(
         >>> # Open local instance
         >>> ibs = wbia.opendb('PZ_MTEST')
         >>> uuid_list = ibs.annots().uuids[0:10]
-        >>> # Start up the web instance
-        >>> web_ibs = wbia.opendb_bg_web(db='PZ_MTEST', web=True, browser=False)
         >>> data = dict(annot_uuid_list=uuid_list)
-        >>> resp = web_ibs.send_wbia_request('/api/query/graph/v2/', **data)
-        >>> print('resp = %r' % (resp,))
-        >>> #cmdict_list = json_dict['response']
-        >>> #assert 'score_list' in cmdict_list[0]
+        >>> # Start up the web instance
+        >>> with wbia.opendb_with_web(db='PZ_MTEST') as (ibs, client):
+        ...     resp = client.post('/api/query/graph/v2/', data=data)
+        >>> resp.json
+        {'status': {'success': False, 'code': 608, 'message': 'Invalid image and/or annotation UUIDs (0, 1)', 'cache': -1}, 'response': {'invalid_image_uuid_list': [], 'invalid_annot_uuid_list': [[0, 'c544d25f-fd03-5a2d-6611-cd77430ca251']]}}
 
     Example:
         >>> # DEBUG_SCRIPT

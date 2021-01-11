@@ -3974,11 +3974,6 @@ def check_engine_identification_query_object(
     if current_app.QUERY_OBJECT_JOBID is None:
         current_app.QUERY_OBJECT = None
         current_app.QUERY_OBJECT_JOBID = ibs.start_web_query_all()
-        # import wbia
-        # web_ibs = wbia.opendb_bg_web(dbdir=ibs.dbdir, port=6000)
-        # query_object_jobid = web_ibs.send_wbia_request('/api/engine/query/graph/')
-        # logger.info('query_object_jobid = %r' % (query_object_jobid, ))
-        # current_app.QUERY_OBJECT_JOBID = query_object_jobid
 
     query_object_status_dict = ibs.get_job_status(current_app.QUERY_OBJECT_JOBID)
     args = (
@@ -4018,11 +4013,11 @@ def turk_identification(
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:
-        ...     resp = web_ibs.get('/turk/identification/lnbnn/')
+        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+        ...     resp = client.get('/turk/identification/lnbnn/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
-        >>> ut.render_html(resp.content)
+        >>> ut.render_html(resp.data.decode('utf8'))
         >>> ut.show_if_requested()
     """
     from wbia.web import apis_query
@@ -4762,8 +4757,8 @@ def turk_identification_hardcase(*args, **kwargs):
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> with wbia.opendb_bg_web('PZ_Master1', managed=True) as web_ibs:
-        ...     resp = web_ibs.get('/turk/identification/hardcase/')
+        >>> with wbia.opendb_with_web('PZ_Master1') as (ibs, client):
+        ...     resp = client.get('/turk/identification/hardcase/')
 
     Ignore:
         import wbia
@@ -4822,11 +4817,11 @@ def turk_identification_graph(
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:
-        ...     resp = web_ibs.get('/turk/identification/graph/')
+        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+        ...     resp = client.get('/turk/identification/graph/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
-        >>> ut.render_html(resp.content)
+        >>> ut.render_html(resp.data.decode('utf8'))
         >>> ut.show_if_requested()
     """
     ibs = current_app.ibs

@@ -489,35 +489,20 @@ def translate_wbia_webcall(func, *args, **kwargs):
     Returns:
         tuple: (output, True, 200, None, jQuery_callback)
 
-    CommandLine:
-        python -m wbia.control.controller_inject --exec-translate_wbia_webcall
-        python -m wbia.control.controller_inject --exec-translate_wbia_webcall --domain http://52.33.105.88
-
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.control.controller_inject import *  # NOQA
         >>> import wbia
-        >>> import time
-        >>> import wbia.web
-        >>> with wbia.opendb_bg_web('testdb1', start_job_queue=False, managed=True) as web_ibs:
-        ...     aids = web_ibs.send_wbia_request('/api/annot/', 'get')
-        ...     uuid_list = web_ibs.send_wbia_request('/api/annot/uuids/', aid_list=aids, json=False)
-        ...     failrsp = web_ibs.send_wbia_request('/api/annot/uuids/', json=False)
-        ...     failrsp2 = web_ibs.send_wbia_request('/api/query/chips/simple_dict//', 'get', qaid_list=[0], daid_list=[0], json=False)
-        ...     log_text = web_ibs.send_wbia_request('/api/query/chips/simple_dict/', 'get', qaid_list=[0], daid_list=[0], json=False)
-        >>> time.sleep(.1)
-        >>> print('\n---\nuuid_list = %r' % (uuid_list,))
-        >>> print('\n---\nfailrsp =\n%s' % (failrsp,))
-        >>> print('\n---\nfailrsp2 =\n%s' % (failrsp2,))
+        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+        ...     aids = client.get('/api/annot/').json
+        ...     failrsp = client.post('/api/annot/uuids/')
+        ...     failrsp2 = client.get('/api/query/chips/simple_dict//', data={'qaid_list': [0], 'daid_list': [0]})
+        ...     log_text = client.get('/api/query/chips/simple_dict/', data={'qaid_list': [0], 'daid_list': [0]})
+        >>> print('\n---\nfailrsp =\n%s' % (failrsp.data,))
+        >>> print('\n---\nfailrsp2 =\n%s' % (failrsp2.data,))
         >>> print('Finished test')
+        Finished test
 
-    Ignore:
-        app = get_flask_app()
-        with app.app_context():
-            #ibs = wbia.opendb('testdb1')
-            func = ibs.get_annot_uuids
-            args = tuple()
-            kwargs = dict()
     """
     assert len(args) == 0, 'There should not be any args=%r' % (args,)
 

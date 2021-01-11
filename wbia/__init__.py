@@ -68,7 +68,7 @@ try:
         main_loop,
         opendb,
         opendb_in_background,
-        opendb_bg_web,
+        opendb_with_web,
     )
     from wbia.control.IBEISControl import IBEISController
     from wbia.algo.hots.query_request import QueryRequest
