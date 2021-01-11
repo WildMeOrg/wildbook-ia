@@ -100,8 +100,20 @@ def enable_wildbook_signal():
 
 
 @pytest.fixture(scope='session', autouse=True)
+def postgres_base_uri():
+    """The base URI connection string to postgres.
+    This should contain all necessary connection information except the database name.
+
+    """
+    val = os.getenv('WBIA_BASE_DB_URI')
+    if not val and os.getenv('POSTGRES'):
+        raise RuntimeError('You have to define the WBIA_BASE_DB_URI environment variable')
+    return val
+
+
+@pytest.fixture(scope='session', autouse=True)
 @pytest.mark.usefixtures('enable_wildbook_signal')
-def set_up_db(request):
+def set_up_db(request, postgres_base_uri):
     """
     Sets up the testing databases.
     This fixture is set to run automatically any any test run of wbia.
@@ -117,7 +129,7 @@ def set_up_db(request):
     for dbname in TEST_DBNAMES:
         delete_dbdir(dbname)
         if os.getenv('POSTGRES'):
-            engine = sqlalchemy.create_engine(os.getenv('WBIA_BASE_DB_URI'))
+            engine = sqlalchemy.create_engine(postgres_base_uri)
             engine.execution_options(isolation_level='AUTOCOMMIT').execute(
                 f'DROP DATABASE IF EXISTS {dbname}'
             )
