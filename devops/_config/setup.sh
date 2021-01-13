@@ -44,3 +44,6 @@ chown -R ${HOST_USER}:${HOST_USER} /wbia/wbia-plugin-pie/
 if [ ! -d "/data/docker" ]; then
     ln -s -T /data/db /data/docker
 fi
+
+# Allow Tensorflow to use GPU memory more dynamically
+export TF_FORCE_GPU_ALLOW_GROWTH=true
