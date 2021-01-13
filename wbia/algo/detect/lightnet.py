@@ -73,6 +73,7 @@ CONFIG_URL_DICT = {
     'snow_leopard_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.snow_leopard.v0.py',
     'megan_argentina_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.megan.argentina.v1.py',
     'megan_kenya_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.megan.kenya.v1.py',
+    'grey_whale_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_grey.v0.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
 }
