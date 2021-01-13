@@ -119,8 +119,18 @@ def sqlite_uri_to_postgres_uri_schema(uri):
 
 def compare_coldef_lists(coldef_list1, coldef_list2):
     # Remove "rowid" which is added to postgresql tables
-    coldef_list1 = [(name, coldef) for name, coldef in coldef_list1 if name != 'rowid']
-    coldef_list2 = [(name, coldef) for name, coldef in coldef_list2 if name != 'rowid']
+    # Remove "default nextval" for postgresql auto-increment fields as sqlite
+    # doesn't need it
+    coldef_list1 = [
+        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
+        for name, coldef in coldef_list1
+        if name != 'rowid'
+    ]
+    coldef_list2 = [
+        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
+        for name, coldef in coldef_list2
+        if name != 'rowid'
+    ]
     if len(coldef_list1) != len(coldef_list2):
         return coldef_list1, coldef_list2
     for i in range(len(coldef_list1)):
@@ -128,9 +138,7 @@ def compare_coldef_lists(coldef_list1, coldef_list2):
         name2, coldef2 = coldef_list2[i]
         if name1 != name2:
             return coldef_list1, coldef_list2
-        coldef1 = re.sub(r' DEFAULT \(nextval\(.*', '', coldef1)
-        coldef2 = re.sub(r' DEFAULT \(nextval\(.*', '', coldef2)
-        if coldef1.lower() != coldef2.lower():
+        if coldef1 != coldef2:
             return coldef_list1, coldef_list2
     return
 
