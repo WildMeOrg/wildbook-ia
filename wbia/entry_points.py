@@ -96,6 +96,10 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
             request_dbversion=request_dbversion,
             force_serial=force_serial,
         )
+        # BBB (12-Jan-12021) daily database backup for the sqlite database
+        if not ibs.is_using_postgres_db:
+            ibs.daily_backup_database()
+
         if web is None:
             web = ut.get_argflag(
                 ('--webapp', '--webapi', '--web', '--browser'),

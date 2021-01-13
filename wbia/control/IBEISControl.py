@@ -41,7 +41,7 @@ import weakref
 import utool as ut
 import ubelt as ub
 from six.moves import zip
-from os.path import join, split, realpath
+from os.path import join, split
 from wbia.init import sysres
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
@@ -369,10 +369,8 @@ class IBEISController(BASE_CLASS):
         self._initialize_self()
         self._init_dirs(dbdir=dbdir, ensure=ensure)
 
-        # FIXME (20-Oct-12020) Set the base URI
-        #       This is a temporary adjustment to obtain a URI where one would not
-        #       be present as part of this filesystem focused contructor.
-        self._base_uri = f'sqlite:///{self.get_ibsdir()}'
+        # Set the base URI to be used for all database connections
+        self.__init_base_uri()
 
         # _send_wildbook_request will do nothing if no wildbook address is
         # specified
@@ -403,6 +401,38 @@ class IBEISController(BASE_CLASS):
 
         logger.info('[ibs.__init__] END new IBEISController\n')
 
+    def __init_base_uri(self) -> None:
+        """Initialize the base URI that is used for all database connections.
+        This sets the ``_base_uri`` attribute.
+        This influences the ``is_using_postgres`` property.
+
+        One of the following conditions is met in order to set the uri value:
+
+        - ``--db-uri`` is set to a Postgres URI on the commandline
+        - only db-dir is set, and thus we assume a sqlite connection
+
+        """
+        self._is_using_postgres_db = False
+
+        uri = ut.get_argval('--db-uri', default=None)
+        if uri:
+            if not uri.startswith('postgresql://'):
+                raise RuntimeError(
+                    "invalid use of '--db-uri'; only supports postgres uris; "
+                    f"uri = '{uri}'"
+                )
+            # Capture that we are using postgres
+            self._is_using_postgres_db = True
+        else:
+            # Assume a sqlite database
+            uri = f'sqlite:///{self.get_ibsdir()}'
+        self._base_uri = uri
+
+    @property
+    def is_using_postgres_db(self) -> bool:
+        """Indicates whether this controller is using postgres as the database"""
+        return self._is_using_postgres_db
+
     @property
     def base_uri(self):
         """Base database URI without a specific database name"""
@@ -410,6 +440,10 @@ class IBEISController(BASE_CLASS):
 
     def make_cache_db_uri(self, name):
         """Given a name of the cache produce a database connection URI"""
+        if self.is_using_postgres_db:
+            # When using postgres, the base-uri is a connection to a single database
+            # that is used for all database needs and scoped using namespace schemas.
+            return self._base_uri
         return f'sqlite:///{self.get_cachedir()}/{name}.sqlite'
 
     def reset_table_cache(self):
@@ -635,178 +669,59 @@ class IBEISController(BASE_CLASS):
 
     @profile
     def _init_sqldbcore(self, request_dbversion=None):
-        """
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from wbia.control.IBEISControl import *  # NOQA
-            >>> import wbia  # NOQA
-            >>> #ibs = wbia.opendb('PZ_MTEST')
-            >>> #ibs = wbia.opendb('PZ_Master0')
-            >>> ibs = wbia.opendb('testdb1')
-            >>> #ibs = wbia.opendb('PZ_Master0')
+        """Initializes the *main* database object"""
+        # FIXME (12-Jan-12021) Disabled automatic schema upgrade
+        DB_VERSION_EXPECTED = '2.0.0'
 
-        Ignore:
-            aid_list = ibs.get_valid_aids()
-            #ibs.update_annot_visual_uuids(aid_list)
-            vuuid_list = ibs.get_annot_visual_uuids(aid_list)
-            aid_list2 =  ibs.get_annot_aids_from_visual_uuid(vuuid_list)
-            assert aid_list2 == aid_list
-            # v1.3.0 testdb1:264us, PZ_MTEST:3.93ms, PZ_Master0:11.6s
-            %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
-            # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
+        if self.is_using_postgres_db:
+            uri = self._base_uri
+        else:
+            uri = f'{self.base_uri}/{self.sqldb_fname}'
+        self.db = dtool.SQLDatabaseController.from_uri(uri)
 
-            ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
-        """
-        from wbia.control import _sql_helpers
+        # BBB (12-Jan-12021) Disabled the ability to make the database read-only
+        self.readonly = False
+
+        # Upgrade the database
+        from wbia.control._sql_helpers import ensure_correct_version
         from wbia.control import DB_SCHEMA
 
-        # Before load, ensure database has been backed up for the day
-        backup_idx = ut.get_argval('--loadbackup', type_=int, default=None)
-        sqldb_fpath = None
-        if backup_idx is not None:
-            backups = _sql_helpers.get_backup_fpaths(self)
-            logger.info('backups = %r' % (backups,))
-            sqldb_fpath = backups[backup_idx]
-            logger.info('CHOSE BACKUP sqldb_fpath = %r' % (sqldb_fpath,))
-        if backup_idx is None and self._needs_backup():
-            try:
-                _sql_helpers.ensure_daily_database_backup(
-                    self.get_ibsdir(), self.sqldb_fname, self.backupdir
-                )
-            except IOError as ex:
-                ut.printex(
-                    ex, ('Failed making daily backup. ' 'Run with --nobackup to disable')
-                )
-                import utool
-
-                utool.embed()
-                raise
-        # IBEIS SQL State Database
-        if request_dbversion is None:
-            self.db_version_expected = '2.0.0'
-        else:
-            self.db_version_expected = request_dbversion
-        # TODO: add this functionality to SQLController
-        if backup_idx is None:
-            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
-                self.get_dbname(),
-                self.get_ibsdir(),
-                self.sqldb_fname,
-                self.db_version_expected,
-                version_next='2.0.0',
-            )
-            self.db_version_expected = new_version
-            self.sqldb_fname = new_fname
-        if sqldb_fpath is None:
-            assert backup_idx is None
-            sqldb_fpath = join(self.get_ibsdir(), self.sqldb_fname)
-            readonly = None
-        else:
-            readonly = True
-        db_uri = 'sqlite:///{}'.format(realpath(sqldb_fpath))
-        self.db = dtool.SQLDatabaseController.from_uri(db_uri, readonly=readonly)
-        self.readonly = self.db.readonly
-
-        if backup_idx is None:
-            # Ensure correct schema versions
-            _sql_helpers.ensure_correct_version(
-                self,
-                self.db,
-                self.db_version_expected,
-                DB_SCHEMA,
-                verbose=ut.VERBOSE,
-                dobackup=not self.readonly,
-            )
-        # import sys
-        # sys.exit(1)
+        ensure_correct_version(
+            self,
+            self.db,
+            DB_VERSION_EXPECTED,
+            DB_SCHEMA,
+            verbose=True,
+            dobackup=not self.readonly,
+        )
 
     @profile
     def _init_sqldbstaging(self, request_stagingversion=None):
-        """
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from wbia.control.IBEISControl import *  # NOQA
-            >>> import wbia  # NOQA
-            >>> #ibs = wbia.opendb('PZ_MTEST')
-            >>> #ibs = wbia.opendb('PZ_Master0')
-            >>> ibs = wbia.opendb('testdb1')
-            >>> #ibs = wbia.opendb('PZ_Master0')
+        """Initializes the *staging* database object"""
+        # FIXME (12-Jan-12021) Disabled automatic schema upgrade
+        DB_VERSION_EXPECTED = '1.2.0'
 
-        Ignore:
-            aid_list = ibs.get_valid_aids()
-            #ibs.update_annot_visual_uuids(aid_list)
-            vuuid_list = ibs.get_annot_visual_uuids(aid_list)
-            aid_list2 =  ibs.get_annot_aids_from_visual_uuid(vuuid_list)
-            assert aid_list2 == aid_list
-            # v1.3.0 testdb1:264us, PZ_MTEST:3.93ms, PZ_Master0:11.6s
-            %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
-            # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
+        if self.is_using_postgres_db:
+            uri = self._base_uri
+        else:
+            uri = f'{self.base_uri}/{self.sqlstaging_fname}'
+        self.staging = dtool.SQLDatabaseController.from_uri(uri)
 
-            ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
-        """
-        from wbia.control import _sql_helpers
+        # BBB (12-Jan-12021) Disabled the ability to make the database read-only
+        self.readonly = False
+
+        # Upgrade the database
+        from wbia.control._sql_helpers import ensure_correct_version
         from wbia.control import STAGING_SCHEMA
 
-        # Before load, ensure database has been backed up for the day
-        backup_idx = ut.get_argval('--loadbackup-staging', type_=int, default=None)
-        sqlstaging_fpath = None
-        if backup_idx is not None:
-            backups = _sql_helpers.get_backup_fpaths(self)
-            logger.info('backups = %r' % (backups,))
-            sqlstaging_fpath = backups[backup_idx]
-            logger.info('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
-        # HACK
-        if backup_idx is None and self._needs_backup():
-            try:
-                _sql_helpers.ensure_daily_database_backup(
-                    self.get_ibsdir(), self.sqlstaging_fname, self.backupdir
-                )
-            except IOError as ex:
-                ut.printex(
-                    ex,
-                    ('Failed making daily backup. ' 'Run with --nobackup to disable'),
-                )
-                raise
-        # IBEIS SQL State Database
-        if request_stagingversion is None:
-            self.staging_version_expected = '1.2.0'
-        else:
-            self.staging_version_expected = request_stagingversion
-        # TODO: add this functionality to SQLController
-        if backup_idx is None:
-            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
-                self.get_dbname(),
-                self.get_ibsdir(),
-                self.sqlstaging_fname,
-                self.staging_version_expected,
-                version_next='1.2.0',
-            )
-            self.staging_version_expected = new_version
-            self.sqlstaging_fname = new_fname
-        if sqlstaging_fpath is None:
-            assert backup_idx is None
-            sqlstaging_fpath = join(self.get_ibsdir(), self.sqlstaging_fname)
-            readonly = None
-        else:
-            readonly = True
-        db_uri = 'sqlite:///{}'.format(realpath(sqlstaging_fpath))
-        self.staging = dtool.SQLDatabaseController.from_uri(
-            db_uri,
-            readonly=readonly,
+        ensure_correct_version(
+            self,
+            self.staging,
+            DB_VERSION_EXPECTED,
+            STAGING_SCHEMA,
+            verbose=True,
+            dobackup=not self.readonly,
         )
-        self.readonly = self.staging.readonly
-
-        if backup_idx is None:
-            # Ensure correct schema versions
-            _sql_helpers.ensure_correct_version(
-                self,
-                self.staging,
-                self.staging_version_expected,
-                STAGING_SCHEMA,
-                verbose=ut.VERBOSE,
-            )
-        # import sys
-        # sys.exit(1)
 
     @profile
     def _init_depcache(self):
@@ -889,6 +804,19 @@ class IBEISController(BASE_CLASS):
         _sql_helpers.database_backup(self.get_ibsdir(), self.sqldb_fname, self.backupdir)
         _sql_helpers.database_backup(
             self.get_ibsdir(), self.sqlstaging_fname, self.backupdir
+        )
+
+    def daily_backup_database(self):
+        from wbia.control import _sql_helpers
+
+        _sql_helpers.database_backup(
+            self.get_ibsdir(), self.sqldb_fname, self.backupdir, False
+        )
+        _sql_helpers.database_backup(
+            self.get_ibsdir(),
+            self.sqlstaging_fname,
+            self.backupdir,
+            False,
         )
 
     def _send_wildbook_request(self, wbaddr, payload=None):
