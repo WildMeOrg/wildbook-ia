@@ -30,7 +30,7 @@ def _discovery_table_columns(inspector, table_name):
                            row_number() over () - 1,
                            column_name,
                            coalesce(domain_name, data_type),
-                           is_nullable,
+                           CASE WHEN is_nullable = 'YES' THEN 0 ELSE 1 END,
                            column_default,
                            column_name = (
                                SELECT column_name
