@@ -118,47 +118,6 @@ def sanitize_sql(db, tablename_, columns=None):
         return tablename, columns
 
 
-def dev_test_new_schema_version(
-    dbname, sqldb_dpath, sqldb_fname, version_current, version_next=None
-):
-    """
-    HACK
-
-    hacky function to ensure that only developer sees the development schema
-    and only on test databases
-    """
-    TESTING_NEW_SQL_VERSION = version_current != version_next
-    if TESTING_NEW_SQL_VERSION:
-        logger.info('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
-        devdb_list = [
-            'PZ_MTEST',
-            'testdb1',
-            'testdb2',
-            'testdb_dst2',
-            'emptydatabase',
-        ]
-        testing_newschmea = ut.is_developer() and dbname in devdb_list
-        # testing_newschmea = False
-        # ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
-        if testing_newschmea:
-            # Set to true until the schema module is good then continue tests
-            # with this set to false
-            testing_force_fresh = True or ut.get_argflag('--force-fresh')
-            # Work on a fresh schema copy when developing
-            dev_sqldb_fname = ut.augpath(sqldb_fname, '_develop_schema')
-            sqldb_fpath = join(sqldb_dpath, sqldb_fname)
-            dev_sqldb_fpath = join(sqldb_dpath, dev_sqldb_fname)
-            ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
-            # Set testing schema version
-            # ibs.db_version_expected = '1.3.6'
-            logger.info('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
-            # logger.info('[sql] ... pass --force-fresh to reload any changes')
-            return version_next, dev_sqldb_fname
-        else:
-            logger.info('[ibs] NOT TESTING')
-    return version_current, sqldb_fname
-
-
 @six.add_metaclass(ut.ReloadingMetaclass)
 class SQLDatabaseController(object):
     """
