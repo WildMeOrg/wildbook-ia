@@ -59,7 +59,7 @@ RUN set -ex \
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-curvrank.git \
+ && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v1 \
  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
  && git fetch origin \
  && git checkout develop
