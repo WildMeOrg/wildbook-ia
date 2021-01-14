@@ -567,11 +567,19 @@ class SQLDatabaseController(object):
 
         return self
 
+    @property
+    def is_using_sqlite(self):
+        return self._engine.dialect.name == 'sqlite'
+
+    @property
+    def is_using_postgres(self):
+        return self._engine.dialect.name == 'postgresql'
+
     @contextmanager
     def connect(self):
         """Create a connection instance to wrap a SQL execution block as a context manager"""
         with self._engine.connect() as conn:
-            if self._engine.dialect.name == 'postgresql':
+            if self.is_using_postgres:
                 conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
                 conn.execute(text('SET SCHEMA :schema'), schema=self.schema)
                 initialize_postgresql_types(conn, self.schema)
@@ -690,7 +698,7 @@ class SQLDatabaseController(object):
         # ??? May be better to use the `dispose()` method?
         self.__init_engine()
         self.connection = self._engine.connect()
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             self.connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
             self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
 
@@ -698,7 +706,7 @@ class SQLDatabaseController(object):
         """
         backup_filepath = dst_fpath
         """
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             # TODO postgresql backup
             return
         else:
@@ -736,28 +744,28 @@ class SQLDatabaseController(object):
             # conn.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] shrink_memory')
         with self.connect() as conn:
             conn.execute('PRAGMA shrink_memory;')
 
     def vacuum(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] vaccum')
         with self.connect() as conn:
             conn.execute('VACUUM;')
 
     def integrity(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] vaccum')
         with self.connect() as conn:
             conn.execute('PRAGMA integrity_check;')
 
     def squeeze(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] squeeze')
         self.shrink_memory()
@@ -768,7 +776,7 @@ class SQLDatabaseController(object):
         # Note, this on introspects once. Repeated calls will pull the Table object
         # from the MetaData object.
         kw = {}
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             kw = {'schema': self.schema}
         return Table(
             table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
@@ -840,7 +848,7 @@ class SQLDatabaseController(object):
         parameterized_values = [
             {col: val for col, val in zip(colnames, params)} for params in params_iter
         ]
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             # postgresql column names are lowercase
             parameterized_values = [
                 {col.lower(): val for col, val in params.items()}
@@ -1879,7 +1887,7 @@ class SQLDatabaseController(object):
             raise ValueError(f'name cannot be an empty string paired with {definition}')
         elif not definition:
             raise ValueError(f'definition cannot be an empty string paired with {name}')
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             if (
                 name.endswith('rowid')
                 and 'INTEGER' in definition
@@ -1906,9 +1914,7 @@ class SQLDatabaseController(object):
         if not coldef_list:
             raise ValueError(f'empty coldef_list specified for {tablename}')
 
-        if self._engine.dialect.name == 'postgresql' and 'rowid' not in [
-            name for name, _ in coldef_list
-        ]:
+        if self.is_using_postgres and 'rowid' not in [name for name, _ in coldef_list]:
             coldef_list = [('rowid', 'SERIAL UNIQUE')] + list(coldef_list)
 
         # Check for invalid keyword arguments
@@ -2071,7 +2077,7 @@ class SQLDatabaseController(object):
                             '[sql] WARNING: multiple index inserted add '
                             'columns, may cause alignment issues'
                         )
-                    if self._engine.dialect.name == 'postgresql':
+                    if self.is_using_postgres:
                         # adjust for the additional "rowid" field
                         src += 1
                     colname_list.insert(src, dst)
@@ -2137,7 +2143,7 @@ class SQLDatabaseController(object):
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
 
         # Change owners of sequences from old table to new table
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             new_colnames = [name for name, _ in coldef_list]
             for colname, sequence in dependent_sequences:
                 if colname in new_colnames:
