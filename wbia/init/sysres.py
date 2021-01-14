@@ -418,18 +418,11 @@ def ensure_pz_mtest():
         >>> ensure_pz_mtest()
     """
     logger.info('ensure_pz_mtest')
-    from wbia import sysres
-
-    workdir = sysres.get_workdir()
-    mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
-    mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
-    logger.info('have mtest_dir=%r' % (mtest_dir,))
-    if os.getenv('POSTGRES'):
-        copy_sqlite_to_postgres(mtest_dir)
+    dbdir = ensure_db_from_url(const.ZIPPED_URLS.PZ_MTEST)
     # update the the newest database version
     import wbia
 
-    ibs = wbia.opendb('PZ_MTEST')
+    ibs = wbia.opendb(dbdir=dbdir)
     logger.info('cleaning up old database and ensureing everything is properly computed')
     ibs.db.vacuum()
     valid_aids = ibs.get_valid_aids()
