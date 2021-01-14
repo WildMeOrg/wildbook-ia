@@ -692,15 +692,9 @@ class SQLDatabaseController(object):
 
     def reboot(self):
         logger.info('[sql] reboot')
-        self.connection.close()
-        del self.connection
+        self._engine.dispose()
         # Re-initialize the engine
-        # ??? May be better to use the `dispose()` method?
         self.__init_engine()
-        self.connection = self._engine.connect()
-        if self.is_using_postgres:
-            self.connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
-            self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
 
     def backup(self, backup_filepath):
         """
