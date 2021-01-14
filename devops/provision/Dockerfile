@@ -59,8 +59,15 @@ RUN set -ex \
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v1 \
- && cd /wbia/wbia-plugin-curvrank/wbia_curvrank \
+ && git clone --recursive --branch develop-curvrank-v1 https://github.com/WildbookOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v1 \
+ && cd /wbia/wbia-plugin-curvrank-v1/wbia_curvrank \
+ && git fetch origin \
+ && git checkout develop
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive --branch develop-curvrank-v2 https://github.com/WildbookOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v2 \
+ && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
  && git fetch origin \
  && git checkout develop
 
@@ -152,7 +159,12 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank \
+ && cd /wbia/wbia-plugin-curvrank-v1 \
+ && ./unix_build.sh \
+ && pip install -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-curvrank-v2 \
  && ./unix_build.sh \
  && pip install -e .'
 
