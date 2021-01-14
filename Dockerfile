@@ -67,6 +67,10 @@ RUN set -x \
        libxext6 \
        #: opencv2 dependency
        libgl1 \
+       #: required to stop prompting by pgloader
+       libssl1.0.0 \
+       #: sqlite->postgres dependency
+       pgloader \
        #: dev debug dependency
        #: python3-dev required to build 'annoy'
        python3-dev \

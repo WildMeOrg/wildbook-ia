@@ -11,21 +11,23 @@ import collections
 import os
 import parse
 import re
-import threading
 import uuid
 from collections.abc import Mapping, MutableMapping
+from contextlib import contextmanager
 from os.path import join, exists
 
 import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
+from sqlalchemy.engine import LegacyRow
 from sqlalchemy.schema import Table
 from sqlalchemy.sql import bindparam, text, ClauseElement
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
 from wbia.dtool.types import Integer, TYPE_TO_SQLTYPE
+from wbia.dtool.types import initialize_postgresql_types
 
 
 print, rrr, profile = ut.inject2(__name__)
@@ -65,6 +67,80 @@ METADATA_TABLE_COLUMNS = {
     'constraint': dict(is_coded_data=False),
 }
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
+
+
+def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
+    kw = {
+        # The echo flag is a shortcut to set up SQLAlchemy logging
+        'echo': False,
+    }
+    if uri.startswith('sqlite:') and ':memory:' in uri:
+        # Don't share engines for in memory sqlite databases
+        return sqlalchemy.create_engine(uri, **kw)
+    if uri not in ENGINES:
+        if uri.startswith('postgresql:'):
+            # pool_size is not available for sqlite
+            kw['pool_size'] = POSTGRESQL_POOL_SIZE
+        ENGINES[uri] = sqlalchemy.create_engine(uri, **kw)
+    return ENGINES[uri]
+
+
+def sqlite_uri_to_postgres_uri_schema(uri):
+    from wbia.init.sysres import get_workdir
+
+    workdir = os.path.normpath(os.path.abspath(get_workdir()))
+    base_db_uri = os.getenv('WBIA_BASE_DB_URI')
+    namespace = None
+    if base_db_uri and uri.startswith(f'sqlite:///{workdir}'):
+        # Change sqlite uri to postgres uri
+
+        # Remove sqlite:///{workdir} from uri
+        # -> /NAUT_test/_ibsdb/_ibeis_cache/chipcache4.sqlite
+        sqlite_db_path = uri[len(f'sqlite:///{workdir}') :]
+
+        # ['', 'naut_test', '_ibsdb', '_ibeis_cache', 'chipcache4.sqlite']
+        sqlite_db_path_parts = sqlite_db_path.lower().split(os.path.sep)
+
+        if len(sqlite_db_path_parts) > 2:
+            # naut_test
+            db_name = sqlite_db_path_parts[1]
+            # chipcache4
+            namespace = os.path.splitext(sqlite_db_path_parts[-1])[0]
+
+            # postgresql://wbia@db/naut_test
+            uri = f'{base_db_uri}/{db_name}'
+        else:
+            raise RuntimeError(
+                f'uri={uri} sqlite_db_path={sqlite_db_path} sqlite_db_path_parts={sqlite_db_path_parts}'
+            )
+
+    return (uri, namespace)
+
+
+def compare_coldef_lists(coldef_list1, coldef_list2):
+    # Remove "rowid" which is added to postgresql tables
+    # Remove "default nextval" for postgresql auto-increment fields as sqlite
+    # doesn't need it
+    coldef_list1 = [
+        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
+        for name, coldef in coldef_list1
+        if name != 'rowid'
+    ]
+    coldef_list2 = [
+        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
+        for name, coldef in coldef_list2
+        if name != 'rowid'
+    ]
+    if len(coldef_list1) != len(coldef_list2):
+        return coldef_list1, coldef_list2
+    for i in range(len(coldef_list1)):
+        name1, coldef1 = coldef_list1[i]
+        name2, coldef2 = coldef_list2[i]
+        if name1 != name2:
+            return coldef_list1, coldef_list2
+        if coldef1 != coldef2:
+            return coldef_list1, coldef_list2
+    return
 
 
 def _unpacker(results):
@@ -209,10 +285,23 @@ class SQLDatabaseController(object):
             def version(self, value):
                 if not value:
                     raise ValueError(value)
-                stmt = text(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value)'
-                    'VALUES (:key, :value)'
-                )
+                dialect = self.ctrlr._engine.dialect.name
+                if dialect == 'sqlite':
+                    stmt = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value)'
+                        'VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    stmt = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
                 params = {'key': 'database_version', 'value': value}
                 self.ctrlr.executeone(stmt, params)
 
@@ -237,10 +326,23 @@ class SQLDatabaseController(object):
                     raise ValueError(value)
                 elif isinstance(value, uuid.UUID):
                     value = str(value)
-                stmt = text(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) '
-                    'VALUES (:key, :value)'
-                )
+                dialect = self.ctrlr._engine.dialect.name
+                if dialect == 'sqlite':
+                    stmt = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) '
+                        'VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    stmt = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
                 params = {'key': 'database_init_uuid', 'value': value}
                 self.ctrlr.executeone(stmt, params)
 
@@ -329,11 +431,23 @@ class SQLDatabaseController(object):
                 key = self._get_key_name(name)
 
                 # Insert or update the record
-                # FIXME postgresql (4-Aug-12020) 'insert or replace' is not valid for postgresql
-                statement = text(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
-                    f'(metadata_key, metadata_value) VALUES (:key, :value)'
-                )
+                dialect = self.ctrlr._engine.dialect.name
+                if dialect == 'sqlite':
+                    statement = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
+                        f'(metadata_key, metadata_value) VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    statement = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
                 params = {
                     'key': key,
                     'value': value,
@@ -429,11 +543,11 @@ class SQLDatabaseController(object):
 
     def __init_engine(self):
         """Create the SQLAlchemy Engine"""
-        self._engine = sqlalchemy.create_engine(
-            self.uri,
-            # The echo flag is a shortcut to set up SQLAlchemy logging
-            echo=False,
-        )
+        if os.getenv('POSTGRES'):
+            uri, schema = sqlite_uri_to_postgres_uri_schema(self.uri)
+            self.uri = uri
+            self.schema = schema
+        self._engine = create_engine(self.uri)
 
     @classmethod
     def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
@@ -478,9 +592,6 @@ class SQLDatabaseController(object):
         self._sa_metadata.reflect(bind=self._engine)
 
         self._tablenames = None
-        # FIXME (31-Jul-12020) rename to private attribute
-        self.thread_connections = {}
-        self._connection = None
 
         if not self.readonly:
             # Ensure the metadata table is initialized.
@@ -493,65 +604,15 @@ class SQLDatabaseController(object):
 
         return self
 
+    @contextmanager
     def connect(self):
-        """Create a connection for the instance or use the existing connection"""
-        self._connection = self._engine.connect()
-        return self._connection
-
-    @property
-    def connection(self):
-        """Create a connection or reuse the existing connection"""
-        # TODO (31-Jul-12020) Grab the correct connection for the thread.
-        if self._connection is not None:
-            conn = self._connection
-        else:
-            conn = self.connect()
-        return conn
-
-    def _create_connection(self):
-        path = self.uri.replace('sqlite://', '')
-        if not exists(path):
-            logger.info('[sql] Initializing new database: %r' % (self.uri,))
-            if self.readonly:
-                raise AssertionError('Cannot open a new database in readonly mode')
-        # Open the SQL database connection with support for custom types
-        # lite.enable_callback_tracebacks(True)
-
-        # References:
-        # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
-        uri = self.uri
-        if self.readonly:
-            uri += '?mode=ro'
-        engine = sqlalchemy.create_engine(
-            uri,
-            echo=False,
-        )
-        connection = engine.connect()
-
-        # Keep track of what thead this was started in
-        threadid = threading.current_thread()
-        self.thread_connections[threadid] = connection
-
-        return connection, uri
-
-    def close(self):
-        self.connection.close()
-        self.thread_connections = {}
-
-    # def reconnect(db):
-    #     # Call this if we move into a new thread
-    #     assert db.fname != ':memory:', 'cant reconnect to mem'
-    #     connection, uri = db._create_connection()
-    #     db.connection = connection
-    #     db.cur = db.connection.cursor()
-
-    def thread_connection(self):
-        threadid = threading.current_thread()
-        if threadid in self.thread_connections:
-            connection = self.thread_connections[threadid]
-        else:
-            connection, uri = self._create_connection()
-        return connection
+        """Create a connection instance to wrap a SQL execution block as a context manager"""
+        with self._engine.connect() as conn:
+            if self._engine.dialect.name == 'postgresql':
+                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
+                conn.execute(text('SET SCHEMA :schema'), schema=self.schema)
+                initialize_postgresql_types(conn, self.schema)
+            yield conn
 
     @profile
     def _ensure_metadata_table(self):
@@ -563,8 +624,15 @@ class SQLDatabaseController(object):
         """
         try:
             orig_table_kw = self.get_table_autogen_dict(METADATA_TABLE_NAME)
-        except (sqlalchemy.exc.OperationalError, NameError):
+        except (
+            sqlalchemy.exc.OperationalError,  # sqlite error
+            sqlalchemy.exc.ProgrammingError,  # postgres error
+            NameError,
+        ):
             orig_table_kw = None
+            # Reset connection because schema was rolled back due to
+            # the error
+            self._connection = None
 
         meta_table_kw = ut.odict(
             [
@@ -659,67 +727,75 @@ class SQLDatabaseController(object):
         # ??? May be better to use the `dispose()` method?
         self.__init_engine()
         self.connection = self._engine.connect()
+        if self._engine.dialect.name == 'postgresql':
+            self.connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
+            self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
 
     def backup(self, backup_filepath):
         """
         backup_filepath = dst_fpath
         """
-        # Create a brand new conenction to lock out current thread and any others
-        connection, uri = self._create_connection()
-        # Start Exclusive transaction, lock out all other writers from making database changes
-        transaction = connection.begin()
-        connection.isolation_level = 'EXCLUSIVE'
-        connection.execute('BEGIN EXCLUSIVE')
-        # Assert the database file exists, and copy to backup path
-        path = self.uri.replace('sqlite://', '')
-        if exists(path):
-            ut.copy(path, backup_filepath)
+        if self._engine.dialect.name == 'postgresql':
+            # TODO postgresql backup
+            return
         else:
-            raise IOError(
-                'Could not backup the database as the URI does not exist: %r' % (uri,)
-            )
-        # Commit the transaction, releasing the lock
-        transaction.commit()
-        # Close the connection
-        connection.close()
+            # Assert the database file exists, and copy to backup path
+            path = self.uri.replace('sqlite://', '')
+            if not exists(path):
+                raise IOError(
+                    'Could not backup the database as the URI does not exist: %r'
+                    % (self.uri,)
+                )
+        # Start Exclusive transaction, lock out all other writers from making database changes
+        with self.connect() as conn:
+            conn.execute('BEGIN EXCLUSIVE')
+            ut.copy(path, backup_filepath)
 
     def optimize(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        if VERBOSE_SQL:
-            logger.info('[sql] running sql pragma optimizions')
-        # self.connection.execute('PRAGMA cache_size = 0;')
-        # self.connection.execute('PRAGMA cache_size = 1024;')
-        # self.connection.execute('PRAGMA page_size = 1024;')
-        # logger.info('[sql] running sql pragma optimizions')
-        self.connection.execute('PRAGMA cache_size = 10000;')  # Default: 2000
-        self.connection.execute('PRAGMA temp_store = MEMORY;')
-        self.connection.execute('PRAGMA synchronous = OFF;')
-        # self.connection.execute('PRAGMA synchronous = NORMAL;')
-        # self.connection.execute('PRAGMA synchronous = FULL;')  # Default
-        # self.connection.execute('PRAGMA parser_trace = OFF;')
-        # self.connection.execute('PRAGMA busy_timeout = 1;')
-        # self.connection.execute('PRAGMA default_cache_size = 0;')
+        logger.info('[sql] running sql pragma optimizions')
+
+        with self.connect() as conn:
+            # conn.execute('PRAGMA cache_size = 0;')
+            # conn.execute('PRAGMA cache_size = 1024;')
+            # conn.execute('PRAGMA page_size = 1024;')
+            # logger.info('[sql] running sql pragma optimizions')
+            conn.execute('PRAGMA cache_size = 10000;')  # Default: 2000
+            conn.execute('PRAGMA temp_store = MEMORY;')
+            conn.execute('PRAGMA synchronous = OFF;')
+            # conn.execute('PRAGMA synchronous = NORMAL;')
+            # conn.execute('PRAGMA synchronous = FULL;')  # Default
+            # conn.execute('PRAGMA parser_trace = OFF;')
+            # conn.execute('PRAGMA busy_timeout = 1;')
+            # conn.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] shrink_memory')
-        transaction = self.connection.begin()
-        self.connection.execute('PRAGMA shrink_memory;')
-        transaction.commit()
+        with self.connect() as conn:
+            conn.execute('PRAGMA shrink_memory;')
 
     def vacuum(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] vaccum')
-        transaction = self.connection.begin()
-        self.connection.execute('VACUUM;')
-        transaction.commit()
+        with self.connect() as conn:
+            conn.execute('VACUUM;')
 
     def integrity(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] vaccum')
-        transaction = self.connection.begin()
-        self.connection.execute('PRAGMA integrity_check;')
-        transaction.commit()
+        with self.connect() as conn:
+            conn.execute('PRAGMA integrity_check;')
 
     def squeeze(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         logger.info('[sql] squeeze')
         self.shrink_memory()
         self.vacuum()
@@ -728,8 +804,11 @@ class SQLDatabaseController(object):
         """Produces a SQLAlchemy Table object from the given ``table_name``"""
         # Note, this on introspects once. Repeated calls will pull the Table object
         # from the MetaData object.
+        kw = {}
+        if self._engine.dialect.name == 'postgresql':
+            kw = {'schema': self.schema}
         return Table(
-            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine
+            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
         )
 
     # ==============
@@ -798,6 +877,12 @@ class SQLDatabaseController(object):
         parameterized_values = [
             {col: val for col, val in zip(colnames, params)} for params in params_iter
         ]
+        if self._engine.dialect.name == 'postgresql':
+            # postgresql column names are lowercase
+            parameterized_values = [
+                {col.lower(): val for col, val in params.items()}
+                for params in parameterized_values
+            ]
         table = self._reflect_table(tblname)
 
         # It would be possible to do one insert,
@@ -806,16 +891,17 @@ class SQLDatabaseController(object):
         insert_stmt = sqlalchemy.insert(table)
 
         primary_keys = []
-        with self.connection.begin():  # new nested database transaction
-            for vals in parameterized_values:
-                result = self.connection.execute(insert_stmt.values(vals))
+        with self.connect() as conn:
+            with conn.begin():  # new nested database transaction
+                for vals in parameterized_values:
+                    result = conn.execute(insert_stmt.values(vals))
 
-                pk = result.inserted_primary_key
-                if unpack_scalars:
-                    # Assumption at the time of writing this is that the primary key is the SQLite rowid.
-                    # Therefore, we can assume the primary key is a single column value.
-                    pk = pk[0]
-                primary_keys.append(pk)
+                    pk = result.inserted_primary_key
+                    if unpack_scalars:
+                        # Assumption at the time of writing this is that the primary key is the SQLite rowid.
+                        # Therefore, we can assume the primary key is a single column value.
+                        pk = pk[0]
+                    primary_keys.append(pk)
         return primary_keys
 
     def add_cleanly(
@@ -1174,7 +1260,24 @@ class SQLDatabaseController(object):
                 **kwargs,
             )
 
-        return val_list
+        # This code is specifically for handling duplication in colnames
+        # because sqlalchemy removes them.
+        # e.g. select field1, field1, field2 from table;
+        # becomes
+        #      select field1, field2 from table;
+        # so the items in val_list only have 2 values
+        # but the caller isn't expecting it so it causes problems
+        returned_columns = tuple([c.name for c in stmt.columns])
+        if colnames == returned_columns:
+            return val_list
+
+        result = []
+        for val in val_list:
+            if isinstance(val, LegacyRow):
+                result.append(tuple(val[returned_columns.index(c)] for c in colnames))
+            else:
+                result.append(val)
+        return result
 
     def exists_where_eq(
         self,
@@ -1281,7 +1384,8 @@ class SQLDatabaseController(object):
             columns = ', '.join(colnames)
             ids_listing = ', '.join(map(str, id_iter))
             operation = f'SELECT {columns} FROM {tblname} WHERE rowid in ({ids_listing}) ORDER BY rowid ASC'
-            results = self.connection.execute(operation).fetchall()
+            with self.connect() as conn:
+                results = conn.execute(operation).fetchall()
             import numpy as np
 
             # ??? Why order the results if they are going to be sorted here?
@@ -1495,17 +1599,18 @@ class SQLDatabaseController(object):
         if id_colname == 'rowid':
             # Cast all item values to in, in case values are numpy.integer*
             # Strangely allow for None values
-            id_list = [id_ is not None and int(id_) or id_ for id_ in id_list]
+            id_list = [id_ if id_ is None else int(id_) for id_ in id_list]
         else:  # b/c rowid doesn't really exist as a column
             id_column = table.c[id_colname]
             where_clause = where_clause.bindparams(
                 bindparam(id_param_name, type_=id_column.type)
             )
         stmt = stmt.where(where_clause)
-        for i, id in enumerate(id_list):
-            params = {id_param_name: id}
-            params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
-            self.connection.execute(stmt, **params)
+        with self.connect() as conn:
+            for i, id in enumerate(id_list):
+                params = {id_param_name: id}
+                params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
+                conn.execute(stmt, **params)
 
     def delete(self, tblname, id_list, id_colname='rowid', **kwargs):
         """Deletes rows from a SQL table (``tblname``) by ID,
@@ -1520,15 +1625,16 @@ class SQLDatabaseController(object):
         if id_colname == 'rowid':
             # Cast all item values to in, in case values are numpy.integer*
             # Strangely allow for None values
-            id_list = [id_ is not None and int(id_) or id_ for id_ in id_list]
+            id_list = [id_ if id_ is None else int(id_) for id_ in id_list]
         else:  # b/c rowid doesn't really exist as a column
             id_column = table.c[id_colname]
             where_clause = where_clause.bindparams(
                 bindparam(id_param_name, type_=id_column.type)
             )
         stmt = stmt.where(where_clause)
-        for id in id_list:
-            self.connection.execute(stmt, {id_param_name: id})
+        with self.connect() as conn:
+            for id in id_list:
+                conn.execute(stmt, {id_param_name: id})
 
     def delete_rowids(self, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """
@@ -1596,49 +1702,51 @@ class SQLDatabaseController(object):
                 f"'operation' is a '{type(operation)}'"
             )
         # FIXME (12-Sept-12020) Allows passing through '?' (question mark) parameters.
-        results = self.connection.execute(operation, params)
+        with self.connect() as conn:
+            results = conn.execute(operation, params)
 
-        # BBB (12-Sept-12020) Retaining insertion rowid result
-        # FIXME postgresql (12-Sept-12020) This won't work in postgres.
-        #       Maybe see if ResultProxy.inserted_primary_key will work
-        if 'insert' in str(operation).lower():  # cast in case it's an SQLAlchemy object
-            # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
-            return [results.lastrowid]
-        elif not results.returns_rows:
-            return None
-        else:
-            if isinstance(operation, sqlalchemy.sql.selectable.Select):
-                # This code is specifically for handling duplication in colnames
-                # because sqlalchemy removes them.
-                # e.g. select field1, field1, field2 from table;
-                # becomes
-                #      select field1, field2 from table;
-                # so the items in val_list only have 2 values
-                # but the caller isn't expecting it so it causes problems
-                returned_columns = tuple([c.name for c in operation.columns])
-                raw_columns = tuple([c.name for c in operation._raw_columns])
-                if raw_columns != returned_columns:
-                    results_ = []
-                    for r in results:
-                        results_.append(
-                            tuple(r[returned_columns.index(c)] for c in raw_columns)
-                        )
-                    results = results_
-
-            values = list(
-                [
-                    # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
-                    row[0] if not keepwrap and len(row) == 1 else row
-                    for row in results
-                ]
-            )
-            # FIXME (28-Sept-12020) No rows results in an empty list. This behavior does not
-            #       match the resulting expectations of `fetchone`'s DBAPI spec.
-            #       If executeone is the shortcut of `execute` and `fetchone`,
-            #       the expectation should be to return according to DBAPI spec.
-            if use_fetchone_behavior and not values:  # empty list
-                values = None
-            return values
+            # BBB (12-Sept-12020) Retaining insertion rowid result
+            # FIXME postgresql (12-Sept-12020) This won't work in postgres.
+            #       Maybe see if ResultProxy.inserted_primary_key will work
+            if (
+                'insert' in str(operation).lower()
+            ):  # cast in case it's an SQLAlchemy object
+                # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+                return [results.lastrowid]
+            elif not results.returns_rows:
+                return None
+            else:
+                if isinstance(operation, sqlalchemy.sql.selectable.Select):
+                    # This code is specifically for handling duplication in colnames
+                    # because sqlalchemy removes them.
+                    # e.g. select field1, field1, field2 from table;
+                    # becomes
+                    #      select field1, field2 from table;
+                    # so the items in val_list only have 2 values
+                    # but the caller isn't expecting it so it causes problems
+                    returned_columns = tuple([c.name for c in operation.columns])
+                    raw_columns = tuple([c.name for c in operation._raw_columns])
+                    if raw_columns != returned_columns:
+                        results_ = []
+                        for r in results:
+                            results_.append(
+                                tuple(r[returned_columns.index(c)] for c in raw_columns)
+                            )
+                        results = results_
+                values = list(
+                    [
+                        # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+                        row[0] if not keepwrap and len(row) == 1 else row
+                        for row in results
+                    ]
+                )
+                # FIXME (28-Sept-12020) No rows results in an empty list. This behavior does not
+                #       match the resulting expectations of `fetchone`'s DBAPI spec.
+                #       If executeone is the shortcut of `execute` and `fetchone`,
+                #       the expectation should be to return according to DBAPI spec.
+                if use_fetchone_behavior and not values:  # empty list
+                    values = None
+                return values
 
     def executemany(
         self, operation, params_iter, unpack_scalars=True, keepwrap=False, **kwargs
@@ -1662,15 +1770,16 @@ class SQLDatabaseController(object):
             )
 
         results = []
-        with self.connection.begin():
-            for params in params_iter:
-                value = self.executeone(operation, params, keepwrap=keepwrap)
-                # Should only be used when the user wants back on value.
-                # Let the error bubble up if used wrong.
-                # Deprecated... Do not depend on the unpacking behavior.
-                if unpack_scalars:
-                    value = _unpacker(value)
-                results.append(value)
+        with self.connect() as conn:
+            with conn.begin():
+                for params in params_iter:
+                    value = self.executeone(operation, params, keepwrap=keepwrap)
+                    # Should only be used when the user wants back on value.
+                    # Let the error bubble up if used wrong.
+                    # Deprecated... Do not depend on the unpacking behavior.
+                    if unpack_scalars:
+                        value = _unpacker(value)
+                    results.append(value)
         return results
 
     def print_dbg_schema(self):
@@ -1713,7 +1822,20 @@ class SQLDatabaseController(object):
             'tablename': METADATA_TABLE_NAME,
             'columns': 'metadata_key, metadata_value',
         }
-        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (:key, :val)'
+        dialect = self._engine.dialect.name
+        if dialect == 'sqlite':
+            op_fmtstr = (
+                'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (:key, :val)'
+            )
+        elif dialect == 'postgresql':
+            op_fmtstr = f"""\
+                INSERT INTO {METADATA_TABLE_NAME}
+                    (metadata_key, metadata_value)
+                VALUES (:key, :val)
+                ON CONFLICT (metadata_key) DO UPDATE
+                    SET metadata_value = EXCLUDED.metadata_value"""
+        else:
+            raise RuntimeError(f'Unknown dialect {dialect}')
         operation = text(op_fmtstr.format(**fmtkw))
         params = {'key': key, 'val': val}
         self.executeone(operation, params, verbose=False)
@@ -1768,14 +1890,14 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         self.executeone(operation, [], verbose=False)
 
-    def __make_unique_constraint(self, column_or_columns):
+    def __make_unique_constraint(self, table_name, column_or_columns):
         """Creates a SQL ``CONSTRAINT`` clause for ``UNIQUE`` column data"""
         if not isinstance(column_or_columns, (list, tuple)):
             columns = [column_or_columns]
         else:
             # Cast as list incase it's a tuple, b/c tuple + list = error
             columns = list(column_or_columns)
-        constraint_name = '_'.join(['unique'] + columns)
+        constraint_name = '_'.join(['unique', table_name] + columns)
         columns_listing = ', '.join(columns)
         return f'CONSTRAINT {constraint_name} UNIQUE ({columns_listing})'
 
@@ -1785,6 +1907,13 @@ class SQLDatabaseController(object):
             raise ValueError(f'name cannot be an empty string paired with {definition}')
         elif not definition:
             raise ValueError(f'definition cannot be an empty string paired with {name}')
+        if self._engine.dialect.name == 'postgresql':
+            if (
+                name.endswith('rowid')
+                and 'INTEGER' in definition
+                and 'PRIMARY KEY' in definition
+            ):
+                definition = definition.replace('INTEGER', 'SERIAL')
         return f'{name} {definition}'
 
     def _make_add_table_sqlstr(
@@ -1805,6 +1934,11 @@ class SQLDatabaseController(object):
         if not coldef_list:
             raise ValueError(f'empty coldef_list specified for {tablename}')
 
+        if self._engine.dialect.name == 'postgresql' and 'rowid' not in [
+            name for name, _ in coldef_list
+        ]:
+            coldef_list = [('rowid', 'SERIAL UNIQUE')] + list(coldef_list)
+
         # Check for invalid keyword arguments
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
         if len(bad_kwargs) > 0:
@@ -1822,7 +1956,7 @@ class SQLDatabaseController(object):
         # Make a list of constraints to place on the table
         # superkeys = [(<column-name>, ...), ...]
         constraint_list = [
-            self.__make_unique_constraint(x)
+            self.__make_unique_constraint(tablename, x)
             for x in metadata_keyval.get('superkeys') or []
         ]
         constraint_list = ut.unique_ordered(constraint_list)
@@ -1931,6 +2065,14 @@ class SQLDatabaseController(object):
         colname_list = ut.take_column(coldef_list, 0)
         coltype_list = ut.take_column(coldef_list, 1)
 
+        # Find all dependent sequences so we can change the owners of the
+        # sequences to the new table (for postgresql)
+        dependent_sequences = [
+            (colname, re.search(r"nextval\('([^']*)'", coldef).group(1))
+            for colname, coldef in self.get_coldef_list(tablename)
+            if 'nextval' in coldef
+        ]
+
         colname_original_list = colname_list[:]
         colname_dict = {colname: colname for colname in colname_list}
         colmap_dict = {}
@@ -1957,6 +2099,9 @@ class SQLDatabaseController(object):
                             '[sql] WARNING: multiple index inserted add '
                             'columns, may cause alignment issues'
                         )
+                    if self._engine.dialect.name == 'postgresql':
+                        # adjust for the additional "rowid" field
+                        src += 1
                     colname_list.insert(src, dst)
                     coltype_list.insert(src, type_)
                     insert = True
@@ -2018,6 +2163,17 @@ class SQLDatabaseController(object):
                 metadata_keyval2[suffix] = val
 
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
+
+        # Change owners of sequences from old table to new table
+        if self._engine.dialect.name == 'postgresql':
+            new_colnames = [name for name, _ in coldef_list]
+            for colname, sequence in dependent_sequences:
+                if colname in new_colnames:
+                    self.executeone(
+                        text(
+                            f'ALTER SEQUENCE {sequence} OWNED BY {tablename_temp}.{colname}'
+                        )
+                    )
 
         # Copy data
         src_list = []
@@ -2090,8 +2246,10 @@ class SQLDatabaseController(object):
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        operation = text(f'DROP TABLE IF EXISTS {tablename}')
-        self.executeone(operation, [])
+        operation = f'DROP TABLE IF EXISTS {tablename}'
+        if self.uri.startswith('postgresql'):
+            operation = f'{operation} CASCADE'
+        self.executeone(text(operation), [])
 
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
@@ -2198,7 +2356,7 @@ class SQLDatabaseController(object):
                 col_type += ' PRIMARY KEY'
             elif column[3] == 1:
                 col_type += ' NOT NULL'
-            elif column[4] is not None:
+            if column[4] is not None:
                 default_value = six.text_type(column[4])
                 # HACK: add parens if the value contains parens in the future
                 # all default values should contain parens
@@ -2366,10 +2524,23 @@ class SQLDatabaseController(object):
     def get_table_names(self, lazy=False):
         """ Conveinience: """
         if not lazy or self._tablenames is None:
-            result = self.connection.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
-            tablename_list = result.fetchall()
+            dialect = self._engine.dialect.name
+            if dialect == 'sqlite':
+                stmt = "SELECT name FROM sqlite_master WHERE type='table'"
+                params = {}
+            elif dialect == 'postgresql':
+                stmt = text(
+                    """\
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_type='BASE TABLE'
+                    AND table_schema = :schema"""
+                )
+                params = {'schema': self.schema}
+            else:
+                raise RuntimeError(f'Unknown dialect {dialect}')
+            with self.connect() as conn:
+                result = conn.execute(stmt, **params)
+                tablename_list = result.fetchall()
             self._tablenames = {str(tablename[0]) for tablename in tablename_list}
         return self._tablenames
 
@@ -2491,9 +2662,38 @@ class SQLDatabaseController(object):
             ]
         """
         # check if the table exists first. Throws an error if it does not exist.
-        self.connection.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
-        result = self.connection.execute("PRAGMA TABLE_INFO('" + tablename + "')")
-        colinfo_list = result.fetchall()
+        with self.connect() as conn:
+            conn.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
+        dialect = self._engine.dialect.name
+        if dialect == 'sqlite':
+            stmt = f"PRAGMA TABLE_INFO('{tablename}')"
+            params = {}
+        elif dialect == 'postgresql':
+            stmt = text(
+                """SELECT
+                       row_number() over () - 1,
+                       column_name,
+                       coalesce(domain_name, data_type),
+                       CASE WHEN is_nullable = 'YES' THEN 0 ELSE 1 END,
+                       column_default,
+                       column_name = (
+                           SELECT column_name
+                           FROM information_schema.table_constraints
+                           NATURAL JOIN information_schema.constraint_column_usage
+                           WHERE table_name = :table_name
+                           AND constraint_type = 'PRIMARY KEY'
+                           AND table_schema = :table_schema
+                           LIMIT 1
+                       ) AS pk
+                FROM information_schema.columns
+                WHERE table_name = :table_name
+                AND table_schema = :table_schema"""
+            )
+            params = {'table_name': tablename, 'table_schema': self.schema}
+
+        with self.connect() as conn:
+            result = conn.execute(stmt, **params)
+            colinfo_list = result.fetchall()
         colrichinfo_list = [SQLColumnRichInfo(*colinfo) for colinfo in colinfo_list]
         return colrichinfo_list
 
@@ -2981,6 +3181,12 @@ class SQLDatabaseController(object):
                 extern_tablename_list,
                 extern_primarycolnames_list,
             ) = new_transferdata
+            if column_names[0] == 'rowid':
+                # This is a postgresql database, ignore the rowid column
+                # which is built-in to sqlite
+                column_names = column_names[1:]
+                column_list = column_list[1:]
+                extern_colx_list = [i - 1 for i in extern_colx_list]
             # FIXME: extract the primary rowid column a little bit nicer
             assert column_names[0].endswith('_rowid')
             old_rowid_list = column_list[0]

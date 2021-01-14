@@ -543,13 +543,14 @@ def get_imageset_gids(ibs, imgsetid_list):
     if NEW_INDEX_HACK:
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
-        ibs.db.connection.execute(
-            """
-            CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);
-            """.format(
-                GSG_RELATION_TABLE=const.GSG_RELATION_TABLE
+        with ibs.db.connect() as conn:
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);
+                """.format(
+                    GSG_RELATION_TABLE=const.GSG_RELATION_TABLE
+                )
             )
-        )
     gids_list = ibs.db.get(
         const.GSG_RELATION_TABLE,
         ('image_rowid',),

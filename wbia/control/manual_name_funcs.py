@@ -489,11 +489,12 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
         # logger.info(len(nid_list_))
-        ibs.db.connection.execute(
-            """
-            CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
-            """
-        )
+        with ibs.db.connect() as conn:
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
+                """
+            )
         aids_list = ibs.db.get(
             const.ANNOTATION_TABLE,
             (ANNOT_ROWID,),
@@ -516,7 +517,8 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         """.format(
             input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE
         )
-        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        with ibs.db.connect() as conn:
+            pair_list = conn.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         nidscol = np.array(ut.get_list_column(pair_list, 1))
         unique_nids, groupx = vt.group_indices(nidscol)
@@ -617,7 +619,7 @@ def get_name_exemplar_aids(ibs, nid_list):
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list = ibs.get_annot_name_rowids(aid_list)
         >>> exemplar_aids_list = ibs.get_name_exemplar_aids(nid_list)
-        >>> result = exemplar_aids_list
+        >>> result = [sorted(i) for i in exemplar_aids_list]
         >>> print(result)
         [[], [2, 3], [2, 3], [], [5, 6], [5, 6], [7], [8], [], [10], [], [12], [13]]
     """
@@ -659,7 +661,7 @@ def get_name_gids(ibs, nid_list):
         >>> ibs = wbia.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_name_rowids()
         >>> gids_list = ibs.get_name_gids(nid_list)
-        >>> result = gids_list
+        >>> result = [sorted(gids) for gids in gids_list]
         >>> print(result)
         [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
     """
@@ -1042,9 +1044,8 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> result += str(ibs._get_all_known_name_rowids())
         >>> print('----')
         >>> ibs.print_name_table()
+        >>> assert result == f'{name_rowid_list}\n[1, 2, 3, 4, 5, 6, 7]'
         >>> print(result)
-        [8, 9, 0, 10, 11, 0]
-        [1, 2, 3, 4, 5, 6, 7]
     """
     if ensure:
         name_rowid_list = ibs.add_names(name_text_list)

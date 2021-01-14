@@ -57,24 +57,25 @@ def hack_create_aidpair_index(ibs):
         CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({index_cols});
         """
     )
-    sqlcmd = sqlfmt.format(
-        index_name='aidpair_to_rowid',
-        table=ibs.const.REVIEW_TABLE,
-        index_cols=','.join([REVIEW_AID1, REVIEW_AID2]),
-    )
-    ibs.staging.connection.execute(sqlcmd)
-    sqlcmd = sqlfmt.format(
-        index_name='aid1_to_rowids',
-        table=ibs.const.REVIEW_TABLE,
-        index_cols=','.join([REVIEW_AID1]),
-    )
-    ibs.staging.connection.execute(sqlcmd)
-    sqlcmd = sqlfmt.format(
-        index_name='aid2_to_rowids',
-        table=ibs.const.REVIEW_TABLE,
-        index_cols=','.join([REVIEW_AID2]),
-    )
-    ibs.staging.connection.execute(sqlcmd)
+    with ibs.staging.connect() as conn:
+        sqlcmd = sqlfmt.format(
+            index_name='aidpair_to_rowid',
+            table=ibs.const.REVIEW_TABLE,
+            index_cols=','.join([REVIEW_AID1, REVIEW_AID2]),
+        )
+        conn.execute(sqlcmd)
+        sqlcmd = sqlfmt.format(
+            index_name='aid1_to_rowids',
+            table=ibs.const.REVIEW_TABLE,
+            index_cols=','.join([REVIEW_AID1]),
+        )
+        conn.execute(sqlcmd)
+        sqlcmd = sqlfmt.format(
+            index_name='aid2_to_rowids',
+            table=ibs.const.REVIEW_TABLE,
+            index_cols=','.join([REVIEW_AID2]),
+        )
+        conn.execute(sqlcmd)
 
 
 @register_ibs_method

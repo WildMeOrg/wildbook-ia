@@ -2167,7 +2167,8 @@ def dump_schema_sql():
 
     db = dt.SQLDatabaseController.from_uri(':memory:')
     DB_SCHEMA_CURRENT.update_current(db)
-    dump_str = dumps(db.connection)
+    with db.connect() as conn:
+        dump_str = dumps(conn)
     logger.info(dump_str)
 
     for tablename in db.get_table_names():
