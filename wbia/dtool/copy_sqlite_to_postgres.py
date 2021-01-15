@@ -133,12 +133,41 @@ LOAD DATABASE
     SET work_mem to '16MB',
         maintenance_work_mem to '512 MB'
 
-  CAST type uuid to uuid using sql-server-uniqueidentifier-to-uuid
+  CAST type uuid to uuid using wbia-uuid-bytes-to-uuid
 
   INCLUDING ONLY TABLE NAMES LIKE '%_with_rowid';
 """
         )
-    subprocess.check_output(['pgloader', fname])
+    wbia_uuid_loader = os.path.join(tempdir, 'wbia_uuid_loader.lisp')
+    # Copied from the built-in sql-server-uniqueidentifier-to-uuid
+    # transform in pgloader 3.6.2
+    # Prior to 3.6.2, the transform was for uuid in big-endian order
+    with open(wbia_uuid_loader, 'w') as f:
+        f.write(
+            """\
+(in-package :pgloader.transforms)
+
+(defmacro arr-to-bytes-rev (from to array)
+  `(loop for i from ,to downto ,from
+    with res = 0
+    do (setf (ldb (byte 8 (* 8 (- i,from))) res) (aref ,array i))
+    finally (return res)))
+
+(defun wbia-uuid-bytes-to-uuid (id)
+  (declare (type (or null (array (unsigned-byte 8) (16))) id))
+  (when id
+    (let ((uuid
+        (make-instance 'uuid:uuid
+               :time-low (arr-to-bytes-rev 0 3 id)
+               :time-mid (arr-to-bytes-rev 4 5 id)
+               :time-high (arr-to-bytes-rev 6 7 id)
+               :clock-seq-var (aref id 8)
+               :clock-seq-low (aref id 9)
+               :node (uuid::arr-to-bytes 10 15 id))))
+      (princ-to-string uuid))))
+"""
+        )
+    subprocess.check_output(['pgloader', '--load-lisp-file', wbia_uuid_loader, fname])
 
 
 def after_pgloader(engine, schema):
