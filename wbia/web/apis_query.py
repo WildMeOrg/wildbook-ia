@@ -1473,7 +1473,7 @@ def query_chips_graph_v2(
         >>> with wbia.opendb_with_web(db='PZ_MTEST') as (ibs, client):
         ...     resp = client.post('/api/query/graph/v2/', data=data)
         >>> resp.json
-        {'status': {'success': False, 'code': 608, 'message': 'Invalid image and/or annotation UUIDs (0, 1)', 'cache': -1}, 'response': {'invalid_image_uuid_list': [], 'invalid_annot_uuid_list': [[0, 'c544d25f-fd03-5a2d-6611-cd77430ca251']]}}
+        {'status': {'success': False, 'code': 608, 'message': 'Invalid image and/or annotation UUIDs (0, 1)', 'cache': -1}, 'response': {'invalid_image_uuid_list': [], 'invalid_annot_uuid_list': [[0, '...']]}}
 
     Example:
         >>> # DEBUG_SCRIPT
