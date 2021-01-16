@@ -16,7 +16,7 @@ from wbia.dtool.sql_control import (
 
 @pytest.fixture
 def ctrlr():
-    return SQLDatabaseController.from_uri('sqlite:///:memory:')
+    return SQLDatabaseController('sqlite:///:memory:', 'testing')
 
 
 def make_table_definition(name, depends_on=[]):
@@ -41,7 +41,7 @@ def make_table_definition(name, depends_on=[]):
 
 def test_instantiation_with_table_reflection(tmp_path):
     db_file = (tmp_path / 'testing.db').resolve()
-    creating_ctrlr = SQLDatabaseController.from_uri(f'sqlite:///{db_file}')
+    creating_ctrlr = SQLDatabaseController(f'sqlite:///{db_file}', 'testing')
     # Assumes `add_table` is functional. If you run into failing problems
     # check for failures around this method first.
     created_tables = []
@@ -62,7 +62,7 @@ def test_instantiation_with_table_reflection(tmp_path):
     del creating_ctrlr
 
     # Create the controller again for reflection (testing target)
-    ctrlr = SQLDatabaseController.from_uri(f'sqlite:///{db_file}')
+    ctrlr = SQLDatabaseController(f'sqlite:///{db_file}', 'testing')
     # Verify the tables are loaded on instantiation
     assert list(ctrlr._sa_metadata.tables.keys()) == ['metadata'] + created_tables
     # Note, we don't have to check for the contents of the tables,

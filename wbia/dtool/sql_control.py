@@ -89,38 +89,6 @@ def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
     return ENGINES[uri]
 
 
-def sqlite_uri_to_postgres_uri_schema(uri):
-    from wbia.init.sysres import get_workdir
-
-    workdir = os.path.normpath(os.path.abspath(get_workdir()))
-    base_db_uri = os.getenv('WBIA_BASE_DB_URI')
-    namespace = None
-    if base_db_uri and uri.startswith(f'sqlite:///{workdir}'):
-        # Change sqlite uri to postgres uri
-
-        # Remove sqlite:///{workdir} from uri
-        # -> /NAUT_test/_ibsdb/_ibeis_cache/chipcache4.sqlite
-        sqlite_db_path = uri[len(f'sqlite:///{workdir}') :]
-
-        # ['', 'naut_test', '_ibsdb', '_ibeis_cache', 'chipcache4.sqlite']
-        sqlite_db_path_parts = sqlite_db_path.lower().split(os.path.sep)
-
-        if len(sqlite_db_path_parts) > 2:
-            # naut_test
-            db_name = sqlite_db_path_parts[1]
-            # chipcache4
-            namespace = os.path.splitext(sqlite_db_path_parts[-1])[0]
-
-            # postgresql://wbia@db/naut_test
-            uri = f'{base_db_uri}/{db_name}'
-        else:
-            raise RuntimeError(
-                f'uri={uri} sqlite_db_path={sqlite_db_path} sqlite_db_path_parts={sqlite_db_path_parts}'
-            )
-
-    return (uri, namespace)
-
-
 def compare_coldef_lists(coldef_list1, coldef_list2):
     # Remove "rowid" which is added to postgresql tables
     # Remove "default nextval" for postgresql auto-increment fields as sqlite
@@ -506,41 +474,25 @@ class SQLDatabaseController(object):
 
     def __init_engine(self):
         """Create the SQLAlchemy Engine"""
-        if os.getenv('POSTGRES'):
-            uri, schema = sqlite_uri_to_postgres_uri_schema(self.uri)
-            self.uri = uri
-            self.schema = schema
         self._engine = create_engine(self.uri)
 
-    @classmethod
-    def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
+    def __init__(self, uri, name, readonly=READ_ONLY, timeout=TIMEOUT):
         """Creates a controller instance from a connection URI
+
+        The name is primarily used with Postgres. In Postgres the the name
+        acts as the database schema name, because all the "databases" are
+        stored within one Postgres database that is namespaced
+        with the given ``name``. (Special names like ``_ibeis_database``
+        are translated to the correct schema name during
+        the connection process.)
 
         Args:
             uri (str): connection string or uri
-            timeout (int): connection timeout in seconds
+            name (str): name of the database (e.g. chips, _ibeis_database, staging)
 
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
-            >>> sqldb_fname = u'test_database.sqlite3'
-            >>> path = os.path.join(sqldb_dpath, sqldb_fname)
-            >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
-            >>> db = SQLDatabaseController.from_uri(db_uri)
-            >>> db.print_schema()
-            >>> print(db)
-            >>> db2 = SQLDatabaseController.from_uri(db_uri, readonly=True)
-            >>> db.add_table('temptable', (
-            >>>     ('rowid',               'INTEGER PRIMARY KEY'),
-            >>>     ('key',                 'TEXT'),
-            >>>     ('val',                 'TEXT'),
-            >>> ),
-            >>>     superkeys=[('key',)])
-            >>> db2.print_schema()
         """
-        self = cls.__new__(cls)
         self.uri = uri
+        self.name = name
         self.timeout = timeout
         self.metadata = self.Metadata(self)
         self.readonly = readonly
@@ -549,7 +501,7 @@ class SQLDatabaseController(object):
         # Create a _private_ SQLAlchemy metadata instance
         # TODO (27-Sept-12020) Develop API to expose elements of SQLAlchemy.
         #      The MetaData is unbound to ensure we don't accidentally misuse it.
-        self._sa_metadata = sqlalchemy.MetaData()
+        self._sa_metadata = sqlalchemy.MetaData(schema=self.schema_name)
 
         # Reflect all known tables
         self._sa_metadata.reflect(bind=self._engine)
@@ -565,8 +517,6 @@ class SQLDatabaseController(object):
         # Optimize the database
         self.optimize()
 
-        return self
-
     @property
     def is_using_sqlite(self):
         return self._engine.dialect.name == 'sqlite'
@@ -575,14 +525,28 @@ class SQLDatabaseController(object):
     def is_using_postgres(self):
         return self._engine.dialect.name == 'postgresql'
 
+    @property
+    def schema_name(self):
+        """The name of the namespace schema (using with Postgres)."""
+        if self.is_using_postgres:
+            if self.name == '_ibeis_database':
+                schema = 'public'
+            elif self.name == '_ibeis_staging':
+                schema = 'staging'
+            else:
+                schema = self.name
+        else:
+            schema = None
+        return schema
+
     @contextmanager
     def connect(self):
         """Create a connection instance to wrap a SQL execution block as a context manager"""
         with self._engine.connect() as conn:
             if self.is_using_postgres:
-                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
-                conn.execute(text('SET SCHEMA :schema'), schema=self.schema)
-                initialize_postgresql_types(conn, self.schema)
+                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
+                conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
+                initialize_postgresql_types(conn, self.schema_name)
             yield conn
 
     @profile
@@ -668,7 +632,7 @@ class SQLDatabaseController(object):
             >>> import os
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> uuid_ = db.get_db_init_uuid()
             >>> print('New Database: %r is valid' % (uuid_, ))
             >>> assert isinstance(uuid_, uuid.UUID)
@@ -677,9 +641,9 @@ class SQLDatabaseController(object):
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> path = os.path.join(sqldb_dpath, sqldb_fname)
             >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
-            >>> db1 = SQLDatabaseController.from_uri(db_uri)
+            >>> db1 = SQLDatabaseController(db_uri, 'db1')
             >>> uuid_1 = db1.get_db_init_uuid()
-            >>> db2 = SQLDatabaseController.from_uri(db_uri)
+            >>> db2 = SQLDatabaseController(db_uri, 'db2')
             >>> uuid_2 = db2.get_db_init_uuid()
             >>> print('Existing Database: %r == %r' % (uuid_1, uuid_2, ))
             >>> assert uuid_1 == uuid_2
@@ -771,7 +735,7 @@ class SQLDatabaseController(object):
         # from the MetaData object.
         kw = {}
         if self.is_using_postgres:
-            kw = {'schema': self.schema}
+            kw = {'schema': self.schema_name}
         return Table(
             table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
         )
@@ -906,7 +870,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
             >>>     ('key',                 'TEXT'),
@@ -2355,7 +2319,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2390,7 +2354,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2507,7 +2471,7 @@ class SQLDatabaseController(object):
                     WHERE table_type='BASE TABLE'
                     AND table_schema = :schema"""
                 )
-                params = {'schema': self.schema}
+                params = {'schema': self.schema_name}
             else:
                 raise RuntimeError(f'Unknown dialect {dialect}')
             with self.connect() as conn:
@@ -2661,7 +2625,7 @@ class SQLDatabaseController(object):
                 WHERE table_name = :table_name
                 AND table_schema = :table_schema"""
             )
-            params = {'table_name': tablename, 'table_schema': self.schema}
+            params = {'table_name': tablename, 'table_schema': self.schema_name}
 
         with self.connect() as conn:
             result = conn.execute(stmt, **params)

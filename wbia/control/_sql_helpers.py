@@ -48,7 +48,7 @@ def _devcheck_backups():
     fpaths = sorted(ut.glob(join(dbdir, '_wbia_backups'), '*database_back*.sqlite3'))
     for fpath in fpaths:
         db_uri = 'sqlite:///{}'.format(realpath(fpath))
-        db = dt.SQLDatabaseController.from_uri(db_uri)
+        db = dt.SQLDatabaseController(db_uri, 'PZ_Master1')
         logger.info('fpath = %r' % (fpath,))
         num_edges = len(db.executeone('SELECT rowid from annotmatch'))
         logger.info('num_edges = %r' % (num_edges,))
@@ -186,7 +186,7 @@ def copy_database(src_fpath, dst_fpath):
     timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
     if not src_fpath.startswith('file:'):
         src_fpath = 'sqlite:///{}'.format(realpath(src_fpath))
-    db = dtool.SQLDatabaseController.from_uri(src_fpath, timeout=timeout)
+    db = dtool.SQLDatabaseController(src_fpath, 'copy', timeout=timeout)
     db.backup(dst_fpath)
 
 
@@ -548,6 +548,6 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
     db_uri = 'sqlite:///{}'.format(realpath(join(cachedir, db_fname)))
-    db = SQLDatabaseController.from_uri(db_uri)
+    db = SQLDatabaseController(db_uri, dbname)
     ensure_correct_version(None, db, version_expected, schema_spec, dobackup=False)
     return db

@@ -46,6 +46,7 @@ from wbia.init import sysres
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.dtool.dump import dump
+from pathlib import Path
 
 
 # Inject utool functions
@@ -678,7 +679,8 @@ class IBEISController(BASE_CLASS):
             uri = self._base_uri
         else:
             uri = f'{self.base_uri}/{self.sqldb_fname}'
-        self.db = dtool.SQLDatabaseController.from_uri(uri)
+        fname = Path(self.sqldb_fname).stem  # filename without extension
+        self.db = dtool.SQLDatabaseController(uri, fname)
 
         # BBB (12-Jan-12021) Disabled the ability to make the database read-only
         self.readonly = False
@@ -706,7 +708,8 @@ class IBEISController(BASE_CLASS):
             uri = self._base_uri
         else:
             uri = f'{self.base_uri}/{self.sqlstaging_fname}'
-        self.staging = dtool.SQLDatabaseController.from_uri(uri)
+        fname = Path(self.sqlstaging_fname).stem  # filename without extension
+        self.staging = dtool.SQLDatabaseController(uri, fname)
 
         # BBB (12-Jan-12021) Disabled the ability to make the database read-only
         self.readonly = False
