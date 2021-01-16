@@ -256,7 +256,8 @@ def request_IBEISController(
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.IBEISControl import *  # NOQA
-        >>> dbdir = 'testdb1'
+        >>> from wbia.init.sysres import get_workdir
+        >>> dbdir = '/'.join([get_workdir(), 'testdb1'])
         >>> ensure = True
         >>> wbaddr = None
         >>> verbose = True
