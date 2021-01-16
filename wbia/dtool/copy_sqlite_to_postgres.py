@@ -3,25 +3,68 @@
 Copy sqlite database into a postgresql database using pgloader (from
 apt-get)
 """
+import logging
 import os
 import re
 import subprocess
 import tempfile
+from pathlib import Path
 
 import sqlalchemy
-from wbia.dtool.sql_control import (
-    create_engine,
-    sqlite_uri_to_postgres_uri_schema,
-)
+
+from wbia.dtool.sql_control import create_engine
 
 
-def get_sqlite_db_paths(parent_dir):
-    for dirpath, dirnames, filenames in os.walk(parent_dir):
-        for filename in filenames:
-            if (
-                filename.endswith('.sqlite') or filename.endswith('.sqlite3')
-            ) and 'backup' not in filename:
-                yield os.path.join(dirpath, filename)
+logger = logging.getLogger('wbia')
+
+
+MAIN_DB_FILENAME = '_ibeis_database.sqlite3'
+STAGING_DB_FILENAME = '_ibeis_staging.sqlite3'
+CACHE_DIRECTORY_NAME = '_ibeis_cache'
+
+
+def get_sqlite_db_paths(db_dir: Path):
+    """Generates a sequence of sqlite database file paths.
+    The sequence will end with staging and the main database.
+
+    """
+    base_loc = (db_dir / '_ibsdb').resolve()
+    main_db = base_loc / MAIN_DB_FILENAME
+    staging_db = base_loc / STAGING_DB_FILENAME
+    cache_directory = base_loc / CACHE_DIRECTORY_NAME
+
+    # churn over the cache databases
+    for matcher in [
+        cache_directory.glob('**/*.sqlite'),
+        cache_directory.glob('**/*.sqlite3'),
+    ]:
+        for f in matcher:
+            if 'backup' in f.name:
+                continue
+            yield f.resolve()
+
+    if staging_db.exists():
+        # doesn't exist in test databases
+        yield staging_db
+    yield main_db
+
+
+def get_schema_name_from_uri(uri: str):
+    """Derives the schema name from a sqlite URI (e.g. sqlite:///foo/bar/baz.sqlite)"""
+    from wbia.init.sysres import get_workdir
+
+    workdir = Path(get_workdir()).resolve()
+    base_sqlite_uri = f'sqlite:///{workdir}'
+    db_path = Path(uri[len(base_sqlite_uri) :])
+    name = db_path.stem  # filename without extension
+
+    # special names
+    if name == '_ibeis_staging':
+        name = 'staging'
+    elif name == '_ibeis_database':
+        name = 'public'
+
+    return name
 
 
 def add_rowids(engine):
@@ -111,39 +154,49 @@ def after_pgloader(engine, schema):
     ).fetchall()
     for (table_name, pkey) in table_pkeys:
         new_table_name = table_name.replace('_with_rowid', '')
-        # Rename tables from "images_with_rowid" to "images"
-        connection.execute(f'ALTER TABLE {table_name} RENAME TO {new_table_name}')
-        # Create sequences for rowid fields
-        for column_name in ('rowid', pkey):
-            seq_name = f'{new_table_name}_{column_name}_seq'
-            connection.execute(f'CREATE SEQUENCE {seq_name}')
-            connection.execute(
-                f"SELECT setval('{seq_name}', (SELECT max({column_name}) FROM {new_table_name}))"
-            )
-            connection.execute(
-                f"ALTER TABLE {new_table_name} ALTER COLUMN {column_name} SET DEFAULT nextval('{seq_name}')"
-            )
-            connection.execute(
-                f'ALTER SEQUENCE {seq_name} OWNED BY {new_table_name}.{column_name}'
-            )
+        if '_with_rowid' in table_name:
+            # Rename tables from "images_with_rowid" to "images"
+            connection.execute(f'ALTER TABLE {table_name} RENAME TO {new_table_name}')
+            # Create sequences for rowid fields
+            for column_name in ('rowid', pkey):
+                seq_name = f'{new_table_name}_{column_name}_seq'
+                connection.execute(f'CREATE SEQUENCE {seq_name}')
+                connection.execute(
+                    f"SELECT setval('{seq_name}', (SELECT max({column_name}) FROM {new_table_name}))"
+                )
+                connection.execute(
+                    f"ALTER TABLE {new_table_name} ALTER COLUMN {column_name} SET DEFAULT nextval('{seq_name}')"
+                )
+                connection.execute(
+                    f'ALTER SEQUENCE {seq_name} OWNED BY {new_table_name}.{column_name}'
+                )
         # Set schema / namespace to "_ibeis_database" for example
         connection.execute(f'ALTER TABLE {new_table_name} SET SCHEMA {schema}')
 
 
-def copy_sqlite_to_postgres(parent_dir):
+def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
+    """Copies all the sqlite databases into a single postgres database
+
+    Args:
+        db_dir: the colloquial dbdir (i.e. directory containing '_ibsdb', 'smart_patrol', etc.)
+        postgres_uri: a postgres connection uri without the database name
+
+    """
+    # Done within a temporary directory for writing pgloader configuration files
     with tempfile.TemporaryDirectory() as tempdir:
-        for sqlite_db_path in get_sqlite_db_paths(parent_dir):
+        for sqlite_db_path in get_sqlite_db_paths(db_dir):
+            logger.info(f'working on {sqlite_db_path} ...')
+
+            sqlite_uri = f'sqlite:///{sqlite_db_path}'
             # create new tables with sqlite built-in rowid column
-            sqlite_engine = create_engine(f'sqlite:///{sqlite_db_path}')
+            sqlite_engine = create_engine(sqlite_uri)
 
             try:
                 add_rowids(sqlite_engine)
-                uri, schema = sqlite_uri_to_postgres_uri_schema(
-                    f'sqlite:///{os.path.realpath(sqlite_db_path)}'
-                )
-                engine = create_engine(uri)
-                before_pgloader(engine, schema)
-                run_pgloader(sqlite_db_path, uri, tempdir)
-                after_pgloader(engine, schema)
+                schema_name = get_schema_name_from_uri(sqlite_uri)
+                engine = create_engine(postgres_uri)
+                before_pgloader(engine, schema_name)
+                run_pgloader(sqlite_db_path, postgres_uri, tempdir)
+                after_pgloader(engine, schema_name)
             finally:
                 remove_rowids(sqlite_engine)
