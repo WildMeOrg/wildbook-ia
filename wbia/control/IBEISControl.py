@@ -415,7 +415,7 @@ class IBEISController(BASE_CLASS):
         """
         self._is_using_postgres_db = False
 
-        uri = ut.get_argval('--db-uri', default=None)
+        uri = sysres.get_wbia_db_uri(self.dbdir)
         if uri:
             if not uri.startswith('postgresql://'):
                 raise RuntimeError(
