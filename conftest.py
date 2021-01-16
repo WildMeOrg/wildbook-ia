@@ -17,3 +17,11 @@ def pytest_addoption(parser):
             "instead it will reuse the previous test run's db"
         ),
     )
+    parser.addoption(
+        '--with-postgres-uri',
+        dest='postgres_uri',
+        help=(
+            'used to enable tests to run against a Postgres database '
+            '(note, the uri should use a superuser role)'
+        ),
+    )
