@@ -23,6 +23,155 @@ STAGING_DB_FILENAME = '_ibeis_staging.sqlite3'
 CACHE_DIRECTORY_NAME = '_ibeis_cache'
 
 
+class SqliteDatabaseInfo:
+    def __init__(self, db_dir_or_db_uri):
+        self.engines = {}
+        self.metadata = {}
+        self.db_dir = None
+        if str(db_dir_or_db_uri).startswith('sqlite:///'):
+            self.db_uri = db_dir_or_db_uri
+            schema = get_schema_name_from_uri(self.db_uri)
+            engine = sqlalchemy.create_engine(self.db_uri)
+            self.engines[schema] = engine
+            self.metadata[schema] = sqlalchemy.MetaData(bind=engine)
+        else:
+            self.db_dir = Path(db_dir_or_db_uri)
+            for db_path in get_sqlite_db_paths(self.db_dir):
+                db_uri = f'sqlite:///{db_path}'
+                schema = get_schema_name_from_uri(db_uri)
+                engine = sqlalchemy.create_engine(db_uri)
+                self.engines[schema] = engine
+                self.metadata[schema] = sqlalchemy.MetaData(bind=engine)
+
+    def __str__(self):
+        if self.db_dir:
+            return f'<SqliteDatabaseInfo db_dir={self.db_dir}>'
+        return f'<SqliteDatabaseInfo db_uri={self.db_uri}>'
+
+    def get_schema(self):
+        return sorted(self.engines.keys())
+
+    def get_table_names(self):
+        for schema in sorted(self.metadata.keys()):
+            metadata = self.metadata[schema]
+            metadata.reflect()
+            for table in sorted(metadata.tables):
+                yield schema, table
+
+    def get_total_rows(self, schema, table_name):
+        result = self.engines[schema].execute(f'SELECT count(*) FROM {table_name}')
+        return result.fetchone()[0]
+
+    def get_random_rows(self, schema, table_name, max_rows=100):
+        table = self.metadata[schema].tables[table_name]
+        stmt = (
+            sqlalchemy.select([sqlalchemy.column('rowid'), table])
+            .order_by(sqlalchemy.text('random()'))
+            .limit(max_rows)
+        )
+        return self.engines[schema].execute(stmt)
+
+    def get_row(self, schema, table_name, rowid_):
+        table = self.metadata[schema].tables[table_name]
+        rowid = sqlalchemy.column('rowid')
+        stmt = sqlalchemy.select([rowid, table]).where(rowid == rowid_)
+        result = self.engines[schema].execute(stmt)
+        return result.fetchone()
+
+
+class PostgresDatabaseInfo:
+    def __init__(self, db_uri):
+        self.db_uri = db_uri
+        self.engine = sqlalchemy.create_engine(db_uri)
+        self.metadata = sqlalchemy.MetaData(bind=self.engine)
+
+    def __str__(self):
+        return f'<PostgresDatabaseInfo db_uri={self.db_uri}>'
+
+    def get_schema(self):
+        schemas = self.engine.execute(
+            'SELECT DISTINCT table_schema FROM information_schema.tables'
+        )
+        return sorted(
+            [s[0] for s in schemas if s[0] not in ('pg_catalog', 'information_schema')]
+        )
+
+    def get_table_names(self):
+        for schema in self.get_schema():
+            self.metadata.reflect(schema=schema)
+        return [tuple(table.split('.', 1)) for table in sorted(self.metadata.tables)]
+
+    def get_total_rows(self, schema, table_name):
+        result = self.engine.execute(f'SELECT count(*) FROM {schema}.{table_name}')
+        return result.fetchone()[0]
+
+    def get_random_rows(self, schema, table_name, max_rows=100):
+        table = self.metadata.tables[f'{schema}.{table_name}']
+        stmt = (
+            sqlalchemy.select([table])
+            .order_by(sqlalchemy.text('random()'))
+            .limit(max_rows)
+        )
+        return self.engine.execute(stmt)
+
+    def get_row(self, schema, table_name, rowid):
+        table = self.metadata.tables[f'{schema}.{table_name}']
+        stmt = sqlalchemy.select([table]).where(table.c['rowid'] == rowid)
+        result = self.engine.execute(stmt)
+        return result.fetchone()
+
+
+def rows_equal(row1, row2):
+    for e1, e2 in zip(row1, row2):
+        if type(e1) != type(e2):
+            return False
+        if isinstance(e1, float):
+            if abs(e1 - e2) >= 0.0001:
+                return False
+        elif e1 != e2:
+            return False
+    return True
+
+
+def compare_databases(db_info1, db_info2):
+    messages = []
+
+    # Compare schema
+    schema1 = db_info1.get_schema()
+    schema2 = db_info2.get_schema()
+
+    if schema1 != schema2:
+        messages.append(f'Schema difference: {schema1} != {schema2}')
+        return messages
+
+    # Compare tables
+    tables1 = list(db_info1.get_table_names())
+    tables2 = list(db_info2.get_table_names())
+    if tables1 != tables2:
+        messages.append(f'Table names difference: {tables1} != {tables2}')
+        return messages
+
+    # Compare number of rows
+    for schema, table in tables1:
+        total1 = db_info1.get_total_rows(schema, table)
+        total2 = db_info2.get_total_rows(schema, table)
+        if total1 != total2:
+            messages.append(
+                f'Total number of rows in "{schema}.{table}" difference: {total1} != {total2}'
+            )
+
+    # Compare data
+    for schema, table in tables1:
+        for row in db_info1.get_random_rows(schema, table):
+            row2 = db_info2.get_row(schema, table, row[0])
+            if not rows_equal(row, row2):
+                messages.append(
+                    f'Table "{schema}.{table}" data difference: {row} != {row2}'
+                )
+
+    return messages
+
+
 def get_sqlite_db_paths(db_dir: Path):
     """Generates a sequence of sqlite database file paths.
     The sequence will end with staging and the main database.

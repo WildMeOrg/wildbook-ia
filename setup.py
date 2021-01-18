@@ -282,6 +282,7 @@ KWARGS = OrderedDict(
     wbia-init-testdbs = wbia.cli.testdbs:main
     wbia-convert-hsdb = wbia.cli.convert_hsdb:main
     wbia-migrate-sqlite-to-postgres = wbia.cli.migrate_sqlite_to_postgres:main
+    wbia-compare-databases = wbia.cli.compare_databases:main
     """,
 )
 
