@@ -126,7 +126,7 @@ def rows_equal(row1, row2):
         if type(e1) != type(e2):
             return False
         if isinstance(e1, float):
-            if abs(e1 - e2) >= 0.0001:
+            if abs(e1 - e2) >= 0.0000000001:
                 return False
         elif e1 != e2:
             return False
@@ -232,6 +232,9 @@ def add_rowids(engine):
             f'CREATE TABLE {new_table} (rowid INTEGER NOT NULL UNIQUE, ',
             stmt,
         )
+        # Change "REAL" type to "DOUBLE" because "REAL" in postgresql
+        # only can only store 6 digits and so we'd lose precision
+        stmt = re.sub('REAL', 'DOUBLE', stmt)
         connection.execute(stmt)
         connection.execute(f'INSERT INTO {new_table} SELECT rowid, * FROM {table}')
 
