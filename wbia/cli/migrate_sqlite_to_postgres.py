@@ -27,8 +27,6 @@ def main(db_dir, db_uri):
     """"""
     click.echo(f'using {db_dir} ...')
 
-    # TODO Check that the database hasn't already been migrated.
-
     # Create the database if it doesn't exist
     engine = sqlalchemy.create_engine(db_uri)
     try:
@@ -47,14 +45,21 @@ def main(db_dir, db_uri):
     finally:
         engine.dispose()
 
-    # Migrate
-    copy_sqlite_to_postgres(Path(db_dir), db_uri)
-
-    # Verify the migration
+    # Check that the database hasn't already been migrated.
     db_infos = [
         SqliteDatabaseInfo(Path(db_dir)),
         PostgresDatabaseInfo(db_uri),
     ]
+    differences = compare_databases(*db_infos)
+
+    if not differences:
+        click.echo('Database already migrated')
+        sys.exit(0)
+
+    # Migrate
+    copy_sqlite_to_postgres(Path(db_dir), db_uri)
+
+    # Verify the migration
     differences = compare_databases(*db_infos)
 
     if differences:
