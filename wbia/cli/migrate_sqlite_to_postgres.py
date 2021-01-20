@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import re
 import sys
 from pathlib import Path
 
 import click
+import sqlalchemy
 
 from wbia.dtool.copy_sqlite_to_postgres import (
     copy_sqlite_to_postgres,
@@ -27,7 +29,23 @@ def main(db_dir, db_uri):
 
     # TODO Check that the database hasn't already been migrated.
 
-    # TODO Create the database if it doesn't exist
+    # Create the database if it doesn't exist
+    engine = sqlalchemy.create_engine(db_uri)
+    try:
+        engine.connect()
+    except sqlalchemy.exc.OperationalError as e:
+        m = re.search(r'database "([^"]*)" does not exist', str(e))
+        if m:
+            dbname = m.group(1)
+            engine = sqlalchemy.create_engine(db_uri.rsplit('/', 1)[0])
+            click.echo(f'Creating "{dbname}"...')
+            engine.execution_options(isolation_level='AUTOCOMMIT').execute(
+                f'CREATE DATABASE {dbname}'
+            )
+        else:
+            raise
+    finally:
+        engine.dispose()
 
     # Migrate
     copy_sqlite_to_postgres(Path(db_dir), db_uri)
