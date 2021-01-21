@@ -133,22 +133,38 @@ def rows_equal(row1, row2):
     return True
 
 
-def compare_databases(db_info1, db_info2):
+def compare_databases(db_info1, db_info2, exact=True):
     messages = []
 
     # Compare schema
-    schema1 = db_info1.get_schema()
-    schema2 = db_info2.get_schema()
+    schema1 = set(db_info1.get_schema())
+    schema2 = set(db_info2.get_schema())
+    if len(schema2) < len(schema1):
+        # Make sure db_info1 is the one with the smaller set
+        db_info2, db_info1 = db_info1, db_info2
+        schema2, schema1 = schema1, schema2
 
-    if schema1 != schema2:
+    if exact and schema1 != schema2:
         messages.append(f'Schema difference: {schema1} != {schema2}')
+        return messages
+    if not exact and not schema1:
+        messages.append(f'Schema in {db_info1} is empty')
+        return messages
+    if not exact and schema1.difference(schema2):
+        messages.append(f'Schema difference: {schema1} not in {schema2}')
         return messages
 
     # Compare tables
     tables1 = list(db_info1.get_table_names())
     tables2 = list(db_info2.get_table_names())
+    if not exact:
+        tables2 = [(schema, table) for schema, table in tables2 if schema in schema1]
     if tables1 != tables2:
-        messages.append(f'Table names difference: {tables1} != {tables2}')
+        messages.append(
+            'Table names difference: '
+            f'Only in {db_info1}={set(tables1).difference(tables2)} '
+            f'Only in {db_info2}={set(tables2).difference(tables1)}'
+        )
         return messages
 
     # Compare number of rows
@@ -351,6 +367,11 @@ def after_pgloader(engine, schema):
         connection.execute(f'ALTER TABLE {new_table_name} SET SCHEMA {schema}')
 
 
+def drop_schema(engine, schema_name):
+    connection = engine.connect()
+    connection.execute(f'DROP SCHEMA {schema_name} CASCADE')
+
+
 def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
     """Copies all the sqlite databases into a single postgres database
 
@@ -360,18 +381,28 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
 
     """
     # Done within a temporary directory for writing pgloader configuration files
+    pg_info = PostgresDatabaseInfo(postgres_uri)
+    pg_schema = pg_info.get_schema()
     with tempfile.TemporaryDirectory() as tempdir:
         for sqlite_db_path in get_sqlite_db_paths(db_dir):
             logger.info(f'working on {sqlite_db_path} ...')
 
             sqlite_uri = f'sqlite:///{sqlite_db_path}'
-            # create new tables with sqlite built-in rowid column
-            sqlite_engine = create_engine(sqlite_uri)
+            sl_info = SqliteDatabaseInfo(sqlite_uri)
+            if not compare_databases(sl_info, pg_info, exact=False):
+                logger.info(f'{sl_info} already migrated to {pg_info}')
+                continue
 
+            sqlite_engine = create_engine(sqlite_uri)
+            schema_name = get_schema_name_from_uri(sqlite_uri)
+            remove_rowids(sqlite_engine)
+            engine = create_engine(postgres_uri)
+            if schema_name in pg_schema:
+                logger.warning(f'Dropping schema "{schema_name}"')
+                drop_schema(engine, schema_name)
             try:
+                # create new tables with sqlite built-in rowid column
                 add_rowids(sqlite_engine)
-                schema_name = get_schema_name_from_uri(sqlite_uri)
-                engine = create_engine(postgres_uri)
                 before_pgloader(engine, schema_name)
                 run_pgloader(sqlite_db_path, postgres_uri, tempdir)
                 after_pgloader(engine, schema_name)
