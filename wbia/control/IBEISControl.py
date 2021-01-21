@@ -117,6 +117,11 @@ if ut.get_argflag('--curvrank'):
         (('--no-curvrank', '--nocurvrank'), 'wbia_curvrank._plugin'),
     ]
 
+if ut.get_argflag('--curvrank-v2'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-curvrank-v2', '--nocurvrankv2'), 'wbia_curvrank_v2._plugin'),
+    ]
+
 if ut.get_argflag('--deepsense'):
     AUTOLOAD_PLUGIN_MODNAMES += [
         (('--no-deepsense', '--nodeepsense'), 'wbia_deepsense._plugin'),
