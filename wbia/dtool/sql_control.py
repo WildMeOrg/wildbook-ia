@@ -530,7 +530,7 @@ class SQLDatabaseController(object):
         """The name of the namespace schema (using with Postgres)."""
         if self.is_using_postgres:
             if self.name == '_ibeis_database':
-                schema = 'public'
+                schema = 'main'
             elif self.name == '_ibeis_staging':
                 schema = 'staging'
             else:

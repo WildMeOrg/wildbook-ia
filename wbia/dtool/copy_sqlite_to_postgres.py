@@ -207,7 +207,7 @@ def get_schema_name_from_uri(uri: str):
     if name == '_ibeis_staging':
         name = 'staging'
     elif name == '_ibeis_database':
-        name = 'public'
+        name = 'main'
 
     return name
 
