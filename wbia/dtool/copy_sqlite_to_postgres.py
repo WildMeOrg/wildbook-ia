@@ -6,6 +6,7 @@ apt-get)
 import logging
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -212,11 +213,7 @@ def get_sqlite_db_paths(db_dir: Path):
 
 def get_schema_name_from_uri(uri: str):
     """Derives the schema name from a sqlite URI (e.g. sqlite:///foo/bar/baz.sqlite)"""
-    from wbia.init.sysres import get_workdir
-
-    workdir = Path(get_workdir()).resolve()
-    base_sqlite_uri = f'sqlite:///{workdir}'
-    db_path = Path(uri[len(base_sqlite_uri) :])
+    db_path = Path(uri[len('sqlite:///') :])
     name = db_path.stem  # filename without extension
 
     # special names
@@ -385,9 +382,12 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
     pg_schema = pg_info.get_schema()
     with tempfile.TemporaryDirectory() as tempdir:
         for sqlite_db_path in get_sqlite_db_paths(db_dir):
-            logger.info(f'working on {sqlite_db_path} ...')
+            temp_db_path = Path(tempdir) / sqlite_db_path.name
+            shutil.copy(sqlite_db_path, temp_db_path)
 
-            sqlite_uri = f'sqlite:///{sqlite_db_path}'
+            logger.info(f'working on {sqlite_db_path} as {temp_db_path} ...')
+
+            sqlite_uri = f'sqlite:///{temp_db_path}'
             sl_info = SqliteDatabaseInfo(sqlite_uri)
             if not compare_databases(sl_info, pg_info, exact=False):
                 logger.info(f'{sl_info} already migrated to {pg_info}')
@@ -404,7 +404,7 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
                 # create new tables with sqlite built-in rowid column
                 add_rowids(sqlite_engine)
                 before_pgloader(engine, schema_name)
-                run_pgloader(sqlite_db_path, postgres_uri, tempdir)
+                run_pgloader(temp_db_path, postgres_uri, tempdir)
                 after_pgloader(engine, schema_name)
             finally:
                 remove_rowids(sqlite_engine)
