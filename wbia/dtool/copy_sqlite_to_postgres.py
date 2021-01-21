@@ -183,14 +183,10 @@ def get_sqlite_db_paths(db_dir: Path):
     cache_directory = base_loc / CACHE_DIRECTORY_NAME
 
     # churn over the cache databases
-    for matcher in [
-        cache_directory.glob('**/*.sqlite'),
-        cache_directory.glob('**/*.sqlite3'),
-    ]:
-        for f in matcher:
-            if 'backup' in f.name:
-                continue
-            yield f.resolve()
+    for f in cache_directory.glob('*.sqlite'):
+        if 'backup' in f.name:
+            continue
+        yield f.resolve()
 
     if staging_db.exists():
         # doesn't exist in test databases
