@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import re
 import sys
 from pathlib import Path
@@ -14,6 +15,9 @@ from wbia.dtool.copy_sqlite_to_postgres import (
 )
 
 
+logger = logging.getLogger('wbia')
+
+
 @click.command()
 @click.option(
     '--db-dir', required=True, type=click.Path(exists=True), help='database location'
@@ -25,7 +29,11 @@ from wbia.dtool.copy_sqlite_to_postgres import (
 )
 def main(db_dir, db_uri):
     """"""
-    click.echo(f'using {db_dir} ...')
+    # Set up logging
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+
+    logger.info(f'using {db_dir} ...')
 
     # Create the database if it doesn't exist
     engine = sqlalchemy.create_engine(db_uri)
@@ -36,7 +44,7 @@ def main(db_dir, db_uri):
         if m:
             dbname = m.group(1)
             engine = sqlalchemy.create_engine(db_uri.rsplit('/', 1)[0])
-            click.echo(f'Creating "{dbname}"...')
+            logger.info(f'Creating "{dbname}"...')
             engine.execution_options(isolation_level='AUTOCOMMIT').execute(
                 f'CREATE DATABASE {dbname}'
             )
@@ -53,7 +61,7 @@ def main(db_dir, db_uri):
     differences = compare_databases(*db_infos)
 
     if not differences:
-        click.echo('Database already migrated')
+        logger.info('Database already migrated')
         sys.exit(0)
 
     # Migrate
@@ -63,12 +71,12 @@ def main(db_dir, db_uri):
     differences = compare_databases(*db_infos)
 
     if differences:
-        click.echo(f'Databases {db_infos[0]} and {db_infos[1]} are different:')
+        logger.info(f'Databases {db_infos[0]} and {db_infos[1]} are different:')
         for line in differences:
-            click.echo(line)
+            logger.info(line)
         sys.exit(1)
     else:
-        click.echo(f'Database {db_infos[0]} successfully migrated to {db_infos[1]}')
+        logger.info(f'Database {db_infos[0]} successfully migrated to {db_infos[1]}')
 
     sys.exit(0)
 
