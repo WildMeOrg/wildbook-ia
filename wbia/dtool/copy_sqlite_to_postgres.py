@@ -79,6 +79,15 @@ class SqliteDatabaseInfo:
         result = self.engines[schema].execute(stmt)
         return result.fetchone()
 
+    def get_column(self, schema, table_name, column_name='rowid'):
+        table = self.metadata[schema].tables[table_name]
+        if column_name == 'rowid':
+            column = sqlalchemy.column('rowid')
+        else:
+            column = table.c[column_name]
+        stmt = sqlalchemy.select(columns=[column], from_obj=table).order_by(column)
+        return self.engines[schema].execute(stmt)
+
 
 class PostgresDatabaseInfo:
     def __init__(self, db_uri):
@@ -120,6 +129,12 @@ class PostgresDatabaseInfo:
         stmt = sqlalchemy.select([table]).where(table.c['rowid'] == rowid)
         result = self.engine.execute(stmt)
         return result.fetchone()
+
+    def get_column(self, schema, table_name, column_name='rowid'):
+        table = self.metadata.tables[f'{schema}.{table_name}']
+        column = table.c[column_name]
+        stmt = sqlalchemy.select(column).order_by(column)
+        return self.engine.execute(stmt)
 
 
 def rows_equal(row1, row2):
@@ -176,6 +191,18 @@ def compare_databases(db_info1, db_info2, exact=True):
             messages.append(
                 f'Total number of rows in "{schema}.{table}" difference: {total1} != {total2}'
             )
+
+    # Compare rowid
+    for schema, table in tables1:
+        rowid1 = list(db_info1.get_column(schema, table))
+        rowid2 = list(db_info2.get_column(schema, table))
+        if rowid1 != rowid2:
+            messages.append(
+                f'Row ids in "{schema}.{table}" difference: '
+                f'Only in {db_info1}={set(rowid1).difference(rowid2)} '
+                f'Only in {db_info2}={set(rowid2).difference(rowid1)}'
+            )
+            return messages
 
     # Compare data
     for schema, table in tables1:
