@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import sys
 import click
 
@@ -7,6 +8,9 @@ from wbia.dtool.copy_sqlite_to_postgres import (
     PostgresDatabaseInfo,
     compare_databases,
 )
+
+
+logger = logging.getLogger('wbia')
 
 
 @click.command()
@@ -25,7 +29,21 @@ from wbia.dtool.copy_sqlite_to_postgres import (
     multiple=True,
     help='Postgres connection URI (e.g. postgresql://user:pass@host)',
 )
-def main(db_dir, sqlite_uri, pg_uri):
+@click.option(
+    '-v',
+    '--verbose',
+    is_flag=True,
+    default=False,
+    help='Show debug messages',
+)
+def main(db_dir, sqlite_uri, pg_uri, verbose):
+    if verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
+    logger.addHandler(logging.StreamHandler())
+
     if len(db_dir) + len(sqlite_uri) + len(pg_uri) != 2:
         raise click.BadParameter('exactly 2 db_dir or sqlite_uri or pg_uri must be given')
     db_infos = []

@@ -33,10 +33,20 @@ logger = logging.getLogger('wbia')
     default=False,
     help='Delete all tables in the public schema in postgres',
 )
-def main(db_dir, db_uri, force):
+@click.option(
+    '-v',
+    '--verbose',
+    is_flag=True,
+    default=False,
+    help='Show debug messages',
+)
+def main(db_dir, db_uri, force, verbose):
     """"""
     # Set up logging
-    logger.setLevel(logging.DEBUG)
+    if verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
 
     logger.info(f'using {db_dir} ...')
