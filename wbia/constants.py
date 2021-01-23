@@ -270,6 +270,7 @@ ANNOTMATCH_TABLE = 'annotmatch'
 SPECIES_TABLE = 'species'
 RESIDUAL_TABLE = 'residuals'
 VERSIONS_TABLE = 'versions'
+WEIGHT_TABLE = 'weights'
 #
 PARTY_CONTRIB_RELATION_TABLE = 'party_contrib_relation'
 PARTY_TABLE = 'party'

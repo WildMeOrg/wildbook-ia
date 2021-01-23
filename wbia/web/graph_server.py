@@ -156,7 +156,7 @@ GRAPH_ACTOR_CLASS = ThreadActor
 
 class GraphActor(GRAPH_ACTOR_CLASS):
     def __init__(actor, *args, **kwargs):
-        super(ThreadedActorExecutor, actor).__init__(*args, **kwargs)
+        super(GraphActor, actor).__init__(*args, **kwargs)
 
     def handle(actor, message):
         if not isinstance(message, dict):

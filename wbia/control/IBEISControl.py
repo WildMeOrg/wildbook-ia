@@ -85,6 +85,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.control.manual_part_funcs',
     'wbia.control.manual_name_funcs',
     'wbia.control.manual_review_funcs',
+    'wbia.control.manual_edge_funcs',
     'wbia.control.manual_test_funcs',
     'wbia.control.manual_species_funcs',
     'wbia.control.manual_annotgroup_funcs',
