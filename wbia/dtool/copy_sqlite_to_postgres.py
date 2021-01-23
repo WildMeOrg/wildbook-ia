@@ -22,6 +22,9 @@ logger = logging.getLogger('wbia')
 MAIN_DB_FILENAME = '_ibeis_database.sqlite3'
 STAGING_DB_FILENAME = '_ibeis_staging.sqlite3'
 CACHE_DIRECTORY_NAME = '_ibeis_cache'
+DEFAULT_CHECK_PC = 0.1
+DEFAULT_CHECK_MAX = 100
+DEFAULT_CHECK_MIN = 10
 
 
 class SqliteDatabaseInfo:
@@ -63,12 +66,23 @@ class SqliteDatabaseInfo:
         result = self.engines[schema].execute(f'SELECT count(*) FROM {table_name}')
         return result.fetchone()[0]
 
-    def get_random_rows(self, schema, table_name, max_rows=100):
+    def get_random_rows(
+        self,
+        schema,
+        table_name,
+        percentage=DEFAULT_CHECK_PC,
+        max_rows=DEFAULT_CHECK_MAX,
+        min_rows=DEFAULT_CHECK_MIN,
+    ):
+        total_rows = self.get_total_rows(schema, table_name)
+        rows_to_check = max(int(total_rows * percentage), min_rows)
+        if max_rows > 0:
+            rows_to_check = min(rows_to_check, max_rows)
         table = self.metadata[schema].tables[table_name]
         stmt = (
             sqlalchemy.select([sqlalchemy.column('rowid'), table])
             .order_by(sqlalchemy.text('random()'))
-            .limit(max_rows)
+            .limit(rows_to_check)
         )
         return self.engines[schema].execute(stmt)
 
@@ -115,12 +129,23 @@ class PostgresDatabaseInfo:
         result = self.engine.execute(f'SELECT count(*) FROM {schema}.{table_name}')
         return result.fetchone()[0]
 
-    def get_random_rows(self, schema, table_name, max_rows=100):
+    def get_random_rows(
+        self,
+        schema,
+        table_name,
+        percentage=DEFAULT_CHECK_PC,
+        max_rows=DEFAULT_CHECK_MAX,
+        min_rows=DEFAULT_CHECK_MIN,
+    ):
+        total_rows = self.get_total_rows(schema, table_name)
+        rows_to_check = max(int(total_rows * percentage), min_rows)
+        if max_rows > 0:
+            rows_to_check = min(rows_to_check, max_rows)
         table = self.metadata.tables[f'{schema}.{table_name}']
         stmt = (
             sqlalchemy.select([table])
             .order_by(sqlalchemy.text('random()'))
-            .limit(max_rows)
+            .limit(rows_to_check)
         )
         return self.engine.execute(stmt)
 
@@ -149,7 +174,14 @@ def rows_equal(row1, row2):
     return True
 
 
-def compare_databases(db_info1, db_info2, exact=True):
+def compare_databases(
+    db_info1,
+    db_info2,
+    exact=True,
+    check_pc=DEFAULT_CHECK_PC,
+    check_min=DEFAULT_CHECK_MIN,
+    check_max=DEFAULT_CHECK_MAX,
+):
     messages = []
 
     # Compare schema
@@ -206,12 +238,17 @@ def compare_databases(db_info1, db_info2, exact=True):
 
     # Compare data
     for schema, table in tables1:
-        for row in db_info1.get_random_rows(schema, table):
+        n_rows = 0
+        for row in db_info1.get_random_rows(
+            schema, table, percentage=check_pc, min_rows=check_min, max_rows=check_max
+        ):
+            n_rows += 1
             row2 = db_info2.get_row(schema, table, row[0])
             if not rows_equal(row, row2):
                 messages.append(
                     f'Table "{schema}.{table}" data difference: {row} != {row2}'
                 )
+        logger.debug(f'Compared {n_rows} rows in {schema}.{table}')
 
     return messages
 
