@@ -262,17 +262,22 @@ def get_sqlite_db_paths(db_dir: Path):
     main_db = base_loc / MAIN_DB_FILENAME
     staging_db = base_loc / STAGING_DB_FILENAME
     cache_directory = base_loc / CACHE_DIRECTORY_NAME
+    paths = []
 
     # churn over the cache databases
     for f in cache_directory.glob('*.sqlite'):
         if 'backup' in f.name:
             continue
-        yield f.resolve()
+        paths.append(f.resolve())
 
     if staging_db.exists():
         # doesn't exist in test databases
-        yield staging_db
-    yield main_db
+        paths.append(staging_db)
+    paths.append(main_db)
+
+    # Sort databases by file size, smallest first
+    paths.sort(key=lambda a: a.stat().st_size)
+    return paths
 
 
 def get_schema_name_from_uri(uri: str):
