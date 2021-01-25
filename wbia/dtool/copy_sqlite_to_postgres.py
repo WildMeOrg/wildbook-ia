@@ -56,12 +56,15 @@ class SqliteDatabaseInfo:
     def get_schema(self):
         return sorted(self.engines.keys())
 
-    def get_table_names(self):
+    def get_table_names(self, normalized=False):
         for schema in sorted(self.metadata.keys()):
             metadata = self.metadata[schema]
             metadata.reflect()
-            for table in sorted(metadata.tables):
-                yield schema, table
+            for table in sorted(metadata.tables, key=lambda a: a.lower()):
+                if normalized:
+                    yield schema.lower(), table.lower()
+                else:
+                    yield schema, table
 
     def get_total_rows(self, schema, table_name):
         result = self.engines[schema].execute(f'SELECT count(*) FROM {table_name}')
@@ -121,10 +124,14 @@ class PostgresDatabaseInfo:
             [s[0] for s in schemas if s[0] not in ('pg_catalog', 'information_schema')]
         )
 
-    def get_table_names(self):
+    def get_table_names(self, normalized=False):
         for schema in self.get_schema():
             self.metadata.reflect(schema=schema)
-        return [tuple(table.split('.', 1)) for table in sorted(self.metadata.tables)]
+        for table in sorted(self.metadata.tables, key=lambda a: a.lower()):
+            if normalized:
+                yield tuple(table.lower().split('.', 1))
+            else:
+                yield tuple(table.split('.', 1))
 
     def get_total_rows(self, schema, table_name):
         result = self.engine.execute(f'SELECT count(*) FROM {schema}.{table_name}')
@@ -215,8 +222,8 @@ def compare_databases(
         return messages
 
     # Compare tables
-    tables1 = list(db_info1.get_table_names())
-    tables2 = list(db_info2.get_table_names())
+    tables1 = list(db_info1.get_table_names(normalized=True))
+    tables2 = list(db_info2.get_table_names(normalized=True))
     if not exact:
         tables2 = [(schema, table) for schema, table in tables2 if schema in schema1]
     if tables1 != tables2:
@@ -228,39 +235,46 @@ def compare_databases(
         return messages
 
     # Compare number of rows
-    for schema, table in tables1:
-        total1 = db_info1.get_total_rows(schema, table)
-        total2 = db_info2.get_total_rows(schema, table)
+    tables1 = list(db_info1.get_table_names())
+    tables2 = list(db_info2.get_table_names())
+    normalized_schema1 = [s.lower() for s in schema1]
+    if not exact:
+        tables2 = [
+            (schema, table) for schema, table in tables2 if schema in normalized_schema1
+        ]
+    for (schema1, table1), (schema2, table2) in zip(tables1, tables2):
+        total1 = db_info1.get_total_rows(schema1, table1)
+        total2 = db_info2.get_total_rows(schema2, table2)
         if total1 != total2:
             messages.append(
-                f'Total number of rows in "{schema}.{table}" difference: {total1} != {total2}'
+                f'Total number of rows in "{schema2}.{table2}" difference: {total1} != {total2}'
             )
 
     # Compare rowid
-    for schema, table in tables1:
-        rowid1 = list(db_info1.get_column(schema, table))
-        rowid2 = list(db_info2.get_column(schema, table))
+    for (schema1, table1), (schema2, table2) in zip(tables1, tables2):
+        rowid1 = list(db_info1.get_column(schema1, table1))
+        rowid2 = list(db_info2.get_column(schema2, table2))
         if rowid1 != rowid2:
             messages.append(
-                f'Row ids in "{schema}.{table}" difference: '
+                f'Row ids in "{schema2}.{table2}" difference: '
                 f'Only in {db_info1}={set(rowid1).difference(rowid2)} '
                 f'Only in {db_info2}={set(rowid2).difference(rowid1)}'
             )
             return messages
 
     # Compare data
-    for schema, table in tables1:
+    for (schema1, table1), (schema2, table2) in zip(tables1, tables2):
         n_rows = 0
         for row in db_info1.get_random_rows(
-            schema, table, percentage=check_pc, min_rows=check_min, max_rows=check_max
+            schema1, table1, percentage=check_pc, min_rows=check_min, max_rows=check_max
         ):
             n_rows += 1
-            row2 = db_info2.get_row(schema, table, row[0])
+            row2 = db_info2.get_row(schema2, table2, row[0])
             if not rows_equal(row, row2):
                 messages.append(
-                    f'Table "{schema}.{table}" data difference: {row} != {row2}'
+                    f'Table "{schema2}.{table2}" data difference: {row} != {row2}'
                 )
-        logger.debug(f'Compared {n_rows} rows in {schema}.{table}')
+        logger.debug(f'Compared {n_rows} rows in {schema2}.{table2}')
 
     return messages
 
