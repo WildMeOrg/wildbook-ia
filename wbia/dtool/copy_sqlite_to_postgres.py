@@ -411,7 +411,13 @@ LOAD DATABASE
       (princ-to-string uuid))))
 """
         )
-    subprocess.check_output(['pgloader', '--load-lisp-file', wbia_uuid_loader, fname])
+    proc = subprocess.run(
+        ['pgloader', '--load-lisp-file', wbia_uuid_loader, fname],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    logger.debug(proc.stdout.decode())
+    proc.check_returncode()
 
 
 def after_pgloader(engine, schema):
@@ -468,6 +474,7 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
             temp_db_path = Path(tempdir) / sqlite_db_path.name
             shutil.copy(sqlite_db_path, temp_db_path)
 
+            logger.debug('*' * 60)  # b/c pgloader debug output can be lengthy
             logger.info(f'working on {sqlite_db_path} as {temp_db_path} ...')
 
             sqlite_uri = f'sqlite:///{temp_db_path}'
