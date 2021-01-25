@@ -423,8 +423,18 @@ LOAD DATABASE
     proc.check_returncode()
 
 
-def after_pgloader(engine, schema):
-    connection = engine.connect()
+def after_pgloader(sqlite_engine, pg_engine, schema):
+    # Some "NOT NULL" weren't migrated by pgloader for some reason
+    connection = pg_engine.connect()
+    sqlite_metadata = sqlalchemy.MetaData(bind=sqlite_engine)
+    sqlite_metadata.reflect()
+    for table in sqlite_metadata.tables.values():
+        for column in table.c:
+            if not column.primary_key and not column.nullable:
+                connection.execute(
+                    f'ALTER TABLE {table.name} ALTER COLUMN {column.name} SET NOT NULL'
+                )
+
     connection.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
     table_pkeys = connection.execute(
         """\
@@ -492,4 +502,4 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
             add_rowids(sqlite_engine)
             before_pgloader(engine, schema_name)
             run_pgloader(temp_db_path, postgres_uri, tempdir)
-            after_pgloader(engine, schema_name)
+            after_pgloader(sqlite_engine, engine, schema_name)
