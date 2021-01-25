@@ -38,7 +38,7 @@ RUN set -ex \
  && find /wbia/wbia* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wbia* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wildbook* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
 
 ##########################################################################################
 
