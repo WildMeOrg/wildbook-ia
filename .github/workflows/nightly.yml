@@ -34,7 +34,7 @@ jobs:
 
       # Build images
       - name: Build images
-        run: DOCKER_BUILDKIT=1 bash devops/build.sh ${{ matrix.images }}
+        run: bash devops/build.sh ${{ matrix.images }}
 
       # Log into image registries
       - name: Log into Docker Hub
