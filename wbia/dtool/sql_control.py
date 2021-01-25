@@ -90,19 +90,23 @@ def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
 
 
 def compare_coldef_lists(coldef_list1, coldef_list2):
-    # Remove "rowid" which is added to postgresql tables
-    # Remove "default nextval" for postgresql auto-increment fields as sqlite
-    # doesn't need it
-    coldef_list1 = [
-        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
-        for name, coldef in coldef_list1
-        if name != 'rowid'
-    ]
-    coldef_list2 = [
-        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
-        for name, coldef in coldef_list2
-        if name != 'rowid'
-    ]
+    def normalize(coldef_list):
+        for name, coldef in coldef_list:
+            # Remove "rowid" which is added to postgresql tables
+            if name != 'rowid':
+                coldef_ = coldef.lower()
+                # Remove "default nextval" for postgresql auto-increment fields
+                # as sqlite doesn't need it
+                coldef_ = re.sub(r' default \(nextval\(.*', '', coldef_)
+                # Consider bigint and integer the same
+                if 'bigint' in coldef_:
+                    coldef_ = re.sub(r"'([^']*)'::bigint", r'\1', coldef_)
+                    coldef_ = re.sub(r'\bbigint\b', 'integer', coldef_)
+                yield name.lower(), coldef_
+
+    coldef_list1 = list(normalize(coldef_list1))
+    coldef_list2 = list(normalize(coldef_list2))
+
     if len(coldef_list1) != len(coldef_list2):
         return coldef_list1, coldef_list2
     for i in range(len(coldef_list1)):
