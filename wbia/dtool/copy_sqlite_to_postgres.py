@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import sqlalchemy
 
 from wbia.dtool.sql_control import create_engine
@@ -163,14 +164,25 @@ class PostgresDatabaseInfo:
 
 
 def rows_equal(row1, row2):
+    """Check the rows' values for equality"""
     for e1, e2 in zip(row1, row2):
-        if type(e1) != type(e2):
+        if not _complex_type_equality_check(e1, e2):
             return False
-        if isinstance(e1, float):
-            if abs(e1 - e2) >= 0.0000000001:
-                return False
-        elif e1 != e2:
+    return True
+
+
+def _complex_type_equality_check(v1, v2):
+    """Returns True on the equality of ``v1`` and ``v2``; otherwise False"""
+    if type(v1) != type(v2):
+        return False
+    if isinstance(v1, float):
+        if abs(v1 - v2) >= 0.0000000001:
             return False
+    elif isinstance(v1, np.ndarray):
+        if (v1 != v2).any():  # see ndarray.any() for details
+            return False
+    elif v1 != v2:
+        return False
     return True
 
 
