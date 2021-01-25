@@ -341,17 +341,8 @@ def add_rowids(engine):
         stmt = re.sub('REAL', 'DOUBLE', stmt)
         connection.execute(stmt)
         connection.execute(f'INSERT INTO {new_table} SELECT rowid, * FROM {table}')
-
-
-def remove_rowids(engine):
-    connection = engine.connect()
-    create_table_stmts = connection.execute(
-        """\
-        SELECT name, sql FROM sqlite_master
-        WHERE name LIKE '%_with_rowid'"""
-    ).fetchall()
-    for table, stmt in create_table_stmts:
         connection.execute(f'DROP TABLE {table}')
+        connection.execute(f'ALTER TABLE {new_table} RENAME TO {table}')
 
 
 def before_pgloader(engine, schema):
@@ -391,9 +382,7 @@ LOAD DATABASE
 
   CAST type uuid to uuid using wbia-uuid-bytes-to-uuid,
        type ndarray to ndarray using byte-vector-to-bytea,
-       type numpy to numpy using byte-vector-to-bytea
-
-  INCLUDING ONLY TABLE NAMES LIKE '%_with_rowid';
+       type numpy to numpy using byte-vector-to-bytea;
 """
         )
     wbia_uuid_loader = os.path.join(tempdir, 'wbia_uuid_loader.lisp')
@@ -446,25 +435,21 @@ def after_pgloader(engine, schema):
         AND constraint_type = 'PRIMARY KEY'"""
     ).fetchall()
     for (table_name, pkey) in table_pkeys:
-        new_table_name = table_name.replace('_with_rowid', '')
-        if '_with_rowid' in table_name:
-            # Rename tables from "images_with_rowid" to "images"
-            connection.execute(f'ALTER TABLE {table_name} RENAME TO {new_table_name}')
-            # Create sequences for rowid fields
-            for column_name in ('rowid', pkey):
-                seq_name = f'{new_table_name}_{column_name}_seq'
-                connection.execute(f'CREATE SEQUENCE {seq_name}')
-                connection.execute(
-                    f"SELECT setval('{seq_name}', (SELECT max({column_name}) FROM {new_table_name}))"
-                )
-                connection.execute(
-                    f"ALTER TABLE {new_table_name} ALTER COLUMN {column_name} SET DEFAULT nextval('{seq_name}')"
-                )
-                connection.execute(
-                    f'ALTER SEQUENCE {seq_name} OWNED BY {new_table_name}.{column_name}'
-                )
+        # Create sequences for rowid fields
+        for column_name in ('rowid', pkey):
+            seq_name = f'{table_name}_{column_name}_seq'
+            connection.execute(f'CREATE SEQUENCE {seq_name}')
+            connection.execute(
+                f"SELECT setval('{seq_name}', (SELECT max({column_name}) FROM {table_name}))"
+            )
+            connection.execute(
+                f"ALTER TABLE {table_name} ALTER COLUMN {column_name} SET DEFAULT nextval('{seq_name}')"
+            )
+            connection.execute(
+                f'ALTER SEQUENCE {seq_name} OWNED BY {table_name}.{column_name}'
+            )
         # Set schema / namespace to "_ibeis_database" for example
-        connection.execute(f'ALTER TABLE {new_table_name} SET SCHEMA {schema}')
+        connection.execute(f'ALTER TABLE {table_name} SET SCHEMA {schema}')
 
 
 def drop_schema(engine, schema_name):
@@ -499,16 +484,12 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
 
             sqlite_engine = create_engine(sqlite_uri)
             schema_name = get_schema_name_from_uri(sqlite_uri)
-            remove_rowids(sqlite_engine)
             engine = create_engine(postgres_uri)
             if schema_name in pg_schema:
                 logger.warning(f'Dropping schema "{schema_name}"')
                 drop_schema(engine, schema_name)
-            try:
-                # create new tables with sqlite built-in rowid column
-                add_rowids(sqlite_engine)
-                before_pgloader(engine, schema_name)
-                run_pgloader(temp_db_path, postgres_uri, tempdir)
-                after_pgloader(engine, schema_name)
-            finally:
-                remove_rowids(sqlite_engine)
+            # Add sqlite built-in rowid column to tables
+            add_rowids(sqlite_engine)
+            before_pgloader(engine, schema_name)
+            run_pgloader(temp_db_path, postgres_uri, tempdir)
+            after_pgloader(engine, schema_name)
