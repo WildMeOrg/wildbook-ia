@@ -375,7 +375,9 @@ LOAD DATABASE
     SET work_mem to '16MB',
         maintenance_work_mem to '512 MB'
 
-  CAST type uuid to uuid using wbia-uuid-bytes-to-uuid
+  CAST type uuid to uuid using wbia-uuid-bytes-to-uuid,
+       type ndarray to ndarray using byte-vector-to-bytea,
+       type numpy to numpy using byte-vector-to-bytea
 
   INCLUDING ONLY TABLE NAMES LIKE '%_with_rowid';
 """
