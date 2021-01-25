@@ -102,6 +102,9 @@ def compare_coldef_lists(coldef_list1, coldef_list2):
                 if 'bigint' in coldef_:
                     coldef_ = re.sub(r"'([^']*)'::bigint", r'\1', coldef_)
                     coldef_ = re.sub(r'\bbigint\b', 'integer', coldef_)
+                # Consider double precision and real the same
+                if 'double precision' in coldef_:
+                    coldef_ = re.sub(r'\bdouble precision\b', 'real', coldef_)
                 yield name.lower(), coldef_
 
     coldef_list1 = list(normalize(coldef_list1))
