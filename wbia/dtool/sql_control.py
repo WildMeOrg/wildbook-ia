@@ -29,6 +29,8 @@ from wbia.dtool.dump import dumps
 from wbia.dtool.types import Integer, TYPE_TO_SQLTYPE
 from wbia.dtool.types import initialize_postgresql_types
 
+import tqdm
+
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -42,6 +44,8 @@ VERBOSE = ut.VERBOSE
 VERYVERBOSE = ut.VERYVERBOSE
 
 TIMEOUT = 600  # Wait for up to 600 seconds for the database to return from a locked state
+
+BATCH_SIZE = int(1e4)
 
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk')
@@ -1042,7 +1046,7 @@ class SQLDatabaseController(object):
         where_colnames,
         unpack_scalars=True,
         op='AND',
-        BATCH_SIZE=250000,
+        batch_size=BATCH_SIZE,
         **kwargs,
     ):
         """Executes a SQL select where the given parameters match/equal
@@ -1068,7 +1072,7 @@ class SQLDatabaseController(object):
                 id_iter=(p[0] for p in params_iter),
                 id_colname=where_colnames[0],
                 unpack_scalars=unpack_scalars,
-                BATCH_SIZE=BATCH_SIZE,
+                batch_size=batch_size,
                 **kwargs,
             )
         params_iter = list(params_iter)
@@ -1092,7 +1096,7 @@ class SQLDatabaseController(object):
                 **kwargs,
             )
 
-        params_per_batch = int(BATCH_SIZE / len(params_iter[0]))
+        params_per_batch = int(batch_size / len(params_iter[0]))
         result_map = {}
         stmt = sqlalchemy.select(
             [table.c[c] for c in tuple(where_colnames) + tuple(colnames)]
@@ -1102,7 +1106,10 @@ class SQLDatabaseController(object):
                 sqlalchemy.sql.bindparam('params', expanding=True)
             )
         )
-        for batch in range(int(len(params_iter) / params_per_batch) + 1):
+        batch_list = list(range(int(len(params_iter) / params_per_batch) + 1))
+        for batch in tqdm.tqdm(
+            batch_list, disable=len(batch_list) <= 1, desc='[db.get(%s)]' % (tblname,)
+        ):
             val_list = self.executeone(
                 stmt,
                 {
@@ -1334,7 +1341,7 @@ class SQLDatabaseController(object):
         id_colname='rowid',
         eager=True,
         assume_unique=False,
-        BATCH_SIZE=250000,
+        batch_size=BATCH_SIZE,
         **kwargs,
     ):
         """Get rows of data by ID
@@ -1412,10 +1419,14 @@ class SQLDatabaseController(object):
                 id_column = table.c[id_colname]
             stmt = sqlalchemy.select([id_column] + [table.c[c] for c in colnames])
             stmt = stmt.where(id_column.in_(bindparam('value', expanding=True)))
-            for batch in range(int(len(id_iter) / BATCH_SIZE) + 1):
+
+            batch_list = list(range(int(len(id_iter) / batch_size) + 1))
+            for batch in tqdm.tqdm(
+                batch_list, disable=len(batch_list) <= 1, desc='[db.get(%s)]' % (tblname,)
+            ):
                 val_list = self.executeone(
                     stmt,
-                    {'value': id_iter[batch * BATCH_SIZE : (batch + 1) * BATCH_SIZE]},
+                    {'value': id_iter[batch * batch_size : (batch + 1) * batch_size]},
                 )
 
                 for val in val_list:

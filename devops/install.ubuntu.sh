@@ -181,35 +181,35 @@ pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" -
 cp -r ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2 /tmp/cv2
 
 cd ${CODE}
-git clone --branch develop https://github.com/WildbookOrg/wildbook-ia.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-utool.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-vtool.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyhesaff.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyflann.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pydarknet.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-tpl-pyrf.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-deprecate-tpl-brambox
-git clone --branch develop https://github.com/WildbookOrg/wbia-deprecate-tpl-lightnet
-git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-cnn.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-flukematch.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-finfindr.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-deepsense.git
-git clone --branch develop https://github.com/WildbookOrg/wbia-plugin-pie.git
+git clone --branch develop https://github.com/WildMeOrg/wildbook-ia.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-utool.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-vtool.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyhesaff.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyflann.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pydarknet.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyrf.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox
+git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
+git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-cnn.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git
+git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
 
 cd ${CODE}
-git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-curvrank.git
+git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-curvrank.git
 cd wbia-plugin-curvrank/wbia_curvrank
 git fetch origin
 git checkout develop
 
 cd ${CODE}
-git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-kaggle7.git
+git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-kaggle7.git
 cd wbia-plugin-kaggle7/wbia_kaggle7
 git fetch origin
 git checkout develop
 
 cd ${CODE}
-git clone --recursive --branch develop https://github.com/WildbookOrg/wbia-plugin-lca.git
+git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-lca.git
 
 cd ${CODE}/wbia-utool
 ./run_developer_setup.sh

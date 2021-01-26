@@ -33,7 +33,7 @@ def wbia_compute_occurrences(ibs, gid_list, config=None, verbose=None):
         TODO: FIXME: good example of autogen doctest return failure
     """
     if config is None:
-        config = {'use_gps': False, 'seconds_thresh': 600}
+        config = {'use_gps': True, 'seconds_thresh': 60 * 5}
         # from wbia.algo import Config
         # config = Config.OccurrenceConfig().asdict()
     occur_labels, occur_gids = compute_occurrence_groups(

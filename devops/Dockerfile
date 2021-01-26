@@ -21,7 +21,7 @@ RUN set -ex \
  && cd /wbia/wbia-plugin-orientation/ \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wildbook-ia/ \
- && git checkout curvrank-v2 \
+ && git checkout develop \
  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
  && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
@@ -50,7 +50,7 @@ LABEL autoheal=true
 
 ARG VERSION="3.3.0"
 
-ARG VCS_URL="https://github.com/WildbookOrg/wildbook-ia"
+ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
 ARG VCS_REF="develop"
 

@@ -51,11 +51,12 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
 def get_dbinfo(
     ibs,
     verbose=True,
-    with_imgsize=False,
-    with_bytes=False,
-    with_contrib=False,
-    with_agesex=False,
+    with_imgsize=True,
+    with_bytes=True,
+    with_contrib=True,
+    with_agesex=True,
     with_header=True,
+    with_reviews=True,
     short=False,
     tag='dbinfo',
     aid_list=None,
@@ -224,16 +225,16 @@ def get_dbinfo(
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
-    if False:
+    if True:
         # Occurrence Info
         def compute_annot_occurrence_ids(ibs, aid_list):
             from wbia.algo.preproc import preproc_occurrence
+            import utool as ut
 
             gid_list = ibs.get_annot_gids(aid_list)
             gid2_aids = ut.group_items(aid_list, gid_list)
-            config = {'seconds_thresh': 4 * 60 * 60}
             flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
-                ibs, gid_list, config=config, verbose=False
+                ibs, gid_list, verbose=False
             )
             occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
             occurid2_aids = {
@@ -283,19 +284,19 @@ def get_dbinfo(
         # ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]
         # ut.square_pdist(ave_enc_time)
 
-    try:
-        am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[
-            0
-        ]
-        aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
-        undirected_tags = ibs.get_aidpair_tags(
-            aid_pairs.T[0], aid_pairs.T[1], directed=False
-        )
-        tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
-        tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
-        pair_tag_info = ut.map_dict_vals(len, tag_dict)
-    except Exception:
-        pair_tag_info = {}
+    # try:
+    #     am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[
+    #         0
+    #     ]
+    #     aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
+    #     undirected_tags = ibs.get_aidpair_tags(
+    #         aid_pairs.T[0], aid_pairs.T[1], directed=False
+    #     )
+    #     tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
+    #     tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
+    #     pair_tag_info = ut.map_dict_vals(len, tag_dict)
+    # except Exception:
+    #     pair_tag_info = {}
 
     # logger.info(ut.repr2(pair_tag_info))
 
@@ -558,14 +559,108 @@ def get_dbinfo(
     contributor_rowids = ibs.get_valid_contributor_rowids()
     num_contributors = len(contributor_rowids)
 
+    if verbose:
+        logger.info('Checking Review Info')
+
+    # Get reviewer statistics
+    def get_review_decision_stats(ibs, rid_list):
+        review_decision_list = ibs.get_review_decision_str(rid_list)
+        review_decision_to_rids = ut.group_items(rid_list, review_decision_list)
+        review_decision_stats = {
+            key: len(val) for key, val in review_decision_to_rids.items()
+        }
+        return review_decision_stats
+
+    def get_review_identity(rid_list):
+        review_identity_list = ibs.get_review_identity(rid_list)
+        review_identity_list = [
+            value.replace('user:web', 'human:web')
+            .replace('web:None', 'web')
+            .replace('auto_clf', 'vamp')
+            .replace(':', '[')
+            + ']'
+            for value in review_identity_list
+        ]
+        return review_identity_list
+
+    def get_review_identity_stats(ibs, rid_list):
+        review_identity_list = get_review_identity(rid_list)
+        review_identity_to_rids = ut.group_items(rid_list, review_identity_list)
+        review_identity_stats = {
+            key: len(val) for key, val in review_identity_to_rids.items()
+        }
+        return review_identity_to_rids, review_identity_stats
+
+    def get_review_participation(review_aids_list, value_list):
+        review_participation_dict = {}
+        for review_aids, value in zip(review_aids_list, value_list):
+            for value_ in [value, 'Any']:
+                if value_ not in review_participation_dict:
+                    review_participation_dict[value_] = {}
+                for aid in review_aids:
+                    if aid not in review_participation_dict[value_]:
+                        review_participation_dict[value_][aid] = 0
+                    review_participation_dict[value_][aid] += 1
+
+        for value in review_participation_dict:
+            values = list(review_participation_dict[value].values())
+            mean = np.mean(values)
+            std = np.std(values)
+            thresh = int(np.around(mean + 2 * std))
+            values = [
+                '%02d+' % (thresh,) if value >= thresh else '%02d' % (value,)
+                for value in values
+            ]
+            review_participation_dict[value] = ut.dict_hist(values)
+            review_participation_dict[value]['AVG'] = '%0.1f +/- %0.1f' % (
+                mean,
+                std,
+            )
+
+        return review_participation_dict
+
+    valid_rids = ibs._get_all_review_rowids()
+
+    review_decision_stats = get_review_decision_stats(ibs, valid_rids)
+    review_identity_to_rids, review_identity_stats = get_review_identity_stats(
+        ibs, valid_rids
+    )
+
+    review_identity_to_decision_stats = {
+        key: get_review_decision_stats(ibs, aids)
+        for key, aids in six.iteritems(review_identity_to_rids)
+    }
+
+    review_aids_list = ibs.get_review_aid_tuple(valid_rids)
+    review_decision_list = ibs.get_review_decision_str(valid_rids)
+    review_identity_list = get_review_identity(valid_rids)
+    review_decision_participation_dict = get_review_participation(
+        review_aids_list, review_decision_list
+    )
+    review_identity_participation_dict = get_review_participation(
+        review_aids_list, review_identity_list
+    )
+
+    review_tags_list = ibs.get_review_tags(valid_rids)
+    review_tag_list = [
+        review_tag if review_tag is None else '+'.join(sorted(review_tag))
+        for review_tag in review_tags_list
+    ]
+
+    review_tag_to_rids = ut.group_items(valid_rids, review_tag_list)
+    review_tag_stats = {key: len(val) for key, val in review_tag_to_rids.items()}
+
+    ut.embed()
+
     # print
-    num_tabs = 5
+    num_tabs = 30
 
     def align2(str_):
         return ut.align(str_, ':', ' :')
 
     def align_dict2(dict_):
-        str_ = ut.repr2(dict_, si=True)
+        # str_ = ut.repr2(dict_, si=True)
+        str_ = ut.repr3(dict_, si=True)
         return align2(str_)
 
     header_block_lines = [('+============================')] + (
@@ -626,17 +721,6 @@ def get_dbinfo(
         else []
     )
 
-    occurrence_block_lines = (
-        [
-            ('--' * num_tabs),
-            # ('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
-            # ('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
-            ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
-        ]
-        if not short
-        else []
-    )
-
     annot_per_qualview_block_lines = [
         None if short else '# Annots per Viewpoint = %s' % align_dict2(viewcode2_nAnnots),
         None if short else '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
@@ -644,23 +728,51 @@ def get_dbinfo(
 
     annot_per_agesex_block_lines = (
         [
-            '# Annots per Age = %s' % align_dict2(agetext2_nAnnots),
-            '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
+            ('# Annots per Age = %s' % align_dict2(agetext2_nAnnots)),
+            ('# Annots per Sex = %s' % align_dict2(sextext2_nAnnots)),
         ]
         if not short and with_agesex
         else []
     )
 
-    contributor_block_lines = (
+    occurrence_block_lines = (
         [
-            '# Images per contributor       = ' + align_dict2(contributor_tag_to_nImages),
-            '# Annots per contributor       = ' + align_dict2(contributor_tag_to_nAnnots),
-            '# Quality per contributor      = '
-            + ut.repr2(contributor_tag_to_qualstats, sorted_=True),
-            '# Viewpoint per contributor    = '
-            + ut.repr2(contributor_tag_to_viewstats, sorted_=True),
+            ('--' * num_tabs),
+            (
+                '# Occurrence Per Name (Resights) = %s'
+                % (align_dict2(resight_name_stats),)
+            ),
+            (
+                '# Annots per Encounter (Singlesights) = %s'
+                % (align_dict2(singlesight_annot_stats),)
+            ),
+            # ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
         ]
-        if with_contrib
+        if not short
+        else []
+    )
+
+    reviews_block_lines = (
+        [
+            ('--' * num_tabs),
+            ('# Reviews                    = %d' % len(valid_rids)),
+            ('# Reviews per Decision       = %s' % align_dict2(review_decision_stats)),
+            ('# Reviews per Reviewer       = %s' % align_dict2(review_identity_stats)),
+            (
+                '# Review Breakdown           = %s'
+                % align_dict2(review_identity_to_decision_stats)
+            ),
+            ('# Reviews with Tag           = %s' % align_dict2(review_tag_stats)),
+            (
+                '# Review Participation #1    = %s'
+                % align_dict2(review_decision_participation_dict)
+            ),
+            (
+                '# Review Participation #2    = %s'
+                % align_dict2(review_identity_participation_dict)
+            ),
+        ]
+        if with_reviews
         else []
     )
 
@@ -677,6 +789,30 @@ def get_dbinfo(
         else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
     ]
 
+    contributor_block_lines = (
+        [
+            ('--' * num_tabs),
+            (
+                '# Images per contributor       = '
+                + align_dict2(contributor_tag_to_nImages)
+            ),
+            (
+                '# Annots per contributor       = '
+                + align_dict2(contributor_tag_to_nAnnots)
+            ),
+            (
+                '# Quality per contributor      = '
+                + align_dict2(contributor_tag_to_qualstats)
+            ),
+            (
+                '# Viewpoint per contributor    = '
+                + align_dict2(contributor_tag_to_viewstats)
+            ),
+        ]
+        if with_contrib
+        else []
+    )
+
     info_str_lines = (
         header_block_lines
         + bytes_block_lines
@@ -684,16 +820,17 @@ def get_dbinfo(
         + name_block_lines
         + annot_block_lines
         + annot_per_basic_block_lines
-        + occurrence_block_lines
         + annot_per_qualview_block_lines
         + annot_per_agesex_block_lines
+        + occurrence_block_lines
+        + reviews_block_lines
         + img_block_lines
-        + contributor_block_lines
         + imgsize_stat_lines
+        + contributor_block_lines
         + [('L============================')]
     )
     info_str = '\n'.join(ut.filter_Nones(info_str_lines))
-    info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))
+    info_str2 = ut.indent(info_str, '[{tag}] '.format(tag=tag))
     if verbose:
         logger.info(info_str2)
     locals_ = locals()

@@ -945,9 +945,7 @@ def check_name_mapping_consistency(ibs, nx2_aids):
     """ checks that all the aids grouped in a name ahave the same name """
     # DEBUGGING CODE
     try:
-        from wbia import ibsfuncs
-
-        _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
+        _nids_list = unflat_map(ibs.get_annot_name_rowids, nx2_aids)
         assert all(map(ut.allsame, _nids_list))
     except Exception as ex:
         # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?

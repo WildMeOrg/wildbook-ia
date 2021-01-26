@@ -1011,6 +1011,7 @@ def _init_config(ibs):
     except IOError as ex:
         logger.error('*** failed to load general config', exc_info=ex)
         general_config = {}
+        ut.save_cPkl(config_fpath, general_config, verbose=ut.VERBOSE)
     current_species = general_config.get('current_species', None)
     logger.info('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
