@@ -535,6 +535,8 @@ def start_identify_annots_query(
         'curvrankdorsal',
         'curvrankfinfindrhybriddorsal',
         'curvrankfluke',
+        'curvranktwodorsal',
+        'curvranktwofluke',
     ):
         curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', '')
         if len(curvrank_daily_tag) > 144:

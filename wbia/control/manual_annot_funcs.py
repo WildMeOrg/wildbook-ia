@@ -2330,6 +2330,14 @@ def set_annot_viewpoints(
             # raise RuntimeError(message)
             logger.info(message)
         try:
+            ibs.wbia_plugin_curvrank_v2_delete_cache_optimized(
+                update_aid_list, 'CurvRankTwoDorsal'
+            )
+        except Exception:
+            message = 'Could not purge CurvRankTwoDorsal cache for viewpoint'
+            # raise RuntimeError(message)
+            logger.info(message)
+        try:
             ibs.wbia_plugin_curvrank_delete_cache_optimized(
                 update_aid_list, 'CurvRankFinfindrHybridDorsal'
             )

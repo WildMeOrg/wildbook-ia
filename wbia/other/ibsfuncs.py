@@ -1310,6 +1310,7 @@ def check_cache_purge(ibs, ttl_days=90, dryrun=True, squeeze=True):
         './_ibsdb/_ibeis_cache/match_thumbs',
         './_ibsdb/_ibeis_cache/qres_new',
         './_ibsdb/_ibeis_cache/curvrank',
+        './_ibsdb/_ibeis_cache/curvrank_v2',
         './_ibsdb/_ibeis_cache/pie_neighbors',
     ]
 

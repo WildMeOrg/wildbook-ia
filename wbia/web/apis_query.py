@@ -437,6 +437,8 @@ def review_graph_match_html(
         'curvrankdorsal',
         'curvrankfinfindrhybriddorsal',
         'curvrankfluke',
+        'curvranktwodorsal',
+        'curvranktwofluke',
         'deepsense',
         'finfindr',
         'kaggle7',
@@ -562,6 +564,10 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {'pipeline_root': 'CurvRankFinfindrHybridDorsal'}
     elif 'use_curvrank_fluke' in request.args:
         query_config_dict = {'pipeline_root': 'CurvRankFluke'}
+    elif 'use_curvrank_v2_dorsal' in request.args:
+        query_config_dict = {'pipeline_root': 'CurvRankTwoDorsal'}
+    elif 'use_curvrank_v2_fluke' in request.args:
+        query_config_dict = {'pipeline_root': 'CurvRankTwoFluke'}
     elif 'use_deepsense' in request.args:
         query_config_dict = {'pipeline_root': 'Deepsense'}
     elif 'use_finfindr' in request.args:
