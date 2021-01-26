@@ -4665,7 +4665,7 @@ def turk_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
-            kaia=True,
+            census=True,
         )
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
@@ -4967,7 +4967,7 @@ def turk_identification_graph(
                     'redun.neg': 2,
                     'redun.pos': 2,
                 }
-            elif kaia:
+            elif census:
                 logger.info('[routes] Graph is in CA-mode')
                 query_config_dict = {
                     'autoreview.enabled': True,
