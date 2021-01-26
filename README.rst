@@ -53,7 +53,7 @@ We highly recommend using a Python virtual environment: https://docs.python-guid
 Documentation
 ~~~~~~~~~~~~~
 
-The documentation is built and available online at `WildMeOrg.github.io/wildbook-ia/ <http://WildMeOrg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
+The documentation is built and available online at `wildmeorg.github.io/wildbook-ia/ <http://wildmeorg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
 
 .. code:: bash
 
