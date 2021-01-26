@@ -74,6 +74,12 @@ METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
 def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
+    pid = os.getpid()
+    if ENGINES.get('pid') != pid:
+        # ENGINES contains engines from the parent process that the
+        # child process can't use
+        ENGINES.clear()
+        ENGINES['pid'] = pid
     kw = {
         # The echo flag is a shortcut to set up SQLAlchemy logging
         'echo': False,
