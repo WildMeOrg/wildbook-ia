@@ -57,4 +57,42 @@ def research_print_metrics(ibs, tag='metrics'):
 
     ibs.set_image_contributor_rowid(global_gid_list, global_cid_list)
 
+    ######
+
+    aid_list = ibs.get_valid_aids()
+
+    species_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+    quality_list = ibs.get_annot_qualities(aid_list)
+
+    aids = []
+    zipped = list(zip(aid_list, species_list, viewpoint_list, quality_list))
+    for aid, species_, viewpoint_, quality_ in zipped:
+        assert None not in [species_, viewpoint_, quality_]
+        species_ = species_.lower()
+        viewpoint_ = viewpoint_.lower()
+        quality_ = int(quality_)
+        if species_ != 'zebra_grevys':
+            continue
+        if 'right' not in viewpoint_:
+            continue
+        aids.append(aid)
+
+    config = {
+        'classifier_algo': 'densenet',
+        'classifier_weight_filepath': 'canonical_zebra_grevys_v4',
+    }
+    prediction_list = ibs.depc_annot.get_property(
+        'classifier', aids, 'class', config=config
+    )
+    confidence_list = ibs.depc_annot.get_property(
+        'classifier', aids, 'score', config=config
+    )
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence in zip(prediction_list, confidence_list)
+    ]
+    flags = [confidence >= 0.5 for confidence in confidence_list]
+    ibs.set_annot_canonical(aids, flags)
+
     ibs.print_dbinfo()

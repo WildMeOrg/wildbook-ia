@@ -1618,10 +1618,11 @@ class SQLDatabaseController(object):
             )
         stmt = stmt.where(where_clause)
         with self.connect() as conn:
-            for i, id in enumerate(id_list):
-                params = {id_param_name: id}
-                params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
-                conn.execute(stmt, **params)
+            with conn.begin():
+                for i, id in enumerate(id_list):
+                    params = {id_param_name: id}
+                    params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
+                    conn.execute(stmt, **params)
 
     def delete(self, tblname, id_list, id_colname='rowid', **kwargs):
         """Deletes rows from a SQL table (``tblname``) by ID,
@@ -1644,8 +1645,9 @@ class SQLDatabaseController(object):
             )
         stmt = stmt.where(where_clause)
         with self.connect() as conn:
-            for id in id_list:
-                conn.execute(stmt, {id_param_name: id})
+            with conn.begin():
+                for id in id_list:
+                    conn.execute(stmt, {id_param_name: id})
 
     def delete_rowids(self, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """

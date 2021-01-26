@@ -67,3 +67,4 @@ branch.sync.sh
 
 # setuptools_scm version discovery writes the version to <pkg>/_version.py
 **/_version.py
+map.png

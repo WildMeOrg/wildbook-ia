@@ -11,6 +11,8 @@ import functools
 import six
 import numpy as np
 import utool as ut
+import matplotlib.pyplot as plt
+
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -57,10 +59,13 @@ def get_dbinfo(
     with_agesex=True,
     with_header=True,
     with_reviews=True,
+    with_ggr=True,
+    with_map=True,
     short=False,
     tag='dbinfo',
     aid_list=None,
     aids=None,
+    gmt_offset=3.0,
 ):
     """
 
@@ -168,10 +173,9 @@ def get_dbinfo(
     # Basic variables
     request_annot_subset = False
     _input_aid_list = aid_list  # NOQA
+
     if aid_list is None:
         valid_aids = ibs.get_valid_aids()
-        valid_nids = ibs.get_valid_nids()
-        valid_gids = ibs.get_valid_gids()
     else:
         if isinstance(aid_list, str):
             # Hack to get experiment stats on aids
@@ -183,16 +187,44 @@ def get_dbinfo(
                 ibs, acfg_name_list
             )
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
-            # aid_list =
         if verbose:
             logger.info('Specified %d custom aids' % (len(aid_list)))
         request_annot_subset = True
         valid_aids = aid_list
-        valid_nids = list(
-            set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False))
-            - {const.UNKNOWN_NAME_ROWID}
-        )
-        valid_gids = list(set(ibs.get_annot_gids(aid_list)))
+
+    def get_dates(ibs, gid_list):
+        unixtime_list = ibs.get_image_unixtime2(gid_list)
+        unixtime_list_ = [unixtime + (gmt_offset * 60 * 60) for unixtime in unixtime_list]
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
+            for unixtime in unixtime_list_
+        ]
+        date_str_list = [value[:10] for value in datetime_list]
+        return date_str_list
+
+    if with_ggr:
+        valid_gids = list(set(ibs.get_annot_gids(valid_aids)))
+        date_str_list = get_dates(ibs, valid_gids)
+        flag_list = [
+            value in ['2016/01/30', '2016/01/31', '2018/01/27', '2018/01/28']
+            for value in date_str_list
+        ]
+        valid_gids = ut.compress(valid_gids, flag_list)
+        ggr_aids = set(ut.flatten(ibs.get_image_aids(valid_gids)))
+        valid_aids = sorted(list(set(valid_aids) & ggr_aids))
+
+    valid_nids = list(
+        set(ibs.get_annot_nids(valid_aids, distinguish_unknowns=False))
+        - {const.UNKNOWN_NAME_ROWID}
+    )
+    valid_gids = list(set(ibs.get_annot_gids(valid_aids)))
+    # valid_rids = ibs._get_all_review_rowids()
+    valid_rids = []
+    valid_rids += ibs.get_review_rowids_from_aid1(valid_aids)
+    valid_rids += ibs.get_review_rowids_from_aid2(valid_aids)
+    valid_rids = ut.flatten(valid_rids)
+    valid_rids = list(set(valid_rids))
+
     # associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     valid_images = ibs.images(valid_gids)
     valid_annots = ibs.annots(valid_aids)
@@ -406,10 +438,119 @@ def get_dbinfo(
         ut.show_if_requested()
     unixtime_statstr = ut.repr3(ut.get_timestats_dict(unixtime_list, full=True), si=True)
 
+    date_str_list = get_dates(ibs, valid_gids)
+    ggr_dates_stats = ut.dict_hist(date_str_list)
+
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
     gps_list = ut.compress(gps_list_, gpsvalid_list)
+
+    if with_map:
+
+        def plot_kenya(ibs, ax, gps_list=[], focus=False, focus2=False, margin=0.1):
+            import utool as ut
+            import pandas as pd
+            import geopandas
+            import shapely
+
+            if focus2:
+                focus = True
+
+            world = geopandas.read_file(
+                geopandas.datasets.get_path('naturalearth_lowres')
+            )
+            africa = world[world.continent == 'Africa']
+            kenya = africa[africa.name == 'Kenya']
+
+            cities = geopandas.read_file(
+                geopandas.datasets.get_path('naturalearth_cities')
+            )
+            nairobi = cities[cities.name == 'Nairobi']
+
+            kenya.plot(ax=ax, color='white', edgecolor='black')
+
+            path_dict = ibs.compute_ggr_path_dict()
+            meru = path_dict['County Meru']
+
+            for key in path_dict:
+                path = path_dict[key]
+
+                polygon = shapely.geometry.Polygon(path.vertices[:, ::-1])
+                gdf = geopandas.GeoDataFrame([1], geometry=[polygon], crs=world.crs)
+
+                if key.startswith('County'):
+                    if 'Meru' in key:
+                        gdf.plot(ax=ax, color=(1, 0, 0, 0.2), edgecolor='red')
+                    else:
+                        gdf.plot(ax=ax, color='grey', edgecolor='black')
+                if focus:
+                    if key.startswith('Land Tenure'):
+                        gdf.plot(ax=ax, color=(1, 0, 0, 0.0), edgecolor='blue')
+
+            if focus2:
+                flag_list = []
+                for gps in gps_list:
+                    flag = meru.contains_point(gps)
+                    flag_list.append(flag)
+                gps_list = ut.compress(gps_list, flag_list)
+
+            df = pd.DataFrame(
+                {
+                    'Latitude': ut.take_column(gps_list, 0),
+                    'Longitude': ut.take_column(gps_list, 1),
+                }
+            )
+            gdf = geopandas.GeoDataFrame(
+                df, geometry=geopandas.points_from_xy(df.Longitude, df.Latitude)
+            )
+            gdf.plot(ax=ax, color='red')
+
+            min_lat, min_lon = gdf.min()
+            max_lat, max_lon = gdf.max()
+            dom_lat = max_lat - min_lat
+            dom_lon = max_lon - min_lon
+            margin_lat = dom_lat * margin
+            margin_lon = dom_lon * margin
+            min_lat -= margin_lat
+            min_lon -= margin_lon
+            max_lat += margin_lat
+            max_lon += margin_lon
+
+            polygon = shapely.geometry.Polygon(
+                [
+                    [min_lon, min_lat],
+                    [min_lon, max_lat],
+                    [max_lon, max_lat],
+                    [max_lon, min_lat],
+                ]
+            )
+            gdf = geopandas.GeoDataFrame([1], geometry=[polygon], crs=world.crs)
+            gdf.plot(ax=ax, color=(1, 0, 0, 0.0), edgecolor='blue')
+
+            nairobi.plot(ax=ax, marker='*', color='black', markersize=500)
+
+            ax.grid(False, which='major')
+            ax.grid(False, which='minor')
+            ax.get_xaxis().set_ticks([])
+            ax.get_yaxis().set_ticks([])
+
+            if focus:
+                ax.set_autoscalex_on(False)
+                ax.set_autoscaley_on(False)
+                ax.set_xlim([min_lon, max_lon])
+                ax.set_ylim([min_lat, max_lat])
+
+        fig = plt.figure(figsize=(30, 30), dpi=400)
+
+        ax = plt.subplot(131)
+        plot_kenya(ibs, ax, gps_list)
+        ax = plt.subplot(132)
+        plot_kenya(ibs, ax, gps_list, focus=True)
+        ax = plt.subplot(133)
+        plot_kenya(ibs, ax, gps_list, focus2=True)
+
+        plt.savefig('map.png', bbox_inches='tight')
 
     def get_annot_age_stats(aid_list):
         annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
@@ -619,8 +760,6 @@ def get_dbinfo(
 
         return review_participation_dict
 
-    valid_rids = ibs._get_all_review_rowids()
-
     review_decision_stats = get_review_decision_stats(ibs, valid_rids)
     review_identity_to_rids, review_identity_stats = get_review_identity_stats(
         ibs, valid_rids
@@ -649,6 +788,53 @@ def get_dbinfo(
 
     review_tag_to_rids = ut.group_items(valid_rids, review_tag_list)
     review_tag_stats = {key: len(val) for key, val in review_tag_to_rids.items()}
+
+    species_list = ibs.get_annot_species_texts(valid_aids)
+    viewpoint_list = ibs.get_annot_viewpoints(valid_aids)
+    quality_list = ibs.get_annot_qualities(valid_aids)
+    interest_list = ibs.get_annot_interest(valid_aids)
+    canonical_list = ibs.get_annot_canonical(valid_aids)
+
+    ggr_num_relevant = 0
+    ggr_num_species = 0
+    ggr_num_viewpoints = 0
+    ggr_num_qualities = 0
+    ggr_num_aois = 0
+    ggr_num_cas = 0
+    ggr_num_overlap = 0
+
+    zipped = list(
+        zip(
+            valid_aids,
+            species_list,
+            viewpoint_list,
+            quality_list,
+            interest_list,
+            canonical_list,
+        )
+    )
+    for aid, species_, viewpoint_, quality_, interest_, canonical_ in zipped:
+        assert None not in [species_, viewpoint_, quality_]
+        species_ = species_.lower()
+        viewpoint_ = viewpoint_.lower()
+        quality_ = int(quality_)
+        if species_ in ['zebra_grevys', 'zebra_plains']:
+            ggr_num_relevant += 1
+        if species_ in ['zebra_grevys']:
+            ggr_num_species += 1
+            if 'right' in viewpoint_:
+                ggr_num_viewpoints += 1
+                if quality_ >= 3:
+                    ggr_num_qualities += 1
+            if interest_:
+                ggr_num_aois += 1
+                if canonical_:
+                    ggr_num_overlap += 1
+
+        if canonical_:
+            ggr_num_cas += 1
+
+    #########
 
     num_tabs = 30
 
@@ -732,6 +918,21 @@ def get_dbinfo(
         else []
     )
 
+    annot_ggr_census = (
+        [
+            ('GGR Annots: '),
+            ('     +-Relevant:            %s' % (ggr_num_relevant,)),
+            ("     +- Grevy's Species:   %s" % (ggr_num_species,)),
+            ('     |  +-AoIs:             %s' % (ggr_num_aois,)),
+            ('     |  +- Right Side:      %s' % (ggr_num_viewpoints,)),
+            ('     |  |  +-Good Quality:  %s' % (ggr_num_qualities,)),
+            ('     +-CAs:                 %s' % (ggr_num_cas,)),
+            ('     +-Filter + CA Overlap: %s' % (ggr_num_overlap,)),
+        ]
+        if with_ggr
+        else []
+    )
+
     occurrence_block_lines = (
         [
             ('--' * num_tabs),
@@ -784,6 +985,9 @@ def get_dbinfo(
         None
         if short
         else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
+        None
+        if with_ggr
+        else ('GGR Days                     = %s' % (align_dict2(ggr_dates_stats),)),
     ]
 
     contributor_block_lines = (
