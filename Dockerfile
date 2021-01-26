@@ -122,6 +122,9 @@ EXPOSE 5000
 # Move to the workdir
 WORKDIR /data
 
+# Set the "workdir"
+RUN python3 -m wbia --set-workdir /data --preload-exit
+
 COPY .dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
