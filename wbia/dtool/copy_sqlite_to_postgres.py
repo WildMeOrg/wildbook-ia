@@ -480,26 +480,31 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
     pg_schema = pg_info.get_schema()
     with tempfile.TemporaryDirectory() as tempdir:
         for sqlite_db_path in get_sqlite_db_paths(db_dir):
-            temp_db_path = Path(tempdir) / sqlite_db_path.name
-            shutil.copy(sqlite_db_path, temp_db_path)
+            try:
+                temp_db_path = Path(tempdir) / sqlite_db_path.name
+                shutil.copy(sqlite_db_path, temp_db_path)
 
-            logger.debug('*' * 60)  # b/c pgloader debug output can be lengthy
-            logger.info(f'working on {sqlite_db_path} as {temp_db_path} ...')
+                logger.debug('*' * 60)  # b/c pgloader debug output can be lengthy
+                logger.info(f'working on {sqlite_db_path} as {temp_db_path} ...')
 
-            sqlite_uri = f'sqlite:///{temp_db_path}'
-            sl_info = SqliteDatabaseInfo(sqlite_uri)
-            if not compare_databases(sl_info, pg_info, exact=False):
-                logger.info(f'{sl_info} already migrated to {pg_info}')
-                continue
+                sqlite_uri = f'sqlite:///{temp_db_path}'
+                sl_info = SqliteDatabaseInfo(sqlite_uri)
+                if not compare_databases(sl_info, pg_info, exact=False):
+                    logger.info(f'{sl_info} already migrated to {pg_info}')
+                    continue
 
-            sqlite_engine = create_engine(sqlite_uri)
-            schema_name = get_schema_name_from_uri(sqlite_uri)
-            engine = create_engine(postgres_uri)
-            if schema_name in pg_schema:
-                logger.warning(f'Dropping schema "{schema_name}"')
-                drop_schema(engine, schema_name)
-            # Add sqlite built-in rowid column to tables
-            add_rowids(sqlite_engine)
-            before_pgloader(engine, schema_name)
-            run_pgloader(temp_db_path, postgres_uri, tempdir)
-            after_pgloader(sqlite_engine, engine, schema_name)
+                sqlite_engine = create_engine(sqlite_uri)
+                schema_name = get_schema_name_from_uri(sqlite_uri)
+                engine = create_engine(postgres_uri)
+                if schema_name in pg_schema:
+                    logger.warning(f'Dropping schema "{schema_name}"')
+                    drop_schema(engine, schema_name)
+                # Add sqlite built-in rowid column to tables
+                add_rowids(sqlite_engine)
+                before_pgloader(engine, schema_name)
+                run_pgloader(temp_db_path, postgres_uri, tempdir)
+                after_pgloader(sqlite_engine, engine, schema_name)
+            except KeyboardInterrupt:
+                raise
+            except Exception:
+                logger.exception(f'Exception when migrating {sqlite_db_path.name}')

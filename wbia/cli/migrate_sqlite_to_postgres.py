@@ -95,7 +95,7 @@ def main(db_dir, db_uri, force, verbose):
         else:
             click.echo(f'Dropping all tables in public schema: {", ".join(table_names)}')
             for table_name in table_names:
-                db_infos[1].engine.execute(f'DROP TABLE {table_name}')
+                db_infos[1].engine.execute(f'DROP TABLE {table_name} CASCADE')
 
     # Migrate
     copy_sqlite_to_postgres(Path(db_dir), db_uri)
