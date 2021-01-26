@@ -6,7 +6,6 @@ import utool as ut
 import ubelt as ub
 import pandas as pd
 import itertools as it
-import threading
 import wbia.constants as const
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, NULL
 from wbia.algo.graph.refresh import RefreshCriteria
@@ -22,9 +21,6 @@ class InfrLoops(object):
     """
     Algorithm control flow loops
     """
-
-    def __init__(infr):
-        infr.gen_lock = threading.Lock()
 
     def main_gen(infr, max_loops=None, use_refresh=True):
         """
@@ -644,7 +640,7 @@ class InfrReviewers(object):
         while hungry:
             try:
                 attempt += 1
-                with infr.gen_lock:
+                with infr._gen_lock:
                     user_request = next(infr._gen)
                 hungry = False
             except StopIteration:
