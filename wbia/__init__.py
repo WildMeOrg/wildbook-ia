@@ -85,6 +85,7 @@ try:
     from wbia.init import main_helpers
 
     from wbia import algo
+    from wbia import research
 
     from wbia import expt
     from wbia import templates

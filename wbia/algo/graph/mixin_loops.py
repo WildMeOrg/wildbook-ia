@@ -6,6 +6,7 @@ import utool as ut
 import ubelt as ub
 import pandas as pd
 import itertools as it
+import threading
 import wbia.constants as const
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, NULL
 from wbia.algo.graph.refresh import RefreshCriteria
@@ -21,6 +22,9 @@ class InfrLoops(object):
     """
     Algorithm control flow loops
     """
+
+    def __init__(infr):
+        infr.gen_lock = threading.Lock()
 
     def main_gen(infr, max_loops=None, use_refresh=True):
         """
@@ -165,6 +169,8 @@ class InfrLoops(object):
 
         if infr.params['inference.enabled']:
             infr.assert_consistency_invariant()
+
+        return 'finished'
 
     def hardcase_review_gen(infr):
         """
@@ -480,6 +486,7 @@ class InfrLoops(object):
         or assert not any(infr.main_gen())
         maybe this is fine.
         """
+        raise RuntimeError()
         infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
         # To automatically run through the loop just exhaust the generator
         result = next(infr._gen)
@@ -632,14 +639,29 @@ class InfrReviewers(object):
         infr.print('continue_review', 10)
         if infr._gen is None:
             return None
-        try:
-            user_request = next(infr._gen)
-        except StopIteration:
+
+        hungry, finished, attempt = True, False, 0
+        while hungry:
+            try:
+                attempt += 1
+                with infr.gen_lock:
+                    user_request = next(infr._gen)
+                hungry = False
+            except StopIteration:
+                pass
+            if attempt >= 100:
+                finished = True
+            if isinstance(user_request, str) and user_request in ['finished']:
+                hungry = False
+                finished = True
+
+        if finished:
             review_finished = infr.callbacks.get('review_finished', None)
             if review_finished is not None:
                 review_finished()
             infr._gen = None
             user_request = None
+
         return user_request
 
     def qt_edge_reviewer(infr, edge=None):

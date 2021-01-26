@@ -11,7 +11,7 @@ git config --global push.default current
 export CODE_DIR=~/code
 mkdir $CODE_DIR
 cd $CODE_DIR
-git clone https://github.com/WildbookOrg/wbia.git
+git clone https://github.com/WildMeOrg/wbia.git
 cd wbia
 
 python super_setup.py --bootstrap
@@ -311,7 +311,7 @@ def ensure_utool(CODE_DIR, pythoncmd):
     WIN32 = sys.platform.startswith('win32')
     # UTOOL_BRANCH = ' -b <branch> <remote_repo>'
     UTOOL_BRANCH = 'next'
-    UTOOL_REPO = 'https://github.com/WildbookOrg/utool.git'
+    UTOOL_REPO = 'https://github.com/WildMeOrg/utool.git'
     print('WARNING: utool is not found')
     print('Attempting to get utool. Enter (y) to continue')
 
@@ -370,8 +370,8 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     # IBEIS project repos
     # -----------
     # if True:
-    #     jon_repo_base = 'https://github.com/WildbookOrg'
-    #     jason_repo_base = 'https://github.com/WildbookOrg'
+    #     jon_repo_base = 'https://github.com/WildMeOrg'
+    #     jason_repo_base = 'https://github.com/WildMeOrg'
     # else:
     #     jon_repo_base = 'https://github.com/wildme'
     #     jason_repo_base = 'https://github.com/wildme'
@@ -381,12 +381,12 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     wbia_rman = ut.RepoManager(
         [
-            'https://github.com/WildbookOrg/utool.git',
-            # 'https://github.com/WildbookOrg/sandbox_utools.git',
-            'https://github.com/WildbookOrg/vtool_ibeis.git',
-            'https://github.com/WildbookOrg/dtool_ibeis.git',
+            'https://github.com/WildMeOrg/utool.git',
+            # 'https://github.com/WildMeOrg/sandbox_utools.git',
+            'https://github.com/WildMeOrg/vtool_ibeis.git',
+            'https://github.com/WildMeOrg/dtool_ibeis.git',
             'https://github.com/Erotemic/ubelt.git',
-            'https://github.com/WildbookOrg/detecttools.git',
+            'https://github.com/WildMeOrg/detecttools.git',
         ],
         CODE_DIR,
         label='core',
@@ -399,24 +399,24 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         tpl_rman.add_repo(cv_repo)
 
     if WITH_GUI:
-        wbia_rman.add_repos(['https://github.com/WildbookOrg/plottool_ibeis.git'])
+        wbia_rman.add_repos(['https://github.com/WildMeOrg/plottool_ibeis.git'])
 
         if WITH_QT:
-            wbia_rman.add_repos(['https://github.com/WildbookOrg/guitool_ibeis.git'])
+            wbia_rman.add_repos(['https://github.com/WildMeOrg/guitool_ibeis.git'])
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
     if WITH_CUSTOM_TPL:
         flann_repo = ut.Repo(
-            'https://github.com/WildbookOrg/flann.git', CODE_DIR, modname='pyflann'
+            'https://github.com/WildMeOrg/flann.git', CODE_DIR, modname='pyflann'
         )
         wbia_rman.add_repo(flann_repo)
-        wbia_rman.add_repos(['https://github.com/WildbookOrg/hesaff.git'])
+        wbia_rman.add_repos(['https://github.com/WildMeOrg/hesaff.git'])
 
     if WITH_CNN:
         wbia_rman.add_repos(
             [
-                'https://github.com/WildbookOrg/wbia_cnn.git',
-                'https://github.com/WildbookOrg/pydarknet.git',
+                'https://github.com/WildMeOrg/wbia_cnn.git',
+                'https://github.com/WildMeOrg/pydarknet.git',
             ]
         )
         # NEW CNN Dependencies
@@ -433,28 +433,26 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         )
 
     if WITH_FLUKEMATCH:
-        wbia_rman.add_repos(
-            ['https://github.com/WildbookOrg/ibeis-flukematch-module.git']
-        )
+        wbia_rman.add_repos(['https://github.com/WildMeOrg/ibeis-flukematch-module.git'])
 
     if WITH_CURVRANK:
-        wbia_rman.add_repos(['https://github.com/WildbookOrg/ibeis-curvrank-module.git'])
+        wbia_rman.add_repos(['https://github.com/WildMeOrg/ibeis-curvrank-module.git'])
 
     if WITH_PYRF:
-        wbia_rman.add_repos(['https://github.com/WildbookOrg/pyrf.git'])
+        wbia_rman.add_repos(['https://github.com/WildMeOrg/pyrf.git'])
 
     if False:
         # Depricated
         wbia_rman.add_repos(
             [
-                # 'https://github.com/WildbookOrg/pybing.git',
+                # 'https://github.com/WildMeOrg/pybing.git',
                 # 'https://github.com/aweinstock314/cyth.git',
                 # 'https://github.com/hjweide/pygist',
             ]
         )
 
     # Add main repo (Must be checked last due to dependency issues)
-    wbia_rman.add_repos(['https://github.com/WildbookOrg/wbia.git'])
+    wbia_rman.add_repos(['https://github.com/WildMeOrg/wbia.git'])
 
     # -----------
     # Custom third party build/install scripts
@@ -1005,7 +1003,7 @@ def GET_ARGFLAG(arg, *args, **kwargs):
 
 
 def move_wildme(wbia_rman, fmt):
-    wildme_user = 'WildbookOrg'
+    wildme_user = 'WildMeOrg'
     wildme_remote = 'wildme'
     for repo in wbia_rman.repos:
 

@@ -68,6 +68,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.other.detectgrave',
     'wbia.other.detecttrain',
     'wbia.init.filter_annots',
+    'wbia.research.metrics',
     'wbia.control.manual_featweight_funcs',
     'wbia.control._autogen_party_funcs',
     'wbia.control.manual_annotmatch_funcs',

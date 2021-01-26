@@ -50,7 +50,7 @@ LABEL autoheal=true
 
 ARG VERSION="3.3.0"
 
-ARG VCS_URL="https://github.com/WildbookOrg/wildbook-ia"
+ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
 ARG VCS_REF="develop"
 

@@ -4665,6 +4665,7 @@ def turk_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            kaia=True,
         )
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
@@ -4803,6 +4804,7 @@ def turk_identification_graph(
     hogwild_species=None,
     creation_imageset_rowid_list=None,
     kaia=False,
+    census=False,
     **kwargs,
 ):
     """
@@ -4964,6 +4966,22 @@ def turk_identification_graph(
                     'redun.enforce_pos': False,
                     'redun.neg': 2,
                     'redun.pos': 2,
+                }
+            elif kaia:
+                logger.info('[routes] Graph is in CA-mode')
+                query_config_dict = {
+                    'autoreview.enabled': True,
+                    'autoreview.prioritize_nonpos': True,
+                    'inference.enabled': True,
+                    'ranking.enabled': True,
+                    'ranking.ntop': 20,
+                    'redun.enabled': True,
+                    'redun.enforce_neg': True,
+                    'redun.enforce_pos': True,
+                    'redun.neg.only_auto': False,
+                    'redun.neg': 3,
+                    'redun.pos': 3,
+                    'algo.hardcase': True,
                 }
             else:
                 logger.info('[routes] Graph is not in hardcase-mode')
