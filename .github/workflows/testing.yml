@@ -9,6 +9,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 3
+      fail-fast: false
       matrix:
         # For speed, we choose one version and that should be the lowest common denominator
         python-version: [3.6, 3.7, 3.8]
@@ -43,6 +45,8 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      max-parallel: 1
+      fail-fast: false
       matrix:
         os: [ubuntu-latest] # Disable "macos-latest" for now
         # For speed, we choose one version and that should be the lowest common denominator
