@@ -650,9 +650,6 @@ def get_dbinfo(
     review_tag_to_rids = ut.group_items(valid_rids, review_tag_list)
     review_tag_stats = {key: len(val) for key, val in review_tag_to_rids.items()}
 
-    ut.embed()
-
-    # print
     num_tabs = 30
 
     def align2(str_):
