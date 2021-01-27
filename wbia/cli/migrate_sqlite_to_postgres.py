@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -98,8 +99,31 @@ def main(db_dir, db_uri, force, verbose):
                 db_infos[1].engine.execute(f'DROP TABLE {table_name} CASCADE')
 
     # Migrate
+    problems = {}
     with click.progressbar(length=100000, show_eta=True) as bar:
-        copy_sqlite_to_postgres(Path(db_dir), db_uri, progress_update=bar.update)
+        for path, completed_future, db_size, total_size in copy_sqlite_to_postgres(
+            Path(db_dir), db_uri
+        ):
+            try:
+                completed_future.result()
+            except Exception as exc:
+                logger.info(
+                    f'\nfailed while processing {str(path)}\n{completed_future.exception()}'
+                )
+                problems[path] = exc
+            else:
+                logger.info(f'\nfinished processing {str(path)}')
+            finally:
+                bar.update(int(db_size / total_size * bar.length))
+
+    # Report problems
+    for path, exc in problems.items():
+        logger.info('*' * 60)
+        logger.info(f'There was a problem migrating {str(path)}')
+        logger.exception(exc)
+        if isinstance(exc, subprocess.CalledProcessError):
+            logger.info('-' * 30)
+            logger.info(exc.stdout.decode())
 
     # Verify the migration
     differences = compare_databases(*db_infos)

@@ -909,7 +909,8 @@ def ensure_db_from_url(zipped_db_url):
     uri = get_wbia_db_uri(dbdir)
     if uri:
         logger.info(f"Copying '{dbdir}' databases to the database at: {uri}")
-        copy_sqlite_to_postgres(Path(dbdir), uri)
+        for _, future, _, _ in copy_sqlite_to_postgres(Path(dbdir), uri):
+            future.result()  # will raise if there is a problem
 
     logger.info('have %s=%r' % (zipped_db_url, dbdir))
     return dbdir
