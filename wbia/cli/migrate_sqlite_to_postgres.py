@@ -98,7 +98,8 @@ def main(db_dir, db_uri, force, verbose):
                 db_infos[1].engine.execute(f'DROP TABLE {table_name} CASCADE')
 
     # Migrate
-    copy_sqlite_to_postgres(Path(db_dir), db_uri)
+    with click.progressbar(length=100000, show_eta=True) as bar:
+        copy_sqlite_to_postgres(Path(db_dir), db_uri, progress_update=bar.update)
 
     # Verify the migration
     differences = compare_databases(*db_infos)

@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import typing
 from pathlib import Path
 
 import numpy as np
@@ -41,7 +42,7 @@ class SqliteDatabaseInfo:
             self.metadata[schema] = sqlalchemy.MetaData(bind=engine)
         else:
             self.db_dir = Path(db_dir_or_db_uri)
-            for db_path in get_sqlite_db_paths(self.db_dir):
+            for db_path, _ in get_sqlite_db_paths(self.db_dir):
                 db_uri = f'sqlite:///{db_path}'
                 schema = get_schema_name_from_uri(db_uri)
                 engine = sqlalchemy.create_engine(db_uri)
@@ -280,8 +281,8 @@ def compare_databases(
 
 
 def get_sqlite_db_paths(db_dir: Path):
-    """Generates a sequence of sqlite database file paths.
-    The sequence will end with staging and the main database.
+    """Generates a sequence of sqlite database file paths and sizes.
+    The sequence is sorted by database size, smallest first.
 
     """
     base_loc = (db_dir / '_ibsdb').resolve()
@@ -294,15 +295,16 @@ def get_sqlite_db_paths(db_dir: Path):
     for f in cache_directory.glob('*.sqlite'):
         if 'backup' in f.name:
             continue
-        paths.append(f.resolve())
+        p = f.resolve()
+        paths.append((p, p.stat().st_size))
 
     if staging_db.exists():
         # doesn't exist in test databases
-        paths.append(staging_db)
-    paths.append(main_db)
+        paths.append((staging_db, staging_db.stat().st_size))
+    paths.append((main_db, main_db.stat().st_size))
 
     # Sort databases by file size, smallest first
-    paths.sort(key=lambda a: a.stat().st_size)
+    paths.sort(key=lambda a: a[1])
     return paths
 
 
@@ -467,7 +469,11 @@ def drop_schema(engine, schema_name):
     connection.execute(f'DROP SCHEMA {schema_name} CASCADE')
 
 
-def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
+def copy_sqlite_to_postgres(
+    db_dir: Path,
+    postgres_uri: str,
+    progress_update: typing.Optional[typing.Callable[[int], None]] = None,
+) -> None:
     """Copies all the sqlite databases into a single postgres database
 
     Args:
@@ -479,18 +485,22 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
     pg_info = PostgresDatabaseInfo(postgres_uri)
     pg_schema = pg_info.get_schema()
     with tempfile.TemporaryDirectory() as tempdir:
-        for sqlite_db_path in get_sqlite_db_paths(db_dir):
+        db_paths = get_sqlite_db_paths(db_dir)
+        total_size = sum(a[1] for a in db_paths)
+        for sqlite_db_path, db_size in db_paths:
             try:
                 temp_db_path = Path(tempdir) / sqlite_db_path.name
                 shutil.copy(sqlite_db_path, temp_db_path)
 
-                logger.debug('*' * 60)  # b/c pgloader debug output can be lengthy
-                logger.info(f'working on {sqlite_db_path} as {temp_db_path} ...')
+                logger.debug('\n' + '*' * 60)  # b/c pgloader debug output can be lengthy
+                logger.info(f'\nworking on {sqlite_db_path} as {temp_db_path} ...')
 
                 sqlite_uri = f'sqlite:///{temp_db_path}'
                 sl_info = SqliteDatabaseInfo(sqlite_uri)
                 if not compare_databases(sl_info, pg_info, exact=False):
                     logger.info(f'{sl_info} already migrated to {pg_info}')
+                    if progress_update:
+                        progress_update(int(db_size / total_size * 100000))
                     continue
 
                 sqlite_engine = create_engine(sqlite_uri)
@@ -504,6 +514,8 @@ def copy_sqlite_to_postgres(db_dir: Path, postgres_uri: str) -> None:
                 before_pgloader(engine, schema_name)
                 run_pgloader(temp_db_path, postgres_uri, tempdir)
                 after_pgloader(sqlite_engine, engine, schema_name)
+                if progress_update:
+                    progress_update(int(db_size / total_size * 100000))
             except KeyboardInterrupt:
                 raise
             except Exception:
