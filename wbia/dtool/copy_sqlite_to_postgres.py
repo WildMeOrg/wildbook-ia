@@ -361,6 +361,9 @@ def add_rowids(engine):
 
 def before_pgloader(engine, schema):
     connection = engine.connect()
+    connection.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
+    connection.execute(f"SET SCHEMA '{schema}'")
+
     for domain, base_type in (
         ('dict', 'json'),
         ('list', 'json'),
@@ -387,7 +390,8 @@ LOAD DATABASE
        reset sequences
 
     SET work_mem to '16MB',
-        maintenance_work_mem to '512 MB'
+        maintenance_work_mem to '512 MB',
+        search_path to '{schema_name}'
 
   CAST type uuid to uuid using wbia-uuid-bytes-to-uuid,
        type ndarray to ndarray using byte-vector-to-bytea,
@@ -426,6 +430,8 @@ def run_pgloader(sqlite_uri: str, postgres_uri: str) -> typing.NoReturn:
     from ``Process.check_returncode``.
 
     """
+    schema_name = get_schema_name_from_uri(sqlite_uri)
+
     # Do all this within a self-cleaning temporary directory
     with tempfile.TemporaryDirectory() as tempdir:
         td = Path(tempdir)
@@ -449,6 +455,7 @@ def run_pgloader(sqlite_uri: str, postgres_uri: str) -> typing.NoReturn:
 def after_pgloader(sqlite_engine, pg_engine, schema):
     # Some "NOT NULL" weren't migrated by pgloader for some reason
     connection = pg_engine.connect()
+    connection.execute(f"SET SCHEMA '{schema}'")
     sqlite_metadata = sqlalchemy.MetaData(bind=sqlite_engine)
     sqlite_metadata.reflect()
     for table in sqlite_metadata.tables.values():
@@ -458,13 +465,12 @@ def after_pgloader(sqlite_engine, pg_engine, schema):
                     f'ALTER TABLE {table.name} ALTER COLUMN {column.name} SET NOT NULL'
                 )
 
-    connection.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
     table_pkeys = connection.execute(
-        """\
+        f"""\
         SELECT table_name, column_name
         FROM information_schema.table_constraints
         NATURAL JOIN information_schema.constraint_column_usage
-        WHERE table_schema = 'public'
+        WHERE table_schema = '{schema}'
         AND constraint_type = 'PRIMARY KEY'"""
     ).fetchall()
     for (table_name, pkey) in table_pkeys:
@@ -481,8 +487,6 @@ def after_pgloader(sqlite_engine, pg_engine, schema):
             connection.execute(
                 f'ALTER SEQUENCE {seq_name} OWNED BY {table_name}.{column_name}'
             )
-        # Set schema / namespace to "_ibeis_database" for example
-        connection.execute(f'ALTER TABLE {table_name} SET SCHEMA {schema}')
 
 
 def drop_schema(engine, schema_name):
