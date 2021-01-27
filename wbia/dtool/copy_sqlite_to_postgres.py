@@ -4,7 +4,6 @@ Copy sqlite database into a postgresql database using pgloader (from
 apt-get)
 """
 import logging
-import os
 import re
 import shutil
 import subprocess
@@ -377,14 +376,9 @@ def before_pgloader(engine, schema):
             pass
 
 
-def run_pgloader(sqlite_db_path, postgres_uri, tempdir):
-    # create the pgloader source file
-    fname = os.path.join(tempdir, 'sqlite.load')
-    with open(fname, 'w') as f:
-        f.write(
-            f"""\
+PGLOADER_CONFIG_TEMPLATE = """\
 LOAD DATABASE
-    FROM '{sqlite_db_path}'
+    FROM {sqlite_uri}
     INTO {postgres_uri}
 
   WITH include drop,
@@ -399,14 +393,10 @@ LOAD DATABASE
        type ndarray to ndarray using byte-vector-to-bytea,
        type numpy to numpy using byte-vector-to-bytea;
 """
-        )
-    wbia_uuid_loader = os.path.join(tempdir, 'wbia_uuid_loader.lisp')
-    # Copied from the built-in sql-server-uniqueidentifier-to-uuid
-    # transform in pgloader 3.6.2
-    # Prior to 3.6.2, the transform was for uuid in big-endian order
-    with open(wbia_uuid_loader, 'w') as f:
-        f.write(
-            """\
+# Copied from the built-in sql-server-uniqueidentifier-to-uuid
+# transform in pgloader 3.6.2
+# Prior to 3.6.2, the transform was for uuid in big-endian order
+UUID_LOADER_LISP = """\
 (in-package :pgloader.transforms)
 
 (defmacro arr-to-bytes-rev (from to array)
@@ -428,14 +418,32 @@ LOAD DATABASE
                :node (uuid::arr-to-bytes 10 15 id))))
       (princ-to-string uuid))))
 """
+
+
+def run_pgloader(sqlite_uri: str, postgres_uri: str) -> typing.NoReturn:
+    """Configure and run ``pgloader``.
+    If there is a problem this will raise a ``CalledProcessError``
+    from ``Process.check_returncode``.
+
+    """
+    # Do all this within a self-cleaning temporary directory
+    with tempfile.TemporaryDirectory() as tempdir:
+        td = Path(tempdir)
+        pgloader_config = td / 'wbia.load'
+        with pgloader_config.open('w') as fb:
+            fb.write(PGLOADER_CONFIG_TEMPLATE.format(**locals()))
+
+        wbia_uuid_loader = td / 'wbia_uuid_loader.lisp'
+        with wbia_uuid_loader.open('w') as fb:
+            fb.write(UUID_LOADER_LISP)
+
+        proc = subprocess.run(
+            ['pgloader', '--load-lisp-file', str(wbia_uuid_loader), str(pgloader_config)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
-    proc = subprocess.run(
-        ['pgloader', '--load-lisp-file', wbia_uuid_loader, fname],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    logger.debug(proc.stdout.decode())
-    proc.check_returncode()
+        logger.debug(proc.stdout.decode())
+        proc.check_returncode()
 
 
 def after_pgloader(sqlite_engine, pg_engine, schema):
@@ -525,7 +533,7 @@ def copy_sqlite_to_postgres(
                 # Add sqlite built-in rowid column to tables
                 add_rowids(sqlite_engine)
                 before_pgloader(engine, schema_name)
-                run_pgloader(temp_db_path, postgres_uri, tempdir)
+                run_pgloader(sqlite_uri, postgres_uri)
                 after_pgloader(sqlite_engine, engine, schema_name)
                 if progress_update:
                     progress_update(int(db_size / total_size * 100000))
