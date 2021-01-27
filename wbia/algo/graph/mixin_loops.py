@@ -646,6 +646,7 @@ class InfrReviewers(object):
             except StopIteration:
                 pass
             if attempt >= 100:
+                hungry = False
                 finished = True
             if isinstance(user_request, str) and user_request in ['finished']:
                 hungry = False
