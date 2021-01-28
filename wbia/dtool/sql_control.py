@@ -74,6 +74,12 @@ METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
 def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
+    pid = os.getpid()
+    if ENGINES.get('pid') != pid:
+        # ENGINES contains engines from the parent process that the
+        # child process can't use
+        ENGINES.clear()
+        ENGINES['pid'] = pid
     kw = {
         # The echo flag is a shortcut to set up SQLAlchemy logging
         'echo': False,
@@ -89,52 +95,27 @@ def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
     return ENGINES[uri]
 
 
-def sqlite_uri_to_postgres_uri_schema(uri):
-    from wbia.init.sysres import get_workdir
-
-    workdir = os.path.normpath(os.path.abspath(get_workdir()))
-    base_db_uri = os.getenv('WBIA_BASE_DB_URI')
-    namespace = None
-    if base_db_uri and uri.startswith(f'sqlite:///{workdir}'):
-        # Change sqlite uri to postgres uri
-
-        # Remove sqlite:///{workdir} from uri
-        # -> /NAUT_test/_ibsdb/_ibeis_cache/chipcache4.sqlite
-        sqlite_db_path = uri[len(f'sqlite:///{workdir}') :]
-
-        # ['', 'naut_test', '_ibsdb', '_ibeis_cache', 'chipcache4.sqlite']
-        sqlite_db_path_parts = sqlite_db_path.lower().split(os.path.sep)
-
-        if len(sqlite_db_path_parts) > 2:
-            # naut_test
-            db_name = sqlite_db_path_parts[1]
-            # chipcache4
-            namespace = os.path.splitext(sqlite_db_path_parts[-1])[0]
-
-            # postgresql://wbia@db/naut_test
-            uri = f'{base_db_uri}/{db_name}'
-        else:
-            raise RuntimeError(
-                f'uri={uri} sqlite_db_path={sqlite_db_path} sqlite_db_path_parts={sqlite_db_path_parts}'
-            )
-
-    return (uri, namespace)
-
-
 def compare_coldef_lists(coldef_list1, coldef_list2):
-    # Remove "rowid" which is added to postgresql tables
-    # Remove "default nextval" for postgresql auto-increment fields as sqlite
-    # doesn't need it
-    coldef_list1 = [
-        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
-        for name, coldef in coldef_list1
-        if name != 'rowid'
-    ]
-    coldef_list2 = [
-        (name.lower(), re.sub(r' default \(nextval\(.*', '', coldef.lower()))
-        for name, coldef in coldef_list2
-        if name != 'rowid'
-    ]
+    def normalize(coldef_list):
+        for name, coldef in coldef_list:
+            # Remove "rowid" which is added to postgresql tables
+            if name != 'rowid':
+                coldef_ = coldef.lower()
+                # Remove "default nextval" for postgresql auto-increment fields
+                # as sqlite doesn't need it
+                coldef_ = re.sub(r' default \(nextval\(.*', '', coldef_)
+                # Consider bigint and integer the same
+                if 'bigint' in coldef_:
+                    coldef_ = re.sub(r"'([^']*)'::bigint", r'\1', coldef_)
+                    coldef_ = re.sub(r'\bbigint\b', 'integer', coldef_)
+                # Consider double precision and real the same
+                if 'double precision' in coldef_:
+                    coldef_ = re.sub(r'\bdouble precision\b', 'real', coldef_)
+                yield name.lower(), coldef_
+
+    coldef_list1 = list(normalize(coldef_list1))
+    coldef_list2 = list(normalize(coldef_list2))
+
     if len(coldef_list1) != len(coldef_list2):
         return coldef_list1, coldef_list2
     for i in range(len(coldef_list1)):
@@ -196,47 +177,6 @@ def sanitize_sql(db, tablename_, columns=None):
         columns = [column for column in columns if columns is not None]
 
         return tablename, columns
-
-
-def dev_test_new_schema_version(
-    dbname, sqldb_dpath, sqldb_fname, version_current, version_next=None
-):
-    """
-    HACK
-
-    hacky function to ensure that only developer sees the development schema
-    and only on test databases
-    """
-    TESTING_NEW_SQL_VERSION = version_current != version_next
-    if TESTING_NEW_SQL_VERSION:
-        logger.info('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
-        devdb_list = [
-            'PZ_MTEST',
-            'testdb1',
-            'testdb2',
-            'testdb_dst2',
-            'emptydatabase',
-        ]
-        testing_newschmea = ut.is_developer() and dbname in devdb_list
-        # testing_newschmea = False
-        # ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
-        if testing_newschmea:
-            # Set to true until the schema module is good then continue tests
-            # with this set to false
-            testing_force_fresh = True or ut.get_argflag('--force-fresh')
-            # Work on a fresh schema copy when developing
-            dev_sqldb_fname = ut.augpath(sqldb_fname, '_develop_schema')
-            sqldb_fpath = join(sqldb_dpath, sqldb_fname)
-            dev_sqldb_fpath = join(sqldb_dpath, dev_sqldb_fname)
-            ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
-            # Set testing schema version
-            # ibs.db_version_expected = '1.3.6'
-            logger.info('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
-            # logger.info('[sql] ... pass --force-fresh to reload any changes')
-            return version_next, dev_sqldb_fname
-        else:
-            logger.info('[ibs] NOT TESTING')
-    return version_current, sqldb_fname
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -547,41 +487,25 @@ class SQLDatabaseController(object):
 
     def __init_engine(self):
         """Create the SQLAlchemy Engine"""
-        if os.getenv('POSTGRES'):
-            uri, schema = sqlite_uri_to_postgres_uri_schema(self.uri)
-            self.uri = uri
-            self.schema = schema
         self._engine = create_engine(self.uri)
 
-    @classmethod
-    def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
+    def __init__(self, uri, name, readonly=READ_ONLY, timeout=TIMEOUT):
         """Creates a controller instance from a connection URI
+
+        The name is primarily used with Postgres. In Postgres the the name
+        acts as the database schema name, because all the "databases" are
+        stored within one Postgres database that is namespaced
+        with the given ``name``. (Special names like ``_ibeis_database``
+        are translated to the correct schema name during
+        the connection process.)
 
         Args:
             uri (str): connection string or uri
-            timeout (int): connection timeout in seconds
+            name (str): name of the database (e.g. chips, _ibeis_database, staging)
 
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
-            >>> sqldb_fname = u'test_database.sqlite3'
-            >>> path = os.path.join(sqldb_dpath, sqldb_fname)
-            >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
-            >>> db = SQLDatabaseController.from_uri(db_uri)
-            >>> db.print_schema()
-            >>> print(db)
-            >>> db2 = SQLDatabaseController.from_uri(db_uri, readonly=True)
-            >>> db.add_table('temptable', (
-            >>>     ('rowid',               'INTEGER PRIMARY KEY'),
-            >>>     ('key',                 'TEXT'),
-            >>>     ('val',                 'TEXT'),
-            >>> ),
-            >>>     superkeys=[('key',)])
-            >>> db2.print_schema()
         """
-        self = cls.__new__(cls)
         self.uri = uri
+        self.name = name
         self.timeout = timeout
         self.metadata = self.Metadata(self)
         self.readonly = readonly
@@ -590,7 +514,7 @@ class SQLDatabaseController(object):
         # Create a _private_ SQLAlchemy metadata instance
         # TODO (27-Sept-12020) Develop API to expose elements of SQLAlchemy.
         #      The MetaData is unbound to ensure we don't accidentally misuse it.
-        self._sa_metadata = sqlalchemy.MetaData()
+        self._sa_metadata = sqlalchemy.MetaData(schema=self.schema_name)
 
         # Reflect all known tables
         self._sa_metadata.reflect(bind=self._engine)
@@ -606,16 +530,36 @@ class SQLDatabaseController(object):
         # Optimize the database
         self.optimize()
 
-        return self
+    @property
+    def is_using_sqlite(self):
+        return self._engine.dialect.name == 'sqlite'
+
+    @property
+    def is_using_postgres(self):
+        return self._engine.dialect.name == 'postgresql'
+
+    @property
+    def schema_name(self):
+        """The name of the namespace schema (using with Postgres)."""
+        if self.is_using_postgres:
+            if self.name == '_ibeis_database':
+                schema = 'main'
+            elif self.name == '_ibeis_staging':
+                schema = 'staging'
+            else:
+                schema = self.name
+        else:
+            schema = None
+        return schema
 
     @contextmanager
     def connect(self):
         """Create a connection instance to wrap a SQL execution block as a context manager"""
         with self._engine.connect() as conn:
-            if self._engine.dialect.name == 'postgresql':
-                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
-                conn.execute(text('SET SCHEMA :schema'), schema=self.schema)
-                initialize_postgresql_types(conn, self.schema)
+            if self.is_using_postgres:
+                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
+                conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
+                initialize_postgresql_types(conn, self.schema_name)
             yield conn
 
     @profile
@@ -701,7 +645,7 @@ class SQLDatabaseController(object):
             >>> import os
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> uuid_ = db.get_db_init_uuid()
             >>> print('New Database: %r is valid' % (uuid_, ))
             >>> assert isinstance(uuid_, uuid.UUID)
@@ -710,9 +654,9 @@ class SQLDatabaseController(object):
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> path = os.path.join(sqldb_dpath, sqldb_fname)
             >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
-            >>> db1 = SQLDatabaseController.from_uri(db_uri)
+            >>> db1 = SQLDatabaseController(db_uri, 'db1')
             >>> uuid_1 = db1.get_db_init_uuid()
-            >>> db2 = SQLDatabaseController.from_uri(db_uri)
+            >>> db2 = SQLDatabaseController(db_uri, 'db2')
             >>> uuid_2 = db2.get_db_init_uuid()
             >>> print('Existing Database: %r == %r' % (uuid_1, uuid_2, ))
             >>> assert uuid_1 == uuid_2
@@ -725,21 +669,15 @@ class SQLDatabaseController(object):
 
     def reboot(self):
         logger.info('[sql] reboot')
-        self.connection.close()
-        del self.connection
+        self._engine.dispose()
         # Re-initialize the engine
-        # ??? May be better to use the `dispose()` method?
         self.__init_engine()
-        self.connection = self._engine.connect()
-        if self._engine.dialect.name == 'postgresql':
-            self.connection.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema}')
-            self.connection.execute(text('SET SCHEMA :schema'), schema=self.schema)
 
     def backup(self, backup_filepath):
         """
         backup_filepath = dst_fpath
         """
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             # TODO postgresql backup
             return
         else:
@@ -777,28 +715,28 @@ class SQLDatabaseController(object):
             # conn.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] shrink_memory')
         with self.connect() as conn:
             conn.execute('PRAGMA shrink_memory;')
 
     def vacuum(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] vaccum')
         with self.connect() as conn:
             conn.execute('VACUUM;')
 
     def integrity(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] vaccum')
         with self.connect() as conn:
             conn.execute('PRAGMA integrity_check;')
 
     def squeeze(self):
-        if self._engine.dialect.name != 'sqlite':
+        if not self.is_using_sqlite:
             return
         logger.info('[sql] squeeze')
         self.shrink_memory()
@@ -809,8 +747,8 @@ class SQLDatabaseController(object):
         # Note, this on introspects once. Repeated calls will pull the Table object
         # from the MetaData object.
         kw = {}
-        if self._engine.dialect.name == 'postgresql':
-            kw = {'schema': self.schema}
+        if self.is_using_postgres:
+            kw = {'schema': self.schema_name}
         return Table(
             table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
         )
@@ -881,7 +819,7 @@ class SQLDatabaseController(object):
         parameterized_values = [
             {col: val for col, val in zip(colnames, params)} for params in params_iter
         ]
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             # postgresql column names are lowercase
             parameterized_values = [
                 {col.lower(): val for col, val in params.items()}
@@ -945,7 +883,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
             >>>     ('key',                 'TEXT'),
@@ -1920,13 +1858,16 @@ class SQLDatabaseController(object):
             raise ValueError(f'name cannot be an empty string paired with {definition}')
         elif not definition:
             raise ValueError(f'definition cannot be an empty string paired with {name}')
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             if (
                 name.endswith('rowid')
                 and 'INTEGER' in definition
                 and 'PRIMARY KEY' in definition
             ):
-                definition = definition.replace('INTEGER', 'SERIAL')
+                definition = definition.replace('INTEGER', 'BIGSERIAL')
+            definition = definition.replace('REAL', 'DOUBLE PRECISION').replace(
+                'INTEGER', 'BIGINT'
+            )
         return f'{name} {definition}'
 
     def _make_add_table_sqlstr(
@@ -1947,10 +1888,8 @@ class SQLDatabaseController(object):
         if not coldef_list:
             raise ValueError(f'empty coldef_list specified for {tablename}')
 
-        if self._engine.dialect.name == 'postgresql' and 'rowid' not in [
-            name for name, _ in coldef_list
-        ]:
-            coldef_list = [('rowid', 'SERIAL UNIQUE')] + list(coldef_list)
+        if self.is_using_postgres and 'rowid' not in [name for name, _ in coldef_list]:
+            coldef_list = [('rowid', 'BIGSERIAL UNIQUE')] + list(coldef_list)
 
         # Check for invalid keyword arguments
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
@@ -2112,7 +2051,7 @@ class SQLDatabaseController(object):
                             '[sql] WARNING: multiple index inserted add '
                             'columns, may cause alignment issues'
                         )
-                    if self._engine.dialect.name == 'postgresql':
+                    if self.is_using_postgres:
                         # adjust for the additional "rowid" field
                         src += 1
                     colname_list.insert(src, dst)
@@ -2178,7 +2117,7 @@ class SQLDatabaseController(object):
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
 
         # Change owners of sequences from old table to new table
-        if self._engine.dialect.name == 'postgresql':
+        if self.is_using_postgres:
             new_colnames = [name for name, _ in coldef_list]
             for colname, sequence in dependent_sequences:
                 if colname in new_colnames:
@@ -2396,7 +2335,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2431,7 +2370,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri('sqlite:///')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2548,7 +2487,7 @@ class SQLDatabaseController(object):
                     WHERE table_type='BASE TABLE'
                     AND table_schema = :schema"""
                 )
-                params = {'schema': self.schema}
+                params = {'schema': self.schema_name}
             else:
                 raise RuntimeError(f'Unknown dialect {dialect}')
             with self.connect() as conn:
@@ -2702,7 +2641,7 @@ class SQLDatabaseController(object):
                 WHERE table_name = :table_name
                 AND table_schema = :table_schema"""
             )
-            params = {'table_name': tablename, 'table_schema': self.schema}
+            params = {'table_name': tablename, 'table_schema': self.schema_name}
 
         with self.connect() as conn:
             result = conn.execute(stmt, **params)

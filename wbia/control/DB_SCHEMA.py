@@ -2165,7 +2165,7 @@ def dump_schema_sql():
     from wbia import dtool as dt
     from wbia.control import DB_SCHEMA_CURRENT
 
-    db = dt.SQLDatabaseController.from_uri(':memory:')
+    db = dt.SQLDatabaseController('sqlite:///', 'dump')
     DB_SCHEMA_CURRENT.update_current(db)
     with db.connect() as conn:
         dump_str = dumps(conn)

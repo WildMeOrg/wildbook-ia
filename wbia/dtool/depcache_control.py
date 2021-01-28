@@ -267,7 +267,7 @@ class DependencyCache:
             #       Either fix the name or find a better normalizer/slugifier.
             normalized_name = name.replace('/', '__')
             uri = self.controller.make_cache_db_uri(normalized_name)
-            db = sql_control.SQLDatabaseController.from_uri(uri)
+            db = sql_control.SQLDatabaseController(uri, normalized_name)
             # ??? This seems out of place. Shouldn't this be within the depcachetable instance?
             depcache_table.ensure_config_table(db)
             self._db_by_name[name] = db

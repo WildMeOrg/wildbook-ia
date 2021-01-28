@@ -8,6 +8,7 @@ import logging
 import os
 from functools import lru_cache
 from os.path import exists, join, realpath
+from pathlib import Path
 
 import utool as ut
 import ubelt as ub
@@ -46,6 +47,27 @@ def _wbia_cache_write(key, val):
 def _wbia_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
     return ut.global_cache_read(key, appname=__APPNAME__, **kwargs)
+
+
+def get_wbia_db_uri(db_dir: str = None):
+    """Central location to acquire the database URI value.
+
+    Args:
+        db_dir (str): colloquial "dbdir" (default: None)
+
+    The ``db_dir`` argument is only to be used in testing.
+    This function is monkeypatched by the testing environment
+    (see ``wbia.conftest`` for that code).
+    The monkeypatching is done because two or more instances of a controller
+    (i.e. ``IBEISController``) could be running in the same test.
+    In that scenario more than one URI may need to be defined,
+    which is not the case in production
+    and why the body of this function is kept fairly simple.
+    We ask the caller to supply the ``db_dir`` value
+    in order to match up the corresponding URI.
+
+    """
+    return ut.get_argval('--db-uri', default=None)
 
 
 # Specific cache getters / setters
@@ -418,18 +440,11 @@ def ensure_pz_mtest():
         >>> ensure_pz_mtest()
     """
     logger.info('ensure_pz_mtest')
-    from wbia import sysres
-
-    workdir = sysres.get_workdir()
-    mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
-    mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
-    logger.info('have mtest_dir=%r' % (mtest_dir,))
-    if os.getenv('POSTGRES'):
-        copy_sqlite_to_postgres(mtest_dir)
+    dbdir = ensure_db_from_url(const.ZIPPED_URLS.PZ_MTEST)
     # update the the newest database version
     import wbia
 
-    ibs = wbia.opendb('PZ_MTEST')
+    ibs = wbia.opendb(dbdir=dbdir)
     logger.info('cleaning up old database and ensureing everything is properly computed')
     ibs.db.vacuum()
     valid_aids = ibs.get_valid_aids()
@@ -887,8 +902,16 @@ def ensure_db_from_url(zipped_db_url):
     dbdir = ut.grab_zipped_url(
         zipped_url=zipped_db_url, ensure=True, download_dir=workdir
     )
-    if os.getenv('POSTGRES'):
-        copy_sqlite_to_postgres(dbdir)
+
+    # Determine if the implementation is using a URI for database connection.
+    # This is confusing, sorry. If the URI is set we are using a non-sqlite
+    # database connection. As such, we most translate the sqlite db.
+    uri = get_wbia_db_uri(dbdir)
+    if uri:
+        logger.info(f"Copying '{dbdir}' databases to the database at: {uri}")
+        for _, future, _, _ in copy_sqlite_to_postgres(Path(dbdir), uri):
+            future.result()  # will raise if there is a problem
+
     logger.info('have %s=%r' % (zipped_db_url, dbdir))
     return dbdir
 

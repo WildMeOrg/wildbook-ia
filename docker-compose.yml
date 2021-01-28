@@ -16,8 +16,10 @@ services:
     env_file: ./.dockerfiles/docker-compose.env
     ports:
       - "5000:5000"
+    # Development mounting of the code
     volumes:
       - ./:/code
+      - ./.dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
 
   pgadmin:
     image: dpage/pgadmin4
