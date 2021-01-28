@@ -30,6 +30,10 @@ DEFAULT_CHECK_MAX = 100
 DEFAULT_CHECK_MIN = 10
 
 
+class AlreadyMigratedError(Exception):
+    """Raised when the database has already been migrated"""
+
+
 class SqliteDatabaseInfo:
     def __init__(self, db_dir_or_db_uri):
         self.engines = {}
@@ -522,8 +526,9 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     pg_engine = create_engine(postgres_uri)
 
     if not compare_databases(sl_info, pg_info, exact=False):
-        pass
         logger.info(f'{sl_info} already migrated to {pg_info}')
+        # TODO: migrate missing bits here
+        raise AlreadyMigratedError()
 
     if schema_name in pg_info.get_schema():
         logger.warning(f'Dropping schema "{schema_name}"')
