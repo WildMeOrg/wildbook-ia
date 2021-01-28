@@ -1864,7 +1864,10 @@ class SQLDatabaseController(object):
                 and 'INTEGER' in definition
                 and 'PRIMARY KEY' in definition
             ):
-                definition = definition.replace('INTEGER', 'SERIAL')
+                definition = definition.replace('INTEGER', 'BIGSERIAL')
+            definition = definition.replace('REAL', 'DOUBLE PRECISION').replace(
+                'INTEGER', 'BIGINT'
+            )
         return f'{name} {definition}'
 
     def _make_add_table_sqlstr(
@@ -1886,7 +1889,7 @@ class SQLDatabaseController(object):
             raise ValueError(f'empty coldef_list specified for {tablename}')
 
         if self.is_using_postgres and 'rowid' not in [name for name, _ in coldef_list]:
-            coldef_list = [('rowid', 'SERIAL UNIQUE')] + list(coldef_list)
+            coldef_list = [('rowid', 'BIGSERIAL UNIQUE')] + list(coldef_list)
 
         # Check for invalid keyword arguments
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
