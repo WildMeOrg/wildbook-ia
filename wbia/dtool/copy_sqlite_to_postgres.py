@@ -79,24 +79,24 @@ class SqliteDatabaseInfo:
         max_rows=DEFAULT_CHECK_MAX,
         min_rows=DEFAULT_CHECK_MIN,
     ):
-        total_rows = self.get_total_rows(schema, table_name)
-        rows_to_check = max(int(total_rows * percentage), min_rows)
-        if max_rows > 0:
-            rows_to_check = min(rows_to_check, max_rows)
         table = self.metadata[schema].tables[table_name]
-        stmt = (
-            sqlalchemy.select([sqlalchemy.column('rowid'), table])
-            .order_by(sqlalchemy.text('random()'))
-            .limit(rows_to_check)
-        )
+        stmt = sqlalchemy.select([sqlalchemy.column('rowid'), table])
+        if percentage < 1 or max_rows > 0:
+            total_rows = self.get_total_rows(schema, table_name)
+            rows_to_check = max(int(total_rows * percentage), min_rows)
+            if max_rows > 0:
+                rows_to_check = min(rows_to_check, max_rows)
+            stmt = stmt.order_by(sqlalchemy.text('random()')).limit(rows_to_check)
         return self.engines[schema].execute(stmt)
 
-    def get_row(self, schema, table_name, rowid_):
+    def get_rows(self, schema, table_name, rowids):
         table = self.metadata[schema].tables[table_name]
         rowid = sqlalchemy.column('rowid')
-        stmt = sqlalchemy.select([rowid, table]).where(rowid == rowid_)
+        stmt = sqlalchemy.select([rowid, table])
+        if rowids:
+            stmt = stmt.where(rowid.in_(rowids))
         result = self.engines[schema].execute(stmt)
-        return result.fetchone()
+        return result.fetchall()
 
     def get_column(self, schema, table_name, column_name='rowid'):
         table = self.metadata[schema].tables[table_name]
@@ -146,23 +146,23 @@ class PostgresDatabaseInfo:
         max_rows=DEFAULT_CHECK_MAX,
         min_rows=DEFAULT_CHECK_MIN,
     ):
-        total_rows = self.get_total_rows(schema, table_name)
-        rows_to_check = max(int(total_rows * percentage), min_rows)
-        if max_rows > 0:
-            rows_to_check = min(rows_to_check, max_rows)
         table = self.metadata.tables[f'{schema}.{table_name}']
-        stmt = (
-            sqlalchemy.select([table])
-            .order_by(sqlalchemy.text('random()'))
-            .limit(rows_to_check)
-        )
+        stmt = sqlalchemy.select([table])
+        if percentage < 1 or max_rows > 0:
+            total_rows = self.get_total_rows(schema, table_name)
+            rows_to_check = max(int(total_rows * percentage), min_rows)
+            if max_rows > 0:
+                rows_to_check = min(rows_to_check, max_rows)
+            stmt = stmt.order_by(sqlalchemy.text('random()')).limit(rows_to_check)
         return self.engine.execute(stmt)
 
-    def get_row(self, schema, table_name, rowid):
+    def get_rows(self, schema, table_name, rowids):
         table = self.metadata.tables[f'{schema}.{table_name}']
-        stmt = sqlalchemy.select([table]).where(table.c['rowid'] == rowid)
+        stmt = sqlalchemy.select([table])
+        if rowids:
+            stmt = stmt.where(table.c['rowid'].in_(rowids))
         result = self.engine.execute(stmt)
-        return result.fetchone()
+        return result.fetchall()
 
     def get_column(self, schema, table_name, column_name='rowid'):
         table = self.metadata.tables[f'{schema}.{table_name}']
@@ -243,8 +243,10 @@ def compare_databases(
         tables2 = [
             (schema, table) for schema, table in tables2 if schema in normalized_schema1
         ]
+    table_total = {}
     for (schema1, table1), (schema2, table2) in zip(tables1, tables2):
         total1 = db_info1.get_total_rows(schema1, table1)
+        table_total[f'{schema1}.{table1}'] = total1
         total2 = db_info2.get_total_rows(schema2, table2)
         if total1 != total2:
             messages.append(
@@ -265,17 +267,28 @@ def compare_databases(
 
     # Compare data
     for (schema1, table1), (schema2, table2) in zip(tables1, tables2):
-        n_rows = 0
-        for row in db_info1.get_random_rows(
-            schema1, table1, percentage=check_pc, min_rows=check_min, max_rows=check_max
-        ):
-            n_rows += 1
-            row2 = db_info2.get_row(schema2, table2, row[0])
+        rows1 = list(
+            db_info1.get_random_rows(
+                schema1,
+                table1,
+                percentage=check_pc,
+                min_rows=check_min,
+                max_rows=check_max,
+            )
+        )
+        if table_total[f'{schema1}.{table1}'] == len(rows1):
+            rowids = None
+        else:
+            rowids = [row[0] for row in rows1]
+        rows2 = {row[0]: row for row in db_info2.get_rows(schema2, table2, rowids)}
+        for row in rows1:
+            rowid = row[0]
+            row2 = rows2[rowid]
             if not rows_equal(row, row2):
                 messages.append(
                     f'Table "{schema2}.{table2}" data difference: {row} != {row2}'
                 )
-        logger.debug(f'Compared {n_rows} rows in {schema2}.{table2}')
+        logger.debug(f'Compared {len(rows1)} rows in {schema2}.{table2}')
 
     return messages
 
