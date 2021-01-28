@@ -393,7 +393,7 @@ LOAD DATABASE
   WITH include drop,
        create tables,
        create indexes,
-       reset sequences
+       reset no sequences
 
     SET work_mem to '16MB',
         maintenance_work_mem to '512 MB',
@@ -479,10 +479,12 @@ def after_pgloader(sqlite_engine, pg_engine, schema):
         WHERE table_schema = '{schema}'
         AND constraint_type = 'PRIMARY KEY'"""
     ).fetchall()
+    exclude_sequences = set()
     for (table_name, pkey) in table_pkeys:
         # Create sequences for rowid fields
         for column_name in ('rowid', pkey):
             seq_name = f'{table_name}_{column_name}_seq'
+            exclude_sequences.add(seq_name)
             connection.execute(f'CREATE SEQUENCE {seq_name}')
             connection.execute(
                 f"SELECT setval('{seq_name}', (SELECT max({column_name}) FROM {table_name}))"
@@ -492,6 +494,26 @@ def after_pgloader(sqlite_engine, pg_engine, schema):
             )
             connection.execute(
                 f'ALTER SEQUENCE {seq_name} OWNED BY {table_name}.{column_name}'
+            )
+
+    # Reset all sequences except the ones we just created (doing it here
+    # instead of in pgloader because it causes a fatal error in pgloader
+    # when pgloader runs in parallel:
+    #
+    # Asynchronous notification "seqs" (payload: "0") received from
+    # server process with PID 28472.)
+    sequences = connection.execute(
+        f"""\
+        SELECT table_name, column_name, column_default
+        FROM information_schema.columns
+        WHERE table_schema = '{schema}'
+        AND column_default LIKE 'nextval%%'"""
+    ).fetchall()
+    for table_name, column_name, column_default in sequences:
+        seq_name = re.sub(r"nextval\('([^']*)'.*", r'\1', column_default)
+        if seq_name not in exclude_sequences:
+            connection.execute(
+                f"SELECT setval('{seq_name}', (SELECT max({column_name}) FROM {table_name}))"
             )
 
 
