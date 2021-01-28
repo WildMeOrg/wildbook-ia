@@ -105,7 +105,7 @@ services:
   app:
     image: wildme/wildbook-ia:latest
     # FIXME: change docker-entrypoint.sh to allow for additive arguments
-    command: ["python3", "-m", "wbia.dev", "--dbdir", "${WBIA_DB_DIR}", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production", "--db-uri", "${WBIA_DB_URI}"]
+    command: ["wait-for", "db:5432", "--", "python3", "-m", "wbia.dev", "--dbdir", "${WBIA_DB_DIR}", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production", "--db-uri", "${WBIA_DB_URI}"]
     ports:
       # Generically exposed, update as needed
       - "5000"
