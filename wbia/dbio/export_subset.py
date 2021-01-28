@@ -88,7 +88,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
         >>>                        delete_ibsdir=delete_ibsdir)
         >>> merge_databases(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
-        >>> ibs_dst.print_dbinfo()
+        >>> # ibs_dst.print_dbinfo()
     """
     # TODO: ensure images are localized
     # otherwise this wont work

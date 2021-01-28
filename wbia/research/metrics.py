@@ -95,4 +95,4 @@ def research_print_metrics(ibs, tag='metrics'):
     flags = [confidence >= 0.5 for confidence in confidence_list]
     ibs.set_annot_canonical(aids, flags)
 
-    ibs.print_dbinfo()
+    ibs.print_dbinfo(with_ggr=True, with_map=True)

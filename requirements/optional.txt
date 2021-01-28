@@ -3,13 +3,11 @@ autopep8
 
 Cython>=0.24
 
-descartes
 
 Flask-CAS
 
 flask-cors
 flask-swagger
-geopandas
 jupyter
 # Lasagne
 

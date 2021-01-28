@@ -231,6 +231,7 @@ KWARGS = OrderedDict(
         'tests': parse_requirements('requirements/tests.txt'),
         'build': parse_requirements('requirements/build.txt'),
         'runtime': parse_requirements('requirements/runtime.txt'),
+        'optional': parse_requirements('requirements/optional.txt'),
         'postgres': parse_requirements('requirements/postgres.txt'),
     },
     # --- VERSION ---

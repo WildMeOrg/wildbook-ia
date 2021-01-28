@@ -8,12 +8,15 @@ dateutils>=0.6.6
 
 delorean
 deprecated
+descartes
 docker
 flask>=0.10.1
 flask-cas
 flask-cors
 
 gdm
+geopandas
+
 imgaug
 
 ipython>=5.0.0
