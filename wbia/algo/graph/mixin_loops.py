@@ -109,8 +109,11 @@ class InfrLoops(object):
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
             infr.loop_phase = 'pos_redun_init'
             # Fix positive redundancy of anything within the loop
-            for _ in infr.pos_redun_gen():
-                yield _
+            try:
+                for _ in infr.pos_redun_gen():
+                    yield _
+            except StopIteration:
+                pass
 
         infr.phase = 1
         if infr.params['ranking.enabled']:
