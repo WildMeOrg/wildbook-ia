@@ -47,6 +47,7 @@ RUN set -ex \
         git \
         htop \
         locate \
+        pgloader \
         tmux \
         unzip \
         vim \
