@@ -9,6 +9,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 3
+      fail-fast: false
       matrix:
         # For speed, we choose one version and that should be the lowest common denominator
         python-version: [3.6, 3.7, 3.8]
@@ -43,14 +45,34 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      max-parallel: 6
+      fail-fast: false
       matrix:
         os: [ubuntu-latest] # Disable "macos-latest" for now
         # For speed, we choose one version and that should be the lowest common denominator
         python-version: [3.6, 3.7, 3.8]
+        postgres-uri: ['', 'postgresql://postgres:wbia@localhost:5432/postgres']
+
+    services:
+      db:
+        image: postgres:10
+        env:
+          POSTGRES_PASSWORD: wbia
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       # Checkout and env setup
       - uses: actions/checkout@v2
+      - name: Install pgloader
+        if: matrix.postgres-uri
+        run: sudo apt-get install pgloader
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -65,12 +87,14 @@ jobs:
 
       # Install and test
       - name: Install the project
-        run: pip install -e .[tests]
+        run: pip install -e .[tests,postgres]
       - name: Test with pytest
         run: |
           mkdir -p data/work
           python -m wbia --set-workdir data/work --preload-exit
-          pytest --slow
+          pytest --slow --web-tests --with-postgres-uri=$POSTGRES_URI
+        env:
+          POSTGRES_URI: ${{ matrix.postgres-uri }}
 
   on-failure:
     # This is not in the 'test' job itself because it would otherwise notify once per matrix combination.

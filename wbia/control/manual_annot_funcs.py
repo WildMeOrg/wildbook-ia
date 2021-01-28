@@ -838,6 +838,8 @@ def filter_annotation_set(
     is_canonical=None,
     min_timedelta=None,
 ):
+    if not aid_list:  # no need to filter if empty
+        return aid_list
     # -- valid aid filtering --
     # filter by is_exemplar
     if is_exemplar is True:
@@ -2328,6 +2330,14 @@ def set_annot_viewpoints(
             # raise RuntimeError(message)
             logger.info(message)
         try:
+            ibs.wbia_plugin_curvrank_v2_delete_cache_optimized(
+                update_aid_list, 'CurvRankTwoDorsal'
+            )
+        except Exception:
+            message = 'Could not purge CurvRankTwoDorsal cache for viewpoint'
+            # raise RuntimeError(message)
+            logger.info(message)
+        try:
             ibs.wbia_plugin_curvrank_delete_cache_optimized(
                 update_aid_list, 'CurvRankFinfindrHybridDorsal'
             )
@@ -2482,11 +2492,12 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
     """
     # FIXME: This index should when the database is defined.
     # Ensure that an index exists on the image column of the annotation table
-    ibs.db.connection.execute(
-        """
-        CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
-        """
-    ).fetchall()
+    with ibs.db.connect() as conn:
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
+            """
+        )
     # The index maxes the following query very efficient
     part_rowids_list = ibs.db.get(
         ibs.const.PART_TABLE,

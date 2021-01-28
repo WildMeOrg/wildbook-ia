@@ -11,6 +11,8 @@ import functools
 import six
 import numpy as np
 import utool as ut
+import matplotlib.pyplot as plt
+
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -51,15 +53,19 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
 def get_dbinfo(
     ibs,
     verbose=True,
-    with_imgsize=False,
-    with_bytes=False,
-    with_contrib=False,
-    with_agesex=False,
+    with_imgsize=True,
+    with_bytes=True,
+    with_contrib=True,
+    with_agesex=True,
     with_header=True,
+    with_reviews=True,
+    with_ggr=False,
+    with_map=False,
     short=False,
     tag='dbinfo',
     aid_list=None,
     aids=None,
+    gmt_offset=3.0,
 ):
     """
 
@@ -167,10 +173,9 @@ def get_dbinfo(
     # Basic variables
     request_annot_subset = False
     _input_aid_list = aid_list  # NOQA
+
     if aid_list is None:
         valid_aids = ibs.get_valid_aids()
-        valid_nids = ibs.get_valid_nids()
-        valid_gids = ibs.get_valid_gids()
     else:
         if isinstance(aid_list, str):
             # Hack to get experiment stats on aids
@@ -182,16 +187,44 @@ def get_dbinfo(
                 ibs, acfg_name_list
             )
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
-            # aid_list =
         if verbose:
             logger.info('Specified %d custom aids' % (len(aid_list)))
         request_annot_subset = True
         valid_aids = aid_list
-        valid_nids = list(
-            set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False))
-            - {const.UNKNOWN_NAME_ROWID}
-        )
-        valid_gids = list(set(ibs.get_annot_gids(aid_list)))
+
+    def get_dates(ibs, gid_list):
+        unixtime_list = ibs.get_image_unixtime2(gid_list)
+        unixtime_list_ = [unixtime + (gmt_offset * 60 * 60) for unixtime in unixtime_list]
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
+            for unixtime in unixtime_list_
+        ]
+        date_str_list = [value[:10] for value in datetime_list]
+        return date_str_list
+
+    if with_ggr:
+        valid_gids = list(set(ibs.get_annot_gids(valid_aids)))
+        date_str_list = get_dates(ibs, valid_gids)
+        flag_list = [
+            value in ['2016/01/30', '2016/01/31', '2018/01/27', '2018/01/28']
+            for value in date_str_list
+        ]
+        valid_gids = ut.compress(valid_gids, flag_list)
+        ggr_aids = set(ut.flatten(ibs.get_image_aids(valid_gids)))
+        valid_aids = sorted(list(set(valid_aids) & ggr_aids))
+
+    valid_nids = list(
+        set(ibs.get_annot_nids(valid_aids, distinguish_unknowns=False))
+        - {const.UNKNOWN_NAME_ROWID}
+    )
+    valid_gids = list(set(ibs.get_annot_gids(valid_aids)))
+    # valid_rids = ibs._get_all_review_rowids()
+    valid_rids = []
+    valid_rids += ibs.get_review_rowids_from_aid1(valid_aids)
+    valid_rids += ibs.get_review_rowids_from_aid2(valid_aids)
+    valid_rids = ut.flatten(valid_rids)
+    valid_rids = list(set(valid_rids))
+
     # associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     valid_images = ibs.images(valid_gids)
     valid_annots = ibs.annots(valid_aids)
@@ -224,16 +257,16 @@ def get_dbinfo(
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
-    if False:
+    if True:
         # Occurrence Info
         def compute_annot_occurrence_ids(ibs, aid_list):
             from wbia.algo.preproc import preproc_occurrence
+            import utool as ut
 
             gid_list = ibs.get_annot_gids(aid_list)
             gid2_aids = ut.group_items(aid_list, gid_list)
-            config = {'seconds_thresh': 4 * 60 * 60}
             flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
-                ibs, gid_list, config=config, verbose=False
+                ibs, gid_list, verbose=False
             )
             occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
             occurid2_aids = {
@@ -283,19 +316,19 @@ def get_dbinfo(
         # ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]
         # ut.square_pdist(ave_enc_time)
 
-    try:
-        am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[
-            0
-        ]
-        aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
-        undirected_tags = ibs.get_aidpair_tags(
-            aid_pairs.T[0], aid_pairs.T[1], directed=False
-        )
-        tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
-        tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
-        pair_tag_info = ut.map_dict_vals(len, tag_dict)
-    except Exception:
-        pair_tag_info = {}
+    # try:
+    #     am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[
+    #         0
+    #     ]
+    #     aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
+    #     undirected_tags = ibs.get_aidpair_tags(
+    #         aid_pairs.T[0], aid_pairs.T[1], directed=False
+    #     )
+    #     tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
+    #     tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
+    #     pair_tag_info = ut.map_dict_vals(len, tag_dict)
+    # except Exception:
+    #     pair_tag_info = {}
 
     # logger.info(ut.repr2(pair_tag_info))
 
@@ -405,10 +438,119 @@ def get_dbinfo(
         ut.show_if_requested()
     unixtime_statstr = ut.repr3(ut.get_timestats_dict(unixtime_list, full=True), si=True)
 
+    date_str_list = get_dates(ibs, valid_gids)
+    ggr_dates_stats = ut.dict_hist(date_str_list)
+
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
     gps_list = ut.compress(gps_list_, gpsvalid_list)
+
+    if with_map:
+
+        def plot_kenya(ibs, ax, gps_list=[], focus=False, focus2=False, margin=0.1):
+            import utool as ut
+            import pandas as pd
+            import geopandas
+            import shapely
+
+            if focus2:
+                focus = True
+
+            world = geopandas.read_file(
+                geopandas.datasets.get_path('naturalearth_lowres')
+            )
+            africa = world[world.continent == 'Africa']
+            kenya = africa[africa.name == 'Kenya']
+
+            cities = geopandas.read_file(
+                geopandas.datasets.get_path('naturalearth_cities')
+            )
+            nairobi = cities[cities.name == 'Nairobi']
+
+            kenya.plot(ax=ax, color='white', edgecolor='black')
+
+            path_dict = ibs.compute_ggr_path_dict()
+            meru = path_dict['County Meru']
+
+            for key in path_dict:
+                path = path_dict[key]
+
+                polygon = shapely.geometry.Polygon(path.vertices[:, ::-1])
+                gdf = geopandas.GeoDataFrame([1], geometry=[polygon], crs=world.crs)
+
+                if key.startswith('County'):
+                    if 'Meru' in key:
+                        gdf.plot(ax=ax, color=(1, 0, 0, 0.2), edgecolor='red')
+                    else:
+                        gdf.plot(ax=ax, color='grey', edgecolor='black')
+                if focus:
+                    if key.startswith('Land Tenure'):
+                        gdf.plot(ax=ax, color=(1, 0, 0, 0.0), edgecolor='blue')
+
+            if focus2:
+                flag_list = []
+                for gps in gps_list:
+                    flag = meru.contains_point(gps)
+                    flag_list.append(flag)
+                gps_list = ut.compress(gps_list, flag_list)
+
+            df = pd.DataFrame(
+                {
+                    'Latitude': ut.take_column(gps_list, 0),
+                    'Longitude': ut.take_column(gps_list, 1),
+                }
+            )
+            gdf = geopandas.GeoDataFrame(
+                df, geometry=geopandas.points_from_xy(df.Longitude, df.Latitude)
+            )
+            gdf.plot(ax=ax, color='red')
+
+            min_lat, min_lon = gdf.min()
+            max_lat, max_lon = gdf.max()
+            dom_lat = max_lat - min_lat
+            dom_lon = max_lon - min_lon
+            margin_lat = dom_lat * margin
+            margin_lon = dom_lon * margin
+            min_lat -= margin_lat
+            min_lon -= margin_lon
+            max_lat += margin_lat
+            max_lon += margin_lon
+
+            polygon = shapely.geometry.Polygon(
+                [
+                    [min_lon, min_lat],
+                    [min_lon, max_lat],
+                    [max_lon, max_lat],
+                    [max_lon, min_lat],
+                ]
+            )
+            gdf = geopandas.GeoDataFrame([1], geometry=[polygon], crs=world.crs)
+            gdf.plot(ax=ax, color=(1, 0, 0, 0.0), edgecolor='blue')
+
+            nairobi.plot(ax=ax, marker='*', color='black', markersize=500)
+
+            ax.grid(False, which='major')
+            ax.grid(False, which='minor')
+            ax.get_xaxis().set_ticks([])
+            ax.get_yaxis().set_ticks([])
+
+            if focus:
+                ax.set_autoscalex_on(False)
+                ax.set_autoscaley_on(False)
+                ax.set_xlim([min_lon, max_lon])
+                ax.set_ylim([min_lat, max_lat])
+
+        fig = plt.figure(figsize=(30, 30), dpi=400)
+
+        ax = plt.subplot(131)
+        plot_kenya(ibs, ax, gps_list)
+        ax = plt.subplot(132)
+        plot_kenya(ibs, ax, gps_list, focus=True)
+        ax = plt.subplot(133)
+        plot_kenya(ibs, ax, gps_list, focus2=True)
+
+        plt.savefig('map.png', bbox_inches='tight')
 
     def get_annot_age_stats(aid_list):
         annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
@@ -558,14 +700,150 @@ def get_dbinfo(
     contributor_rowids = ibs.get_valid_contributor_rowids()
     num_contributors = len(contributor_rowids)
 
-    # print
-    num_tabs = 5
+    if verbose:
+        logger.info('Checking Review Info')
+
+    # Get reviewer statistics
+    def get_review_decision_stats(ibs, rid_list):
+        review_decision_list = ibs.get_review_decision_str(rid_list)
+        review_decision_to_rids = ut.group_items(rid_list, review_decision_list)
+        review_decision_stats = {
+            key: len(val) for key, val in review_decision_to_rids.items()
+        }
+        return review_decision_stats
+
+    def get_review_identity(rid_list):
+        review_identity_list = ibs.get_review_identity(rid_list)
+        review_identity_list = [
+            value.replace('user:web', 'human:web')
+            .replace('web:None', 'web')
+            .replace('auto_clf', 'vamp')
+            .replace(':', '[')
+            + ']'
+            for value in review_identity_list
+        ]
+        return review_identity_list
+
+    def get_review_identity_stats(ibs, rid_list):
+        review_identity_list = get_review_identity(rid_list)
+        review_identity_to_rids = ut.group_items(rid_list, review_identity_list)
+        review_identity_stats = {
+            key: len(val) for key, val in review_identity_to_rids.items()
+        }
+        return review_identity_to_rids, review_identity_stats
+
+    def get_review_participation(review_aids_list, value_list):
+        review_participation_dict = {}
+        for review_aids, value in zip(review_aids_list, value_list):
+            for value_ in [value, 'Any']:
+                if value_ not in review_participation_dict:
+                    review_participation_dict[value_] = {}
+                for aid in review_aids:
+                    if aid not in review_participation_dict[value_]:
+                        review_participation_dict[value_][aid] = 0
+                    review_participation_dict[value_][aid] += 1
+
+        for value in review_participation_dict:
+            values = list(review_participation_dict[value].values())
+            mean = np.mean(values)
+            std = np.std(values)
+            thresh = int(np.around(mean + 2 * std))
+            values = [
+                '%02d+' % (thresh,) if value >= thresh else '%02d' % (value,)
+                for value in values
+            ]
+            review_participation_dict[value] = ut.dict_hist(values)
+            review_participation_dict[value]['AVG'] = '%0.1f +/- %0.1f' % (
+                mean,
+                std,
+            )
+
+        return review_participation_dict
+
+    review_decision_stats = get_review_decision_stats(ibs, valid_rids)
+    review_identity_to_rids, review_identity_stats = get_review_identity_stats(
+        ibs, valid_rids
+    )
+
+    review_identity_to_decision_stats = {
+        key: get_review_decision_stats(ibs, aids)
+        for key, aids in six.iteritems(review_identity_to_rids)
+    }
+
+    review_aids_list = ibs.get_review_aid_tuple(valid_rids)
+    review_decision_list = ibs.get_review_decision_str(valid_rids)
+    review_identity_list = get_review_identity(valid_rids)
+    review_decision_participation_dict = get_review_participation(
+        review_aids_list, review_decision_list
+    )
+    review_identity_participation_dict = get_review_participation(
+        review_aids_list, review_identity_list
+    )
+
+    review_tags_list = ibs.get_review_tags(valid_rids)
+    review_tag_list = [
+        review_tag if review_tag is None else '+'.join(sorted(review_tag))
+        for review_tag in review_tags_list
+    ]
+
+    review_tag_to_rids = ut.group_items(valid_rids, review_tag_list)
+    review_tag_stats = {key: len(val) for key, val in review_tag_to_rids.items()}
+
+    species_list = ibs.get_annot_species_texts(valid_aids)
+    viewpoint_list = ibs.get_annot_viewpoints(valid_aids)
+    quality_list = ibs.get_annot_qualities(valid_aids)
+    interest_list = ibs.get_annot_interest(valid_aids)
+    canonical_list = ibs.get_annot_canonical(valid_aids)
+
+    ggr_num_relevant = 0
+    ggr_num_species = 0
+    ggr_num_viewpoints = 0
+    ggr_num_qualities = 0
+    ggr_num_aois = 0
+    ggr_num_cas = 0
+    ggr_num_overlap = 0
+
+    zipped = list(
+        zip(
+            valid_aids,
+            species_list,
+            viewpoint_list,
+            quality_list,
+            interest_list,
+            canonical_list,
+        )
+    )
+    for aid, species_, viewpoint_, quality_, interest_, canonical_ in zipped:
+        assert None not in [species_, viewpoint_, quality_]
+        species_ = species_.lower()
+        viewpoint_ = viewpoint_.lower()
+        quality_ = int(quality_)
+        if species_ in ['zebra_grevys', 'zebra_plains']:
+            ggr_num_relevant += 1
+        if species_ in ['zebra_grevys']:
+            ggr_num_species += 1
+            if 'right' in viewpoint_:
+                ggr_num_viewpoints += 1
+                if quality_ >= 3:
+                    ggr_num_qualities += 1
+            if interest_:
+                ggr_num_aois += 1
+                if canonical_:
+                    ggr_num_overlap += 1
+
+        if canonical_:
+            ggr_num_cas += 1
+
+    #########
+
+    num_tabs = 30
 
     def align2(str_):
         return ut.align(str_, ':', ' :')
 
     def align_dict2(dict_):
-        str_ = ut.repr2(dict_, si=True)
+        # str_ = ut.repr2(dict_, si=True)
+        str_ = ut.repr3(dict_, si=True)
         return align2(str_)
 
     header_block_lines = [('+============================')] + (
@@ -626,17 +904,6 @@ def get_dbinfo(
         else []
     )
 
-    occurrence_block_lines = (
-        [
-            ('--' * num_tabs),
-            # ('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
-            # ('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
-            ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
-        ]
-        if not short
-        else []
-    )
-
     annot_per_qualview_block_lines = [
         None if short else '# Annots per Viewpoint = %s' % align_dict2(viewcode2_nAnnots),
         None if short else '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
@@ -644,23 +911,66 @@ def get_dbinfo(
 
     annot_per_agesex_block_lines = (
         [
-            '# Annots per Age = %s' % align_dict2(agetext2_nAnnots),
-            '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
+            ('# Annots per Age = %s' % align_dict2(agetext2_nAnnots)),
+            ('# Annots per Sex = %s' % align_dict2(sextext2_nAnnots)),
         ]
         if not short and with_agesex
         else []
     )
 
-    contributor_block_lines = (
+    annot_ggr_census = (
         [
-            '# Images per contributor       = ' + align_dict2(contributor_tag_to_nImages),
-            '# Annots per contributor       = ' + align_dict2(contributor_tag_to_nAnnots),
-            '# Quality per contributor      = '
-            + ut.repr2(contributor_tag_to_qualstats, sorted_=True),
-            '# Viewpoint per contributor    = '
-            + ut.repr2(contributor_tag_to_viewstats, sorted_=True),
+            ('GGR Annots: '),
+            ('     +-Relevant:            %s' % (ggr_num_relevant,)),
+            ("     +- Grevy's Species:   %s" % (ggr_num_species,)),
+            ('     |  +-AoIs:             %s' % (ggr_num_aois,)),
+            ('     |  +- Right Side:      %s' % (ggr_num_viewpoints,)),
+            ('     |  |  +-Good Quality:  %s' % (ggr_num_qualities,)),
+            ('     +-CAs:                 %s' % (ggr_num_cas,)),
+            ('     +-Filter + CA Overlap: %s' % (ggr_num_overlap,)),
         ]
-        if with_contrib
+        if with_ggr
+        else []
+    )
+
+    occurrence_block_lines = (
+        [
+            ('--' * num_tabs),
+            (
+                '# Occurrence Per Name (Resights) = %s'
+                % (align_dict2(resight_name_stats),)
+            ),
+            (
+                '# Annots per Encounter (Singlesights) = %s'
+                % (align_dict2(singlesight_annot_stats),)
+            ),
+            # ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
+        ]
+        if not short
+        else []
+    )
+
+    reviews_block_lines = (
+        [
+            ('--' * num_tabs),
+            ('# Reviews                    = %d' % len(valid_rids)),
+            ('# Reviews per Decision       = %s' % align_dict2(review_decision_stats)),
+            ('# Reviews per Reviewer       = %s' % align_dict2(review_identity_stats)),
+            (
+                '# Review Breakdown           = %s'
+                % align_dict2(review_identity_to_decision_stats)
+            ),
+            ('# Reviews with Tag           = %s' % align_dict2(review_tag_stats)),
+            (
+                '# Review Participation #1    = %s'
+                % align_dict2(review_decision_participation_dict)
+            ),
+            (
+                '# Review Participation #2    = %s'
+                % align_dict2(review_identity_participation_dict)
+            ),
+        ]
+        if with_reviews
         else []
     )
 
@@ -675,7 +985,34 @@ def get_dbinfo(
         None
         if short
         else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
+        None
+        if with_ggr
+        else ('GGR Days                     = %s' % (align_dict2(ggr_dates_stats),)),
     ]
+
+    contributor_block_lines = (
+        [
+            ('--' * num_tabs),
+            (
+                '# Images per contributor       = '
+                + align_dict2(contributor_tag_to_nImages)
+            ),
+            (
+                '# Annots per contributor       = '
+                + align_dict2(contributor_tag_to_nAnnots)
+            ),
+            (
+                '# Quality per contributor      = '
+                + align_dict2(contributor_tag_to_qualstats)
+            ),
+            (
+                '# Viewpoint per contributor    = '
+                + align_dict2(contributor_tag_to_viewstats)
+            ),
+        ]
+        if with_contrib
+        else []
+    )
 
     info_str_lines = (
         header_block_lines
@@ -684,16 +1021,17 @@ def get_dbinfo(
         + name_block_lines
         + annot_block_lines
         + annot_per_basic_block_lines
-        + occurrence_block_lines
         + annot_per_qualview_block_lines
         + annot_per_agesex_block_lines
+        + occurrence_block_lines
+        + reviews_block_lines
         + img_block_lines
-        + contributor_block_lines
         + imgsize_stat_lines
+        + contributor_block_lines
         + [('L============================')]
     )
     info_str = '\n'.join(ut.filter_Nones(info_str_lines))
-    info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))
+    info_str2 = ut.indent(info_str, '[{tag}] '.format(tag=tag))
     if verbose:
         logger.info(info_str2)
     locals_ = locals()

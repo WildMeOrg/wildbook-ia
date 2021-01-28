@@ -193,7 +193,7 @@ AUTHORS = [
     'J. Wrona',
 ]
 AUTHOR_EMAIL = 'dev@wildme.org'
-URL = 'https://github.com/WildbookOrg/wildbook-ia'
+URL = 'https://github.com/WildMeOrg/wildbook-ia'
 LICENSE = 'Apache License 2.0'
 DESCRIPTION = 'Wildbook IA (WBIA) - Machine learning service for the WildBook project'
 KEYWORDS = [
@@ -231,6 +231,7 @@ KWARGS = OrderedDict(
         'tests': parse_requirements('requirements/tests.txt'),
         'build': parse_requirements('requirements/build.txt'),
         'runtime': parse_requirements('requirements/runtime.txt'),
+        'optional': parse_requirements('requirements/optional.txt'),
         'postgres': parse_requirements('requirements/postgres.txt'),
     },
     # --- VERSION ---
@@ -271,7 +272,7 @@ KWARGS = OrderedDict(
         'Programming Language :: Python :: 3 :: Only',
     ],
     project_urls={  # Optional
-        'Bug Reports': 'https://github.com/WildbookOrg/wildbook-ia/issues',
+        'Bug Reports': 'https://github.com/WildMeOrg/wildbook-ia/issues',
         'Funding': 'https://www.wildme.org/donate/',
         'Say Thanks!': 'https://community.wildbook.org',
         'Source': URL,
@@ -279,6 +280,9 @@ KWARGS = OrderedDict(
     entry_points="""\
     [console_scripts]
     wbia-init-testdbs = wbia.cli.testdbs:main
+    wbia-convert-hsdb = wbia.cli.convert_hsdb:main
+    wbia-migrate-sqlite-to-postgres = wbia.cli.migrate_sqlite_to_postgres:main
+    wbia-compare-databases = wbia.cli.compare_databases:main
     """,
 )
 

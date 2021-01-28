@@ -7,6 +7,7 @@ See also, https://docs.sqlalchemy.org/en/latest/core/event.html
 """
 from sqlalchemy import event
 from sqlalchemy.schema import Table
+from sqlalchemy.sql import text
 
 from .types import SQL_TYPE_TO_SA_TYPE
 
@@ -22,9 +23,33 @@ def _discovery_table_columns(inspector, table_name):
             #: column-id, name, data-type, nullable, default-value, is-primary-key
             info_rows = result.fetchall()
             names_to_types = {info[1]: info[2] for info in info_rows}
+        elif dialect == 'postgresql':
+            result = conn.execute(
+                text(
+                    """SELECT
+                           row_number() over () - 1,
+                           column_name,
+                           coalesce(domain_name, data_type),
+                           CASE WHEN is_nullable = 'YES' THEN 0 ELSE 1 END,
+                           column_default,
+                           column_name = (
+                               SELECT column_name
+                               FROM information_schema.table_constraints
+                               NATURAL JOIN information_schema.constraint_column_usage
+                               WHERE table_name = :table_name
+                               AND constraint_type = 'PRIMARY KEY'
+                               LIMIT 1
+                           ) AS pk
+                    FROM information_schema.columns
+                    WHERE table_name = :table_name"""
+                ),
+                table_name=table_name,
+            )
+            info_rows = result.fetchall()
+            names_to_types = {info[1]: info[2] for info in info_rows}
         else:
             raise RuntimeError(
-                "Unknown dialect ('{dialect}'), can't introspect column information."
+                f"Unknown dialect ('{dialect}'), can't introspect column information."
             )
     return names_to_types
 

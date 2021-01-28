@@ -57,24 +57,25 @@ def hack_create_aidpair_index(ibs):
         CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({index_cols});
         """
     )
-    sqlcmd = sqlfmt.format(
-        index_name='aidpair_to_rowid',
-        table=ibs.const.REVIEW_TABLE,
-        index_cols=','.join([REVIEW_AID1, REVIEW_AID2]),
-    )
-    ibs.staging.connection.execute(sqlcmd).fetchall()
-    sqlcmd = sqlfmt.format(
-        index_name='aid1_to_rowids',
-        table=ibs.const.REVIEW_TABLE,
-        index_cols=','.join([REVIEW_AID1]),
-    )
-    ibs.staging.connection.execute(sqlcmd).fetchall()
-    sqlcmd = sqlfmt.format(
-        index_name='aid2_to_rowids',
-        table=ibs.const.REVIEW_TABLE,
-        index_cols=','.join([REVIEW_AID2]),
-    )
-    ibs.staging.connection.execute(sqlcmd).fetchall()
+    with ibs.staging.connect() as conn:
+        sqlcmd = sqlfmt.format(
+            index_name='aidpair_to_rowid',
+            table=ibs.const.REVIEW_TABLE,
+            index_cols=','.join([REVIEW_AID1, REVIEW_AID2]),
+        )
+        conn.execute(sqlcmd)
+        sqlcmd = sqlfmt.format(
+            index_name='aid1_to_rowids',
+            table=ibs.const.REVIEW_TABLE,
+            index_cols=','.join([REVIEW_AID1]),
+        )
+        conn.execute(sqlcmd)
+        sqlcmd = sqlfmt.format(
+            index_name='aid2_to_rowids',
+            table=ibs.const.REVIEW_TABLE,
+            index_cols=','.join([REVIEW_AID2]),
+        )
+        conn.execute(sqlcmd)
 
 
 @register_ibs_method
@@ -566,9 +567,8 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
         REVIEW_EVIDENCE_DECISION,
     )
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID1)
-    review_tuple_decisions_list = ibs.staging.get_where(
-        const.REVIEW_TABLE, colnames, params_iter, where_clause, unpack_scalars=False
+    review_tuple_decisions_list = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, (REVIEW_AID1,), unpack_scalars=False
     )
     return review_tuple_decisions_list
 
@@ -586,9 +586,8 @@ def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
     """
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID1)
-    review_rowids = ibs.staging.get_where(
-        const.REVIEW_TABLE, colnames, params_iter, where_clause, unpack_scalars=False
+    review_rowids = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, (REVIEW_AID1,), unpack_scalars=False
     )
     return review_rowids
 
@@ -612,12 +611,11 @@ def get_review_rowids_from_single(ibs, aid_list, eager=True, nInput=None):
 def get_review_rowids_from_aid1(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID1,)
-    review_rowids = ibs.staging.get_where(
+    review_rowids = ibs.staging.get_where_eq(
         const.REVIEW_TABLE,
         colnames,
         params_iter,
-        where_clause=where_clause,
+        (REVIEW_AID1,),
         unpack_scalars=False,
     )
     return review_rowids
@@ -627,12 +625,11 @@ def get_review_rowids_from_aid1(ibs, aid_list, eager=True, nInput=None):
 def get_review_rowids_from_aid2(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
-    where_clause = '%s=?' % (REVIEW_AID2,)
-    review_rowids = ibs.staging.get_where(
+    review_rowids = ibs.staging.get_where_eq(
         const.REVIEW_TABLE,
         colnames,
         params_iter,
-        where_clause=where_clause,
+        (REVIEW_AID2,),
         unpack_scalars=False,
     )
     return review_rowids

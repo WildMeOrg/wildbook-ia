@@ -22,7 +22,7 @@ REGISTRY=${REGISTRY:-}
 IMAGES=${@:-wbia-base wbia-dependencies wbia-provision wbia wildbook-ia}
 # Set the image prefix
 if [ -n "$REGISTRY" ]; then
-    IMG_PREFIX="${REGISTRY}/wildbookorg/wildbook-ia/"
+    IMG_PREFIX="${REGISTRY}/wildmeorg/wildbook-ia/"
 else
     IMG_PREFIX="wildme/"
 fi

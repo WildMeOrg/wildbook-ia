@@ -112,7 +112,13 @@ def _get_all_image_rowids(ibs):
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
 def get_valid_gids(
-    ibs, imgsetid=None, require_unixtime=False, require_gps=None, reviewed=None, **kwargs
+    ibs,
+    imgsetid=None,
+    imgsetid_list=(),
+    require_unixtime=False,
+    require_gps=None,
+    reviewed=None,
+    **kwargs
 ):
     r"""
     Args:
@@ -147,8 +153,10 @@ def get_valid_gids(
         >>> print(result)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     """
-    if imgsetid is None:
+    if imgsetid is None and not imgsetid_list:
         gid_list = ibs._get_all_gids()
+    elif imgsetid_list:
+        gid_list = ibs.get_imageset_gids(imgsetid_list)
     else:
         assert not ut.isiterable(imgsetid)
         gid_list = ibs.get_imageset_gids(imgsetid)
@@ -397,15 +405,11 @@ def add_images(
         )
     # </DEBUG>
 
-    # Execute SQL Add
-    from distutils.version import LooseVersion
-
-    if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
-        colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
-        params_list = [
-            tuple(params) + (gpath, location_for_names) if params is not None else None
-            for params, gpath in zip(params_list, gpath_list)
-        ]
+    colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
+    params_list = [
+        tuple(params) + (gpath, location_for_names) if params is not None else None
+        for params, gpath in zip(params_list, gpath_list)
+    ]
 
     all_gid_list = ibs.db.add_cleanly(
         const.IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid
@@ -2172,13 +2176,14 @@ def get_image_imgsetids(ibs, gid_list):
     if NEW_INDEX_HACK:
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
-        ibs.db.connection.execute(
-            """
-            CREATE INDEX IF NOT EXISTS gs_to_gids ON {GSG_RELATION_TABLE} ({IMAGE_ROWID});
-            """.format(
-                GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID
+        with ibs.db.connect() as conn:
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS gs_to_gids ON {GSG_RELATION_TABLE} ({IMAGE_ROWID});
+                """.format(
+                    GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID
+                )
             )
-        ).fetchall()
     colnames = ('imageset_rowid',)
     imgsetids_list = ibs.db.get(
         const.GSG_RELATION_TABLE,
@@ -2276,11 +2281,12 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
 
-        ibs.db.connection.execute(
-            """
-            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
-            """
-        ).fetchall()
+        with ibs.db.connect() as conn:
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+                """
+            )
 
         # The index maxes the following query very efficient
         if __check_staged__:
@@ -2320,7 +2326,8 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
         """.format(
             input_str=input_str, ANNOTATION_TABLE=const.ANNOTATION_TABLE
         )
-        pair_list = ibs.db.connection.execute(opstr).fetchall()
+        with ibs.db.connect() as conn:
+            pair_list = conn.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         gidscol = np.array(ut.get_list_column(pair_list, 1))
         unique_gids, groupx = vt.group_indices(gidscol)

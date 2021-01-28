@@ -69,6 +69,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.dbio.export_subset import *  # NOQA
+        >>> from wbia.init.sysres import get_workdir
         >>> import wbia
         >>> db1 = ut.get_argval('--db1', str, default=None)
         >>> db2 = ut.get_argval('--db2', str, default=None)
@@ -77,18 +78,18 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
         >>> delete_ibsdir = False
         >>> # Check for test mode instead of script mode
         >>> if db1 is None and db2 is None and dbdir1 is None and dbdir2 is None:
-        ...     db1 = 'testdb1'
-        ...     dbdir2 = 'testdb_dst'
+        ...     dbdir1 = '/'.join([get_workdir(), 'testdb1'])
+        ...     dbdir2 = '/'.join([get_workdir(), 'testdb_dst'])
         ...     delete_ibsdir = True
         >>> # Open the source and destination database
         >>> assert db1 is not None or dbdir1 is not None
         >>> assert db2 is not None or dbdir2 is not None
         >>> ibs_src = wbia.opendb(db=db1, dbdir=dbdir1)
         >>> ibs_dst = wbia.opendb(db=db2, dbdir=dbdir2, allow_newdir=True,
-        >>>                        delete_ibsdir=delete_ibsdir)
+        ...                       delete_ibsdir=delete_ibsdir)
         >>> merge_databases(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
-        >>> ibs_dst.print_dbinfo()
+        >>> # ibs_dst.print_dbinfo()
     """
     # TODO: ensure images are localized
     # otherwise this wont work

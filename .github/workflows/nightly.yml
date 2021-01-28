@@ -5,6 +5,9 @@ on:
   push:
     paths:
       - '.github/workflows/nightly.yml'
+      - 'devops/**'
+      - 'Dockerfile'
+      - '.dockerfiles/*'
   pull_request:
     paths:
       - '.github/workflows/nightly.yml'
@@ -19,6 +22,8 @@ jobs:
     name: DevOps nightly image build
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 2
+      fail-fast: false
       matrix:
         images:
           - wildbook-ia

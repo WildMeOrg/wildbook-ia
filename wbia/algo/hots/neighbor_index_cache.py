@@ -338,14 +338,14 @@ def request_augmented_wbia_nnindexer(
         >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
         >>> ibs = wbia.opendb('testdb1')
         >>> use_memcache, max_covers, verbose = True, None, True
-        >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:6]
+        >>> daid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:6]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> qreq_.qparams.min_reindex_thresh = 1
         >>> min_reindex_thresh = qreq_.qparams.min_reindex_thresh
         >>> # CLEAR CACHE for clean test
         >>> clear_uuid_cache(qreq_)
         >>> # LOAD 3 AIDS INTO CACHE
-        >>> aid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
+        >>> aid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:3]
         >>> # Should fallback
         >>> nnindexer = request_augmented_wbia_nnindexer(qreq_, aid_list)
         >>> # assert the fallback
@@ -630,7 +630,7 @@ def group_daids_by_cached_nnindexer(
         >>> # STEP 0: CLEAR THE CACHE
         >>> clear_uuid_cache(qreq_)
         >>> # STEP 1: ASSERT EMPTY INDEX
-        >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
+        >>> daid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:3]
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
         ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result1 = uncovered_aids, covered_aids_list

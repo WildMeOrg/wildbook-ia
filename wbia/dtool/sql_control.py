@@ -5,23 +5,31 @@ Interface into SQL for the IBEIS Controller
 TODO; need to use some sort of sticky bit so
 sql files are created with reasonable permissions.
 """
+import functools
 import logging
 import collections
 import os
 import parse
 import re
-import threading
 import uuid
 from collections.abc import Mapping, MutableMapping
-from functools import partial
+from contextlib import contextmanager
 from os.path import join, exists
 
 import six
+import sqlalchemy
 import utool as ut
 from deprecated import deprecated
+from sqlalchemy.engine import LegacyRow
+from sqlalchemy.schema import Table
+from sqlalchemy.sql import bindparam, text, ClauseElement
 
-from wbia.dtool import sqlite3 as lite
+from wbia.dtool import lite
 from wbia.dtool.dump import dumps
+from wbia.dtool.types import Integer, TYPE_TO_SQLTYPE
+from wbia.dtool.types import initialize_postgresql_types
+
+import tqdm
 
 
 print, rrr, profile = ut.inject2(__name__)
@@ -36,6 +44,8 @@ VERBOSE = ut.VERBOSE
 VERYVERBOSE = ut.VERYVERBOSE
 
 TIMEOUT = 600  # Wait for up to 600 seconds for the database to return from a locked state
+
+BATCH_SIZE = int(1e4)
 
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk')
@@ -63,13 +73,68 @@ METADATA_TABLE_COLUMNS = {
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
-def _unpacker(results_):
+def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
+    pid = os.getpid()
+    if ENGINES.get('pid') != pid:
+        # ENGINES contains engines from the parent process that the
+        # child process can't use
+        ENGINES.clear()
+        ENGINES['pid'] = pid
+    kw = {
+        # The echo flag is a shortcut to set up SQLAlchemy logging
+        'echo': False,
+    }
+    if uri.startswith('sqlite:') and ':memory:' in uri:
+        # Don't share engines for in memory sqlite databases
+        return sqlalchemy.create_engine(uri, **kw)
+    if uri not in ENGINES:
+        if uri.startswith('postgresql:'):
+            # pool_size is not available for sqlite
+            kw['pool_size'] = POSTGRESQL_POOL_SIZE
+        ENGINES[uri] = sqlalchemy.create_engine(uri, **kw)
+    return ENGINES[uri]
+
+
+def compare_coldef_lists(coldef_list1, coldef_list2):
+    def normalize(coldef_list):
+        for name, coldef in coldef_list:
+            # Remove "rowid" which is added to postgresql tables
+            if name != 'rowid':
+                coldef_ = coldef.lower()
+                # Remove "default nextval" for postgresql auto-increment fields
+                # as sqlite doesn't need it
+                coldef_ = re.sub(r' default \(nextval\(.*', '', coldef_)
+                # Consider bigint and integer the same
+                if 'bigint' in coldef_:
+                    coldef_ = re.sub(r"'([^']*)'::bigint", r'\1', coldef_)
+                    coldef_ = re.sub(r'\bbigint\b', 'integer', coldef_)
+                # Consider double precision and real the same
+                if 'double precision' in coldef_:
+                    coldef_ = re.sub(r'\bdouble precision\b', 'real', coldef_)
+                yield name.lower(), coldef_
+
+    coldef_list1 = list(normalize(coldef_list1))
+    coldef_list2 = list(normalize(coldef_list2))
+
+    if len(coldef_list1) != len(coldef_list2):
+        return coldef_list1, coldef_list2
+    for i in range(len(coldef_list1)):
+        name1, coldef1 = coldef_list1[i]
+        name2, coldef2 = coldef_list2[i]
+        if name1 != name2:
+            return coldef_list1, coldef_list2
+        if coldef1 != coldef2:
+            return coldef_list1, coldef_list2
+    return
+
+
+def _unpacker(results):
     """ HELPER: Unpacks results if unpack_scalars is True. """
-    if len(results_) == 0:
+    if not results:  # Check for None or empty list
         results = None
     else:
-        assert len(results_) <= 1, 'throwing away results! { %r }' % (results_,)
-        results = results_[0]
+        assert len(results) <= 1, 'throwing away results! { %r }' % (results,)
+        results = results[0]
     return results
 
 
@@ -77,228 +142,6 @@ def tuplize(list_):
     """ Converts each scalar item in a list to a dimension-1 tuple """
     tup_list = [item if ut.isiterable(item) else (item,) for item in list_]
     return tup_list
-
-
-def flattenize(list_):
-    """
-    maps flatten to a tuplized list
-
-    Weird function. DEPRICATE
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
-        >>> import utool
-        >>> from itertools import zip
-        >>> val_list1 = [(1, 2), (2, 4), (5, 3)]
-        >>> id_list1  = [(1,),     (2,),   (3,)]
-        >>> out_list1 = utool.flattenize(zip(val_list1, id_list1))
-
-        >>> val_list2 = [1, 4, 5]
-        >>> id_list2  = [(1,),     (2,),   (3,)]
-        >>> out_list2 = utool.flattenize(zip(val_list2, id_list2))
-
-        >>> val_list3 = [1, 4, 5]
-        >>> id_list3  = [1, 2, 3]
-        >>> out_list3 = utool.flattenize(zip(val_list3, id_list3))
-
-        out_list4 = list(zip(val_list3, id_list3))
-        %timeit utool.flattenize(zip(val_list1, id_list1))
-        %timeit utool.flattenize(zip(val_list2, id_list2))
-        %timeit utool.flattenize(zip(val_list3, id_list3))
-        %timeit list(zip(val_list3, id_list3))
-
-        100000 loops, best of 3: 14 us per loop
-        100000 loops, best of 3: 16.5 us per loop
-        100000 loops, best of 3: 18 us per loop
-        1000000 loops, best of 3: 1.18 us per loop
-    """
-    tuplized_iter = map(tuplize, list_)
-    flatenized_list = list(map(ut.flatten, tuplized_iter))
-    return flatenized_list
-
-
-# =======================
-# SQL Context Class
-# =======================
-
-
-class SQLExecutionContext(object):
-    """
-    Context manager for transactional database calls
-
-    FIXME: hash out details. I don't think anybody who programmed this
-    knows what is going on here. So much for fine grained control.
-
-    Referencs:
-        http://stackoverflow.com/questions/9573768/understand-sqlite-multi-module-envs
-
-    """
-
-    def __init__(
-        context,
-        db,
-        operation,
-        nInput=None,
-        auto_commit=True,
-        start_transaction=False,
-        keepwrap=False,
-        verbose=VERBOSE_SQL,
-        tablename=None,
-    ):
-        context.tablename = None
-        context.auto_commit = auto_commit
-        context.db = db
-        context.operation = operation
-        context.nInput = nInput
-        context.start_transaction = start_transaction
-        context.operation_type = get_operation_type(operation)
-        context.verbose = verbose
-        context.is_insert = context.operation_type.startswith('INSERT')
-        context.keepwrap = keepwrap
-        context.cur = None
-        context.connection = None
-
-    def __enter__(context):
-        """ Checks to see if the operating will change the database """
-        # ut.printif(lambda: '[sql] Callers: ' + ut.get_caller_name(range(3, 6)), DEBUG)
-        if context.nInput is not None:
-            context.operation_lbl = '[sql] execute nInput=%d optype=%s: ' % (
-                context.nInput,
-                context.operation_type,
-            )
-        else:
-            context.operation_lbl = '[sql] executeone optype=%s: ' % (
-                context.operation_type
-            )
-        # Start SQL Transaction
-
-        context.connection = context.db.connection
-        try:
-            context.cur = context.connection.cursor()  # HACK in a new cursor
-        except lite.ProgrammingError:
-            # Get connection for new thread
-            context.connection = context.db.thread_connection()
-            context.cur = context.connection.cursor()
-
-        # context.cur = context.db.cur  # OR USE DB CURSOR??
-        if context.start_transaction:
-            # context.cur.execute('BEGIN', ())
-            try:
-                context.cur.execute('BEGIN')
-            except lite.OperationalError:
-                context.connection.rollback()
-                context.cur.execute('BEGIN')
-        if context.verbose or VERBOSE_SQL:
-            logger.info(context.operation_lbl)
-            if context.verbose:
-                logger.info('[sql] operation=\n' + context.operation)
-        # Comment out timeing code
-        # if __debug__:
-        #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-        #        context.tt = ut.tic(context.operation_lbl)
-        return context
-
-    # @profile
-    def execute_and_generate_results(context, params):
-        """ helper for context statment """
-        try:
-            context.cur.execute(context.operation, params)
-        except lite.Error as ex:
-            logger.info('Reporting SQLite Error')
-            logger.info('params = ' + ut.repr2(params, truncate=not ut.VERBOSE))
-            ut.printex(ex, 'sql.Error', keys=['params'])
-            if (
-                hasattr(ex, 'message')
-                and ex.message.find('probably unsupported type') > -1
-            ):
-                logger.info(
-                    'ERR REPORT: given param types = ' + ut.repr2(ut.lmap(type, params))
-                )
-                if context.tablename is None:
-                    if context.operation_type.startswith('SELECT'):
-                        tablename = ut.str_between(
-                            context.operation, 'FROM', 'WHERE'
-                        ).strip()
-                    else:
-                        tablename = context.operation_type.split(' ')[-1]
-                else:
-                    tablename = context.tablename
-                try:
-                    coldef_list = context.db.get_coldef_list(tablename)
-                    logger.info(
-                        'ERR REPORT: expected types = %s' % (ut.repr4(coldef_list),)
-                    )
-                except Exception:
-                    pass
-            raise
-        return context._results_gen()
-
-    # @profile
-    def _results_gen(context):
-        """HELPER - Returns as many results as there are.
-        Careful. Overwrites the results once you call it.
-        Basically: Dont call this twice.
-        """
-        if context.is_insert:
-            # The sqlite3_last_insert_rowid(D) interface returns the
-            # <b> rowid of the most recent successful INSERT </b>
-            # into a rowid table in D
-            context.cur.execute('SELECT last_insert_rowid()', ())
-        # Wraping fetchone in a generator for some pretty tight calls.
-        while True:
-            result = context.cur.fetchone()
-            if not result:
-                return
-            if context.keepwrap:
-                # Results are always returned wraped in a tuple
-                yield result
-            else:
-                # Here unpacking is conditional
-                # FIXME: can this if be removed?
-                yield result[0] if len(result) == 1 else result
-
-    def __exit__(context, type_, value, trace):
-        """ Finalization of an SQLController call """
-        if trace is not None:
-            # An SQLError is a serious offence.
-            logger.info('[sql] FATAL ERROR IN QUERY CONTEXT')
-            logger.info('[sql] operation=\n' + context.operation)
-            logger.info('[sql] Error in context manager!: ' + str(value))
-            # return a falsey value on error
-            return False
-        else:
-            # Commit the transaction
-            if context.auto_commit:
-                context.connection.commit()
-            else:
-                logger.info('no commit %r' % context.operation_lbl)
-
-
-def get_operation_type(operation):
-    """
-    Parses the operation_type from an SQL operation
-    """
-    operation = ' '.join(operation.split('\n')).strip()
-    operation_type = operation.split(' ')[0].strip()
-    if operation_type.startswith('SELECT'):
-        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('INSERT'):
-        operation_args = ut.str_between(operation, operation_type, '(').strip()
-    elif operation_type.startswith('DROP'):
-        operation_args = ''
-    elif operation_type.startswith('ALTER'):
-        operation_args = ''
-    elif operation_type.startswith('UPDATE'):
-        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('DELETE'):
-        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('CREATE'):
-        operation_args = ut.str_between(operation, operation_type, '(').strip()
-    else:
-        operation_args = None
-    operation_type += ' ' + operation_args.replace('\n', ' ')
-    return operation_type.upper()
 
 
 def sanitize_sql(db, tablename_, columns=None):
@@ -334,47 +177,6 @@ def sanitize_sql(db, tablename_, columns=None):
         columns = [column for column in columns if columns is not None]
 
         return tablename, columns
-
-
-def dev_test_new_schema_version(
-    dbname, sqldb_dpath, sqldb_fname, version_current, version_next=None
-):
-    """
-    HACK
-
-    hacky function to ensure that only developer sees the development schema
-    and only on test databases
-    """
-    TESTING_NEW_SQL_VERSION = version_current != version_next
-    if TESTING_NEW_SQL_VERSION:
-        logger.info('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
-        devdb_list = [
-            'PZ_MTEST',
-            'testdb1',
-            'testdb2',
-            'testdb_dst2',
-            'emptydatabase',
-        ]
-        testing_newschmea = ut.is_developer() and dbname in devdb_list
-        # testing_newschmea = False
-        # ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
-        if testing_newschmea:
-            # Set to true until the schema module is good then continue tests
-            # with this set to false
-            testing_force_fresh = True or ut.get_argflag('--force-fresh')
-            # Work on a fresh schema copy when developing
-            dev_sqldb_fname = ut.augpath(sqldb_fname, '_develop_schema')
-            sqldb_fpath = join(sqldb_dpath, sqldb_fname)
-            dev_sqldb_fpath = join(sqldb_dpath, dev_sqldb_fname)
-            ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
-            # Set testing schema version
-            # ibs.db_version_expected = '1.3.6'
-            logger.info('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
-            # logger.info('[sql] ... pass --force-fresh to reload any changes')
-            return version_next, dev_sqldb_fname
-        else:
-            logger.info('[ibs] NOT TESTING')
-    return version_current, sqldb_fname
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -413,29 +215,54 @@ class SQLDatabaseController(object):
 
             @property
             def version(self):
-                stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
+                stmt = text(
+                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = :key'
+                )
                 try:
-                    return self.ctrlr.executeone(stmt, ('database_version',))[0]
-                except IndexError:  # No result
+                    return self.ctrlr.executeone(
+                        stmt, {'key': 'database_version'}, use_fetchone_behavior=True
+                    )[0]
+                except TypeError:  # NoneType
                     return None
 
             @version.setter
             def version(self, value):
                 if not value:
                     raise ValueError(value)
-                self.ctrlr.executeone(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
-                    ('database_version', value),
-                )
+                dialect = self.ctrlr._engine.dialect.name
+                if dialect == 'sqlite':
+                    stmt = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value)'
+                        'VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    stmt = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
+                params = {'key': 'database_version', 'value': value}
+                self.ctrlr.executeone(stmt, params)
 
             @property
             def init_uuid(self):
-                stmt = f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = ?'
+                stmt = text(
+                    f'SELECT metadata_value FROM {METADATA_TABLE_NAME} WHERE metadata_key = :key'
+                )
                 try:
-                    value = self.ctrlr.executeone(stmt, ('database_init_uuid',))[0]
-                except IndexError:  # No result
+                    value = self.ctrlr.executeone(
+                        stmt, {'key': 'database_init_uuid'}, use_fetchone_behavior=True
+                    )[0]
+                except TypeError:  # NoneType
                     return None
-                return uuid.UUID(value)
+                if value is not None:
+                    value = uuid.UUID(value)
+                return value
 
             @init_uuid.setter
             def init_uuid(self, value):
@@ -443,10 +270,25 @@ class SQLDatabaseController(object):
                     raise ValueError(value)
                 elif isinstance(value, uuid.UUID):
                     value = str(value)
-                self.ctrlr.executeone(
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) VALUES (?, ?)',
-                    ('database_init_uuid', value),
-                )
+                dialect = self.ctrlr._engine.dialect.name
+                if dialect == 'sqlite':
+                    stmt = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} (metadata_key, metadata_value) '
+                        'VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    stmt = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
+                params = {'key': 'database_init_uuid', 'value': value}
+                self.ctrlr.executeone(stmt, params)
 
             # collections.abc.MutableMapping abstract methods
 
@@ -493,18 +335,24 @@ class SQLDatabaseController(object):
             def __getattr__(self, name):
                 # Query the database for the value represented as name
                 key = '_'.join([self.table_name, name])
-                statement = (
+                statement = text(
                     'SELECT metadata_value '
                     f'FROM {METADATA_TABLE_NAME} '
-                    'WHERE metadata_key = ?'
+                    'WHERE metadata_key = :key'
                 )
                 try:
-                    value = self.ctrlr.executeone(statement, (key,))[0]
-                except IndexError:
-                    # No value for the requested metadata_key
+                    value = self.ctrlr.executeone(
+                        statement, {'key': key}, use_fetchone_behavior=True
+                    )[0]
+                except TypeError:  # NoneType
                     return None
                 if METADATA_TABLE_COLUMNS[name]['is_coded_data']:
                     value = eval(value)
+                if name == 'superkeys' and isinstance(value, list):
+                    # superkeys looks like [('image_rowid, encounter_rowid',)]
+                    # instead of [('image_rowid',), ('encounter_rowid',)]
+                    if len(value) == 1 and len(value[0]) == 1:
+                        value = [tuple(value[0][0].split(', '))]
                 return value
 
             def __getattribute__(self, name):
@@ -527,15 +375,27 @@ class SQLDatabaseController(object):
                 key = self._get_key_name(name)
 
                 # Insert or update the record
-                # FIXME postgresql (4-Aug-12020) 'insert or replace' is not valid for postgresql
-                statement = (
-                    f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
-                    f'(metadata_key, metadata_value) VALUES (?, ?)'
-                )
-                params = (
-                    key,
-                    value,
-                )
+                dialect = self.ctrlr._engine.dialect.name
+                if dialect == 'sqlite':
+                    statement = text(
+                        f'INSERT OR REPLACE INTO {METADATA_TABLE_NAME} '
+                        f'(metadata_key, metadata_value) VALUES (:key, :value)'
+                    )
+                elif dialect == 'postgresql':
+                    statement = text(
+                        f"""\
+                        INSERT INTO {METADATA_TABLE_NAME}
+                            (metadata_key, metadata_value)
+                        VALUES (:key, :value)
+                        ON CONFLICT (metadata_key) DO UPDATE
+                            SET metadata_value = EXCLUDED.metadata_value"""
+                    )
+                else:
+                    raise RuntimeError(f'Unknown dialect {dialect}')
+                params = {
+                    'key': key,
+                    'value': value,
+                }
                 self.ctrlr.executeone(statement, params)
 
             def __delattr__(self, name):
@@ -544,8 +404,10 @@ class SQLDatabaseController(object):
                     raise AttributeError
 
                 # Insert or update the record
-                statement = f'DELETE FROM {METADATA_TABLE_NAME} where metadata_key = ?'
-                params = (self._get_key_name(name),)
+                statement = text(
+                    f'DELETE FROM {METADATA_TABLE_NAME} where metadata_key = :key'
+                )
+                params = {'key': self._get_key_name(name)}
                 self.ctrlr.executeone(statement, params)
 
             def __dir__(self):
@@ -623,46 +485,41 @@ class SQLDatabaseController(object):
         def __len__(self):
             return len(self.ctrlr.get_table_names()) + 1  # for 'database'
 
-    @classmethod
-    def from_uri(cls, uri, readonly=READ_ONLY, timeout=TIMEOUT):
+    def __init_engine(self):
+        """Create the SQLAlchemy Engine"""
+        self._engine = create_engine(self.uri)
+
+    def __init__(self, uri, name, readonly=READ_ONLY, timeout=TIMEOUT):
         """Creates a controller instance from a connection URI
+
+        The name is primarily used with Postgres. In Postgres the the name
+        acts as the database schema name, because all the "databases" are
+        stored within one Postgres database that is namespaced
+        with the given ``name``. (Special names like ``_ibeis_database``
+        are translated to the correct schema name during
+        the connection process.)
 
         Args:
             uri (str): connection string or uri
-            timeout (int): connection timeout in seconds
+            name (str): name of the database (e.g. chips, _ibeis_database, staging)
 
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
-            >>> sqldb_fname = u'test_database.sqlite3'
-            >>> path = os.path.join(sqldb_dpath, sqldb_fname)
-            >>> db_uri = 'file://{}'.format(os.path.realpath(path))
-            >>> db = SQLDatabaseController.from_uri(db_uri)
-            >>> db.print_schema()
-            >>> print(db)
-            >>> db2 = SQLDatabaseController.from_uri(db_uri, readonly=True)
-            >>> db.add_table('temptable', (
-            >>>     ('rowid',               'INTEGER PRIMARY KEY'),
-            >>>     ('key',                 'TEXT'),
-            >>>     ('val',                 'TEXT'),
-            >>> ),
-            >>>     superkeys=[('key',)])
-            >>> db2.print_schema()
         """
-        self = cls.__new__(cls)
         self.uri = uri
+        self.name = name
         self.timeout = timeout
         self.metadata = self.Metadata(self)
         self.readonly = readonly
 
+        self.__init_engine()
+        # Create a _private_ SQLAlchemy metadata instance
+        # TODO (27-Sept-12020) Develop API to expose elements of SQLAlchemy.
+        #      The MetaData is unbound to ensure we don't accidentally misuse it.
+        self._sa_metadata = sqlalchemy.MetaData(schema=self.schema_name)
+
+        # Reflect all known tables
+        self._sa_metadata.reflect(bind=self._engine)
+
         self._tablenames = None
-        # FIXME (31-Jul-12020) rename to private attribute
-        self.thread_connections = {}
-        self._connection = None
-        # FIXME (31-Jul-12020) rename to private attribute, no direct access to the connection
-        # Initialize a cursor
-        self.cur = self.connection.cursor()
 
         if not self.readonly:
             # Ensure the metadata table is initialized.
@@ -673,69 +530,37 @@ class SQLDatabaseController(object):
         # Optimize the database
         self.optimize()
 
-        return self
-
-    def connect(self):
-        """Create a connection for the instance or use the existing connection"""
-        self._connection = lite.connect(
-            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout, uri=True
-        )
-        return self._connection
+    @property
+    def is_using_sqlite(self):
+        return self._engine.dialect.name == 'sqlite'
 
     @property
-    def connection(self):
-        """Create a connection or reuse the existing connection"""
-        # TODO (31-Jul-12020) Grab the correct connection for the thread.
-        if self._connection is not None:
-            conn = self._connection
+    def is_using_postgres(self):
+        return self._engine.dialect.name == 'postgresql'
+
+    @property
+    def schema_name(self):
+        """The name of the namespace schema (using with Postgres)."""
+        if self.is_using_postgres:
+            if self.name == '_ibeis_database':
+                schema = 'main'
+            elif self.name == '_ibeis_staging':
+                schema = 'staging'
+            else:
+                schema = self.name
         else:
-            conn = self.connect()
-        return conn
+            schema = None
+        return schema
 
-    def _create_connection(self):
-        path = self.uri.replace('file://', '')
-        if not exists(path):
-            logger.info('[sql] Initializing new database: %r' % (self.uri,))
-            if self.readonly:
-                raise AssertionError('Cannot open a new database in readonly mode')
-        # Open the SQL database connection with support for custom types
-        # lite.enable_callback_tracebacks(True)
-        # self.fpath = ':memory:'
-
-        # References:
-        # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
-        uri = self.uri
-        if self.readonly:
-            uri += '?mode=ro'
-        connection = lite.connect(
-            uri, uri=True, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout
-        )
-
-        # Keep track of what thead this was started in
-        threadid = threading.current_thread()
-        self.thread_connections[threadid] = connection
-
-        return connection, uri
-
-    def close(self):
-        self.cur = None
-        self.connection.close()
-        self.thread_connections = {}
-
-    # def reconnect(db):
-    #     # Call this if we move into a new thread
-    #     assert db.fname != ':memory:', 'cant reconnect to mem'
-    #     connection, uri = db._create_connection()
-    #     db.connection = connection
-    #     db.cur = db.connection.cursor()
-
-    def thread_connection(self):
-        threadid = threading.current_thread()
-        if threadid in self.thread_connections:
-            connection = self.thread_connections[threadid]
-        else:
-            connection, uri = self._create_connection()
-        return connection
+    @contextmanager
+    def connect(self):
+        """Create a connection instance to wrap a SQL execution block as a context manager"""
+        with self._engine.connect() as conn:
+            if self.is_using_postgres:
+                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
+                conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
+                initialize_postgresql_types(conn, self.schema_name)
+            yield conn
 
     @profile
     def _ensure_metadata_table(self):
@@ -747,8 +572,15 @@ class SQLDatabaseController(object):
         """
         try:
             orig_table_kw = self.get_table_autogen_dict(METADATA_TABLE_NAME)
-        except (lite.OperationalError, NameError):
+        except (
+            sqlalchemy.exc.OperationalError,  # sqlite error
+            sqlalchemy.exc.ProgrammingError,  # postgres error
+            NameError,
+        ):
             orig_table_kw = None
+            # Reset connection because schema was rolled back due to
+            # the error
+            self._connection = None
 
         meta_table_kw = ut.odict(
             [
@@ -813,7 +645,7 @@ class SQLDatabaseController(object):
             >>> import os
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> # Check random database gets new UUID on init
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> uuid_ = db.get_db_init_uuid()
             >>> print('New Database: %r is valid' % (uuid_, ))
             >>> assert isinstance(uuid_, uuid.UUID)
@@ -821,10 +653,10 @@ class SQLDatabaseController(object):
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
             >>> path = os.path.join(sqldb_dpath, sqldb_fname)
-            >>> db_uri = 'file://{}'.format(os.path.realpath(path))
-            >>> db1 = SQLDatabaseController.from_uri(db_uri)
+            >>> db_uri = 'sqlite:///{}'.format(os.path.realpath(path))
+            >>> db1 = SQLDatabaseController(db_uri, 'db1')
             >>> uuid_1 = db1.get_db_init_uuid()
-            >>> db2 = SQLDatabaseController.from_uri(db_uri)
+            >>> db2 = SQLDatabaseController(db_uri, 'db2')
             >>> uuid_2 = db2.get_db_init_uuid()
             >>> print('Existing Database: %r == %r' % (uuid_1, uuid_2, ))
             >>> assert uuid_1 == uuid_2
@@ -837,77 +669,89 @@ class SQLDatabaseController(object):
 
     def reboot(self):
         logger.info('[sql] reboot')
-        self.cur.close()
-        del self.cur
-        self.connection.close()
-        del self.connection
-        self.connection = lite.connect(
-            self.uri, detect_types=lite.PARSE_DECLTYPES, timeout=self.timeout, uri=True
-        )
-        self.cur = self.connection.cursor()
+        self._engine.dispose()
+        # Re-initialize the engine
+        self.__init_engine()
 
     def backup(self, backup_filepath):
         """
         backup_filepath = dst_fpath
         """
-        # Create a brand new conenction to lock out current thread and any others
-        connection, uri = self._create_connection()
-        # Start Exclusive transaction, lock out all other writers from making database changes
-        connection.isolation_level = 'EXCLUSIVE'
-        connection.execute('BEGIN EXCLUSIVE')
-        # Assert the database file exists, and copy to backup path
-        path = self.uri.replace('file://', '')
-        if exists(path):
-            ut.copy(path, backup_filepath)
+        if self.is_using_postgres:
+            # TODO postgresql backup
+            return
         else:
-            raise IOError(
-                'Could not backup the database as the URI does not exist: %r' % (uri,)
-            )
-        # Commit the transaction, releasing the lock
-        connection.commit()
-        # Close the connection
-        connection.close()
+            # Assert the database file exists, and copy to backup path
+            path = self.uri.replace('sqlite://', '')
+            if not exists(path):
+                raise IOError(
+                    'Could not backup the database as the URI does not exist: %r'
+                    % (self.uri,)
+                )
+        # Start Exclusive transaction, lock out all other writers from making database changes
+        with self.connect() as conn:
+            conn.execute('BEGIN EXCLUSIVE')
+            ut.copy(path, backup_filepath)
 
     def optimize(self):
+        if self._engine.dialect.name != 'sqlite':
+            return
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        if VERBOSE_SQL:
-            logger.info('[sql] running sql pragma optimizions')
-        # self.cur.execute('PRAGMA cache_size = 0;')
-        # self.cur.execute('PRAGMA cache_size = 1024;')
-        # self.cur.execute('PRAGMA page_size = 1024;')
-        # logger.info('[sql] running sql pragma optimizions')
-        self.cur.execute('PRAGMA cache_size = 10000;')  # Default: 2000
-        self.cur.execute('PRAGMA temp_store = MEMORY;')
-        self.cur.execute('PRAGMA synchronous = OFF;')
-        # self.cur.execute('PRAGMA synchronous = NORMAL;')
-        # self.cur.execute('PRAGMA synchronous = FULL;')  # Default
-        # self.cur.execute('PRAGMA parser_trace = OFF;')
-        # self.cur.execute('PRAGMA busy_timeout = 1;')
-        # self.cur.execute('PRAGMA default_cache_size = 0;')
+        logger.info('[sql] running sql pragma optimizions')
+
+        with self.connect() as conn:
+            # conn.execute('PRAGMA cache_size = 0;')
+            # conn.execute('PRAGMA cache_size = 1024;')
+            # conn.execute('PRAGMA page_size = 1024;')
+            # logger.info('[sql] running sql pragma optimizions')
+            conn.execute('PRAGMA cache_size = 10000;')  # Default: 2000
+            conn.execute('PRAGMA temp_store = MEMORY;')
+            conn.execute('PRAGMA synchronous = OFF;')
+            # conn.execute('PRAGMA synchronous = NORMAL;')
+            # conn.execute('PRAGMA synchronous = FULL;')  # Default
+            # conn.execute('PRAGMA parser_trace = OFF;')
+            # conn.execute('PRAGMA busy_timeout = 1;')
+            # conn.execute('PRAGMA default_cache_size = 0;')
 
     def shrink_memory(self):
+        if not self.is_using_sqlite:
+            return
         logger.info('[sql] shrink_memory')
-        self.connection.commit()
-        self.cur.execute('PRAGMA shrink_memory;')
-        self.connection.commit()
+        with self.connect() as conn:
+            conn.execute('PRAGMA shrink_memory;')
 
     def vacuum(self):
+        if not self.is_using_sqlite:
+            return
         logger.info('[sql] vaccum')
-        self.connection.commit()
-        self.cur.execute('VACUUM;')
-        self.connection.commit()
+        with self.connect() as conn:
+            conn.execute('VACUUM;')
 
     def integrity(self):
+        if not self.is_using_sqlite:
+            return
         logger.info('[sql] vaccum')
-        self.connection.commit()
-        self.cur.execute('PRAGMA integrity_check;')
-        self.connection.commit()
+        with self.connect() as conn:
+            conn.execute('PRAGMA integrity_check;')
 
     def squeeze(self):
+        if not self.is_using_sqlite:
+            return
         logger.info('[sql] squeeze')
         self.shrink_memory()
         self.vacuum()
+
+    def _reflect_table(self, table_name):
+        """Produces a SQLAlchemy Table object from the given ``table_name``"""
+        # Note, this on introspects once. Repeated calls will pull the Table object
+        # from the MetaData object.
+        kw = {}
+        if self.is_using_postgres:
+            kw = {'schema': self.schema_name}
+        return Table(
+            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
+        )
 
     # ==============
     # API INTERFACE
@@ -923,11 +767,8 @@ class SQLDatabaseController(object):
 
     def get_all_rowids(self, tblname, **kwargs):
         """ returns a list of all rowids from a table in ascending order """
-        fmtdict = {
-            'tblname': tblname,
-        }
-        operation_fmt = 'SELECT rowid FROM {tblname} ORDER BY rowid ASC'
-        return self._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+        operation = text(f'SELECT rowid FROM {tblname} ORDER BY rowid ASC')
+        return self.executeone(operation, **kwargs)
 
     def get_all_col_rows(self, tblname, colname):
         """ returns a list of all rowids from a table in ascending order """
@@ -956,27 +797,54 @@ class SQLDatabaseController(object):
         return self._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
 
     def check_rowid_exists(self, tablename, rowid_iter, eager=True, **kwargs):
-        rowid_list1 = self.get(tablename, ('rowid',), rowid_iter)
+        """Check for the existence of rows (``rowid_iter``) in a table (``tablename``).
+        Returns as sequence of rowids that exist in the given sequence.
+
+        The 'rowid' term is an alias for the primary key. When calling this method,
+        you should know that the primary key may be more than one column.
+
+        """
+        # BBB (10-Oct-12020) 'rowid' only exists in SQLite and auto-magically gets mapped
+        #     to an integer primary key. However, SQLAlchemy doesn't abide by this magic.
+        #     The aliased column is not part of a reflected table.
+        #     So we find and use the primary key instead.
+        table = self._reflect_table(tablename)
+        columns = tuple(c.name for c in table.primary_key.columns)
+        rowid_list1 = self.get(tablename, columns, rowid_iter)
         exists_list = [rowid is not None for rowid in rowid_list1]
         return exists_list
 
-    def _add(self, tblname, colnames, params_iter, **kwargs):
+    def _add(self, tblname, colnames, params_iter, unpack_scalars=True, **kwargs):
         """ ADDER NOTE: use add_cleanly """
-        fmtdict = {
-            'tblname': tblname,
-            'erotemes': ', '.join(['?'] * len(colnames)),
-            'params': ',\n'.join(colnames),
-        }
-        operation_fmt = """
-        INSERT INTO {tblname}(
-        rowid,
-        {params}
-        ) VALUES (NULL, {erotemes})
-        """
-        rowid_list = self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
-        )
-        return rowid_list
+        parameterized_values = [
+            {col: val for col, val in zip(colnames, params)} for params in params_iter
+        ]
+        if self.is_using_postgres:
+            # postgresql column names are lowercase
+            parameterized_values = [
+                {col.lower(): val for col, val in params.items()}
+                for params in parameterized_values
+            ]
+        table = self._reflect_table(tblname)
+
+        # It would be possible to do one insert,
+        # but SQLite is not capable of returning the primary key value after a multi-value insert.
+        # Thus, we are stuck doing several inserts... ineffecient.
+        insert_stmt = sqlalchemy.insert(table)
+
+        primary_keys = []
+        with self.connect() as conn:
+            with conn.begin():  # new nested database transaction
+                for vals in parameterized_values:
+                    result = conn.execute(insert_stmt.values(vals))
+
+                    pk = result.inserted_primary_key
+                    if unpack_scalars:
+                        # Assumption at the time of writing this is that the primary key is the SQLite rowid.
+                        # Therefore, we can assume the primary key is a single column value.
+                        pk = pk[0]
+                    primary_keys.append(pk)
+        return primary_keys
 
     def add_cleanly(
         self,
@@ -1015,7 +883,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> db.add_table('dummy_table', (
             >>>     ('rowid',               'INTEGER PRIMARY KEY'),
             >>>     ('key',                 'TEXT'),
@@ -1106,7 +974,7 @@ class SQLDatabaseController(object):
         """
         operation = 'SELECT count(1) FROM {tblname} WHERE rowid=?'.format(tblname=tblname)
         for rowid in rowids:
-            yield bool(self.cur.execute(operation, (rowid,)).fetchone()[0])
+            yield bool(self.connection.execute(operation, (rowid,)).fetchone()[0])
 
     def get_where_eq(
         self,
@@ -1115,30 +983,133 @@ class SQLDatabaseController(object):
         params_iter,
         where_colnames,
         unpack_scalars=True,
-        eager=True,
         op='AND',
+        batch_size=BATCH_SIZE,
         **kwargs,
     ):
-        """hacked in function for nicer templates
+        """Executes a SQL select where the given parameters match/equal
+        the specified where columns.
 
-        unpack_scalars = True
-        kwargs = {}
+        Args:
+            tblname (str): table name
+            colnames (tuple[str]): sequence of column names
+            params_iter (list[list]): a sequence of a sequence with parameters,
+                                      where each item in the sequence is used in a SQL execution
+            where_colnames (list[str]): column names to match for equality against the same index
+                                        of the param_iter values
+            op (str): SQL boolean operator (e.g. AND, OR)
+            unpack_scalars (bool): [deprecated] use to unpack a single result from each query
+                                   only use with operations that return a single result for each query
+                                   (default: True)
 
-        Kwargs:
-            verbose:
         """
-        andwhere_clauses = [colname + '=?' for colname in where_colnames]
-        logicop_ = ' %s ' % (op,)
-        where_clause = logicop_.join(andwhere_clauses)
-        return self.get_where(
-            tblname,
-            colnames,
-            params_iter,
-            where_clause,
-            unpack_scalars=unpack_scalars,
-            eager=eager,
-            **kwargs,
+        if len(where_colnames) == 1:
+            return self.get(
+                tblname,
+                colnames,
+                id_iter=(p[0] for p in params_iter),
+                id_colname=where_colnames[0],
+                unpack_scalars=unpack_scalars,
+                batch_size=batch_size,
+                **kwargs,
+            )
+        params_iter = list(params_iter)
+        table = self._reflect_table(tblname)
+        if op.lower() != 'and' or not params_iter:
+            # Build the equality conditions using column type information.
+            # This allows us to bind the parameter with the correct type.
+            equal_conditions = [
+                (table.c[c] == bindparam(c, type_=table.c[c].type))
+                for c in where_colnames
+            ]
+            gate_func = {'and': sqlalchemy.and_, 'or': sqlalchemy.or_}[op.lower()]
+            where_clause = gate_func(*equal_conditions)
+            params = [dict(zip(where_colnames, p)) for p in params_iter]
+            return self.get_where(
+                tblname,
+                colnames,
+                params,
+                where_clause,
+                unpack_scalars=unpack_scalars,
+                **kwargs,
+            )
+
+        params_per_batch = int(batch_size / len(params_iter[0]))
+        result_map = {}
+        stmt = sqlalchemy.select(
+            [table.c[c] for c in tuple(where_colnames) + tuple(colnames)]
         )
+        stmt = stmt.where(
+            sqlalchemy.tuple_(*[table.c[c] for c in where_colnames]).in_(
+                sqlalchemy.sql.bindparam('params', expanding=True)
+            )
+        )
+        batch_list = list(range(int(len(params_iter) / params_per_batch) + 1))
+        for batch in tqdm.tqdm(
+            batch_list, disable=len(batch_list) <= 1, desc='[db.get(%s)]' % (tblname,)
+        ):
+            val_list = self.executeone(
+                stmt,
+                {
+                    'params': params_iter[
+                        batch * params_per_batch : (batch + 1) * params_per_batch
+                    ]
+                },
+            )
+            for val in val_list:
+                key = val[: len(params_iter[0])]
+                values = val[len(params_iter[0]) :]
+                if not kwargs.get('keepwrap', False) and len(values) == 1:
+                    values = values[0]
+                existing = result_map.setdefault(key, set())
+                if isinstance(existing, set):
+                    try:
+                        existing.add(values)
+                    except TypeError:
+                        # unhashable type
+                        result_map[key] = list(result_map[key])
+                        if values not in result_map[key]:
+                            result_map[key].append(values)
+                elif values not in existing:
+                    existing.append(values)
+
+        results = []
+        processors = []
+        for c in tuple(where_colnames):
+
+            def process(column, a):
+                processor = column.type.bind_processor(self._engine.dialect)
+                if processor:
+                    a = processor(a)
+                result_processor = column.type.result_processor(
+                    self._engine.dialect, str(column.type)
+                )
+                if result_processor:
+                    return result_processor(a)
+                return a
+
+            processors.append(functools.partial(process, table.c[c]))
+
+        if params_iter:
+            first_params = params_iter[0]
+            if any(
+                not isinstance(a, bool)
+                and TYPE_TO_SQLTYPE.get(type(a)) != str(table.c[c].type)
+                for a, c in zip(first_params, where_colnames)
+            ):
+                params_iter = (
+                    (processor(raw_id) for raw_id, processor in zip(id_, processors))
+                    for id_ in params_iter
+                )
+
+        for id_ in params_iter:
+            result = sorted(list(result_map.get(tuple(id_), set())))
+            if unpack_scalars and isinstance(result, list):
+                results.append(_unpacker(result))
+            else:
+                results.append(result)
+
+        return results
 
     def get_where_eq_set(
         self,
@@ -1184,7 +1155,6 @@ class SQLDatabaseController(object):
         }
         return self._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
-    @profile
     def get_where(
         self,
         tblname,
@@ -1195,39 +1165,64 @@ class SQLDatabaseController(object):
         eager=True,
         **kwargs,
     ):
-        """"""
-        assert isinstance(colnames, tuple), 'colnames must be a tuple'
+        """
+        Interface to do a SQL select with a where clause
+
+        Args:
+            tblname (str): table name
+            colnames (tuple[str]): sequence of column names
+            params_iter (list[dict]): a sequence of dicts with parameters,
+                                      where each item in the sequence is used in a SQL execution
+            where_clause (str|Operation): conditional statement used in the where clause
+            unpack_scalars (bool): [deprecated] use to unpack a single result from each query
+                                   only use with operations that return a single result for each query
+                                   (default: True)
+
+        """
+        if not isinstance(colnames, (tuple, list)):
+            raise TypeError('colnames must be a sequence type of strings')
+        elif where_clause is not None:
+            if '?' in str(where_clause):  # cast in case it's an SQLAlchemy object
+                raise ValueError(
+                    "Statements cannot use '?' parameterization, "
+                    "use ':name' parameters instead."
+                )
+            elif isinstance(where_clause, str):
+                where_clause = text(where_clause)
+
+        table = self._reflect_table(tblname)
+        stmt = sqlalchemy.select([table.c[c] for c in colnames])
 
         if where_clause is None:
-            operation_fmt = """
-            SELECT {colnames}
-            FROM {tblname}
-            """
-            fmtdict = {
-                'tblname': tblname,
-                'colnames': ', '.join(colnames),
-            }
-            val_list = self._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+            val_list = self.executeone(stmt, **kwargs)
         else:
-            operation_fmt = """
-            SELECT {colnames}
-            FROM {tblname}
-            WHERE {where_clauses}
-            """
-            fmtdict = {
-                'tblname': tblname,
-                'colnames': ', '.join(colnames),
-                'where_clauses': where_clause,
-            }
-            val_list = self._executemany_operation_fmt(
-                operation_fmt,
-                fmtdict,
-                params_iter=params_iter,
+            stmt = stmt.where(where_clause)
+            val_list = self.executemany(
+                stmt,
+                params_iter,
                 unpack_scalars=unpack_scalars,
                 eager=eager,
                 **kwargs,
             )
-        return val_list
+
+        # This code is specifically for handling duplication in colnames
+        # because sqlalchemy removes them.
+        # e.g. select field1, field1, field2 from table;
+        # becomes
+        #      select field1, field2 from table;
+        # so the items in val_list only have 2 values
+        # but the caller isn't expecting it so it causes problems
+        returned_columns = tuple([c.name for c in stmt.columns])
+        if colnames == returned_columns:
+            return val_list
+
+        result = []
+        for val in val_list:
+            if isinstance(val, LegacyRow):
+                result.append(tuple(val[returned_columns.index(c)] for c in colnames))
+            else:
+                result.append(val)
+        return result
 
     def exists_where_eq(
         self,
@@ -1269,8 +1264,12 @@ class SQLDatabaseController(object):
         self, tblname, params_iter=None, superkey_colnames=None, **kwargs
     ):
         """ getter which uses the constrained superkeys instead of rowids """
-        where_clause = ' AND '.join([colname + '=?' for colname in superkey_colnames])
-        return self.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
+        # ??? Why can this be called with params_iter=None & superkey_colnames=None?
+        table = self._reflect_table(tblname)
+        columns = tuple(c.name for c in table.primary_key.columns)
+        return self.get_where_eq(
+            tblname, columns, params_iter, superkey_colnames, op='AND', **kwargs
+        )
 
     def get(
         self,
@@ -1280,9 +1279,10 @@ class SQLDatabaseController(object):
         id_colname='rowid',
         eager=True,
         assume_unique=False,
+        batch_size=BATCH_SIZE,
         **kwargs,
     ):
-        """getter
+        """Get rows of data by ID
 
         Args:
             tblname (str): table name to get from
@@ -1290,26 +1290,8 @@ class SQLDatabaseController(object):
             id_iter (iterable): iterable of search keys
             id_colname (str): column to be used as the search key (default: rowid)
             eager (bool): use eager evaluation
+            assume_unique (bool): default False. Experimental feature that could result in a 10x speedup
             unpack_scalars (bool): default True
-            id_colname (bool): default False. Experimental feature that could result in a 10x speedup
-
-        CommandLine:
-            python -m dtool.sql_control get
-
-        Ignore:
-            tblname = 'annotations'
-            colnames = ('name_rowid',)
-            id_iter = aid_list
-            #id_iter = id_iter[0:20]
-            id_colname = 'rowid'
-            eager = True
-            db = ibs.db
-
-            x1 = db.get(tblname, colnames, id_iter, assume_unique=True)
-            x2 = db.get(tblname, colnames, id_iter, assume_unique=False)
-            x1 == x2
-            %timeit  db.get(tblname, colnames, id_iter, assume_unique=True)
-            %timeit  db.get(tblname, colnames, id_iter, assume_unique=False)
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1325,16 +1307,18 @@ class SQLDatabaseController(object):
             >>> got_data = db.get('notch', colnames, id_iter=rowids)
             >>> assert got_data == [1, 2, 3]
         """
-        if VERBOSE_SQL:
-            logger.info(
-                '[sql]'
-                + ut.get_caller_name(list(range(1, 4)))
-                + ' db.get(%r, %r, ...)' % (tblname, colnames)
-            )
-        assert isinstance(colnames, tuple), 'must specify column names TUPLE to get from'
-        # if isinstance(colnames, six.string_types):
-        #    colnames = (colnames,)
+        logger.debug(
+            '[sql]'
+            + ut.get_caller_name(list(range(1, 4)))
+            + ' db.get(%r, %r, ...)' % (tblname, colnames)
+        )
+        if not isinstance(colnames, (tuple, list)):
+            raise TypeError('colnames must be a sequence type of strings')
 
+        # ??? Getting a single column of unique values that is matched on rowid?
+        #     And sorts the results after the query?
+        # ??? This seems oddly specific for a generic method.
+        #     Perhaps the logic should be in its own method?
         if (
             assume_unique
             and id_iter is not None
@@ -1342,21 +1326,14 @@ class SQLDatabaseController(object):
             and len(colnames) == 1
         ):
             id_iter = list(id_iter)
-            operation_fmt = """
-                SELECT {colnames}
-                FROM {tblname}
-                WHERE rowid in ({id_repr})
-                ORDER BY rowid ASC
-                """
-            fmtdict = {
-                'tblname': tblname,
-                'colnames': ', '.join(colnames),
-                'id_repr': ','.join(map(str, id_iter)),
-            }
-            operation = operation_fmt.format(**fmtdict)
-            results = self.cur.execute(operation).fetchall()
+            columns = ', '.join(colnames)
+            ids_listing = ', '.join(map(str, id_iter))
+            operation = f'SELECT {columns} FROM {tblname} WHERE rowid in ({ids_listing}) ORDER BY rowid ASC'
+            with self.connect() as conn:
+                results = conn.execute(operation).fetchall()
             import numpy as np
 
+            # ??? Why order the results if they are going to be sorted here?
             sortx = np.argsort(np.argsort(id_iter))
             results = ut.take(results, sortx)
             if kwargs.get('unpack_scalars', True):
@@ -1366,13 +1343,75 @@ class SQLDatabaseController(object):
             if id_iter is None:
                 where_clause = None
                 params_iter = []
-            else:
-                where_clause = id_colname + '=?'
-                params_iter = [(_rowid,) for _rowid in id_iter]
 
-            return self.get_where(
-                tblname, colnames, params_iter, where_clause, eager=eager, **kwargs
-            )
+                return self.get_where(
+                    tblname, colnames, params_iter, where_clause, eager=eager, **kwargs
+                )
+
+            id_iter = list(id_iter)  # id_iter could be a set
+            table = self._reflect_table(tblname)
+            result_map = {}
+            if id_colname == 'rowid':  # rowid isn't an actual column in sqlite
+                id_column = sqlalchemy.sql.column('rowid', Integer)
+            else:
+                id_column = table.c[id_colname]
+            stmt = sqlalchemy.select([id_column] + [table.c[c] for c in colnames])
+            stmt = stmt.where(id_column.in_(bindparam('value', expanding=True)))
+
+            batch_list = list(range(int(len(id_iter) / batch_size) + 1))
+            for batch in tqdm.tqdm(
+                batch_list, disable=len(batch_list) <= 1, desc='[db.get(%s)]' % (tblname,)
+            ):
+                val_list = self.executeone(
+                    stmt,
+                    {'value': id_iter[batch * batch_size : (batch + 1) * batch_size]},
+                )
+
+                for val in val_list:
+                    if not kwargs.get('keepwrap', False) and len(val[1:]) == 1:
+                        values = val[1]
+                    else:
+                        values = val[1:]
+                    existing = result_map.setdefault(val[0], set())
+                    if isinstance(existing, set):
+                        try:
+                            existing.add(values)
+                        except TypeError:
+                            # unhashable type
+                            result_map[val[0]] = list(result_map[val[0]])
+                            if values not in result_map[val[0]]:
+                                result_map[val[0]].append(values)
+                    elif values not in existing:
+                        existing.append(values)
+
+            results = []
+
+            def process(a):
+                processor = id_column.type.bind_processor(self._engine.dialect)
+                if processor:
+                    a = processor(a)
+                result_processor = id_column.type.result_processor(
+                    self._engine.dialect, str(id_column.type)
+                )
+                if result_processor:
+                    return result_processor(a)
+                return a
+
+            if id_iter:
+                first_id = id_iter[0]
+                if isinstance(first_id, bool) or TYPE_TO_SQLTYPE.get(
+                    type(first_id)
+                ) != str(id_column.type):
+                    id_iter = (process(id_) for id_ in id_iter)
+
+            for id_ in id_iter:
+                result = sorted(list(result_map.get(id_, set())))
+                if kwargs.get('unpack_scalars', True) and isinstance(result, list):
+                    results.append(_unpacker(result))
+                else:
+                    results.append(result)
+
+            return results
 
     def set(
         self,
@@ -1402,27 +1441,26 @@ class SQLDatabaseController(object):
             >>> table.print_csv()
             >>> # Break things to test set
             >>> colnames = ('dummy_annot_rowid',)
-            >>> val_iter = [9003, 9001, 9002]
+            >>> val_iter = [(9003,), (9001,), (9002,)]
             >>> orig_data = db.get('notch', colnames, id_iter=rowids)
             >>> db.set('notch', colnames, val_iter, id_iter=rowids)
             >>> new_data = db.get('notch', colnames, id_iter=rowids)
-            >>> assert new_data == val_iter
+            >>> assert new_data == [x[0] for x in val_iter]
             >>> assert new_data != orig_data
             >>> table.print_csv()
             >>> depc.clear_all()
         """
-        assert isinstance(colnames, tuple)
-        # if isinstance(colnames, six.string_types):
-        #    colnames = (colnames,)
+        if not isinstance(colnames, (tuple, list)):
+            raise TypeError('colnames must be a sequence type of strings')
+
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
-        if VERBOSE_SQL or (NOT_QUIET and VERYVERBOSE):
-            logger.info('[sql] SETTER: ' + ut.get_caller_name())
-            logger.info('[sql] * tblname=%r' % (tblname,))
-            logger.info('[sql] * val_list=%r' % (val_list,))
-            logger.info('[sql] * id_list=%r' % (id_list,))
-            logger.info('[sql] * id_colname=%r' % (id_colname,))
+        logger.debug('[sql] SETTER: ' + ut.get_caller_name())
+        logger.debug('[sql] * tblname=%r' % (tblname,))
+        logger.debug('[sql] * val_list=%r' % (val_list,))
+        logger.debug('[sql] * id_list=%r' % (id_list,))
+        logger.debug('[sql] * id_colname=%r' % (id_colname,))
 
         if duplicate_behavior == 'error':
             try:
@@ -1449,7 +1487,7 @@ class SQLDatabaseController(object):
                         for index in sorted(pop_list, reverse=True):
                             del id_list[index]
                             del val_list[index]
-                        logger.info(
+                        logger.debug(
                             '[!set] Auto Resolution: Removed %d duplicate (id, value) pairs from the database operation'
                             % (len(pop_list),)
                         )
@@ -1480,6 +1518,7 @@ class SQLDatabaseController(object):
                 % (duplicate_behavior,)
             )
 
+        # Check for incongruity between values and identifiers
         try:
             num_val = len(val_list)
             num_id = len(id_list)
@@ -1487,58 +1526,70 @@ class SQLDatabaseController(object):
         except AssertionError as ex:
             ut.printex(ex, key_list=['num_val', 'num_id'])
             raise
-        fmtdict = {
-            'tblname_str': tblname,
-            'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),
-            'where_clause': (id_colname + '=?'),
-        }
-        operation_fmt = """
-            UPDATE {tblname_str}
-            SET {assign_str}
-            WHERE {where_clause}
-            """
 
-        # TODO: The flattenize can be removed if we pass in val_lists instead
-        params_iter = flattenize(list(zip(val_list, id_list)))
+        # BBB (28-Sept-12020) This method's usage throughout the codebase allows
+        #     for items in `val_iter` to be a non-sequence value.
+        has_unsequenced_values = val_list and not isinstance(val_list[0], (tuple, list))
+        if has_unsequenced_values:
+            val_list = [(v,) for v in val_list]
+        # BBB (28-Sept-12020) This method's usage throughout the codebase allows
+        #     for items in `id_iter` to be a tuple of one value.
+        has_sequenced_ids = id_list and isinstance(id_list[0], (tuple, list))
+        if has_sequenced_ids:
+            id_list = [x[0] for x in id_list]
 
-        # params_iter = list(zip(val_list, id_list))
-        return self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
+        # Execute the SQL updates for each set of values
+        id_param_name = '_identifier'
+        table = self._reflect_table(tblname)
+        stmt = table.update().values(
+            **{col: bindparam(f'e{i}') for i, col in enumerate(colnames)}
         )
+        where_clause = text(id_colname + f' = :{id_param_name}')
+        if id_colname == 'rowid':
+            # Cast all item values to in, in case values are numpy.integer*
+            # Strangely allow for None values
+            id_list = [id_ if id_ is None else int(id_) for id_ in id_list]
+        else:  # b/c rowid doesn't really exist as a column
+            id_column = table.c[id_colname]
+            where_clause = where_clause.bindparams(
+                bindparam(id_param_name, type_=id_column.type)
+            )
+        stmt = stmt.where(where_clause)
+        with self.connect() as conn:
+            with conn.begin():
+                for i, id in enumerate(id_list):
+                    params = {id_param_name: id}
+                    params.update({f'e{e}': p for e, p in enumerate(val_list[i])})
+                    conn.execute(stmt, **params)
 
     def delete(self, tblname, id_list, id_colname='rowid', **kwargs):
+        """Deletes rows from a SQL table (``tblname``) by ID,
+        given a sequence of IDs (``id_list``).
+        Optionally a different ID column can be specified via ``id_colname``.
+
         """
-        deleter. USE delete_rowids instead
-        """
-        fmtdict = {
-            'tblname': tblname,
-            'rowid_str': (id_colname + '=?'),
-        }
-        operation_fmt = """
-            DELETE
-            FROM {tblname}
-            WHERE {rowid_str}
-            """
-        params_iter = ((_rowid,) for _rowid in id_list)
-        return self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
-        )
+        id_param_name = '_identifier'
+        table = self._reflect_table(tblname)
+        stmt = table.delete()
+        where_clause = text(id_colname + f' = :{id_param_name}')
+        if id_colname == 'rowid':
+            # Cast all item values to in, in case values are numpy.integer*
+            # Strangely allow for None values
+            id_list = [id_ if id_ is None else int(id_) for id_ in id_list]
+        else:  # b/c rowid doesn't really exist as a column
+            id_column = table.c[id_colname]
+            where_clause = where_clause.bindparams(
+                bindparam(id_param_name, type_=id_column.type)
+            )
+        stmt = stmt.where(where_clause)
+        with self.connect() as conn:
+            with conn.begin():
+                for id in id_list:
+                    conn.execute(stmt, {id_param_name: id})
 
     def delete_rowids(self, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """
-        fmtdict = {
-            'tblname': tblname,
-            'rowid_str': ('rowid=?'),
-        }
-        operation_fmt = """
-            DELETE
-            FROM {tblname}
-            WHERE {rowid_str}
-            """
-        params_iter = ((_rowid,) for _rowid in rowid_list)
-        return self._executemany_operation_fmt(
-            operation_fmt, fmtdict, params_iter=params_iter, **kwargs
-        )
+        self.delete(tblname, rowid_list, id_colname='rowid', **kwargs)
 
     # ==============
     # CORE WRAPPERS
@@ -1550,7 +1601,7 @@ class SQLDatabaseController(object):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return self.executeone(operation, params, eager=eager, **kwargs)
+        return self.executeone(text(operation), params, eager=eager, **kwargs)
 
     @profile
     def _executemany_operation_fmt(
@@ -1576,102 +1627,111 @@ class SQLDatabaseController(object):
     # SQLDB CORE
     # =========
 
-    def executeone(db, operation, params=(), eager=True, verbose=VERBOSE_SQL):
-        contextkw = dict(nInput=1, verbose=verbose)
-        with SQLExecutionContext(db, operation, **contextkw) as context:
-            try:
-                result_iter = context.execute_and_generate_results(params)
-                result_list = list(result_iter)
-            except Exception as ex:
-                ut.printex(ex, key_list=[(str, 'operation'), 'params'])
-                # ut.sys.exit(1)
-                raise
-        return result_list
-
-    @profile
-    def executemany(
+    def executeone(
         self,
         operation,
-        params_iter,
-        verbose=VERBOSE_SQL,
-        unpack_scalars=True,
-        nInput=None,
+        params=(),
         eager=True,
+        verbose=VERBOSE_SQL,
+        use_fetchone_behavior=False,
         keepwrap=False,
-        showprog=False,
     ):
-        """
-        if unpack_scalars is True only a single result must be returned for each query.
-        """
-        # --- ARGS PREPROC ---
-        # Aggresively compute iterator if the nInput is not given
-        if nInput is None:
-            if isinstance(params_iter, (list, tuple)):
-                nInput = len(params_iter)
-            else:
-                if VERBOSE_SQL:
-                    logger.info(
-                        '[sql!] WARNING: aggressive eval of params_iter because nInput=None'
-                    )
-                params_iter = list(params_iter)
-                nInput = len(params_iter)
-        else:
-            if VERBOSE_SQL:
-                logger.info('[sql] Taking params_iter as iterator')
+        """Executes the given ``operation`` once with the given set of ``params``
 
-        # Do not compute executemany without params
-        if nInput == 0:
-            if VERBOSE_SQL:
-                logger.info(
-                    '[sql!] WARNING: dont use executemany'
-                    'with no params use executeone instead.'
+        Args:
+            operation (str|TextClause): SQL statement
+            params (sequence|dict): parameters to pass in with SQL execution
+            eager: [deprecated] no-op
+            verbose: [deprecated] no-op
+            use_fetchone_behavior (bool): Use DBAPI ``fetchone`` behavior when outputing no rows (i.e. None)
+
+        """
+        if not isinstance(operation, ClauseElement):
+            raise TypeError(
+                "'operation' needs to be a sqlalchemy textual sql instance "
+                "see docs on 'sqlalchemy.sql:text' factory function; "
+                f"'operation' is a '{type(operation)}'"
+            )
+        # FIXME (12-Sept-12020) Allows passing through '?' (question mark) parameters.
+        with self.connect() as conn:
+            results = conn.execute(operation, params)
+
+            # BBB (12-Sept-12020) Retaining insertion rowid result
+            # FIXME postgresql (12-Sept-12020) This won't work in postgres.
+            #       Maybe see if ResultProxy.inserted_primary_key will work
+            if (
+                'insert' in str(operation).lower()
+            ):  # cast in case it's an SQLAlchemy object
+                # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+                return [results.lastrowid]
+            elif not results.returns_rows:
+                return None
+            else:
+                if isinstance(operation, sqlalchemy.sql.selectable.Select):
+                    # This code is specifically for handling duplication in colnames
+                    # because sqlalchemy removes them.
+                    # e.g. select field1, field1, field2 from table;
+                    # becomes
+                    #      select field1, field2 from table;
+                    # so the items in val_list only have 2 values
+                    # but the caller isn't expecting it so it causes problems
+                    returned_columns = tuple([c.name for c in operation.columns])
+                    raw_columns = tuple([c.name for c in operation._raw_columns])
+                    if raw_columns != returned_columns:
+                        results_ = []
+                        for r in results:
+                            results_.append(
+                                tuple(r[returned_columns.index(c)] for c in raw_columns)
+                            )
+                        results = results_
+                values = list(
+                    [
+                        # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+                        row[0] if not keepwrap and len(row) == 1 else row
+                        for row in results
+                    ]
                 )
-            return []
-        # --- SQL EXECUTION ---
-        contextkw = {
-            'nInput': nInput,
-            'start_transaction': True,
-            'verbose': verbose,
-            'keepwrap': keepwrap,
-        }
-        with SQLExecutionContext(self, operation, **contextkw) as context:
-            if eager:
-                if showprog:
-                    if isinstance(showprog, six.string_types):
-                        lbl = showprog
-                    else:
-                        lbl = 'sqlread'
-                    prog = ut.ProgPartial(
-                        adjust=True, length=nInput, freq=1, lbl=lbl, bs=True
-                    )
-                    params_iter = prog(params_iter)
-                results_iter = [
-                    list(context.execute_and_generate_results(params))
-                    for params in params_iter
-                ]
-                if unpack_scalars:
-                    # list of iterators
-                    _unpacker_ = partial(_unpacker)
-                    results_iter = list(map(_unpacker_, results_iter))
-                # Eager evaluation
-                results_list = list(results_iter)
-            else:
+                # FIXME (28-Sept-12020) No rows results in an empty list. This behavior does not
+                #       match the resulting expectations of `fetchone`'s DBAPI spec.
+                #       If executeone is the shortcut of `execute` and `fetchone`,
+                #       the expectation should be to return according to DBAPI spec.
+                if use_fetchone_behavior and not values:  # empty list
+                    values = None
+                return values
 
-                def _tmpgen(context):
-                    # Temporary hack to turn off eager_evaluation
-                    for params in params_iter:
-                        # Eval results per query yeild per iter
-                        results = list(context.execute_and_generate_results(params))
-                        if unpack_scalars:
-                            yield _unpacker(results)
-                        else:
-                            yield results
+    def executemany(
+        self, operation, params_iter, unpack_scalars=True, keepwrap=False, **kwargs
+    ):
+        """Executes the given ``operation`` once for each item in ``params_iter``
 
-                results_list = _tmpgen(context)
-        return results_list
+        Args:
+            operation (str): SQL operation
+            params_iter (sequence): a sequence of sequences
+                                    containing parameters in the sql operation
+            unpack_scalars (bool): [deprecated] use to unpack a single result from each query
+                                   only use with operations that return a single result for each query
+                                   (default: True)
 
-    # def commit(db):
-    #    db.connection.commit()
+        """
+        if not isinstance(operation, ClauseElement):
+            raise TypeError(
+                "'operation' needs to be a sqlalchemy textual sql instance "
+                "see docs on 'sqlalchemy.sql:text' factory function; "
+                f"'operation' is a '{type(operation)}'"
+            )
+
+        results = []
+        with self.connect() as conn:
+            with conn.begin():
+                for params in params_iter:
+                    value = self.executeone(operation, params, keepwrap=keepwrap)
+                    # Should only be used when the user wants back on value.
+                    # Let the error bubble up if used wrong.
+                    # Deprecated... Do not depend on the unpacking behavior.
+                    if unpack_scalars:
+                        value = _unpacker(value)
+                    results.append(value)
+        return results
 
     def print_dbg_schema(self):
         logger.info(
@@ -1713,9 +1773,22 @@ class SQLDatabaseController(object):
             'tablename': METADATA_TABLE_NAME,
             'columns': 'metadata_key, metadata_value',
         }
-        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-        operation = op_fmtstr.format(**fmtkw)
-        params = [key, val]
+        dialect = self._engine.dialect.name
+        if dialect == 'sqlite':
+            op_fmtstr = (
+                'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (:key, :val)'
+            )
+        elif dialect == 'postgresql':
+            op_fmtstr = f"""\
+                INSERT INTO {METADATA_TABLE_NAME}
+                    (metadata_key, metadata_value)
+                VALUES (:key, :val)
+                ON CONFLICT (metadata_key) DO UPDATE
+                    SET metadata_value = EXCLUDED.metadata_value"""
+        else:
+            raise RuntimeError(f'Unknown dialect {dialect}')
+        operation = text(op_fmtstr.format(**fmtkw))
+        params = {'key': key, 'val': val}
         self.executeone(operation, params, verbose=False)
 
     @deprecated('Use metadata property instead')
@@ -1723,10 +1796,11 @@ class SQLDatabaseController(object):
         """
         val is the repr string unless eval_ is true
         """
-        where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         params_iter = [(key,)]
-        vals = self.get_where(METADATA_TABLE_NAME, colnames, params_iter, where_clause)
+        vals = self.get_where_eq(
+            METADATA_TABLE_NAME, colnames, params_iter, ('metadata_key',)
+        )
         assert len(vals) == 1, 'duplicate keys in metadata table'
         val = vals[0]
         if val is None:
@@ -1767,86 +1841,81 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         self.executeone(operation, [], verbose=False)
 
-    def __make_superkey_constraints(self, superkeys: list) -> list:
-        """Creates SQL for the 'superkey' constraint.
-        A 'superkey' is one or more columns that make up a unique constraint on the table.
-
-        """
-        has_superkeys = superkeys is not None and len(superkeys) > 0
-        constraints = []
-        if has_superkeys:
-            # Create a superkey statement for each superkey item
-            # superkeys = [(col), (col1, col2, ...), ...],
-            for columns in superkeys:
-                columns = ','.join(columns)
-                constraints.append(f'CONSTRAINT superkey UNIQUE ({columns})')
-        return constraints
+    def __make_unique_constraint(self, table_name, column_or_columns):
+        """Creates a SQL ``CONSTRAINT`` clause for ``UNIQUE`` column data"""
+        if not isinstance(column_or_columns, (list, tuple)):
+            columns = [column_or_columns]
+        else:
+            # Cast as list incase it's a tuple, b/c tuple + list = error
+            columns = list(column_or_columns)
+        constraint_name = '_'.join(['unique', table_name] + columns)
+        columns_listing = ', '.join(columns)
+        return f'CONSTRAINT {constraint_name} UNIQUE ({columns_listing})'
 
     def __make_column_definition(self, name: str, definition: str) -> str:
         """Creates SQL for the given column `name` and type, default & constraint (i.e. `definition`)."""
         if not name:
             raise ValueError(f'name cannot be an empty string paired with {definition}')
-        if not definition:
+        elif not definition:
             raise ValueError(f'definition cannot be an empty string paired with {name}')
+        if self.is_using_postgres:
+            if (
+                name.endswith('rowid')
+                and 'INTEGER' in definition
+                and 'PRIMARY KEY' in definition
+            ):
+                definition = definition.replace('INTEGER', 'BIGSERIAL')
+            definition = definition.replace('REAL', 'DOUBLE PRECISION').replace(
+                'INTEGER', 'BIGINT'
+            )
         return f'{name} {definition}'
 
     def _make_add_table_sqlstr(
         self, tablename: str, coldef_list: list, sep=' ', **metadata_keyval
     ):
-        r"""Creates the SQL for a CREATE TABLE statement
+        """Creates the SQL for a CREATE TABLE statement
 
         Args:
             tablename (str): table name
             coldef_list (list): list of tuples (name, type definition)
+            sep (str): clause separation character(s) (default: space)
+            kwargs: metadata specifications
 
         Returns:
             str: operation
 
-        CommandLine:
-            python -m dtool.sql_control _make_add_table_sqlstr
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> from wbia.dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'keypoint'
-            >>> db = depc[tablename].db
-            >>> autogen_dict = db.get_table_autogen_dict(tablename)
-            >>> coldef_list = autogen_dict['coldef_list']
-            >>> operation = db._make_add_table_sqlstr(tablename, coldef_list)
-            >>> print(operation)
-
         """
         if not coldef_list:
             raise ValueError(f'empty coldef_list specified for {tablename}')
+
+        if self.is_using_postgres and 'rowid' not in [name for name, _ in coldef_list]:
+            coldef_list = [('rowid', 'BIGSERIAL UNIQUE')] + list(coldef_list)
 
         # Check for invalid keyword arguments
         bad_kwargs = set(metadata_keyval.keys()) - set(METADATA_TABLE_COLUMN_NAMES)
         if len(bad_kwargs) > 0:
             raise TypeError(f'got unexpected keyword arguments: {bad_kwargs}')
 
-        if ut.DEBUG2:
-            logger.info('[sql] schema ensuring tablename=%r' % tablename)
-        if ut.VERBOSE:
-            logger.info('')
-            _args = [tablename, coldef_list]
-            logger.info(ut.func_str(self.add_table, _args, metadata_keyval))
-            logger.info('')
+        logger.debug('[sql] schema ensuring tablename=%r' % tablename)
+        logger.debug(
+            ut.func_str(self.add_table, [tablename, coldef_list], metadata_keyval)
+        )
 
         # Create the main body of the CREATE TABLE statement with column definitions
         # coldef_list = [(<column-name>, <definition>,), ...]
         body_list = [self.__make_column_definition(c, d) for c, d in coldef_list]
 
         # Make a list of constraints to place on the table
-        constraint_list = self.__make_superkey_constraints(
-            metadata_keyval.get('superkeys', [])
-        )
+        # superkeys = [(<column-name>, ...), ...]
+        constraint_list = [
+            self.__make_unique_constraint(tablename, x)
+            for x in metadata_keyval.get('superkeys') or []
+        ]
         constraint_list = ut.unique_ordered(constraint_list)
 
         comma = ',' + sep
         table_body = comma.join(body_list + constraint_list)
-        return f'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
+        return text(f'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})')
 
     def add_table(self, tablename=None, coldef_list=None, **metadata_keyval):
         """
@@ -1948,6 +2017,14 @@ class SQLDatabaseController(object):
         colname_list = ut.take_column(coldef_list, 0)
         coltype_list = ut.take_column(coldef_list, 1)
 
+        # Find all dependent sequences so we can change the owners of the
+        # sequences to the new table (for postgresql)
+        dependent_sequences = [
+            (colname, re.search(r"nextval\('([^']*)'", coldef).group(1))
+            for colname, coldef in self.get_coldef_list(tablename)
+            if 'nextval' in coldef
+        ]
+
         colname_original_list = colname_list[:]
         colname_dict = {colname: colname for colname in colname_list}
         colmap_dict = {}
@@ -1974,6 +2051,9 @@ class SQLDatabaseController(object):
                             '[sql] WARNING: multiple index inserted add '
                             'columns, may cause alignment issues'
                         )
+                    if self.is_using_postgres:
+                        # adjust for the additional "rowid" field
+                        src += 1
                     colname_list.insert(src, dst)
                     coltype_list.insert(src, type_)
                     insert = True
@@ -2036,6 +2116,17 @@ class SQLDatabaseController(object):
 
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
 
+        # Change owners of sequences from old table to new table
+        if self.is_using_postgres:
+            new_colnames = [name for name, _ in coldef_list]
+            for colname, sequence in dependent_sequences:
+                if colname in new_colnames:
+                    self.executeone(
+                        text(
+                            f'ALTER SEQUENCE {sequence} OWNED BY {tablename_temp}.{colname}'
+                        )
+                    )
+
         # Copy data
         src_list = []
         dst_list = []
@@ -2065,31 +2156,26 @@ class SQLDatabaseController(object):
             return [None] * len(x)
 
         self.add_cleanly(tablename_temp, dst_list, data_list, get_rowid_from_superkey)
-        if tablename_new is None:
+        if tablename_new is None:  # i.e. not renaming the table
             # Drop original table
-            self.drop_table(tablename)
+            self.drop_table(tablename, invalidate_cache=False)
             # Rename temp table to original table name
-            self.rename_table(tablename_temp, tablename)
+            self.rename_table(tablename_temp, tablename, invalidate_cache=False)
         else:
             # Rename new table to new name
-            self.rename_table(tablename_temp, tablename_new)
+            self.rename_table(tablename_temp, tablename_new, invalidate_cache=False)
+        # Any modifications are going to invalidate the cached tables.
+        self.invalidate_tables_cache()
 
-    def rename_table(self, tablename_old, tablename_new):
-        if ut.VERBOSE:
-            logger.info(
-                '[sql] schema renaming tablename=%r -> %r'
-                % (tablename_old, tablename_new)
-            )
+    def rename_table(self, tablename_old, tablename_new, invalidate_cache=True):
+        logger.info(
+            '[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new)
+        )
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        fmtkw = {
-            'tablename_old': tablename_old,
-            'tablename_new': tablename_new,
-        }
-        op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
-        operation = op_fmtstr.format(**fmtkw)
-        self.executeone(operation, [], verbose=False)
+        operation = text(f'ALTER TABLE {tablename_old} RENAME TO {tablename_new}')
+        self.executeone(operation, [])
 
         # Rename table's metadata
         key_old_list = [
@@ -2098,30 +2184,30 @@ class SQLDatabaseController(object):
         key_new_list = [
             tablename_new + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES
         ]
-        id_iter = [(key,) for key in key_old_list]
+        id_iter = [key for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
-        # logger.info('Setting metadata_key from %s to %s' % (ut.repr2(id_iter), ut.repr2(val_iter)))
         self.set(
             METADATA_TABLE_NAME, colnames, val_iter, id_iter, id_colname='metadata_key'
         )
+        if invalidate_cache:
+            self.invalidate_tables_cache()
 
-    def drop_table(self, tablename):
-        if VERBOSE_SQL:
-            logger.info('[sql] schema dropping tablename=%r' % tablename)
+    def drop_table(self, tablename, invalidate_cache=True):
+        logger.info('[sql] schema dropping tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        fmtkw = {
-            'tablename': tablename,
-        }
-        op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
-        operation = op_fmtstr.format(**fmtkw)
-        self.executeone(operation, [], verbose=False)
+        operation = f'DROP TABLE IF EXISTS {tablename}'
+        if self.uri.startswith('postgresql'):
+            operation = f'{operation} CASCADE'
+        self.executeone(text(operation), [])
 
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in METADATA_TABLE_COLUMN_NAMES]
         self.delete(METADATA_TABLE_NAME, key_list, id_colname='metadata_key')
+        if invalidate_cache:
+            self.invalidate_tables_cache()
 
     def drop_all_tables(self):
         """
@@ -2130,8 +2216,8 @@ class SQLDatabaseController(object):
         self._tablenames = None
         for tablename in self.get_table_names():
             if tablename != 'metadata':
-                self.drop_table(tablename)
-        self._tablenames = None
+                self.drop_table(tablename, invalidate_cache=False)
+        self.invalidate_tables_cache()
 
     # ==============
     # CONVINENCE
@@ -2222,7 +2308,7 @@ class SQLDatabaseController(object):
                 col_type += ' PRIMARY KEY'
             elif column[3] == 1:
                 col_type += ' NOT NULL'
-            elif column[4] is not None:
+            if column[4] is not None:
                 default_value = six.text_type(column[4])
                 # HACK: add parens if the value contains parens in the future
                 # all default values should contain parens
@@ -2249,7 +2335,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2284,7 +2370,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
-            >>> db = SQLDatabaseController.from_uri(':memory:')
+            >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
@@ -2378,11 +2464,35 @@ class SQLDatabaseController(object):
                     file_.write('\t%s%s%s%s%s\n' % col)
         ut.view_directory(app_resource_dir)
 
+    def invalidate_tables_cache(self):
+        """Invalidates the controller's cache of table names and objects
+        Resets the caches and/or repopulates them.
+
+        """
+        self._tablenames = None
+        self._sa_metadata = sqlalchemy.MetaData()
+        self.get_table_names()
+
     def get_table_names(self, lazy=False):
         """ Conveinience: """
         if not lazy or self._tablenames is None:
-            self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tablename_list = self.cur.fetchall()
+            dialect = self._engine.dialect.name
+            if dialect == 'sqlite':
+                stmt = "SELECT name FROM sqlite_master WHERE type='table'"
+                params = {}
+            elif dialect == 'postgresql':
+                stmt = text(
+                    """\
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_type='BASE TABLE'
+                    AND table_schema = :schema"""
+                )
+                params = {'schema': self.schema_name}
+            else:
+                raise RuntimeError(f'Unknown dialect {dialect}')
+            with self.connect() as conn:
+                result = conn.execute(stmt, **params)
+                tablename_list = result.fetchall()
             self._tablenames = {str(tablename[0]) for tablename in tablename_list}
         return self._tablenames
 
@@ -2504,9 +2614,38 @@ class SQLDatabaseController(object):
             ]
         """
         # check if the table exists first. Throws an error if it does not exist.
-        self.cur.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
-        self.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
-        colinfo_list = self.cur.fetchall()
+        with self.connect() as conn:
+            conn.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
+        dialect = self._engine.dialect.name
+        if dialect == 'sqlite':
+            stmt = f"PRAGMA TABLE_INFO('{tablename}')"
+            params = {}
+        elif dialect == 'postgresql':
+            stmt = text(
+                """SELECT
+                       row_number() over () - 1,
+                       column_name,
+                       coalesce(domain_name, data_type),
+                       CASE WHEN is_nullable = 'YES' THEN 0 ELSE 1 END,
+                       column_default,
+                       column_name = (
+                           SELECT column_name
+                           FROM information_schema.table_constraints
+                           NATURAL JOIN information_schema.constraint_column_usage
+                           WHERE table_name = :table_name
+                           AND constraint_type = 'PRIMARY KEY'
+                           AND table_schema = :table_schema
+                           LIMIT 1
+                       ) AS pk
+                FROM information_schema.columns
+                WHERE table_name = :table_name
+                AND table_schema = :table_schema"""
+            )
+            params = {'table_name': tablename, 'table_schema': self.schema_name}
+
+        with self.connect() as conn:
+            result = conn.execute(stmt, **params)
+            colinfo_list = result.fetchall()
         colrichinfo_list = [SQLColumnRichInfo(*colinfo) for colinfo in colinfo_list]
         return colrichinfo_list
 
@@ -2517,17 +2656,12 @@ class SQLDatabaseController(object):
         return column_names
 
     def get_column(self, tablename, name):
-        """ Conveinience: """
-        _table, (_column,) = sanitize_sql(self, tablename, (name,))
-        column_vals = self.executeone(
-            operation="""
-            SELECT %s
-            FROM %s
-            ORDER BY rowid ASC
-            """
-            % (_column, _table)
+        """Get all the values for the specified column (``name``) of the table (``tablename``)"""
+        table = self._reflect_table(tablename)
+        stmt = sqlalchemy.select([table.c[name]]).order_by(
+            *[c.asc() for c in table.primary_key.columns]
         )
-        return column_vals
+        return self.executeone(stmt)
 
     def get_table_as_pandas(
         self, tablename, rowids=None, columns=None, exclude_columns=[]
@@ -2557,14 +2691,13 @@ class SQLDatabaseController(object):
         df = pd.DataFrame(ut.dzip(column_names, column_list), index=index)
         return df
 
+    # TODO (25-Sept-12020) Deprecate once ResultProxy can be exposed,
+    #      because it will allow result access by index or column name.
     def get_table_column_data(
         self, tablename, columns=None, exclude_columns=[], rowids=None
     ):
         """
         Grabs a table of information
-
-        CommandLine:
-            python -m dtool.sql_control --test-get_table_column_data
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2574,6 +2707,10 @@ class SQLDatabaseController(object):
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
             >>> column_list, column_names = db.get_table_column_data(tablename)
+            >>> column_list
+            [[], [], [], [], []]
+            >>> column_names
+            ['keypoint_rowid', 'chip_rowid', 'config_rowid', 'kpts', 'num']
         """
         if columns is None:
             all_column_names = self.get_column_names(tablename)
@@ -2587,6 +2724,9 @@ class SQLDatabaseController(object):
             ]
         else:
             column_list = [self.get_column(tablename, name) for name in column_names]
+        # BBB (28-Sept-12020) The previous implementation of `executeone` returned []
+        #     rather than None for empty rows.
+        column_list = [x and x or [] for x in column_list]
         return column_list, column_names
 
     def make_json_table_definition(self, tablename):
@@ -2728,134 +2868,120 @@ class SQLDatabaseController(object):
             >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
             >>> print('L___')
         """
-        import utool
+        table = self._reflect_table(tablename)
+        column_names = [c.name for c in table.columns if c.name not in exclude_columns]
+        column_list = [self.get_column(tablename, name) for name in column_names]
 
-        with utool.embed_on_exception_context:
-            all_column_names = self.get_column_names(tablename)
-            isvalid_list = [name not in exclude_columns for name in all_column_names]
-            column_names = ut.compress(all_column_names, isvalid_list)
-            column_list = [
-                self.get_column(tablename, name)
-                for name in column_names
-                if name not in exclude_columns
-            ]
+        extern_colx_list = []
+        extern_tablename_list = []
+        extern_superkey_colname_list = []
+        extern_superkey_colval_list = []
+        extern_primarycolnames_list = []
+        dependsmap = self.metadata[tablename].dependsmap
+        if dependsmap is not None:
+            for colname, dependtup in six.iteritems(dependsmap):
+                assert len(dependtup) == 3, 'must be 3 for now'
+                (
+                    extern_tablename,
+                    extern_primary_colnames,
+                    extern_superkey_colnames,
+                ) = dependtup
+                if extern_primary_colnames is None:
+                    # INFER PRIMARY COLNAMES
+                    extern_primary_colnames = self.get_table_primarykey_colnames(
+                        extern_tablename
+                    )
+                if extern_superkey_colnames is None:
 
-            extern_colx_list = []
-            extern_tablename_list = []
-            extern_superkey_colname_list = []
-            extern_superkey_colval_list = []
-            extern_primarycolnames_list = []
-            dependsmap = self.metadata[tablename].dependsmap
-            if dependsmap is not None:
-                for colname, dependtup in six.iteritems(dependsmap):
-                    assert len(dependtup) == 3, 'must be 3 for now'
-                    (
-                        extern_tablename,
-                        extern_primary_colnames,
-                        extern_superkey_colnames,
-                    ) = dependtup
-                    if extern_primary_colnames is None:
-                        # INFER PRIMARY COLNAMES
-                        extern_primary_colnames = self.get_table_primarykey_colnames(
-                            extern_tablename
-                        )
-                    if extern_superkey_colnames is None:
-
-                        def get_standard_superkey_colnames(tablename_):
-                            try:
-                                # FIXME: Rectify duplicate code
-                                superkeys = self.get_table_superkey_colnames(tablename_)
-                                if len(superkeys) > 1:
-                                    primary_superkey = self.metadata[
-                                        tablename_
-                                    ].primary_superkey
-                                    self.get_table_superkey_colnames('contributors')
-                                    if primary_superkey is None:
-                                        raise AssertionError(
-                                            (
-                                                'tablename_=%r has multiple superkeys=%r, '
-                                                'but no primary superkey.'
-                                                ' A primary superkey is required'
-                                            )
-                                            % (tablename_, superkeys)
-                                        )
-                                    else:
-                                        index = superkeys.index(primary_superkey)
-                                        superkey_colnames = superkeys[index]
-                                elif len(superkeys) == 1:
-                                    superkey_colnames = superkeys[0]
-                                else:
-                                    logger.info(self.get_table_csv_header(tablename_))
-                                    self.print_table_csv(
-                                        'metadata', exclude_columns=['metadata_value']
-                                    )
-                                    # Execute hack to fix contributor tables
-                                    if tablename_ == 'contributors':
-                                        # hack to fix contributors table
-                                        constraint_str = self.metadata[
-                                            tablename_
-                                        ].constraint
-                                        parse_result = parse.parse(
-                                            'CONSTRAINT superkey UNIQUE ({superkey})',
-                                            constraint_str,
-                                        )
-                                        superkey = parse_result['superkey']
-                                        assert (
-                                            superkey == 'contributor_tag'
-                                        ), 'hack failed1'
-                                        assert (
-                                            self.metadata['contributors'].superkey is None
-                                        ), 'hack failed2'
-                                        self.metadata['contributors'].superkey = [
-                                            (superkey,)
-                                        ]
-                                        return (superkey,)
-                                    else:
-                                        raise NotImplementedError(
-                                            'Cannot Handle: len(superkeys) == 0. '
-                                            'Probably a degenerate case'
-                                        )
-                            except Exception as ex:
-                                ut.printex(
-                                    ex,
-                                    'Error Getting superkey colnames',
-                                    keys=['tablename_', 'superkeys'],
-                                )
-                                raise
-                            return superkey_colnames
-
+                    def get_standard_superkey_colnames(tablename_):
                         try:
-                            extern_superkey_colnames = get_standard_superkey_colnames(
-                                extern_tablename
-                            )
+                            # FIXME: Rectify duplicate code
+                            superkeys = self.get_table_superkey_colnames(tablename_)
+                            if len(superkeys) > 1:
+                                primary_superkey = self.metadata[
+                                    tablename_
+                                ].primary_superkey
+                                self.get_table_superkey_colnames('contributors')
+                                if primary_superkey is None:
+                                    raise AssertionError(
+                                        (
+                                            'tablename_=%r has multiple superkeys=%r, '
+                                            'but no primary superkey.'
+                                            ' A primary superkey is required'
+                                        )
+                                        % (tablename_, superkeys)
+                                    )
+                                else:
+                                    index = superkeys.index(primary_superkey)
+                                    superkey_colnames = superkeys[index]
+                            elif len(superkeys) == 1:
+                                superkey_colnames = superkeys[0]
+                            else:
+                                logger.info(self.get_table_csv_header(tablename_))
+                                self.print_table_csv(
+                                    'metadata', exclude_columns=['metadata_value']
+                                )
+                                # Execute hack to fix contributor tables
+                                if tablename_ == 'contributors':
+                                    # hack to fix contributors table
+                                    constraint_str = self.metadata[tablename_].constraint
+                                    parse_result = parse.parse(
+                                        'CONSTRAINT superkey UNIQUE ({superkey})',
+                                        constraint_str,
+                                    )
+                                    superkey = parse_result['superkey']
+                                    assert superkey == 'contributor_tag', 'hack failed1'
+                                    assert (
+                                        self.metadata['contributors'].superkey is None
+                                    ), 'hack failed2'
+                                    self.metadata['contributors'].superkey = [(superkey,)]
+                                    return (superkey,)
+                                else:
+                                    raise NotImplementedError(
+                                        'Cannot Handle: len(superkeys) == 0. '
+                                        'Probably a degenerate case'
+                                    )
                         except Exception as ex:
                             ut.printex(
                                 ex,
-                                'Error Building Transferdata',
-                                keys=['tablename_', 'dependtup'],
+                                'Error Getting superkey colnames',
+                                keys=['tablename_', 'superkeys'],
                             )
                             raise
-                        # INFER SUPERKEY COLNAMES
-                    colx = ut.listfind(column_names, colname)
-                    extern_rowids = column_list[colx]
-                    superkey_column = self.get(
-                        extern_tablename, extern_superkey_colnames, extern_rowids
-                    )
-                    extern_colx_list.append(colx)
-                    extern_superkey_colname_list.append(extern_superkey_colnames)
-                    extern_superkey_colval_list.append(superkey_column)
-                    extern_tablename_list.append(extern_tablename)
-                    extern_primarycolnames_list.append(extern_primary_colnames)
+                        return superkey_colnames
 
-            new_transferdata = (
-                column_list,
-                column_names,
-                extern_colx_list,
-                extern_superkey_colname_list,
-                extern_superkey_colval_list,
-                extern_tablename_list,
-                extern_primarycolnames_list,
-            )
+                    try:
+                        extern_superkey_colnames = get_standard_superkey_colnames(
+                            extern_tablename
+                        )
+                    except Exception as ex:
+                        ut.printex(
+                            ex,
+                            'Error Building Transferdata',
+                            keys=['tablename_', 'dependtup'],
+                        )
+                        raise
+                    # INFER SUPERKEY COLNAMES
+                colx = ut.listfind(column_names, colname)
+                extern_rowids = column_list[colx]
+                superkey_column = self.get(
+                    extern_tablename, extern_superkey_colnames, extern_rowids
+                )
+                extern_colx_list.append(colx)
+                extern_superkey_colname_list.append(extern_superkey_colnames)
+                extern_superkey_colval_list.append(superkey_column)
+                extern_tablename_list.append(extern_tablename)
+                extern_primarycolnames_list.append(extern_primary_colnames)
+
+        new_transferdata = (
+            column_list,
+            column_names,
+            extern_colx_list,
+            extern_superkey_colname_list,
+            extern_superkey_colval_list,
+            extern_tablename_list,
+            extern_primarycolnames_list,
+        )
         return new_transferdata
 
     # def import_table_new_transferdata(tablename, new_transferdata):
@@ -3007,6 +3133,12 @@ class SQLDatabaseController(object):
                 extern_tablename_list,
                 extern_primarycolnames_list,
             ) = new_transferdata
+            if column_names[0] == 'rowid':
+                # This is a postgresql database, ignore the rowid column
+                # which is built-in to sqlite
+                column_names = column_names[1:]
+                column_list = column_list[1:]
+                extern_colx_list = [i - 1 for i in extern_colx_list]
             # FIXME: extract the primary rowid column a little bit nicer
             assert column_names[0].endswith('_rowid')
             old_rowid_list = column_list[0]
@@ -3256,30 +3388,14 @@ class SQLDatabaseController(object):
         # ut.cmd(sqlite3_reader, sqlite3_db_fpath)
         pass
 
+    @deprecated("Use 'self.metadata.database.version = version' instead")
     def set_db_version(self, version):
-        # Do things properly, get the metadata_rowid (best because we want to assert anyway)
-        metadata_key_list = ['database_version']
-        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-        where_clause = 'metadata_key=?'
-        # list of relationships for each image
-        metadata_rowid_list = self.get_where(
-            METADATA_TABLE_NAME,
-            ('metadata_rowid',),
-            params_iter,
-            where_clause,
-            unpack_scalars=True,
-        )
-        assert (
-            len(metadata_rowid_list) == 1
-        ), 'duplicate database_version keys in database'
-        id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
-        val_list = ((_,) for _ in [version])
-        self.set(METADATA_TABLE_NAME, ('metadata_value',), val_list, id_iter)
+        self.metadata.database.version = version
 
     def get_sql_version(self):
         """ Conveinience """
-        self.cur.execute('SELECT sqlite_version()')
-        sql_version = self.cur.fetchone()
+        self.connection.execute('SELECT sqlite_version()')
+        sql_version = self.connection.fetchone()
         logger.info('[sql] SELECT sqlite_version = %r' % (sql_version,))
         # The version number sqlite3 module. NOT the version of SQLite library.
         logger.info('[sql] sqlite3.version = %r' % (lite.version,))

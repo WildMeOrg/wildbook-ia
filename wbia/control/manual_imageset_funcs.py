@@ -543,13 +543,14 @@ def get_imageset_gids(ibs, imgsetid_list):
     if NEW_INDEX_HACK:
         # FIXME: This index should when the database is defined.
         # Ensure that an index exists on the image column of the annotation table
-        ibs.db.connection.execute(
-            """
-            CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);
-            """.format(
-                GSG_RELATION_TABLE=const.GSG_RELATION_TABLE
+        with ibs.db.connect() as conn:
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);
+                """.format(
+                    GSG_RELATION_TABLE=const.GSG_RELATION_TABLE
+                )
             )
-        ).fetchall()
     gids_list = ibs.db.get(
         const.GSG_RELATION_TABLE,
         ('image_rowid',),
@@ -594,37 +595,34 @@ def get_imageset_gsgrids(ibs, imgsetid_list=None, gid_list=None):
     if imgsetid_list is not None and gid_list is None:
         # TODO: Group type
         params_iter = ((imgsetid,) for imgsetid in imgsetid_list)
-        where_clause = 'imageset_rowid=?'
         # list of relationships for each imageset
-        gsgrids_list = ibs.db.get_where(
+        gsgrids_list = ibs.db.get_where_eq(
             const.GSG_RELATION_TABLE,
             ('gsgr_rowid',),
             params_iter,
-            where_clause,
+            ('imageset_rowid',),
             unpack_scalars=False,
         )
     elif gid_list is not None and imgsetid_list is None:
         # TODO: Group type
         params_iter = ((gid,) for gid in gid_list)
-        where_clause = 'image_rowid=?'
         # list of relationships for each imageset
-        gsgrids_list = ibs.db.get_where(
+        gsgrids_list = ibs.db.get_where_eq(
             const.GSG_RELATION_TABLE,
             ('gsgr_rowid',),
             params_iter,
-            where_clause,
+            ('image_rowid',),
             unpack_scalars=False,
         )
     else:
         # TODO: Group type
         params_iter = ((imgsetid, gid) for imgsetid, gid in zip(imgsetid_list, gid_list))
-        where_clause = 'imageset_rowid=? AND image_rowid=?'
         # list of relationships for each imageset
-        gsgrids_list = ibs.db.get_where(
+        gsgrids_list = ibs.db.get_where_eq(
             const.GSG_RELATION_TABLE,
             ('gsgr_rowid',),
             params_iter,
-            where_clause,
+            ('imageset_rowid', 'image_rowid'),
             unpack_scalars=False,
         )
     return gsgrids_list

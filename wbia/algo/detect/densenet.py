@@ -47,8 +47,7 @@ ARCHIVE_URL_DICT = {
     'humpback_dorsal': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_humpback.dorsal.v0.zip',
     'orca_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_orca.v0.zip',
     'fins_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v0.zip',
-    'fins_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.zip',
-    'fins_v1-1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.1.zip',
+    'fins_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.1.zip',
     'wilddog_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v0.zip',
     'wilddog_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v1.zip',
     'wilddog_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v2.zip',
@@ -72,6 +71,7 @@ ARCHIVE_URL_DICT = {
     'flukebook_v1': 'https://wildbookiarepository.azureedge.net/models/classifier2.flukebook.v1.zip',
     'rightwhale_v5': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v5.zip',
     'snow_leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snow_leopard.v0.zip',
+    'grey_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_grey.v0.zip',
 }
 
 

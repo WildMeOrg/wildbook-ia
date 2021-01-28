@@ -1060,7 +1060,7 @@ def microsoft_identify(
         $ref: "#/definitions/Annotation"
     - name: algorithm
       in: formData
-      description: The algorithm you with to run ID with.  Must be one of "HotSpotter", "CurvRank", "Finfindr", or "Deepsense"
+      description: The algorithm you with to run ID with.  Must be one of "HotSpotter", "CurvRank", "CurvRankTwo", "Finfindr", or "Deepsense"
       required: true
       type: string
     - name: callback_url
@@ -1104,11 +1104,13 @@ def microsoft_identify(
         assert algorithm in [
             'hotspotter',
             'curvrank',
+            'curvrank_v2',
+            'curvrankv2',
             'deepsense',
             'finfindr',
             'kaggle7',
             'kaggleseven',
-        ], 'Must specify the algorithm for ID as HotSpotter, CurvRank, Deepsense, Finfindr, Kaggle7'
+        ], 'Must specify the algorithm for ID as HotSpotter, CurvRank, CurvRankTwo, Deepsense, Finfindr, Kaggle7'
 
         parameter = 'callback_url'
         assert callback_url is None or isinstance(
@@ -1139,6 +1141,10 @@ def microsoft_identify(
     elif algorithm in ['curvrank']:
         query_config_dict = {
             'pipeline_root': 'CurvRankFluke',
+        }
+    elif algorithm in ['curvrank_v2', 'curvrankv2']:
+        query_config_dict = {
+            'pipeline_root': 'CurvRankTwoFluke',
         }
     elif algorithm in ['deepsense']:
         query_config_dict = {

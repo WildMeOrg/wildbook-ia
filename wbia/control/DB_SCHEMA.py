@@ -224,7 +224,12 @@ def update_1_0_0(db, ibs=None):
             ('feature_keypoints', 'NUMPY'),
             ('feature_sifts', 'NUMPY'),
         ),
-        superkeys=[('chip_rowid, config_rowid',)],
+        superkeys=[
+            (
+                'chip_rowid',
+                'config_rowid',
+            )
+        ],
         docstr="""
         Used to store individual chip features (ellipses)""",
     )
@@ -2160,9 +2165,10 @@ def dump_schema_sql():
     from wbia import dtool as dt
     from wbia.control import DB_SCHEMA_CURRENT
 
-    db = dt.SQLDatabaseController.from_uri(':memory:')
+    db = dt.SQLDatabaseController('sqlite:///', 'dump')
     DB_SCHEMA_CURRENT.update_current(db)
-    dump_str = dumps(db.connection)
+    with db.connect() as conn:
+        dump_str = dumps(conn)
     logger.info(dump_str)
 
     for tablename in db.get_table_names():

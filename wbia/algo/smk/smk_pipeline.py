@@ -571,8 +571,7 @@ def testdata_smk(*args, **kwargs):
     # import sklearn.model_selection
     ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST')
     nid_list = np.array(ibs.annots(aid_list).nids)
-    rng = ut.ensure_rng(0)
-    xvalkw = dict(n_splits=4, shuffle=False, random_state=rng)
+    xvalkw = dict(n_splits=4, shuffle=False)
 
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
     train_idx, test_idx = six.next(skf.split(aid_list, nid_list))

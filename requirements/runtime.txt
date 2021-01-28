@@ -1,6 +1,6 @@
 blinker
 boto>=2.20.1
-brambox
+# wbia-brambox  # already included in wbia-lightnet
 cachetools>=1.1.6
 click
 colorama>=0.3.2
@@ -8,16 +8,18 @@ dateutils>=0.6.6
 
 delorean
 deprecated
+descartes
 docker
 flask>=0.10.1
 flask-cas
 flask-cors
 
 gdm
+geopandas
+
 imgaug
 
 ipython>=5.0.0
-lightnet
 lockfile>=0.10.2
 mako
 matplotlib>=3.3.0
@@ -42,7 +44,7 @@ pyzmq>=14.7.0
 
 requests>=2.5.0
 scikit-image>=0.12.3
-scikit-learn>=0.17.1
+scikit-learn>=0.24.0
 scipy>=0.18.0
 
 sentry-sdk>=0.10.2
@@ -55,7 +57,7 @@ simplejson>=3.6.5
 
 sip
 six>=1.10.0
-sqlalchemy
+sqlalchemy>=1.4.0b1
 statsmodels>=0.6.1
 
 torch
@@ -65,10 +67,11 @@ tqdm
 ubelt >= 0.8.7
 
 wbia-cnn>=3.0.2
+wbia-lightnet
 wbia-pydarknet >= 3.0.1
 wbia-pyflann >= 3.1.0
 wbia-pyhesaff >= 3.0.2
 wbia-pyrf >= 3.0.0
 
-wbia-utool >= 3.3.1
+wbia-utool >= 3.3.3
 wbia-vtool >= 3.2.1

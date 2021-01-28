@@ -47,8 +47,8 @@ def _devcheck_backups():
     sorted(ut.glob(join(dbdir, '_wbia_backups'), '*staging_back*.sqlite3'))
     fpaths = sorted(ut.glob(join(dbdir, '_wbia_backups'), '*database_back*.sqlite3'))
     for fpath in fpaths:
-        db_uri = 'file://{}'.format(realpath(fpath))
-        db = dt.SQLDatabaseController.from_uri(db_uri)
+        db_uri = 'sqlite:///{}'.format(realpath(fpath))
+        db = dt.SQLDatabaseController(db_uri, 'PZ_Master1')
         logger.info('fpath = %r' % (fpath,))
         num_edges = len(db.executeone('SELECT rowid from annotmatch'))
         logger.info('num_edges = %r' % (num_edges,))
@@ -185,8 +185,8 @@ def copy_database(src_fpath, dst_fpath):
     # blocked lock for all processes potentially writing to the database
     timeout = 12 * 60 * 60  # Allow a lock of up to 12 hours for a database backup routine
     if not src_fpath.startswith('file:'):
-        src_fpath = 'file://{}'.format(realpath(src_fpath))
-    db = dtool.SQLDatabaseController.from_uri(src_fpath, timeout=timeout)
+        src_fpath = 'sqlite:///{}'.format(realpath(src_fpath))
+    db = dtool.SQLDatabaseController(src_fpath, 'copy', timeout=timeout)
     db.backup(dst_fpath)
 
 
@@ -359,6 +359,10 @@ def update_schema_version(
     clearbackup = False
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
+    if db._engine.dialect.name != 'sqlite':
+        # Backup is based on copying files so if we're not using sqlite, skip
+        # backup
+        dobackup = False
 
     def _check_superkeys():
         all_tablename_list = db.get_table_names()
@@ -379,7 +383,7 @@ def update_schema_version(
             ), 'ERROR UPDATING DATABASE, SUPERKEYS of %s DROPPED!' % (tablename,)
 
     logger.info('[_SQL] update_schema_version')
-    db_fpath = db.uri.replace('file://', '')
+    db_fpath = db.uri.replace('sqlite://', '')
     if dobackup:
         db_dpath, db_fname = split(db_fpath)
         db_fname_noext, ext = splitext(db_fname)
@@ -426,10 +430,13 @@ def update_schema_version(
             pre, update, post = db_versions[next_version]
             if pre is not None:
                 pre(db, ibs=ibs)
+                db.invalidate_tables_cache()
             if update is not None:
                 update(db, ibs=ibs)
+                db.invalidate_tables_cache()
             if post is not None:
                 post(db, ibs=ibs)
+                db.invalidate_tables_cache()
             _check_superkeys()
     except Exception as ex:
         if dobackup:
@@ -540,7 +547,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     cachedir = ut.ensure_app_resource_dir('wbia_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
-    db_uri = 'file://{}'.format(realpath(join(cachedir, db_fname)))
-    db = SQLDatabaseController.from_uri(db_uri)
+    db_uri = 'sqlite:///{}'.format(realpath(join(cachedir, db_fname)))
+    db = SQLDatabaseController(db_uri, dbname)
     ensure_correct_version(None, db, version_expected, schema_spec, dobackup=False)
     return db

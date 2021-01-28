@@ -73,6 +73,11 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     params.parse_args()
     from wbia.control import IBEISControl
 
+    # Set up logging
+    # TODO (30-Nov-12020) This is intended to be a temporary fix to logging.
+    # logger.setLevel(logging.DEBUG)
+    # logger.addHandler(logging.StreamHandler())
+
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose and NOT_QUIET:
@@ -91,6 +96,10 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
             request_dbversion=request_dbversion,
             force_serial=force_serial,
         )
+        # BBB (12-Jan-12021) daily database backup for the sqlite database
+        if not ibs.is_using_postgres_db:
+            ibs.daily_backup_database()
+
         if web is None:
             web = ut.get_argflag(
                 ('--webapp', '--webapi', '--web', '--browser'),
@@ -326,6 +335,62 @@ def opendb_in_background(*args, **kwargs):
     return proc
 
 
+@contextmanager
+def opendb_with_web(*args, with_job_engine=False, **kwargs):
+    """Opens the database and starts the web server.
+
+    Returns:
+        ibs, client - IBEISController and Werkzeug Client
+
+    Example:
+        >>> from wbia.entry_points import opendb_with_web
+        >>> expected_response_data = {'status': {'success': True, 'code': 200, 'message': '', 'cache': -1}, 'response': True}
+        >>> with opendb_with_web('testdb1') as (ibs, client):
+        ...     response = client.get('/api/test/heartbeat/')
+        ...     assert expected_response_data == response.json
+
+    """
+    from wbia.control.controller_inject import get_flask_app
+
+    # Create the controller instance
+    ibs = opendb(*args, **kwargs)
+    if with_job_engine:
+        # TODO start jobs engine
+        pass
+
+    # Create the web application
+    app = get_flask_app()
+    # ??? Gotta attach the controller to the application?
+    setattr(app, 'ibs', ibs)
+
+    # Return the controller and client instances to the caller
+    with app.test_client() as client:
+        yield ibs, client
+
+
+def opendb_fg_web(*args, **kwargs):
+    """
+    Ignore:
+        >>> from wbia.entry_points import *  # NOQA
+        >>> kwargs = {'db': 'testdb1'}
+        >>> args = tuple()
+
+        >>> import wbia
+        >>> ibs = wbia.opendb_fg_web()
+
+    """
+    # Gives you context inside the web app for testing
+    kwargs['start_web_loop'] = False
+    kwargs['web'] = True
+    kwargs['browser'] = False
+    ibs = opendb(*args, **kwargs)
+    from wbia.control import controller_inject
+
+    app = controller_inject.get_flask_app()
+    ibs.app = app
+    return ibs
+
+
 def opendb_bg_web(*args, managed=False, **kwargs):
     """
     Wrapper around opendb_in_background, returns a nice web_ibs
@@ -487,29 +552,6 @@ def opendb_bg_web(*args, managed=False, **kwargs):
     if managed:
         return managed_server()
     return web_ibs
-
-
-def opendb_fg_web(*args, **kwargs):
-    """
-    Ignore:
-        >>> from wbia.entry_points import *  # NOQA
-        >>> kwargs = {'db': 'testdb1'}
-        >>> args = tuple()
-
-        >>> import wbia
-        >>> ibs = wbia.opendb_fg_web()
-
-    """
-    # Gives you context inside the web app for testing
-    kwargs['start_web_loop'] = False
-    kwargs['web'] = True
-    kwargs['browser'] = False
-    ibs = opendb(*args, **kwargs)
-    from wbia.control import controller_inject
-
-    app = controller_inject.get_flask_app()
-    ibs.app = app
-    return ibs
 
 
 def opendb(

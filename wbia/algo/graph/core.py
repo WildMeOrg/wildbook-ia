@@ -27,6 +27,8 @@ from wbia.algo.graph.state import UNINFERABLE
 from wbia.algo.graph.state import SAME, DIFF, NULL
 import networkx as nx
 import logging
+import threading
+
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -1261,6 +1263,7 @@ class AnnotInference(
 
         # A generator that maintains the state of the algorithm
         infr._gen = None
+        infr._gen_lock = threading.Lock()
 
         # Computer vision algorithms
         infr.ranker = None

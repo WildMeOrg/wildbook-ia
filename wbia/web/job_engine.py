@@ -162,6 +162,7 @@ def initialize_job_manager(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> ibs = wbia.opendb(defaultdb='testdb1')
@@ -174,24 +175,6 @@ def initialize_job_manager(ibs):
         >>> ibs.close_job_manager()
         >>> print('Closing success.')
 
-    Example:
-        >>> # xdoctest: +REQUIRES(--web-tests)
-        >>> from wbia.web.job_engine import *  # NOQA
-        >>> import wbia
-        >>> import requests
-        >>> with wbia.opendb_bg_web(db='testdb1', managed=True) as web_instance:
-        ...     web_port = ibs.get_web_port_via_scan()
-        ...     if web_port is None:
-        ...         raise ValueError('IA web server is not running on any expected port')
-        ...     baseurl = 'http://127.0.1.1:%s' % (web_port, )
-        ...     _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
-        ...     payload = ut.map_dict_vals(ut.to_json, _payload)
-        ...     resp1 = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
-        ...     #resp2 = requests.post(baseurl + '/api/image/json/', data=payload)
-        ...     #print(resp2)
-        ...     #json_dict = resp2.json()
-        ...     #text = json_dict['response']
-        ...     #print(text)
     """
     ibs.job_manager = ut.DynStruct()
 
@@ -265,6 +248,7 @@ def get_job_id_list(ibs):
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
@@ -317,6 +301,7 @@ def get_job_status(ibs, jobid=None):
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
@@ -362,8 +347,10 @@ def get_job_metadata(ibs, jobid):
         python -m wbia.web.job_engine --exec-get_job_metadata:0 --fg
 
     Example:
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> # xdoctest: +REQUIRES(--slow)
-        >>> # WEB_DOCTEST
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
+        >>> # xdoctest: +REQUIRES(--web-tests)
         >>> from wbia.web.job_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')

@@ -4,13 +4,19 @@ CommandLine:
     python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
     python -m dtool.depcache_control --exec-make_graph --show
 """
+from pathlib import Path
+from os.path import join
+
 import utool as ut
 import numpy as np
 import uuid
-from os.path import join, dirname
 from six.moves import zip
+
 from wbia.dtool import depcache_control
 from wbia import dtool
+
+
+HERE = Path(__file__).parent.resolve()
 
 
 if False:
@@ -32,6 +38,20 @@ if False:
         print('Requesting global dummy ')
         for rowid in parent_rowids:
             yield 'dummy'
+
+
+class DummyController:
+    """Just enough (IBEIS) controller to make the dependency cache examples work"""
+
+    def __init__(self, cache_dpath):
+        self.cache_dpath = Path(cache_dpath)
+        self.cache_dpath.mkdir(exist_ok=True)
+
+    def make_cache_db_uri(self, name):
+        return f'sqlite:///{self.cache_dpath}/{name}.sqlite'
+
+    def get_cachedir(self):
+        return self.cache_dpath
 
 
 class DummyKptsConfig(dtool.Config):
@@ -220,16 +240,17 @@ def testdata_depc(fname=None):
     def get_root_uuid(aid_list):
         return ut.lmap(ut.hashable_to_uuid, aid_list)
 
-    # put the test cache in the dtool repo
-    dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE')
+    if not fname:
+        fname = dummy_root
 
+    cache_dpath = HERE / 'DEPCACHE'
+    controller = DummyController(cache_dpath)
     depc = dtool.DependencyCache(
-        root_tablename=dummy_root,
-        default_fname=fname,
-        cache_dpath=cache_dpath,
-        get_root_uuid=get_root_uuid,
-        # root_asobject=root_asobject,
+        controller,
+        fname,
+        get_root_uuid,
+        table_name=dummy_root,
+        root_getters=None,
         use_globals=False,
     )
 
@@ -725,8 +746,8 @@ def dummy_example_depcacahe():
     req.execute()
 
     # ut.InstanceList(
-    db = list(depc.fname_to_db.values())[0]
-    # db_list = ut.InstanceList(depc.fname_to_db.values())
+    db = list(depc._db_by_name.values())[0]
+    # db_list = ut.InstanceList(depc._db_by_name.values())
     # db_list.print_table_csv('config', exclude_columns='config_strid')
 
     print('config table')

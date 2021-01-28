@@ -12,7 +12,7 @@ use in computer vision algorithms. It aims to compute who an animal is, what
 species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.
 
-This project is the Machine Learning (ML) / computer vision component of the WildBook project: See https://github.com/WildbookOrg/.  This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (@Erotemic) at https://github.com/Erotemic/ibeis.  The IBEIS toolkit originally was a wrapper around HotSpotter, which original binaries can be downloaded from: http://cs.rpi.edu/hotspotter/
+This project is the Machine Learning (ML) / computer vision component of the WildBook project: See https://github.com/WildMeOrg/.  This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (@Erotemic) at https://github.com/Erotemic/ibeis.  The IBEIS toolkit originally was a wrapper around HotSpotter, which original binaries can be downloaded from: http://cs.rpi.edu/hotspotter/
 
 Currently the system is build around and SQLite database, a web GUI,
 and matplotlib visualizations. Algorithms employed are: convolutional neural network
@@ -53,7 +53,7 @@ We highly recommend using a Python virtual environment: https://docs.python-guid
 Documentation
 ~~~~~~~~~~~~~
 
-The documentation is built and available online at `wildbookorg.github.io/wildbook-ia/ <http://wildbookorg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
+The documentation is built and available online at `wildmeorg.github.io/wildbook-ia/ <http://wildmeorg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
 
 .. code:: bash
 
@@ -87,76 +87,76 @@ This project depends on an array of other repositories for functionality.
 
 First Party Toolkits (Required)
 
-* https://github.com/WildbookOrg/wbia-utool
+* https://github.com/WildMeOrg/wbia-utool
 
-* https://github.com/WildbookOrg/wbia-vtool
+* https://github.com/WildMeOrg/wbia-vtool
 
 First Party Dependencies for Third Party Libraries (Required)
 
-* https://github.com/WildbookOrg/wbia-tpl-pyhesaff
+* https://github.com/WildMeOrg/wbia-tpl-pyhesaff
 
-* https://github.com/WildbookOrg/wbia-tpl-pyflann
+* https://github.com/WildMeOrg/wbia-tpl-pyflann
 
-* https://github.com/WildbookOrg/wbia-tpl-pydarknet
+* https://github.com/WildMeOrg/wbia-tpl-pydarknet
 
-* https://github.com/WildbookOrg/wbia-tpl-pyrf
+* https://github.com/WildMeOrg/wbia-tpl-pyrf
 
 First Party Plug-ins (Optional)
 
-* https://github.com/WildbookOrg/wbia-plugin-cnn
+* https://github.com/WildMeOrg/wbia-plugin-cnn
 
-* https://github.com/WildbookOrg/wbia-plugin-flukematch
+* https://github.com/WildMeOrg/wbia-plugin-flukematch
 
-* https://github.com/WildbookOrg/wbia-plugin-deepsense
+* https://github.com/WildMeOrg/wbia-plugin-deepsense
 
-* https://github.com/WildbookOrg/wbia-plugin-finfindr
+* https://github.com/WildMeOrg/wbia-plugin-finfindr
 
-* https://github.com/WildbookOrg/wbia-plugin-curvrank
+* https://github.com/WildMeOrg/wbia-plugin-curvrank
 
-    + https://github.com/WildbookOrg/wbia-tpl-curvrank
+    + https://github.com/WildMeOrg/wbia-tpl-curvrank
 
-* https://github.com/WildbookOrg/wbia-plugin-kaggle7
+* https://github.com/WildMeOrg/wbia-plugin-kaggle7
 
-    + https://github.com/WildbookOrg/wbia-tpl-kaggle7
+    + https://github.com/WildMeOrg/wbia-tpl-kaggle7
 
-* https://github.com/WildbookOrg/wbia-plugin-2d-orientation
+* https://github.com/WildMeOrg/wbia-plugin-2d-orientation
 
-    + https://github.com/WildbookOrg/wbia-tpl-2d-orientation
+    + https://github.com/WildMeOrg/wbia-tpl-2d-orientation
 
-* https://github.com/WildbookOrg/wbia-plugin-lca
+* https://github.com/WildMeOrg/wbia-plugin-lca
 
-    + https://github.com/WildbookOrg/wbia-tpl-lca
+    + https://github.com/WildMeOrg/wbia-tpl-lca
 
 Deprecated Toolkits (Deprecated)
-* https://github.com/WildbookOrg/wbia-deprecate-ubelt
+* https://github.com/WildMeOrg/wbia-deprecate-ubelt
 
-* https://github.com/WildbookOrg/wbia-deprecate-dtool
+* https://github.com/WildMeOrg/wbia-deprecate-dtool
 
-* https://github.com/WildbookOrg/wbia-deprecate-guitool
+* https://github.com/WildMeOrg/wbia-deprecate-guitool
 
-* https://github.com/WildbookOrg/wbia-deprecate-plottool
+* https://github.com/WildMeOrg/wbia-deprecate-plottool
 
-* https://github.com/WildbookOrg/wbia-deprecate-detecttools
+* https://github.com/WildMeOrg/wbia-deprecate-detecttools
 
-* https://github.com/WildbookOrg/wbia-deprecate-plugin-humpbacktl
+* https://github.com/WildMeOrg/wbia-deprecate-plugin-humpbacktl
 
-* https://github.com/WildbookOrg/wbia-deprecate-tpl-lightnet
+* https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
 
-* https://github.com/WildbookOrg/wbia-deprecate-tpl-brambox
+* https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox
 
 Plug-in Templates (Reference)
 
-* https://github.com/WildbookOrg/wbia-plugin-template
+* https://github.com/WildMeOrg/wbia-plugin-template
 
-* https://github.com/WildbookOrg/wbia-plugin-id-example
+* https://github.com/WildMeOrg/wbia-plugin-id-example
 
 Miscellaneous (Reference)
 
-* https://github.com/WildbookOrg/wbia-pypkg-build
+* https://github.com/WildMeOrg/wbia-pypkg-build
 
-* https://github.com/WildbookOrg/wbia-project-website
+* https://github.com/WildMeOrg/wbia-project-website
 
-* https://github.com/WildbookOrg/wbia-aws-codedeploy
+* https://github.com/WildMeOrg/wbia-aws-codedeploy
 
 Citation
 --------
@@ -259,8 +259,8 @@ To run doctests with `+REQUIRES(--web-tests)` do:
 
     pytest --web-tests
 
-.. |Build| image:: https://img.shields.io/github/workflow/status/WildbookOrg/wildbook-ia/Build%20and%20upload%20to%20PyPI/master
-    :target: https://github.com/WildbookOrg/wildbook-ia/actions?query=branch%3Amaster+workflow%3A%22Build+and+upload+to+PyPI%22
+.. |Build| image:: https://img.shields.io/github/workflow/status/WildMeOrg/wildbook-ia/Build%20and%20upload%20to%20PyPI/master
+    :target: https://github.com/WildMeOrg/wildbook-ia/actions?query=branch%3Amaster+workflow%3A%22Build+and+upload+to+PyPI%22
     :alt: Build and upload to PyPI (master)
 
 .. |Pypi| image:: https://img.shields.io/pypi/v/wildbook-ia.svg

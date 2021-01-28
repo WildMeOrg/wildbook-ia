@@ -279,6 +279,8 @@ def view_advanced0(**kwargs):
         return date_list
 
     def filter_annots_imageset(aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -296,6 +298,8 @@ def view_advanced0(**kwargs):
         return aid_list
 
     def filter_images_imageset(gid_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -313,6 +317,8 @@ def view_advanced0(**kwargs):
         return gid_list
 
     def filter_names_imageset(nid_list):
+        if not nid_list:  # no need to filter if empty
+            return nid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -333,6 +339,8 @@ def view_advanced0(**kwargs):
         return nid_list
 
     def filter_annots_general(ibs, aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         if ibs.dbname == 'GGR-IBEIS':
             # Grevy's
             filter_kw = {
@@ -1013,6 +1021,8 @@ def view_advanced2(**kwargs):
         return date_list
 
     def filter_annots_imageset(aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         try:
             imgsetid = request.args.get('imgsetid', '')
             imgsetid = int(imgsetid)
@@ -1030,6 +1040,8 @@ def view_advanced2(**kwargs):
         return aid_list
 
     def filter_annots_general(ibs, aid_list):
+        if not aid_list:  # no need to filter if empty
+            return aid_list
         if ibs.dbname == 'GGR-IBEIS':
             # Grevy's
             filter_kw = {
@@ -1233,6 +1245,8 @@ def view_advanced4(**kwargs):
         return date_list
 
     def filter_species_of_interest(gid_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         wanted_set = set(['zebra_plains', 'zebra_grevys', 'giraffe_masai'])
         aids_list = ibs.get_image_aids(gid_list)
         speciess_list = ut.unflat_map(ibs.get_annot_species_texts, aids_list)
@@ -1245,6 +1259,8 @@ def view_advanced4(**kwargs):
         return gid_list_filtered
 
     def filter_viewpoints_of_interest(gid_list, allowed_viewpoint_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         aids_list = ibs.get_image_aids(gid_list)
         wanted_set = set(allowed_viewpoint_list)
         viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
@@ -1257,6 +1273,8 @@ def view_advanced4(**kwargs):
         return gid_list_filtered
 
     def filter_bad_metadata(gid_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         wanted_set = set(['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31'])
         date_list = _date_list(gid_list)
         gps_list = ibs.get_image_gps(gid_list)
@@ -1267,6 +1285,8 @@ def view_advanced4(**kwargs):
         return gid_list_filtered
 
     def filter_bad_quality(gid_list, allowed_quality_list):
+        if not gid_list:  # no need to filter if empty
+            return gid_list
         aids_list = ibs.get_image_aids(gid_list)
         wanted_set = set(allowed_quality_list)
         qualities_list = ut.unflat_map(ibs.get_annot_quality_texts, aids_list)
@@ -1484,7 +1504,7 @@ def view_imagesets(**kwargs):
     all_gid_list = ibs.get_valid_gids()
     all_aid_list = ibs.get_valid_aids()
 
-    gids_list = [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
+    gids_list = ibs.get_valid_gids(imgsetid_list=imgsetid_list)
     num_gids = list(map(len, gids_list))
 
     ######################################################################################
@@ -1777,9 +1797,7 @@ def view_images(**kwargs):
             None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
             for imgsetid_ in imgsetid_list
         ]
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
     else:
         gid_list = ibs.get_valid_gids()
         filtered = False
@@ -1868,9 +1886,7 @@ def view_annotations(**kwargs):
             None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
             for imgsetid_ in imgsetid_list
         ]
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     else:
         aid_list = ibs.get_valid_aids()
@@ -2028,9 +2044,7 @@ def view_names(**kwargs):
             None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_)
             for imgsetid_ in imgsetid_list
         ]
-        gid_list = ut.flatten(
-            [ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list]
-        )
+        gid_list = ut.flatten(ibs.get_valid_gids(imgsetid_list=imgsetid_list))
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         nid_list = ibs.get_annot_name_rowids(aid_list)
     else:
@@ -3960,11 +3974,6 @@ def check_engine_identification_query_object(
     if current_app.QUERY_OBJECT_JOBID is None:
         current_app.QUERY_OBJECT = None
         current_app.QUERY_OBJECT_JOBID = ibs.start_web_query_all()
-        # import wbia
-        # web_ibs = wbia.opendb_bg_web(dbdir=ibs.dbdir, port=6000)
-        # query_object_jobid = web_ibs.send_wbia_request('/api/engine/query/graph/')
-        # logger.info('query_object_jobid = %r' % (query_object_jobid, ))
-        # current_app.QUERY_OBJECT_JOBID = query_object_jobid
 
     query_object_status_dict = ibs.get_job_status(current_app.QUERY_OBJECT_JOBID)
     args = (
@@ -4004,11 +4013,11 @@ def turk_identification(
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:
-        ...     resp = web_ibs.get('/turk/identification/lnbnn/')
+        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+        ...     resp = client.get('/turk/identification/lnbnn/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
-        >>> ut.render_html(resp.content)
+        >>> ut.render_html(resp.data.decode('utf8'))
         >>> ut.show_if_requested()
     """
     from wbia.web import apis_query
@@ -4040,7 +4049,10 @@ def turk_identification(
                 review_cfg[
                     'max_num'
                 ] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
-                values = query_object.pop()
+                try:
+                    values = query_object.pop()
+                except StopIteration as e:
+                    return appf.template(None, 'simple', title=str(e).capitalize())
                 (review_aid1_list, review_aid2_list), review_confidence = values
                 review_aid1_list = [review_aid1_list]
                 review_aid2_list = [review_aid2_list]
@@ -4653,6 +4665,7 @@ def turk_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            census=True,
         )
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
@@ -4745,8 +4758,8 @@ def turk_identification_hardcase(*args, **kwargs):
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> with wbia.opendb_bg_web('PZ_Master1', managed=True) as web_ibs:
-        ...     resp = web_ibs.get('/turk/identification/hardcase/')
+        >>> with wbia.opendb_with_web('PZ_Master1') as (ibs, client):
+        ...     resp = client.get('/turk/identification/hardcase/')
 
     Ignore:
         import wbia
@@ -4791,6 +4804,7 @@ def turk_identification_graph(
     hogwild_species=None,
     creation_imageset_rowid_list=None,
     kaia=False,
+    census=False,
     **kwargs,
 ):
     """
@@ -4805,11 +4819,11 @@ def turk_identification_graph(
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:
-        ...     resp = web_ibs.get('/turk/identification/graph/')
+        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
+        ...     resp = client.get('/turk/identification/graph/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
-        >>> ut.render_html(resp.content)
+        >>> ut.render_html(resp.data.decode('utf8'))
         >>> ut.show_if_requested()
     """
     ibs = current_app.ibs
@@ -4952,6 +4966,22 @@ def turk_identification_graph(
                     'redun.enforce_pos': False,
                     'redun.neg': 2,
                     'redun.pos': 2,
+                }
+            elif census:
+                logger.info('[routes] Graph is in CA-mode')
+                query_config_dict = {
+                    'autoreview.enabled': True,
+                    'autoreview.prioritize_nonpos': True,
+                    'inference.enabled': True,
+                    'ranking.enabled': True,
+                    'ranking.ntop': 20,
+                    'redun.enabled': True,
+                    'redun.enforce_neg': True,
+                    'redun.enforce_pos': True,
+                    'redun.neg.only_auto': False,
+                    'redun.neg': 3,
+                    'redun.pos': 3,
+                    'algo.hardcase': False,
                 }
             else:
                 logger.info('[routes] Graph is not in hardcase-mode')

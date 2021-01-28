@@ -55,13 +55,12 @@ def get_image_gsgrids(ibs, gid_list):
         list_ (list):  a list of imageset-image-relationship rowids for each imageid"""
     # TODO: Group type
     params_iter = ((gid,) for gid in gid_list)
-    where_clause = 'image_rowid=?'
     # list of relationships for each image
-    gsgrids_list = ibs.db.get_where(
+    gsgrids_list = ibs.db.get_where_eq(
         const.GSG_RELATION_TABLE,
         ('gsgr_rowid',),
         params_iter,
-        where_clause,
+        ('image_rowid',),
         unpack_scalars=False,
     )
     return gsgrids_list
@@ -173,10 +172,13 @@ def get_gsgr_rowid_from_superkey(ibs, gid_list, imgsetid_list):
     Returns:
         gsgrid_list (list):  eg-relate-ids from info constrained to be unique (imgsetid, gid)"""
     colnames = ('image_rowid',)
+    where_colnames = ('image_rowid', 'imageset_rowid')
     params_iter = zip(gid_list, imgsetid_list)
-    where_clause = 'image_rowid=? AND imageset_rowid=?'
-    gsgrid_list = ibs.db.get_where(
-        const.GSG_RELATION_TABLE, colnames, params_iter, where_clause
+    gsgrid_list = ibs.db.get_where_eq(
+        const.GSG_RELATION_TABLE,
+        colnames,
+        params_iter,
+        where_colnames,
     )
     return gsgrid_list
 

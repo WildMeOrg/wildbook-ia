@@ -262,6 +262,7 @@ def start_identify_annots(
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> from wbia.web.apis_engine import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_bg_web('testdb1', managed=True) as web_ibs:  # , domain='http://52.33.105.88')
@@ -452,6 +453,7 @@ def start_identify_annots_query(
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> from wbia.web.apis_engine import *  # NOQA
         >>> import wbia
         >>> #domain = 'localhost'
@@ -533,6 +535,8 @@ def start_identify_annots_query(
         'curvrankdorsal',
         'curvrankfinfindrhybriddorsal',
         'curvrankfluke',
+        'curvranktwodorsal',
+        'curvranktwofluke',
     ):
         curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', '')
         if len(curvrank_daily_tag) > 144:

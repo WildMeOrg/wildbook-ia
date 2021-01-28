@@ -900,13 +900,12 @@ def get_metadata_value(ibs, metadata_key_list, db):
         URL:    /api/metadata/value/
     """
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-    where_clause = 'metadata_key=?'
     # list of relationships for each image
-    metadata_value_list = db.get_where(
+    metadata_value_list = db.get_where_eq(
         const.METADATA_TABLE,
         ('metadata_value',),
         params_iter,
-        where_clause,
+        ('metadata_key',),
         unpack_scalars=True,
     )
     return metadata_value_list
@@ -924,13 +923,12 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     """
     db = db[0]  # Unwrap tuple, required by @accessor_decors.getter_1to1 decorator
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-    where_clause = 'metadata_key=?'
     # list of relationships for each image
-    metadata_rowid_list = db.get_where(
+    metadata_rowid_list = db.get_where_eq(
         const.METADATA_TABLE,
         ('metadata_rowid',),
         params_iter,
-        where_clause,
+        ('metadata_key',),
         unpack_scalars=True,
     )
     return metadata_rowid_list
@@ -1011,14 +1009,11 @@ def _init_config(ibs):
     try:
         general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
     except IOError as ex:
-        if ut.VERBOSE:
-            ut.printex(ex, 'failed to genral load config', iswarning=True)
+        logger.error('*** failed to load general config', exc_info=ex)
         general_config = {}
+        ut.save_cPkl(config_fpath, general_config, verbose=ut.VERBOSE)
     current_species = general_config.get('current_species', None)
-    if ut.VERBOSE and ut.NOT_QUIET:
-        logger.info(
-            '[_init_config] general_config.current_species = %r' % (current_species,)
-        )
+    logger.info('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
     # species_list = ibs.get_database_species()

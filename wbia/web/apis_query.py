@@ -325,6 +325,9 @@ def review_graph_match_html(
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
+        >>> # DISABLE_DOCTEST
+        >>> # Disabled because this test uses opendb_bg_web, which hangs the test runner and leaves zombie processes
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
         >>> web_ibs = wbia.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
@@ -377,6 +380,7 @@ def review_graph_match_html(
 
     Example2:
         >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> # This starts off using web to get information, but finishes the rest in python
         >>> from wbia.web.apis_query import *  # NOQA
         >>> import wbia
@@ -433,6 +437,8 @@ def review_graph_match_html(
         'curvrankdorsal',
         'curvrankfinfindrhybriddorsal',
         'curvrankfluke',
+        'curvranktwodorsal',
+        'curvranktwofluke',
         'deepsense',
         'finfindr',
         'kaggle7',
@@ -544,16 +550,6 @@ def review_graph_match_html(
 
 @register_route('/test/review/query/chip/', methods=['GET'])
 def review_query_chips_test(**kwargs):
-    """
-    CommandLine:
-        python -m wbia.web.apis_query review_query_chips_test --show
-
-    Example:
-        >>> # SCRIPT
-        >>> import wbia
-        >>> web_ibs = wbia.opendb_bg_web(
-        >>>     browser=True, url_suffix='/test/review/query/chip/?__format__=true')
-    """
     ibs = current_app.ibs
 
     # the old block curvature dtw
@@ -568,6 +564,10 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {'pipeline_root': 'CurvRankFinfindrHybridDorsal'}
     elif 'use_curvrank_fluke' in request.args:
         query_config_dict = {'pipeline_root': 'CurvRankFluke'}
+    elif 'use_curvrank_v2_dorsal' in request.args:
+        query_config_dict = {'pipeline_root': 'CurvRankTwoDorsal'}
+    elif 'use_curvrank_v2_fluke' in request.args:
+        query_config_dict = {'pipeline_root': 'CurvRankTwoFluke'}
     elif 'use_deepsense' in request.args:
         query_config_dict = {'pipeline_root': 'Deepsense'}
     elif 'use_finfindr' in request.args:
@@ -763,6 +763,24 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 
 
 @register_ibs_method
+def log_render_status(ibs, *args):
+    import os
+
+    json_log_path = ibs.get_logdir_local()
+    json_log_filename = 'render.log'
+    json_log_filepath = os.path.join(json_log_path, json_log_filename)
+    logger.info('Logging renders added to: %r' % (json_log_filepath,))
+
+    try:
+        with open(json_log_filepath, 'a') as json_log_file:
+            line = ','.join(['%s' % (arg,) for arg in args])
+            line = '%s\n' % (line,)
+            json_log_file.write(line)
+    except Exception:
+        logger.info('WRITE RENDER.LOG FAILED')
+
+
+@register_ibs_method
 @register_api('/api/query/graph/', methods=['GET', 'POST'])
 def query_chips_graph(
     ibs,
@@ -772,7 +790,7 @@ def query_chips_graph(
     query_config_dict={},
     echo_query_params=True,
     cache_images=True,
-    n=16,
+    n=30,
     view_orientation='horizontal',
     return_summary=True,
     **kwargs,
@@ -963,6 +981,20 @@ def query_chips_graph(
                     except Exception:
                         filepath_matches = None
                         extern_flag = 'error'
+                    log_render_status(
+                        ibs,
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        True,
+                        False,
+                        filepath_matches,
+                        extern_flag,
+                    )
                     try:
                         _, filepath_heatmask = ensure_review_image(
                             ibs,
@@ -976,6 +1008,20 @@ def query_chips_graph(
                     except Exception:
                         filepath_heatmask = None
                         extern_flag = 'error'
+                    log_render_status(
+                        ibs,
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        False,
+                        True,
+                        filepath_heatmask,
+                        extern_flag,
+                    )
                     try:
                         _, filepath_clean = ensure_review_image(
                             ibs,
@@ -989,6 +1035,20 @@ def query_chips_graph(
                     except Exception:
                         filepath_clean = None
                         extern_flag = 'error'
+                    log_render_status(
+                        ibs,
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        False,
+                        False,
+                        filepath_clean,
+                        extern_flag,
+                    )
 
                     if filepath_matches is not None:
                         args = (
@@ -1408,13 +1468,12 @@ def query_chips_graph_v2(
         >>> # Open local instance
         >>> ibs = wbia.opendb('PZ_MTEST')
         >>> uuid_list = ibs.annots().uuids[0:10]
-        >>> # Start up the web instance
-        >>> web_ibs = wbia.opendb_bg_web(db='PZ_MTEST', web=True, browser=False)
         >>> data = dict(annot_uuid_list=uuid_list)
-        >>> resp = web_ibs.send_wbia_request('/api/query/graph/v2/', **data)
-        >>> print('resp = %r' % (resp,))
-        >>> #cmdict_list = json_dict['response']
-        >>> #assert 'score_list' in cmdict_list[0]
+        >>> # Start up the web instance
+        >>> with wbia.opendb_with_web(db='PZ_MTEST') as (ibs, client):
+        ...     resp = client.post('/api/query/graph/v2/', data=data)
+        >>> resp.json
+        {'status': {'success': False, 'code': 608, 'message': 'Invalid image and/or annotation UUIDs (0, 1)', 'cache': -1}, 'response': {'invalid_image_uuid_list': [], 'invalid_annot_uuid_list': [[0, '...']]}}
 
     Example:
         >>> # DEBUG_SCRIPT

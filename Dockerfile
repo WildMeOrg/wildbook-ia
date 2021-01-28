@@ -67,6 +67,10 @@ RUN set -x \
        libxext6 \
        #: opencv2 dependency
        libgl1 \
+       #: required to stop prompting by pgloader
+       libssl1.0.0 \
+       #: sqlite->postgres dependency
+       pgloader \
        #: dev debug dependency
        #: python3-dev required to build 'annoy'
        python3-dev \
@@ -118,7 +122,12 @@ EXPOSE 5000
 # Move to the workdir
 WORKDIR /data
 
+# Set the "workdir"
+RUN python3 -m wbia --set-workdir /data --preload-exit
+
 COPY .dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
 
+ENV WBIA_DB_DIR="/data/db"
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["python3", "-m", "wbia.dev", "--dbdir", "/data/db", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
+CMD ["python3", "-m", "wbia.dev", "--dbdir", "$WBIA_DB_DIR", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
