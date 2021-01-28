@@ -194,15 +194,16 @@ def get_dbinfo(
 
     def get_dates(ibs, gid_list):
         unixtime_list = ibs.get_image_unixtime2(gid_list)
-        unixtime_list_ = [unixtime + (gmt_offset * 60 * 60) for unixtime in unixtime_list]
+        unixtime_list = [unixtime + (gmt_offset * 60 * 60) for unixtime in unixtime_list]
         datetime_list = [
             ut.unixtime_to_datetimestr(unixtime) if unixtime is not None else 'UNKNOWN'
-            for unixtime in unixtime_list_
+            for unixtime in unixtime_list
         ]
         date_str_list = [value[:10] for value in datetime_list]
         return date_str_list
 
     if with_ggr:
+        request_annot_subset = True
         valid_gids = list(set(ibs.get_annot_gids(valid_aids)))
         date_str_list = get_dates(ibs, valid_gids)
         flag_list = [
@@ -224,6 +225,16 @@ def get_dbinfo(
     valid_rids += ibs.get_review_rowids_from_aid2(valid_aids)
     valid_rids = ut.flatten(valid_rids)
     valid_rids = list(set(valid_rids))
+
+    num_all_total_reviews = len(valid_rids)
+
+    aids_tuple = ibs.get_review_aid_tuple(valid_rids)
+    flag_list = []
+    for aid_tuple in aids_tuple:
+        aid1, aid2 = aid_tuple
+        flag = aid1 in valid_aids and aid2 in valid_aids
+        flag_list.append(flag)
+    valid_rids = ut.compress(valid_rids, flag_list)
 
     # associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     valid_images = ibs.images(valid_gids)
@@ -257,92 +268,77 @@ def get_dbinfo(
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
-    if True:
-        # Occurrence Info
-        def compute_annot_occurrence_ids(ibs, aid_list):
-            from wbia.algo.preproc import preproc_occurrence
-            import utool as ut
+    # Occurrence Info
+    def compute_annot_occurrence_ids(ibs, aid_list, config):
+        from wbia.algo.preproc import preproc_occurrence
+        import utool as ut
 
-            gid_list = ibs.get_annot_gids(aid_list)
-            gid2_aids = ut.group_items(aid_list, gid_list)
-            flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
-                ibs, gid_list, verbose=False
-            )
-            occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
-            occurid2_aids = {
-                oid: ut.flatten(ut.take(gid2_aids, gids))
-                for oid, gids in occurid2_gids.items()
-            }
-            return occurid2_aids
-
-        import utool
-
-        with utool.embed_on_exception_context:
-            occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids)
-            occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
-            occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
-            nid2_occurxs = ut.ddict(list)
-            for occurx, nids in enumerate(occur_unique_nids):
-                for nid in nids:
-                    nid2_occurxs[nid].append(occurx)
-
-        nid2_occurx_single = {
-            nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1
+        gid_list = ibs.get_annot_gids(aid_list)
+        gid2_aids = ut.group_items(aid_list, gid_list)
+        flat_imgsetids, flat_gids = preproc_occurrence.wbia_compute_occurrences(
+            ibs, gid_list, config=config, verbose=False
+        )
+        occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
+        occurid2_aids = {
+            oid: ut.flatten(ut.take(gid2_aids, gids))
+            for oid, gids in occurid2_gids.items()
         }
-        nid2_occurx_resight = {
-            nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1
-        }
-        singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
+        return occurid2_aids
 
-        singlesight_annot_stats = ut.get_stats(
-            list(map(len, singlesight_encounters)), use_median=True, use_sum=True
-        )
-        resight_name_stats = ut.get_stats(
-            list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True
-        )
+    nids = ibs.get_annot_nids(valid_aids)
+    nid2_sightxs = ut.ddict(set)
+    for aid, nid in zip(valid_aids, nids):
+        if nid >= 0:
+            nid2_sightxs[nid].add(aid)
 
-    # Encounter Info
-    def break_annots_into_encounters(aids):
-        from wbia.algo.preproc import occurrence_blackbox
-        import datetime
+    occurence_config = {'use_gps': True, 'seconds_thresh': 10 * 60}
+    occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids, config=occurence_config)
 
-        thresh_sec = datetime.timedelta(minutes=30).seconds
-        posixtimes = np.array(ibs.get_annot_image_unixtimes_asfloat(aids))
-        # latlons = ibs.get_annot_image_gps(aids)
-        labels = occurrence_blackbox.cluster_timespace2(
-            posixtimes, None, thresh_sec=thresh_sec
-        )
-        return labels
-        # ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]
-        # ut.square_pdist(ave_enc_time)
+    aid2_occurxs = ut.ddict(set)
+    occurid2_aids_named = ut.ddict(set)
+    occurid2_nids = ut.ddict(set)
+    for occurx, aids in occurid2_aids.items():
+        nids = ibs.get_annot_nids(aids)
+        for aid, nid in zip(aids, nids):
+            if nid >= 0:
+                aid2_occurxs[aid].add(occurx)
+                occurid2_aids_named[occurx].add(aid)
+                occurid2_nids[occurx].add(nid)
 
-    # try:
-    #     am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[
-    #         0
-    #     ]
-    #     aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
-    #     undirected_tags = ibs.get_aidpair_tags(
-    #         aid_pairs.T[0], aid_pairs.T[1], directed=False
-    #     )
-    #     tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
-    #     tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
-    #     pair_tag_info = ut.map_dict_vals(len, tag_dict)
-    # except Exception:
-    #     pair_tag_info = {}
+    assert sorted(set(list(map(len, aid2_occurxs.values())))) == [1]
 
-    # logger.info(ut.repr2(pair_tag_info))
+    occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
+    occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
+    nid2_occurxs = ut.ddict(set)
+    for occurx, nids in enumerate(occur_unique_nids):
+        for nid in nids:
+            if nid >= 0:
+                nid2_occurxs[nid].add(occurx)
 
-    # Annot Stats
-    # TODO: number of images where chips cover entire image
-    # TODO: total image coverage of annotation
-    # TODO: total annotation overlap
-    """
-    ax2_unknown = ibs.is_aid_unknown(valid_aids)
-    ax2_nid = ibs.get_annot_name_rowids(valid_aids)
-    assert all([nid < 0 if unknown else nid > 0 for nid, unknown in
-                zip(ax2_nid, ax2_unknown)]), 'bad annot nid'
-    """
-    #
+    # nid2_occurx_single = {
+    #     nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1
+    # }
+    # nid2_occurx_resight = {
+    #     nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1
+    # }
+    # singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
+
+    annot_sighting_stats = ut.get_stats(
+        list(map(len, nid2_sightxs.values())), use_median=True, use_sum=True
+    )
+    occurence_annot_stats = ut.get_stats(
+        list(map(len, occurid2_aids_named.values())), use_median=True, use_sum=True
+    )
+    occurence_encounter_stats = ut.get_stats(
+        list(map(len, occurid2_nids.values())), use_median=True, use_sum=True
+    )
+    annot_encounter_stats = ut.get_stats(
+        list(map(len, nid2_occurxs.values())), use_median=True, use_sum=True
+    )
+    # resight_name_stats = ut.get_stats(
+    #     list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True
+    # )
+
     if verbose:
         logger.info('Checking Annot Species')
     unknown_annots = valid_annots.compress(ibs.is_aid_unknown(valid_annots))
@@ -431,11 +427,14 @@ def get_dbinfo(
 
     # Time stats
     unixtime_list = valid_images.unixtime2
+    unixtime_list = [unixtime + (gmt_offset * 60 * 60) for unixtime in unixtime_list]
+
     # valid_unixtime_list = [time for time in unixtime_list if time != -1]
     # unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
     if ut.get_argflag('--hackshow-unixtime'):
         show_time_distributions(ibs, unixtime_list)
         ut.show_if_requested()
+
     unixtime_statstr = ut.repr3(ut.get_timestats_dict(unixtime_list, full=True), si=True)
 
     date_str_list = get_dates(ibs, valid_gids)
@@ -678,7 +677,7 @@ def get_dbinfo(
             assert _num_names_total_check == num_names, 'inconsistent num names'
             # if not request_annot_subset:
             # dont check this if you have an annot subset
-            assert _num_annots_total_check == num_annots, 'inconsistent num annots'
+            # assert _num_annots_total_check == num_annots, 'inconsistent num annots'
         except Exception as ex:
             ut.printex(
                 ex,
@@ -732,33 +731,92 @@ def get_dbinfo(
         }
         return review_identity_to_rids, review_identity_stats
 
-    def get_review_participation(review_aids_list, value_list):
-        review_participation_dict = {}
-        for review_aids, value in zip(review_aids_list, value_list):
+    def get_review_participation(
+        review_aids_list, value_list, aid2_occurxs, nid2_occurxs
+    ):
+        annot_review_participation_dict = {}
+        encounter_review_participation_dict = {}
+
+        review_aid_list = ut.flatten(review_aids_list)
+        review_nid_list = ibs.get_annot_nids(review_aid_list)
+        review_aid_nid_dict = dict(zip(review_aid_list, review_nid_list))
+
+        known_aids = set(aid2_occurxs.keys())
+        known_encounters = set([])
+        for nid, occurxs in nid2_occurxs.items():
+            for occurx in occurxs:
+                encounter = '%s,%s' % (
+                    occurx,
+                    nid,
+                )
+                known_encounters.add(encounter)
+
+        for review_aids, value in list(zip(review_aids_list, value_list)):
             for value_ in [value, 'Any']:
-                if value_ not in review_participation_dict:
-                    review_participation_dict[value_] = {}
-                for aid in review_aids:
-                    if aid not in review_participation_dict[value_]:
-                        review_participation_dict[value_][aid] = 0
-                    review_participation_dict[value_][aid] += 1
+                enc_values_ = [
+                    (None, value_),
+                    (True, '%s (INTRA)' % (value_)),
+                    (False, '%s (INTER)' % (value_)),
+                ]
 
-        for value in review_participation_dict:
-            values = list(review_participation_dict[value].values())
-            mean = np.mean(values)
-            std = np.std(values)
-            thresh = int(np.around(mean + 2 * std))
-            values = [
-                '%02d+' % (thresh,) if value >= thresh else '%02d' % (value,)
-                for value in values
-            ]
-            review_participation_dict[value] = ut.dict_hist(values)
-            review_participation_dict[value]['AVG'] = '%0.1f +/- %0.1f' % (
-                mean,
-                std,
-            )
+                review_nids = ut.take(review_aid_nid_dict, review_aids)
+                review_occurxs = ut.flatten(ut.take(aid2_occurxs, review_aids))
 
-        return review_participation_dict
+                is_intra = len(set(review_occurxs)) == 1
+
+                if value_ not in annot_review_participation_dict:
+                    annot_review_participation_dict[value_] = {
+                        '__KNOWN__': known_aids,
+                        '__HIT__': set([]),
+                    }
+                for env_flag_, enc_value_ in enc_values_:
+                    if enc_value_ not in encounter_review_participation_dict:
+                        encounter_review_participation_dict[enc_value_] = {
+                            '__KNOWN__': known_encounters,
+                            '__HIT__': set([]),
+                        }
+
+                for aid, nid, occurx in zip(review_aids, review_nids, review_occurxs):
+                    encounter = '%s,%s' % (
+                        occurx,
+                        nid,
+                    )
+                    annot_review_participation_dict[value_]['__HIT__'].add(aid)
+                    if aid not in annot_review_participation_dict[value_]:
+                        annot_review_participation_dict[value_][aid] = 0
+                    annot_review_participation_dict[value_][aid] += 1
+                    for env_flag_, enc_value_ in enc_values_:
+                        if env_flag_ in [None, is_intra]:
+                            encounter_review_participation_dict[enc_value_][
+                                '__HIT__'
+                            ].add(encounter)
+                            if (
+                                encounter
+                                not in encounter_review_participation_dict[enc_value_]
+                            ):
+                                encounter_review_participation_dict[enc_value_][
+                                    encounter
+                                ] = 0
+                            encounter_review_participation_dict[enc_value_][
+                                encounter
+                            ] += 1
+
+        for review_participation_dict in [
+            annot_review_participation_dict,
+            encounter_review_participation_dict,
+        ]:
+            for value in review_participation_dict:
+                known_values = review_participation_dict[value].pop('__KNOWN__')
+                hit_values = review_participation_dict[value].pop('__HIT__')
+                missed_values = known_values - hit_values
+                values = list(review_participation_dict[value].values())
+                stats = ut.get_stats(values, use_median=True, use_sum=True)
+                stats['known'] = len(known_values)
+                stats['hit'] = len(hit_values)
+                stats['miss'] = len(missed_values)
+                review_participation_dict[value] = stats
+
+        return annot_review_participation_dict, encounter_review_participation_dict
 
     review_decision_stats = get_review_decision_stats(ibs, valid_rids)
     review_identity_to_rids, review_identity_stats = get_review_identity_stats(
@@ -773,11 +831,17 @@ def get_dbinfo(
     review_aids_list = ibs.get_review_aid_tuple(valid_rids)
     review_decision_list = ibs.get_review_decision_str(valid_rids)
     review_identity_list = get_review_identity(valid_rids)
-    review_decision_participation_dict = get_review_participation(
-        review_aids_list, review_decision_list
+    (
+        review_decision_annot_participation_dict,
+        review_decision_encounter_participation_dict,
+    ) = get_review_participation(
+        review_aids_list, review_decision_list, aid2_occurxs, nid2_occurxs
     )
-    review_identity_participation_dict = get_review_participation(
-        review_aids_list, review_identity_list
+    (
+        review_identity_annot_participation_dict,
+        review_identity_encounter_participation_dict,
+    ) = get_review_participation(
+        review_aids_list, review_identity_list, aid2_occurxs, nid2_occurxs
     )
 
     review_tags_list = ibs.get_review_tags(valid_rids)
@@ -795,13 +859,19 @@ def get_dbinfo(
     interest_list = ibs.get_annot_interest(valid_aids)
     canonical_list = ibs.get_annot_canonical(valid_aids)
 
-    ggr_num_relevant = 0
+    # ggr_num_relevant = 0
     ggr_num_species = 0
     ggr_num_viewpoints = 0
     ggr_num_qualities = 0
+    ggr_num_filter = 0
     ggr_num_aois = 0
     ggr_num_cas = 0
-    ggr_num_overlap = 0
+    ggr_num_filter_overlap = 0
+    ggr_num_filter_remove = 0
+    ggr_num_filter_add = 0
+    ggr_num_aoi_overlap = 0
+    ggr_num_aoi_remove = 0
+    ggr_num_aoi_add = 0
 
     zipped = list(
         zip(
@@ -818,21 +888,42 @@ def get_dbinfo(
         species_ = species_.lower()
         viewpoint_ = viewpoint_.lower()
         quality_ = int(quality_)
-        if species_ in ['zebra_grevys', 'zebra_plains']:
-            ggr_num_relevant += 1
+        # if species_ in ['zebra_grevys']:
+        #     ggr_num_relevant += 1
         if species_ in ['zebra_grevys']:
             ggr_num_species += 1
-            if 'right' in viewpoint_:
+            filter_viewpoint_ = 'right' in viewpoint_
+            filter_quality_ = quality_ >= 3
+            filter_ = filter_viewpoint_ and filter_quality_
+
+            if canonical_:
+                ggr_num_cas += 1
+
+            if filter_viewpoint_:
                 ggr_num_viewpoints += 1
-                if quality_ >= 3:
-                    ggr_num_qualities += 1
+
+            if filter_quality_:
+                ggr_num_qualities += 1
+
+            if filter_:
+                ggr_num_filter += 1
+                if canonical_:
+                    ggr_num_filter_overlap += 1
+                else:
+                    ggr_num_filter_remove += 1
+            else:
+                if canonical_:
+                    ggr_num_filter_add += 1
+
             if interest_:
                 ggr_num_aois += 1
                 if canonical_:
-                    ggr_num_overlap += 1
-
-        if canonical_:
-            ggr_num_cas += 1
+                    ggr_num_aoi_overlap += 1
+                else:
+                    ggr_num_aoi_remove += 1
+            else:
+                if canonical_:
+                    ggr_num_aoi_add += 1
 
     #########
 
@@ -889,6 +980,10 @@ def get_dbinfo(
         ('--' * num_tabs),
         ('# Annots %s            = %d' % (subset_str, num_annots)),
         ('# Annots (unknown)           = %d' % num_unknown_annots),
+        (
+            '# Annots (named)             = %d'
+            % (num_singleton_annots + num_multiton_annots)
+        ),
         ('# Annots (singleton)         = %d' % num_singleton_annots),
         ('# Annots (multiton)          = %d' % num_multiton_annots),
     ]
@@ -896,7 +991,7 @@ def get_dbinfo(
     annot_per_basic_block_lines = (
         [
             ('--' * num_tabs),
-            ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
+            # ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
             ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
             ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
         ]
@@ -921,28 +1016,60 @@ def get_dbinfo(
     annot_ggr_census = (
         [
             ('GGR Annots: '),
-            ('     +-Relevant:            %s' % (ggr_num_relevant,)),
-            ("     +- Grevy's Species:   %s" % (ggr_num_species,)),
+            # ('     +-Relevant:            %s' % (ggr_num_relevant,)),
+            ("     +- Grevy's Species:    %s" % (ggr_num_species,)),
             ('     |  +-AoIs:             %s' % (ggr_num_aois,)),
-            ('     |  +- Right Side:      %s' % (ggr_num_viewpoints,)),
+            ('     |  |  +-Right Side:    %s' % (ggr_num_viewpoints,)),
             ('     |  |  +-Good Quality:  %s' % (ggr_num_qualities,)),
-            ('     +-CAs:                 %s' % (ggr_num_cas,)),
-            ('     +-Filter + CA Overlap: %s' % (ggr_num_overlap,)),
+            ('     |  |  +-Filter:        %s' % (ggr_num_filter,)),
+            ('     |  +-CAs:              %s' % (ggr_num_cas,)),
+            (
+                '     +-CA & Filter Overlap: %s (CA removed %d, added %d)'
+                % (ggr_num_filter_overlap, ggr_num_filter_remove, ggr_num_filter_add)
+            ),
+            (
+                '     +-CA & AOI    Overlap: %s (CA removed %d, added %d)'
+                % (ggr_num_aoi_overlap, ggr_num_aoi_remove, ggr_num_aoi_add)
+            ),
         ]
         if with_ggr
         else []
     )
 
+    from wbia.algo.preproc import occurrence_blackbox
+
     occurrence_block_lines = (
         [
             ('--' * num_tabs),
+            '# Occurrences                    = %s' % (len(occurid2_aids),),
+            '# Occurrences with Named         = %s'
+            % (len(set(ut.flatten(aid2_occurxs.values()))),),
+            '#      +- GPS Filter             = %s'
+            % (occurence_config.get('use_gps', False),),
+            '#      +- GPS Threshold KM/Sec.  = %0.04f'
+            % (occurrence_blackbox.KM_PER_SEC,),
+            '#      +- Time Filter            = %s' % (True,),
+            '#      +- Time Threshold Sec.    = %0.1f'
+            % (occurence_config.get('seconds_thresh', None),),
             (
-                '# Occurrence Per Name (Resights) = %s'
-                % (align_dict2(resight_name_stats),)
+                '# Named Annots per Occurrence    = %s'
+                % (align_dict2(occurence_annot_stats),)
             ),
             (
-                '# Annots per Encounter (Singlesights) = %s'
-                % (align_dict2(singlesight_annot_stats),)
+                '# Encounters per Occurrence    = %s'
+                % (align_dict2(occurence_encounter_stats),)
+            ),
+            '# Encounters                     = %s'
+            % (len(ut.flatten(nid2_occurxs.values())),),
+            (
+                '# Encounters per Name            = %s'
+                % (align_dict2(annot_encounter_stats),)
+            ),
+            '# Sightings with Names           = %s'
+            % (len(set(ut.flatten(nid2_sightxs.values()))),),
+            (
+                '# Sightings per Name             = %s'
+                % (align_dict2(annot_sighting_stats),)
             ),
             # ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
         ]
@@ -953,7 +1080,8 @@ def get_dbinfo(
     reviews_block_lines = (
         [
             ('--' * num_tabs),
-            ('# Reviews                    = %d' % len(valid_rids)),
+            ('# All Reviews                = %d' % num_all_total_reviews),
+            ('# Relevant Reviews           = %d' % len(valid_rids)),
             ('# Reviews per Decision       = %s' % align_dict2(review_decision_stats)),
             ('# Reviews per Reviewer       = %s' % align_dict2(review_identity_stats)),
             (
@@ -962,12 +1090,20 @@ def get_dbinfo(
             ),
             ('# Reviews with Tag           = %s' % align_dict2(review_tag_stats)),
             (
-                '# Review Participation #1    = %s'
-                % align_dict2(review_decision_participation_dict)
+                '# Annot Review Participation by Decision = %s'
+                % align_dict2(review_decision_annot_participation_dict)
             ),
             (
-                '# Review Participation #2    = %s'
-                % align_dict2(review_identity_participation_dict)
+                '# Encounter Review Participation by Decision = %s'
+                % align_dict2(review_decision_encounter_participation_dict)
+            ),
+            (
+                '# Annot Review Participation by Reviewer = %s'
+                % align_dict2(review_identity_annot_participation_dict)
+            ),
+            (
+                '# Encounter Review Participation by Reviewer = %s'
+                % align_dict2(review_identity_encounter_participation_dict)
             ),
         ]
         if with_reviews
@@ -1023,6 +1159,7 @@ def get_dbinfo(
         + annot_per_basic_block_lines
         + annot_per_qualview_block_lines
         + annot_per_agesex_block_lines
+        + annot_ggr_census
         + occurrence_block_lines
         + reviews_block_lines
         + img_block_lines

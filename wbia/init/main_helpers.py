@@ -570,7 +570,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         posixtimes = annots.image_unixtimes_asfloat
         latlons = annots.gps
         data = cluster_timespace_sec(
-            posixtimes, latlons, thresh_sec=thresh_sec, km_per_sec=0.002
+            posixtimes, latlons, thresh_sec=thresh_sec, km_per_sec=0.001
         )
         cacher.save(data)
     occurrence_ids = data

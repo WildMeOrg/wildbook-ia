@@ -74,8 +74,6 @@ def research_print_metrics(ibs, tag='metrics'):
         quality_ = int(quality_)
         if species_ != 'zebra_grevys':
             continue
-        if 'right' not in viewpoint_:
-            continue
         aids.append(aid)
 
     config = {
@@ -92,7 +90,7 @@ def research_print_metrics(ibs, tag='metrics'):
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
-    flags = [confidence >= 0.5 for confidence in confidence_list]
+    flags = [confidence >= 0.31 for confidence in confidence_list]
     ibs.set_annot_canonical(aids, flags)
 
     ibs.print_dbinfo(with_ggr=True, with_map=True)

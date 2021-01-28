@@ -340,7 +340,7 @@ def timespace_distance(pt1, pt2):
     (sec1, lat1, lon1) = pt1
     (sec2, lat2, lon2) = pt2
     km_dist = vt.haversine((lat1, lon1), (lat2, lon2))
-    km_per_sec = 0.002  # conversion ratio for reasonable animal walking speed
+    km_per_sec = 0.001  # conversion ratio for reasonable animal walking speed
     # sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)
     sec_dist = np.abs(sec1 - sec2) * km_per_sec
     timespace_dist = km_dist + sec_dist

@@ -10,7 +10,7 @@ ZEBRA_SPEED_WALK = 7  # km/h
 
 
 km_per_sec = .02
-km_per_sec = .002
+km_per_sec = .001
 mph = km_per_sec / ut.KM_PER_MILE * 60 * 60
 print('mph = %r' % (mph,))
 
@@ -35,7 +35,7 @@ from scipy.spatial import distance
 logger = logging.getLogger('wbia')
 
 
-KM_PER_SEC = 0.002
+KM_PER_SEC = 0.001
 
 
 def haversine(latlon1, latlon2):
@@ -189,7 +189,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
     Args:
         posixtimes (ndarray):
         latlons (ndarray):
-        km_per_sec (float): (default = 0.002)
+        km_per_sec (float): (default = 0.001)
         thresh_units (str): (default = 'seconds')
 
     Returns:
@@ -211,7 +211,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         >>>     (np.nan, np.nan),
         >>>     (42.258333, -73.470993),
         >>> ])
-        >>> km_per_sec = 0.002
+        >>> km_per_sec = 0.001
         >>> thresh_units = 'seconds'
         >>> X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec, thresh_units)
         >>> result = ('arr_ = %s' % (ut.repr2(X_data),))
