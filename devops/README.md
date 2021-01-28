@@ -19,3 +19,7 @@ To publish the results use:
 This will publish the four build images to [Docker Hub](https://hub.docker.com) by default. You can change the container registry to publish to using the `-r` option. See `./publish.sh -h` for usage details.
 
 Do not run this locally, leave that to the continuous integration (CI) service. See the Nightly workflow in `.github/workflows/nightly.yml` for more information.
+
+## Deployment with Postgres
+
+For example instruction on how to deploy the application with postgres see: [Deploying the application with Postgres](deploy-with-prostgres.md)
