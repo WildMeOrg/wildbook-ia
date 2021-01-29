@@ -899,9 +899,21 @@ def ensure_db_from_url(zipped_db_url):
     from wbia import sysres
 
     workdir = sysres.get_workdir()
-    dbdir = ut.grab_zipped_url(
-        zipped_url=zipped_db_url, ensure=True, download_dir=workdir
-    )
+
+    retry = 10
+    while retry > 0:
+        try:
+            retry -= 1
+            path = zipped_db_url.rsplit('/', 1)[-1]
+            dbdir = ut.grab_zipped_url(
+                zipped_url=zipped_db_url, ensure=True, download_dir=workdir
+            )
+        except Exception as e:
+            logger.error(str(e))
+        if Path(workdir, path).exists():
+            break
+    else:
+        raise RuntimeError(f'Unable to download {zipped_db_url}')
 
     # Determine if the implementation is using a URI for database connection.
     # This is confusing, sorry. If the URI is set we are using a non-sqlite
