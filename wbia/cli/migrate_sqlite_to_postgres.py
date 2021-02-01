@@ -29,19 +29,13 @@ logger = logging.getLogger('wbia')
     help='Postgres connection URI (e.g. postgres://user:pass@host)',
 )
 @click.option(
-    '--force',
-    is_flag=True,
-    default=False,
-    help='Delete all tables in the public schema in postgres',
-)
-@click.option(
     '-v',
     '--verbose',
     is_flag=True,
     default=False,
     help='Show debug messages',
 )
-def main(db_dir, db_uri, force, verbose):
+def main(db_dir, db_uri, verbose):
     """"""
     # Set up logging
     if verbose:
@@ -80,23 +74,6 @@ def main(db_dir, db_uri, force, verbose):
     if not differences:
         logger.info('Database already migrated')
         sys.exit(0)
-
-    # Make sure there are no tables in the public schema in postgresql
-    # because we're using it as the workspace for the migration
-    if 'public' in db_infos[1].get_schema():
-        table_names = [
-            t for schema, t in db_infos[1].get_table_names() if schema == 'public'
-        ]
-        if not force:
-            click.echo(
-                f'Tables in public schema in postgres database: {", ".join(table_names)}'
-            )
-            click.echo('Use --force to remove the tables in public schema')
-            sys.exit(1)
-        else:
-            click.echo(f'Dropping all tables in public schema: {", ".join(table_names)}')
-            for table_name in table_names:
-                db_infos[1].engine.execute(f'DROP TABLE {table_name} CASCADE')
 
     # Migrate
     problems = {}
