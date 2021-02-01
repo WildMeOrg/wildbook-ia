@@ -107,9 +107,7 @@ def main(db_dir, db_uri, force, verbose):
             try:
                 completed_future.result()
             except Exception as exc:
-                logger.info(
-                    f'\nfailed while processing {str(path)}\n{completed_future.exception()}'
-                )
+                logger.info(f'\nfailed while processing {str(path)}\n{exc.__cause__}')
                 problems[path] = exc
             else:
                 logger.info(f'\nfinished processing {str(path)}')
@@ -121,6 +119,10 @@ def main(db_dir, db_uri, force, verbose):
         logger.info('*' * 60)
         logger.info(f'There was a problem migrating {str(path)}')
         logger.exception(exc)
+        if hasattr(exc, '__cause__'):
+            # __cause__ is the formated traceback on a multiprocess exception
+            logger.info('-' * 30)
+            logger.info(exc.__cause__)
         if isinstance(exc, subprocess.CalledProcessError):
             logger.info('-' * 30)
             logger.info(exc.stdout.decode())
