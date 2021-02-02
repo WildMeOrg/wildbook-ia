@@ -118,6 +118,9 @@ class PostgresDatabaseInfo:
         self.db_uri = db_uri
         self.engine = sqlalchemy.create_engine(db_uri)
         self.metadata = sqlalchemy.MetaData(bind=self.engine)
+        # Load the metadata
+        for schema in self.get_schema():
+            self.metadata.reflect(schema=schema)
 
     def __str__(self):
         return f'<PostgresDatabaseInfo db_uri={self.db_uri}>'
@@ -127,13 +130,21 @@ class PostgresDatabaseInfo:
             'SELECT DISTINCT table_schema FROM information_schema.tables'
         )
         return sorted(
-            [s[0] for s in schemas if s[0] not in ('pg_catalog', 'information_schema')]
+            [
+                s[0]
+                for s in schemas
+                if s[0] not in ('public', 'pg_catalog', 'information_schema')
+            ]
         )
 
     def get_table_names(self, normalized=False):
+        """Returns table names as tuples of (schema, table)"""
         for schema in self.get_schema():
             self.metadata.reflect(schema=schema)
         for table in sorted(self.metadata.tables, key=lambda a: a.lower()):
+            if '.' not in table:
+                # This is a table in the 'public' schema and should be ignored.
+                continue
             if normalized:
                 yield tuple(table.lower().split('.', 1))
             else:
