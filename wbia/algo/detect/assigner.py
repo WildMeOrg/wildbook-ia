@@ -57,33 +57,33 @@ SPECIES_CONFIG_MAP = {
     'chelonia_mydas': {
         'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_unit_features'
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
     },
     'eretmochelys_imbricata': {
         'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_unit_features'
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
     },
     'lepidochelys_olivacea': {
         'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_unit_features'
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
     },
     'turtle_green': {
         'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_unit_features'
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
     },
     'turtle_hawksbill': {
         'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_unit_features'
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
     },
     'turtle_oliveridley': {
         'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
-        'annot_feature_col': 'assigner_viewpoint_unit_features'
-    }
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
+    },
 }
 
 
@@ -283,9 +283,7 @@ def assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
     all_pairs_parallel = _all_pairs_parallel(part_aids, body_aids)
     pair_parts, pair_bodies = all_pairs_parallel
 
-    assigner_features = ibs.depc_annot.get(
-        feature_defn, all_pairs_parallel
-    )
+    assigner_features = ibs.depc_annot.get(feature_defn, all_pairs_parallel)
     assigner_classifier = load_assigner_classifier(ibs, part_aids)
 
     assigner_scores = assigner_classifier.predict_proba(assigner_features)
@@ -309,12 +307,16 @@ def _make_assignments(ibs, pair_parts, pair_bodies, assigner_scores, cutoff_scor
     # Note that we do not enforce species equivalence bc the detector might find a
     # hawksbill head on a green turtle body, but the assigner might say hey wait
     # a minute that's just one turtle
-    supported_pairs = [(part in supported_species and body in supported_species) or
-                       (part not in supported_species and body not in supported_species)
-                       for part, body in zip(part_species, body_species)]
+    supported_pairs = [
+        (part in supported_species and body in supported_species)
+        or (part not in supported_species and body not in supported_species)
+        for part, body in zip(part_species, body_species)
+    ]
 
-    assigner_scores = [score if supported_pair else 0.0
-                       for score, supported_pair in zip(assigner_scores, supported_pairs)]
+    assigner_scores = [
+        score if supported_pair else 0.0
+        for score, supported_pair in zip(assigner_scores, supported_pairs)
+    ]
 
     sorted_scored_pairs = [
         (part, body, score)
@@ -380,14 +382,17 @@ def get_annot_species_without_parts(ibs, aid_list):
 
 def _get_assigner_species_for_aids(ibs, aid_list, fallback_species='wild_dog'):
     species = get_annot_species_without_parts(ibs, aid_list)
-    supported_species = [specie for specie in species
-                         if specie in SPECIES_CONFIG_MAP.keys()]
-    species_counts = {spec: supported_species.count(spec)
-                      for spec in set(supported_species)}
+    supported_species = [
+        specie for specie in species if specie in SPECIES_CONFIG_MAP.keys()
+    ]
+    species_counts = {
+        spec: supported_species.count(spec) for spec in set(supported_species)
+    }
     max_count = max(species_counts.values())
-    candidate_species = [spec for spec, count in species_counts.items()
-                         if count == max_count]
-    if (len(candidate_species) == 0):
+    candidate_species = [
+        spec for spec, count in species_counts.items() if count == max_count
+    ]
+    if len(candidate_species) == 0:
         print(
             'WARNING: Assigner called for species %s which do not have an assigner modelfile specified. Falling back to the model for %s'
             % (set(species), fallback_species)
@@ -436,7 +441,7 @@ def illustrate_all_assignments(
     gid_to_ground_truth,
     target_dir='/tmp/assigner-illustrations/',
     limit=20,
-    only_false=False
+    only_false=False,
 ):
 
     correct_dir = os.path.join(target_dir, 'correct/')
@@ -479,8 +484,12 @@ def illustrate_assignments(
         _draw_all_annots(ibs, image, assigned_aid_dict, gtruth_aid_dict)
         try:
             image.save(new_fname)
-        except:
-            print("WARNING: could not save assigner illustration for original image " + impath + " , Skipping.")
+        except Exception:
+            print(
+                'WARNING: could not save assigner illustration for original image '
+                + impath
+                + ' , Skipping.'
+            )
 
 
 def _draw_all_annots(ibs, image, assigned_aid_dict, gtruth_aid_dict):

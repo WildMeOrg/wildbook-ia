@@ -2840,8 +2840,12 @@ def assigner_viewpoint_unit_features(depc, part_aid_list, body_aid_list, config=
     part_centroids = [poly.centroid for poly in part_polys]
     body_centroids = [poly.centroid for poly in body_polys]
 
-    body_to_part_xs = [partc.x - bodyc.x for partc, bodyc in zip(part_centroids, body_centroids)]
-    body_to_part_ys = [partc.y - bodyc.y for partc, bodyc in zip(part_centroids, body_centroids)]
+    body_to_part_xs = [
+        partc.x - bodyc.x for partc, bodyc in zip(part_centroids, body_centroids)
+    ]
+    body_to_part_ys = [
+        partc.y - bodyc.y for partc, bodyc in zip(part_centroids, body_centroids)
+    ]
 
     part_body_centroid_dists = [
         part.distance(body) for part, body in zip(part_centroids, body_centroids)

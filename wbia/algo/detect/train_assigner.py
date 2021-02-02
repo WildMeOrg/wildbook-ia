@@ -30,7 +30,7 @@ from collections import OrderedDict
 from datetime import datetime
 import time
 
-from math import sqrt
+# from math import sqrt
 
 from sklearn import preprocessing
 
@@ -64,7 +64,13 @@ derived_attribute = register_preprocs['annot']
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 CURRENT_DEFAULT_FEATURE = 'assigner_viewpoint_unit_features'
-FEATURE_OPTIONS = ['assigner_viewpoint_unit_features', 'theta_standardized_assignment_features', 'normalized_assignment_features', 'theta_assignment_features', 'assigner_viewpoint_features']
+FEATURE_OPTIONS = [
+    'assigner_viewpoint_unit_features',
+    'theta_standardized_assignment_features',
+    'normalized_assignment_features',
+    'theta_assignment_features',
+    'assigner_viewpoint_features',
+]
 
 CLASSIFIER_OPTIONS = [
     {
@@ -332,9 +338,7 @@ def wd_normed_assigner_data(ibs):
 
 
 @register_ibs_method
-def wd_training_data(
-    ibs, depc_table_name=CURRENT_DEFAULT_FEATURE, balance_t_f=True
-):
+def wd_training_data(ibs, depc_table_name=CURRENT_DEFAULT_FEATURE, balance_t_f=True):
     all_aids = ibs.get_valid_aids()
     ia_classes = ibs.get_annot_species(all_aids)
     part_aids = [aid for aid, ia_class in zip(all_aids, ia_classes) if '+' in ia_class]
@@ -456,11 +460,15 @@ def save_parts_as_annots(ibs, part_rowids=None, part_name='head'):
     parent_names = ibs.get_annot_names(parent_aids)
 
     # for unnamed parents that *do* have parts, we need to add a unique (per image) name to both aids bc the parent/child link is seen by the assigner via them both having the same name
-    unnamed_parents = [aid for aid, name in zip(parent_aids, parent_names) if name == '____']
+    unnamed_parents = [
+        aid for aid, name in zip(parent_aids, parent_names) if name == '____'
+    ]
     unnamed_parents_gids = ibs.get_annot_gids(unnamed_parents)
     unnamed_parents_image_indices = _get_image_indices(ibs, unnamed_parents)
-    names_for_unnamed = [str(gid) + '-' + str(i) + '-assignerpair' for gid, i in
-                         zip(unnamed_parents_gids, unnamed_parents_image_indices)]
+    names_for_unnamed = [
+        str(gid) + '-' + str(i) + '-assignerpair'
+        for gid, i in zip(unnamed_parents_gids, unnamed_parents_image_indices)
+    ]
     ibs.set_annot_names(unnamed_parents, names_for_unnamed)
     parent_names = ibs.get_annot_names(parent_aids)
 
@@ -472,22 +480,30 @@ def save_parts_as_annots(ibs, part_rowids=None, part_name='head'):
     confs = ibs.get_part_detect_confidence(part_rowids)
     notes = ibs.get_part_notes(part_rowids)
 
-    new_aids = ibs.add_annots(gids,
-                              bbox_list=part_bboxes,
-                              theta_list=thetas,
-                              species_list=part_species,
-                              nid_list=parent_nids,
-                              viewpoint_list=viewps,
-                              quality_list=qualts,
-                              detect_confidence_list=confs,
-                              notes_list=notes)
-    print("save_parts_as_annots created %s new annotations from parts." % len(new_aids))
+    new_aids = ibs.add_annots(
+        gids,
+        bbox_list=part_bboxes,
+        theta_list=thetas,
+        species_list=part_species,
+        nid_list=parent_nids,
+        viewpoint_list=viewps,
+        quality_list=qualts,
+        detect_confidence_list=confs,
+        notes_list=notes,
+    )
+    print('save_parts_as_annots created %s new annotations from parts.' % len(new_aids))
     return new_aids
 
 
 # developed for iot, this adds one false part/body pair to false_pair_per_image * num input images.
-def create_dummy_assigner_aids(ibs, aid_list, fake_pairs_per_image=0.5, stop_after=math.inf,
-                               shrinkage=0.7, illustrate=True):
+def create_dummy_assigner_aids(
+    ibs,
+    aid_list,
+    fake_pairs_per_image=0.5,
+    stop_after=math.inf,
+    shrinkage=0.7,
+    illustrate=True,
+):
     gids = list(set(ibs.get_annot_gids(aid_list)))
     old_parts, old_bodies = all_part_pairs(ibs, gids)
     pair_gids = ibs.get_annot_gids(old_parts)
@@ -509,19 +525,26 @@ def create_dummy_assigner_aids(ibs, aid_list, fake_pairs_per_image=0.5, stop_aft
     source_body_verts = ibs.get_annot_verts(source_bodies)
 
     # get input args for make_verts_not_aoi
-    shrinkage_sigma = (1 - shrinkage) / 2  # heuristic such that >97% of the time, dummy bboxes have shrunk somewhat
+    shrinkage_sigma = (
+        1 - shrinkage
+    ) / 2  # heuristic such that >97% of the time, dummy bboxes have shrunk somewhat
     shrinkages = [random.gauss(shrinkage, shrinkage_sigma) for _ in range(n_pairs)]
     thetas = [random.gauss(0, 7) for _ in range(n_pairs)]  # so +/-15% is roughly 2 sigma
     perimeterizes = [0.6 for _ in range(n_pairs)]
 
-    transform_input = zip(source_part_verts, source_body_verts, source_imwidths,
-                          source_imheights, shrinkages, thetas, perimeterizes)
+    transform_input = zip(
+        source_part_verts,
+        source_body_verts,
+        source_imwidths,
+        source_imheights,
+        shrinkages,
+        thetas,
+        perimeterizes,
+    )
 
     transormed_verts = [
-        make_verts_not_aoi(v1, v2, imwidth, imheight,
-                           shrink, theta, perimeterize) for
-        (v1, v2, imwidth, imheight, shrink, theta, perimeterize) in
-        transform_input
+        make_verts_not_aoi(v1, v2, imwidth, imheight, shrink, theta, perimeterize)
+        for (v1, v2, imwidth, imheight, shrink, theta, perimeterize) in transform_input
     ]
 
     # transform verts to new images
@@ -530,9 +553,13 @@ def create_dummy_assigner_aids(ibs, aid_list, fake_pairs_per_image=0.5, stop_aft
     target_imheights = ibs.get_image_heights(target_gids)
     transformed_verts = [
         _scale_verts_to_new_image(verts, imwidth, imheight, new_width, new_height)
-        for verts, imwidth, imheight, new_width, new_height in
-        zip(transormed_verts, source_imwidths, source_imheights,
-            target_imwidths, target_imheights)
+        for verts, imwidth, imheight, new_width, new_height in zip(
+            transormed_verts,
+            source_imwidths,
+            source_imheights,
+            target_imwidths,
+            target_imheights,
+        )
     ]
     new_part_verts = [vertses[0] for vertses in transformed_verts]
     new_body_verts = [vertses[1] for vertses in transformed_verts]
@@ -543,35 +570,47 @@ def create_dummy_assigner_aids(ibs, aid_list, fake_pairs_per_image=0.5, stop_aft
     source_part_viewpoints = ibs.get_annot_viewpoints(source_parts)
     source_body_viewpoints = ibs.get_annot_viewpoints(source_bodies)
     # clean viewpoints
-    source_part_viewpoints = [view if view != 'IGNORE' else None
-                              for view in source_part_viewpoints]
-    source_body_viewpoints = [view if view != 'IGNORE' else None
-                              for view in source_body_viewpoints]
+    source_part_viewpoints = [
+        view if view != 'IGNORE' else None for view in source_part_viewpoints
+    ]
+    source_body_viewpoints = [
+        view if view != 'IGNORE' else None for view in source_body_viewpoints
+    ]
 
     source_names = ibs.get_annot_names(source_bodies)
-    new_part_notes = ['dummy assigner aid transformed from part annot %s' % aid
-                      for aid in source_parts]
-    new_body_notes = ['dummy assigner aid transformed from body annot %s' % aid
-                      for aid in source_bodies]
+    new_part_notes = [
+        'dummy assigner aid transformed from part annot %s' % aid for aid in source_parts
+    ]
+    new_body_notes = [
+        'dummy assigner aid transformed from body annot %s' % aid for aid in source_bodies
+    ]
 
     dummy_parts = ibs.add_annots(
-        target_gids, species_list=source_part_species, name_list=source_names,
-        vert_list=new_part_verts, viewpoint_list=source_part_viewpoints,
-        notes_list=new_part_notes
+        target_gids,
+        species_list=source_part_species,
+        name_list=source_names,
+        vert_list=new_part_verts,
+        viewpoint_list=source_part_viewpoints,
+        notes_list=new_part_notes,
     )
 
     dummy_bodies = ibs.add_annots(
-        target_gids, species_list=source_body_species, name_list=source_names,
-        vert_list=new_body_verts, viewpoint_list=source_body_viewpoints,
-        notes_list=new_body_notes
+        target_gids,
+        species_list=source_body_species,
+        name_list=source_names,
+        vert_list=new_body_verts,
+        viewpoint_list=source_body_viewpoints,
+        notes_list=new_body_notes,
     )
 
-    if (illustrate):
+    if illustrate:
         # reuse assigner illustrations
         ut.embed()
         gids_to_assigner_gtruth = _true_assignment_pair_dicts(ibs, gids)
         target_dir = '/tmp/dummies/'
-        illustrate_all_assignments(ibs, gids_to_assigner_gtruth, gids_to_assigner_gtruth, target_dir, limit=50)
+        illustrate_all_assignments(
+            ibs, gids_to_assigner_gtruth, gids_to_assigner_gtruth, target_dir, limit=50
+        )
 
     return (dummy_parts, dummy_bodies)
 
@@ -592,13 +631,19 @@ def _true_assignment_pair_dicts(ibs, gids):
 
 
 # vertses is a tuple of *two* verts tuples (one for part, one for body)
-def _scale_verts_to_new_image(vertses, old_imwidth, old_imheight, new_imwidth, new_imheight):
+def _scale_verts_to_new_image(
+    vertses, old_imwidth, old_imheight, new_imwidth, new_imheight
+):
     verts0 = vertses[0]
     verts1 = vertses[1]
     normalized_verts0 = [(x / old_imwidth, y / old_imheight) for (x, y) in verts0]
     normalized_verts1 = [(x / old_imwidth, y / old_imheight) for (x, y) in verts1]
-    projected_verts0 = [(x * new_imwidth, y * new_imheight) for (x, y) in normalized_verts0]
-    projected_verts1 = [(x * new_imwidth, y * new_imheight) for (x, y) in normalized_verts1]
+    projected_verts0 = [
+        (x * new_imwidth, y * new_imheight) for (x, y) in normalized_verts0
+    ]
+    projected_verts1 = [
+        (x * new_imwidth, y * new_imheight) for (x, y) in normalized_verts1
+    ]
 
     final_verts0 = [(math.floor(x), math.floor(y)) for (x, y) in projected_verts0]
     final_verts1 = [(math.floor(x), math.floor(y)) for (x, y) in projected_verts1]
@@ -606,8 +651,9 @@ def _scale_verts_to_new_image(vertses, old_imwidth, old_imheight, new_imwidth, n
     return (final_verts0, final_verts1)
 
 
-def make_verts_not_aoi(verts1, verts2, imwidth, imheight,
-                       shrinkage=0.8, theta=0.0, perimeterize=0.5):
+def make_verts_not_aoi(
+    verts1, verts2, imwidth, imheight, shrinkage=0.8, theta=0.0, perimeterize=0.5
+):
     r"""
     Makes two dummy, non-aoi bboxes out of two real (presumed aoi) bboxes,
     preserving their relative geometry
@@ -642,10 +688,12 @@ def make_verts_not_aoi(verts1, verts2, imwidth, imheight,
     if shrinkage != 1.0:
         # shrink bboxes about the origin of their shared centroid
         centroid_both = _centroids_centroid(poly1, poly2)
-        poly1 = affinity.scale(poly1, xfact=shrinkage, yfact=shrinkage,
-                               origin=centroid_both)
-        poly2 = affinity.scale(poly2, xfact=shrinkage, yfact=shrinkage,
-                               origin=centroid_both)
+        poly1 = affinity.scale(
+            poly1, xfact=shrinkage, yfact=shrinkage, origin=centroid_both
+        )
+        poly2 = affinity.scale(
+            poly2, xfact=shrinkage, yfact=shrinkage, origin=centroid_both
+        )
 
     if theta != 0.0:
         centroid_both = _centroids_centroid(poly1, poly2)
@@ -654,14 +702,18 @@ def make_verts_not_aoi(verts1, verts2, imwidth, imheight,
 
     if perimeterize != 1.0:
         # distance to nearest edge and a tuple indicating its direction from the polys
-        edge_distance, nearest_edge_direction = _nearest_edge_distance(poly1, poly2, imwidth, imheight)
+        edge_distance, nearest_edge_direction = _nearest_edge_distance(
+            poly1, poly2, imwidth, imheight
+        )
         translate_distance = edge_distance * perimeterize
         x_offset = translate_distance * nearest_edge_direction[0]
         y_offset = translate_distance * nearest_edge_direction[1]
         poly1 = affinity.translate(poly1, x_offset, y_offset)
         poly2 = affinity.translate(poly2, x_offset, y_offset)
 
-    new_verts1 = list(poly1.exterior.coords)[:4]  # the coords list duplicates the last vertex
+    new_verts1 = list(poly1.exterior.coords)[
+        :4
+    ]  # the coords list duplicates the last vertex
     new_verts2 = list(poly2.exterior.coords)[:4]
 
     return new_verts1, new_verts2
@@ -724,9 +776,7 @@ def _get_image_indices(ibs, aid_list):
     return aid_indices
 
 
-def turtle_training_data(
-    ibs, depc_table_name=CURRENT_DEFAULT_FEATURE, balance_t_f=True
-):
+def turtle_training_data(ibs, depc_table_name=CURRENT_DEFAULT_FEATURE, balance_t_f=True):
 
     all_aids = ibs.get_valid_aids()
     all_species = ibs.get_annot_species(all_aids)
@@ -790,6 +840,7 @@ def _is_good_training_image(ibs, gid):
 # returns flags so we can compress other lists
 def balance_true_false_training_pairs(ground_truth, seed=777):
     import random
+
     random.seed(seed)
 
     n_true = ground_truth.count(True)
@@ -811,7 +862,8 @@ def balance_true_false_training_pairs(ground_truth, seed=777):
         subsampled_true_indices = set(subsampled_true_indices)
         # keep all false indices, and the subsampled true ones
         keep_flags = [
-            (not gt) or (i in subsampled_true_indices) for i, gt in enumerate(ground_truth)
+            (not gt) or (i in subsampled_true_indices)
+            for i, gt in enumerate(ground_truth)
         ]
 
     return keep_flags
@@ -893,7 +945,14 @@ def split_list(item_list, is_in_first_group_list):
     return first_group, second_group
 
 
-def check_accuracy(ibs, assigner_data=None, cutoff_score=0.5, illustrate=False, only_illustrate_false=False, limit=20):
+def check_accuracy(
+    ibs,
+    assigner_data=None,
+    cutoff_score=0.5,
+    illustrate=False,
+    only_illustrate_false=False,
+    limit=20,
+):
 
     if assigner_data is None:
         assigner_data = turtle_training_data(ibs)
@@ -911,7 +970,13 @@ def check_accuracy(ibs, assigner_data=None, cutoff_score=0.5, illustrate=False, 
     gid_to_ground_truth = gid_keyed_ground_truth(ibs, assigner_data)
 
     if illustrate:
-        illustrate_all_assignments(ibs, gid_to_assigner_results, gid_to_ground_truth, only_false=only_illustrate_false, limit=limit)
+        illustrate_all_assignments(
+            ibs,
+            gid_to_assigner_results,
+            gid_to_ground_truth,
+            only_false=only_illustrate_false,
+            limit=limit,
+        )
 
     correct_gids = []
     incorrect_gids = []
@@ -1750,7 +1815,9 @@ def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
     rm_extern_on_delete=True,
     chunksize=256,  # chunk size is huge bc we need accurate means and stdevs of various traits
 )
-def old_assigner_old_viewpoint_unit_features(depc, part_aid_list, body_aid_list, config=None):
+def old_assigner_old_viewpoint_unit_features(
+    depc, part_aid_list, body_aid_list, config=None
+):
 
     from shapely import geometry
     import math
