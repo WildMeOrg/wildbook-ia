@@ -224,7 +224,7 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
     all_unassigned_aids = []
 
     for gid in gid_to_aids.keys():
-        this_pairs, this_unassigned = _assign_parts_one_image(
+        this_pairs, this_unassigned = assign_parts_one_image(
             ibs, gid_to_aids[gid], cutoff_score=cutoff_score
         )
         all_assignments += this_pairs
@@ -234,7 +234,7 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
 
 
 @register_ibs_method
-def _assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
+def assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
     r"""
     Main assigner method; makes assignments on all_aids based on assigner scores.
 
