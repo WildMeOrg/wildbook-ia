@@ -476,8 +476,7 @@ LOAD DATABASE
     FROM {sqlite_uri}
     INTO {postgres_uri}
 
-  WITH include drop,
-       create tables,
+  WITH create tables,
        create indexes,
        reset no sequences
 
@@ -644,11 +643,6 @@ def migrate(sqlite_uri: str, postgres_uri: str):
         # Record in postgres having migrated the sqlite database in its current state
         pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
         return
-
-    # TODO: Only migrate the missing rows when the schema exists.
-    if schema_name in pg_info.get_schema():
-        logger.warning(f'Dropping schema "{schema_name}"')
-        drop_schema(pg_engine, schema_name)
 
     # Add sqlite built-in rowid column to tables
     add_rowids(sl_engine)
