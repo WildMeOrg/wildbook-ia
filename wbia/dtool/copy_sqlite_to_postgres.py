@@ -219,12 +219,16 @@ def compare_databases(
 
     if exact and schema1 != schema2:
         messages.append(f'Schema difference: {schema1} != {schema2}')
+        messages.append(f'differences A->B: {schema1.difference(schema2)}')
+        messages.append(f'differences B->A: {schema2.difference(schema1)}')
         return messages
     if not exact and not schema1:
         messages.append(f'Schema in {db_info1} is empty')
         return messages
     if not exact and schema1.difference(schema2):
         messages.append(f'Schema difference: {schema1} not in {schema2}')
+        messages.append(f'differences A->B: {schema1.difference(schema2)}')
+        messages.append(f'differences B->A: {schema2.difference(schema1)}')
         return messages
 
     # Compare tables
