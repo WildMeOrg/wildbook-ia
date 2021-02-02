@@ -950,6 +950,7 @@ def _update_part_rotate_fix_bbox(bbox):
 
 def update_part_rotate_90(ibs, part_rowid_list, direction):
     from wbia.constants import PI, TAU
+    import vtool as vt
 
     if isinstance(direction, six.string_types):
         direction = direction.lower()
@@ -968,6 +969,49 @@ def update_part_rotate_90(ibs, part_rowid_list, direction):
     bbox_list = ibs.get_part_bboxes(part_rowid_list)
     bbox_list = [_update_part_rotate_fix_bbox(bbox) for bbox in bbox_list]
     ibs.set_part_bboxes(part_rowid_list, bbox_list)
+
+    # Update part contours
+    part_contours = ibs.get_part_contour(part_rowid_list)
+    part_bboxes = ibs.get_part_bboxes(part_rowid_list)
+
+    part_rowid_list_ = []
+    part_contours_ = []
+
+    zipped = zip(part_rowid_list, part_contours, part_bboxes)
+    for part_rowid, part_contour, part_bbox in zipped:
+        contour_data = part_contour.get('contour', {})
+        segment = contour_data.get('segment', [])
+
+        if len(segment) > 0:
+            xtl, ytl, w, h = part_bbox
+
+            theta = -1.0 * val * PI / 2
+            bbox = (0.0, 0.0, 1.0, 1.0)
+            R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+
+            for index, point in enumerate(segment):
+                x = point.get('x', None)
+                y = point.get('y', None)
+                r = point.get('r', None)
+                f = point.get('flag', None)
+
+                if None not in [x, y, r, f]:
+                    points = [(x, y)]
+                    xyz_points = vt.add_homogenous_coordinate(np.array(points).T)
+                    trans_points = vt.remove_homogenous_coordinate(R.dot(xyz_points))
+                    new_points = trans_points.T.tolist()
+                    x_, y_ = new_points[0]
+
+                    segment[index]['x'] = x_
+                    segment[index]['y'] = y_
+                    segment[index]['r'] = (r * h) / w
+
+            part_contour['contour']['segment'] = segment
+
+            part_rowid_list_.append(part_rowid)
+            part_contours_.append(part_contour)
+
+    ibs.set_part_contour(part_rowid_list_, part_contours_)
 
 
 @register_ibs_method
