@@ -31,10 +31,6 @@ DEFAULT_CHECK_MAX = 100
 DEFAULT_CHECK_MIN = 10
 
 
-class AlreadyMigratedError(Exception):
-    """Raised when the database has already been migrated"""
-
-
 def _modified_date(f: Path):
     """Get the modified date of the file"""
     return str(f.stat().st_mtime)
@@ -638,11 +634,18 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     sl_engine = create_engine(sqlite_uri)
     pg_engine = create_engine(postgres_uri)
 
+    # Check for prior migration
+    if sl_info.has_matching_migration(pg_info, schema_name):
+        logger.info(f'{sl_info} already migrated to {pg_info}')
+        return
+
     if not compare_databases(sl_info, pg_info, exact=False):
         logger.info(f'{sl_info} already migrated to {pg_info}')
-        # TODO: migrate missing bits here
-        raise AlreadyMigratedError()
+        # Record in postgres having migrated the sqlite database in its current state
+        pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
+        return
 
+    # TODO: Only migrate the missing rows when the schema exists.
     if schema_name in pg_info.get_schema():
         logger.warning(f'Dropping schema "{schema_name}"')
         drop_schema(pg_engine, schema_name)
