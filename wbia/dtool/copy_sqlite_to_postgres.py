@@ -526,7 +526,7 @@ def run_pgloader(sqlite_uri: str, postgres_uri: str) -> subprocess.CompletedProc
     # Do all this within a self-cleaning temporary directory
     with tempfile.TemporaryDirectory() as tempdir:
         td = Path(tempdir)
-        pgloader_config = td / 'wbia.load'
+        pgloader_config = td / f'wbia_{schema_name}.load'
         with pgloader_config.open('w') as fb:
             fb.write(PGLOADER_CONFIG_TEMPLATE.format(**locals()))
 
