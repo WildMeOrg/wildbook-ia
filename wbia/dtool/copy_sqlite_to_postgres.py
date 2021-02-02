@@ -566,13 +566,15 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     before_pgloader(pg_engine, schema_name)
     run_pgloader(sqlite_uri, postgres_uri)
     after_pgloader(sl_engine, pg_engine, schema_name)
+    # Record in postgres having migrated the sqlite database in its current state
+    pg_info.stamp_migration(schema_name, sl_info.database_checksums[schema_name])
 
 
 def copy_sqlite_to_postgres(
     db_dir: Path,
     postgres_uri: str,
     num_procs: int = 6,
-) -> typing.Generator[typing.Tuple[Path, Future], None, None]:
+) -> typing.Generator[typing.Tuple[Path, Future, int, int], None, None]:
     """Copies all the sqlite databases into a single postgres database
 
     Args:
