@@ -50,6 +50,7 @@ import logging
 from six.moves import zip
 from vtool import image_filters
 from wbia import dtool
+import math
 import utool as ut
 import vtool as vt
 import numpy as np
@@ -61,7 +62,6 @@ from wbia.algo.hots import neighbor_index
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
-
 
 derived_attribute = register_preprocs['annot']
 register_subprop = register_subprops['annot']
@@ -2699,6 +2699,239 @@ def assigner_viewpoint_features(depc, part_aid_list, body_aid_list, config=None)
         yield ans
 
 
+# the plus means an additional vector from p to b
+@derived_attribute(
+    tablename='assigner_viewpoint_unit_features',
+    parents=['annotations', 'annotations'],
+    colnames=[
+        'p_v1_x',
+        'p_v1_y',
+        'p_v2_x',
+        'p_v2_y',
+        'p_v3_x',
+        'p_v3_y',
+        'p_v4_x',
+        'p_v4_y',
+        'p_center_x',
+        'p_center_y',
+        'b_xtl',
+        'b_ytl',
+        'b_xbr',
+        'b_ybr',
+        'b_center_x',
+        'b_center_y',
+        'int_area_scalar',
+        'part_body_distance',
+        'part_body_centroid_dist',
+        'body_to_part_x',
+        'body_to_part_y',
+        'int_over_union',
+        'int_over_part',
+        'int_over_body',
+        'part_over_body',
+        'part_is_left',
+        'part_is_right',
+        'part_is_up',
+        'part_is_down',
+        'part_is_front',
+        'part_is_back',
+        'body_is_left',
+        'body_is_right',
+        'body_is_up',
+        'body_is_down',
+        'body_is_front',
+        'body_is_back',
+    ],
+    coltypes=[
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+    ],
+    configclass=PartAssignmentFeatureConfig,
+    fname='assigner_viewpoint_unit_features',
+    rm_extern_on_delete=True,
+    chunksize=256,  # chunk size is huge bc we need accurate means and stdevs of various traits
+)
+def assigner_viewpoint_unit_features(depc, part_aid_list, body_aid_list, config=None):
+
+    from shapely import geometry
+    import math
+
+    ibs = depc.controller
+
+    part_gids = ibs.get_annot_gids(part_aid_list)
+    body_gids = ibs.get_annot_gids(body_aid_list)
+    assert (
+        part_gids == body_gids
+    ), 'can only compute assignment features on aids in the same image'
+    parts_are_parts = ibs._are_part_annots(part_aid_list)
+    assert all(parts_are_parts), 'all part_aids must be part annots.'
+    bodies_are_parts = ibs._are_part_annots(body_aid_list)
+    assert not any(bodies_are_parts), 'body_aids cannot be part annots'
+
+    im_widths = ibs.get_image_widths(part_gids)
+    im_heights = ibs.get_image_heights(part_gids)
+
+    part_verts = ibs.get_annot_rotated_verts(part_aid_list)
+    body_verts = ibs.get_annot_rotated_verts(body_aid_list)
+    part_verts = _norm_vertices(part_verts, im_widths, im_heights)
+    body_verts = _norm_vertices(body_verts, im_widths, im_heights)
+    part_polys = [geometry.Polygon(vert) for vert in part_verts]
+    body_polys = [geometry.Polygon(vert) for vert in body_verts]
+    intersect_polys = [
+        part.intersection(body) for part, body in zip(part_polys, body_polys)
+    ]
+    intersect_areas = [poly.area for poly in intersect_polys]
+    # just to make int_areas more comparable via ML methods, and since all distances < 1
+    int_area_scalars = [math.sqrt(area) for area in intersect_areas]
+
+    part_bboxes = ibs.get_annot_bboxes(part_aid_list)
+    body_bboxes = ibs.get_annot_bboxes(body_aid_list)
+    part_bboxes = _norm_bboxes(part_bboxes, im_widths, im_heights)
+    body_bboxes = _norm_bboxes(body_bboxes, im_widths, im_heights)
+    part_areas = [bbox[2] * bbox[3] for bbox in part_bboxes]
+    body_areas = [bbox[2] * bbox[3] for bbox in body_bboxes]
+    union_areas = [
+        part + body - intersect
+        for (part, body, intersect) in zip(part_areas, body_areas, intersect_areas)
+    ]
+    int_over_unions = [
+        intersect / union for (intersect, union) in zip(intersect_areas, union_areas)
+    ]
+
+    part_body_distances = [
+        part.distance(body) for part, body in zip(part_polys, body_polys)
+    ]
+
+    part_centroids = [poly.centroid for poly in part_polys]
+    body_centroids = [poly.centroid for poly in body_polys]
+
+    body_to_part_xs = [partc.x - bodyc.x for partc, bodyc in zip(part_centroids, body_centroids)]
+    body_to_part_ys = [partc.y - bodyc.y for partc, bodyc in zip(part_centroids, body_centroids)]
+
+    part_body_centroid_dists = [
+        part.distance(body) for part, body in zip(part_centroids, body_centroids)
+    ]
+
+    int_over_parts = [
+        int_area / part_area for part_area, int_area in zip(part_areas, intersect_areas)
+    ]
+
+    int_over_bodys = [
+        int_area / body_area for body_area, int_area in zip(body_areas, intersect_areas)
+    ]
+
+    part_over_bodys = [
+        part_area / body_area for part_area, body_area in zip(part_areas, body_areas)
+    ]
+
+    part_lrudfb_vects = get_annot_lrudfb_unit_vector(ibs, part_aid_list)
+    body_lrudfb_vects = get_annot_lrudfb_unit_vector(ibs, part_aid_list)
+
+    # note that here only parts have thetas, hence only returning body bboxes
+    result_list = list(
+        zip(
+            part_verts,
+            part_centroids,
+            body_bboxes,
+            body_centroids,
+            int_area_scalars,
+            part_body_distances,
+            part_body_centroid_dists,
+            body_to_part_xs,
+            body_to_part_ys,
+            int_over_unions,
+            int_over_parts,
+            int_over_bodys,
+            part_over_bodys,
+            part_lrudfb_vects,
+            body_lrudfb_vects,
+        )
+    )
+
+    for (
+        part_vert,
+        part_center,
+        body_bbox,
+        body_center,
+        int_area_scalar,
+        part_body_distance,
+        part_body_centroid_dist,
+        body_to_part_x,
+        body_to_part_y,
+        int_over_union,
+        int_over_part,
+        int_over_body,
+        part_over_body,
+        part_lrudfb_vect,
+        body_lrudfb_vect,
+    ) in result_list:
+        ans = (
+            part_vert[0][0],
+            part_vert[0][1],
+            part_vert[1][0],
+            part_vert[1][1],
+            part_vert[2][0],
+            part_vert[2][1],
+            part_vert[3][0],
+            part_vert[3][1],
+            part_center.x,
+            part_center.y,
+            body_bbox[0],
+            body_bbox[1],
+            body_bbox[2],
+            body_bbox[3],
+            body_center.x,
+            body_center.y,
+            int_area_scalar,
+            part_body_distance,
+            part_body_centroid_dist,
+            body_to_part_x,
+            body_to_part_y,
+            int_over_union,
+            int_over_part,
+            int_over_body,
+            part_over_body,
+        )
+        ans += tuple(part_lrudfb_vect)
+        ans += tuple(body_lrudfb_vect)
+        yield ans
+
+
 # left, right, up, down, front, back booleans, useful for assigner classification and other cases where we might want viewpoint as an input for an ML model
 def get_annot_lrudfb_bools(ibs, aid_list):
     views = ibs.get_annot_viewpoints(aid_list)
@@ -2716,6 +2949,21 @@ def get_annot_lrudfb_bools(ibs, aid_list):
         for view in views
     ]
     return bool_arrays
+
+
+def get_annot_lrudfb_unit_vector(ibs, aid_list):
+
+    bool_arrays = get_annot_lrudfb_bools(ibs, aid_list)
+    float_arrays = [[float(b) for b in lrudfb] for lrudfb in bool_arrays]
+    lrudfb_lengths = [math.sqrt(lrudfb.count(True)) for lrudfb in bool_arrays]
+    # lying just to avoid division by zero errors
+    lrudfb_lengths = [length if length != 0 else -1 for length in lrudfb_lengths]
+    unit_float_array = [
+        [f / length for f in lrudfb]
+        for lrudfb, length in zip(float_arrays, lrudfb_lengths)
+    ]
+
+    return unit_float_array
 
 
 def _norm_bboxes(bbox_list, width_list, height_list):

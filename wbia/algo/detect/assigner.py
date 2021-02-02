@@ -54,6 +54,36 @@ SPECIES_CONFIG_MAP = {
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.wd_v0.joblib',
         'annot_feature_col': 'assigner_viewpoint_features',
     },
+    'chelonia_mydas': {
+        'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features'
+    },
+    'eretmochelys_imbricata': {
+        'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features'
+    },
+    'lepidochelys_olivacea': {
+        'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features'
+    },
+    'turtle_green': {
+        'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features'
+    },
+    'turtle_hawksbill': {
+        'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features'
+    },
+    'turtle_oliveridley': {
+        'model_file': '/tmp/assigner.iot_dummies_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features'
+    }
 }
 
 
@@ -194,8 +224,8 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
     all_unassigned_aids = []
 
     for gid in gid_to_aids.keys():
-        this_pairs, this_unassigned = assign_parts_one_image(
-            ibs, gid_to_aids[gid], cutoff_score
+        this_pairs, this_unassigned = _assign_parts_one_image(
+            ibs, gid_to_aids[gid], cutoff_score=cutoff_score
         )
         all_assignments += this_pairs
         all_unassigned_aids += this_unassigned
@@ -204,7 +234,7 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
 
 
 @register_ibs_method
-def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
+def _assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
     r"""
     Main assigner method; makes assignments on all_aids based on assigner scores.
 
@@ -238,15 +268,8 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
         >>> assert (set(assigned_aids) | set(unassigned_aids) == set(aids))
         >>> ([(3, 1)], [2, 4])
     """
-    all_species = ibs.get_annot_species(aid_list)
-    # put unsupported species into the all_unassigned_aids list
-    all_species_no_parts = [species.split('+')[0] for species in all_species]
-    assign_flag_list = [
-        species in SPECIES_CONFIG_MAP.keys() for species in all_species_no_parts
-    ]
-
-    unassigned_aids_noconfig = ut.filterfalse_items(aid_list, assign_flag_list)
-    aid_list = ut.compress(aid_list, assign_flag_list)
+    if feature_defn is None:
+        feature_defn = assigner_feat_for_aids(ibs, aid_list)
 
     are_part_aids = _are_part_annots(ibs, aid_list)
     part_aids = ut.compress(aid_list, are_part_aids)
@@ -260,28 +283,38 @@ def assign_parts_one_image(ibs, aid_list, cutoff_score=0.5):
     all_pairs_parallel = _all_pairs_parallel(part_aids, body_aids)
     pair_parts, pair_bodies = all_pairs_parallel
 
-    if len(pair_parts) > 0 and len(pair_bodies) > 0:
-        assigner_features = ibs.depc_annot.get(
-            'assigner_viewpoint_features', all_pairs_parallel
-        )
-        # send all aids to this call just so it can find the right classifier model
-        assigner_classifier = load_assigner_classifier(ibs, body_aids + part_aids)
+    assigner_features = ibs.depc_annot.get(
+        feature_defn, all_pairs_parallel
+    )
+    assigner_classifier = load_assigner_classifier(ibs, part_aids)
 
-        assigner_scores = assigner_classifier.predict_proba(assigner_features)
-        #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
-        assigner_scores = [score[1] for score in assigner_scores]
-        good_pairs, unassigned_aids = _make_assignments(
-            pair_parts, pair_bodies, assigner_scores, cutoff_score
-        )
-    else:
-        good_pairs = []
-        unassigned_aids = aid_list
-
-    unassigned_aids = unassigned_aids_noconfig + unassigned_aids
+    assigner_scores = assigner_classifier.predict_proba(assigner_features)
+    #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
+    assigner_scores = [score[1] for score in assigner_scores]
+    good_pairs, unassigned_aids = _make_assignments(
+        ibs, pair_parts, pair_bodies, assigner_scores, cutoff_score
+    )
     return good_pairs, unassigned_aids
 
 
-def _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5):
+def _make_assignments(ibs, pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5):
+
+    # we need to first ensure unsupported species-pairs have zero assigner scores
+    part_species = get_annot_species_without_parts(ibs, pair_parts)
+    body_species = get_annot_species_without_parts(ibs, pair_bodies)
+    supported_species = SPECIES_CONFIG_MAP.keys()
+    # below boolean is NXOR on "is part/body species supported". We can assign a part/body that
+    # are supported, or a part/body that are not supported (just as a default fallback
+    # behavior), but if only one of those is supported the assigner score must be zero.
+    # Note that we do not enforce species equivalence bc the detector might find a
+    # hawksbill head on a green turtle body, but the assigner might say hey wait
+    # a minute that's just one turtle
+    supported_pairs = [(part in supported_species and body in supported_species) or
+                       (part not in supported_species and body not in supported_species)
+                       for part, body in zip(part_species, body_species)]
+
+    assigner_scores = [score if supported_pair else 0.0
+                       for score, supported_pair in zip(assigner_scores, supported_pairs)]
 
     sorted_scored_pairs = [
         (part, body, score)
@@ -313,7 +346,7 @@ def _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5
         if (
             len(assigned_parts) is n_true_pairs
             or len(assigned_bodies) is n_true_pairs
-            or score > cutoff_score
+            or score < cutoff_score
         ):
             break
 
@@ -325,21 +358,13 @@ def _make_assignments(pair_parts, pair_bodies, assigner_scores, cutoff_score=0.5
 
 
 def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
-    species_with_part = ibs.get_annot_species(aid_list[0])
-    species = species_with_part.split('+')[0]
+    species = _get_assigner_species_for_aids(ibs, aid_list, fallback_species)
     if species in INMEM_ASSIGNER_MODELS.keys():
         clf = INMEM_ASSIGNER_MODELS[species]
     else:
-        if species not in SPECIES_CONFIG_MAP.keys():
-            print(
-                'WARNING: Assigner called for species %s which does not have an assigner modelfile specified. Falling back to the model for %s'
-                % species,
-                fallback_species,
-            )
-            species = fallback_species
-
-        model_url = SPECIES_CONFIG_MAP[species]['model_url']
-        model_fpath = ut.grab_file_url(model_url)
+        # model_url = SPECIES_CONFIG_MAP[species]['model_url']
+        # model_fpath = ut.grab_file_url(model_url)
+        model_fpath = SPECIES_CONFIG_MAP[species]['model_file']
         from joblib import load
 
         clf = load(model_fpath)
@@ -347,27 +372,87 @@ def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
     return clf
 
 
+def get_annot_species_without_parts(ibs, aid_list):
+    species = ibs.get_annot_species(aid_list)
+    species = [specie.split('+')[0] for specie in species]
+    return species
+
+
+def _get_assigner_species_for_aids(ibs, aid_list, fallback_species='wild_dog'):
+    species = get_annot_species_without_parts(ibs, aid_list)
+    supported_species = [specie for specie in species
+                         if specie in SPECIES_CONFIG_MAP.keys()]
+    species_counts = {spec: supported_species.count(spec)
+                      for spec in set(supported_species)}
+    max_count = max(species_counts.values())
+    candidate_species = [spec for spec, count in species_counts.items()
+                         if count == max_count]
+    if (len(candidate_species) == 0):
+        print(
+            'WARNING: Assigner called for species %s which do not have an assigner modelfile specified. Falling back to the model for %s'
+            % (set(species), fallback_species)
+        )
+        best_species = fallback_species
+    else:
+        best_species = candidate_species[0]
+    return best_species
+
+
+def assigner_feat_for_aids(ibs, aid_list, default_species_conf='wild_dog'):
+    r"""
+    looks up which assigner-feature depc column to use for assigning aid_list
+
+    Args:
+        ibs (IBEISController): IBEIS / WBIA controller object
+        aid_list (int): aids in question
+        default_species_conf: if an unconfigured species is passed in, uses this
+            species's config
+
+    Returns:
+        the depc column name for the assigner features specified in
+        SPECIES_CONFIG_MAP and defined in core_annots.py
+
+    CommandLine:
+        python -m wbia.algo.detect.assigner assigner_feat_for_aids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> from wbia.algo.detect.assigner import *
+        >>> from wbia.algo.detect.train_assigner import *
+        >>> ibs = assigner_testdb_ibs()
+        >>> aids = ibs.get_valid_aids()
+        >>> result = assigner_feat_for_aids(aids)
+        >>> 'assigner_viewpoint_features'
+    """
+    species = _get_assigner_species_for_aids(ibs, aid_list, default_species_conf)
+    feature_col = SPECIES_CONFIG_MAP[species]['annot_feature_col']
+    return feature_col
+
+
 def illustrate_all_assignments(
     ibs,
     gid_to_assigner_results,
     gid_to_ground_truth,
-    target_dir='/tmp/assigner-illustrations-2/',
+    target_dir='/tmp/assigner-illustrations/',
     limit=20,
+    only_false=False
 ):
 
     correct_dir = os.path.join(target_dir, 'correct/')
     incorrect_dir = os.path.join(target_dir, 'incorrect/')
 
-    for gid, assigned_aid_dict in gid_to_assigner_results.items()[:limit]:
+    for gid, assigned_aid_dict in list(gid_to_assigner_results.items())[:limit]:
         ground_t_dict = gid_to_ground_truth[gid]
         assigned_correctly = sorted(assigned_aid_dict['pairs']) == sorted(
             ground_t_dict['pairs']
         )
-        if assigned_correctly:
+        if assigned_correctly and not only_false:
             illustrate_assignments(
                 ibs, gid, assigned_aid_dict, None, correct_dir
             )  # don't need to illustrate gtruth if it's identical to assignment
-        else:
+        elif not assigned_correctly:
+            # ut.embed()
             illustrate_assignments(
                 ibs, gid, assigned_aid_dict, ground_t_dict, incorrect_dir
             )
@@ -386,12 +471,16 @@ def illustrate_assignments(
     impath = ibs.get_image_paths(gid)
     imext = os.path.splitext(impath)[1]
     new_fname = os.path.join(target_dir, '%s%s' % (gid, imext))
+
     os.makedirs(target_dir, exist_ok=True)
     copy(impath, new_fname)
 
     with Image.open(new_fname) as image:
         _draw_all_annots(ibs, image, assigned_aid_dict, gtruth_aid_dict)
-        image.save(new_fname)
+        try:
+            image.save(new_fname)
+        except:
+            print("WARNING: could not save assigner illustration for original image " + impath + " , Skipping.")
 
 
 def _draw_all_annots(ibs, image, assigned_aid_dict, gtruth_aid_dict):
