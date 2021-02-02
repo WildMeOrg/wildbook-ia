@@ -459,6 +459,7 @@ def run_pgloader(sqlite_uri: str, postgres_uri: str) -> subprocess.CompletedProc
             stderr=subprocess.STDOUT,
         )
         proc.check_returncode()  # raises subprocess.CalledProcessError
+        logger.debug(proc.stdout.decode())
         return proc
 
 
