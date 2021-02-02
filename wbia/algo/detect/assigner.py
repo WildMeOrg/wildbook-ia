@@ -362,9 +362,9 @@ def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
     if species in INMEM_ASSIGNER_MODELS.keys():
         clf = INMEM_ASSIGNER_MODELS[species]
     else:
-        # model_url = SPECIES_CONFIG_MAP[species]['model_url']
-        # model_fpath = ut.grab_file_url(model_url)
-        model_fpath = SPECIES_CONFIG_MAP[species]['model_file']
+        model_url = SPECIES_CONFIG_MAP[species]['model_url']
+        model_fpath = ut.grab_file_url(model_url)
+        # model_fpath = SPECIES_CONFIG_MAP[species]['model_file']
         from joblib import load
 
         clf = load(model_fpath)
