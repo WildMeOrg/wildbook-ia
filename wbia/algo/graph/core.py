@@ -1282,9 +1282,9 @@ class AnnotInference(
             },
             'zebra_mountain': {
                 'match_state': {
-                    POSTV: 0.7732,  # GGR2 - 0.7732, Kaia CA - 0.7312
-                    NEGTV: 0.8605,  # GGR2 - 0.8605, Kaia CA - 0.8892
-                    INCMP: np.inf,
+                    POSTV: 0.7767,
+                    NEGTV: 0.8640,
+                    INCMP: 0.8375,
                 },
                 'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
