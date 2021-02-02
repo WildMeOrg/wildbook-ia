@@ -1280,6 +1280,14 @@ class AnnotInference(
                 },
                 'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
+            'zebra_mountain': {
+                'match_state': {
+                    POSTV: 0.7732,  # GGR2 - 0.7732, Kaia CA - 0.7312
+                    NEGTV: 0.8605,  # GGR2 - 0.8605, Kaia CA - 0.8892
+                    INCMP: np.inf,
+                },
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
+            },
             'zebra_plains': {
                 'match_state': {POSTV: np.inf, NEGTV: np.inf, INCMP: np.inf},
                 'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
