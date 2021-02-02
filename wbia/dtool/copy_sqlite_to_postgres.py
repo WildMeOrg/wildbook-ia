@@ -22,6 +22,7 @@ from wbia.dtool.sql_control import create_engine
 logger = logging.getLogger('wbia')
 
 
+SQLITE_URI_PREFIX = 'sqlite:///'
 MAIN_DB_FILENAME = '_ibeis_database.sqlite3'
 STAGING_DB_FILENAME = '_ibeis_staging.sqlite3'
 CACHE_DIRECTORY_NAME = '_ibeis_cache'
@@ -34,25 +35,39 @@ class AlreadyMigratedError(Exception):
     """Raised when the database has already been migrated"""
 
 
+def _modified_date(f: Path):
+    """Get the modified date of the file"""
+    return str(f.stat().st_mtime)
+
+
 class SqliteDatabaseInfo:
     def __init__(self, db_dir_or_db_uri):
         self.engines = {}
         self.metadata = {}
         self.db_dir = None
-        if str(db_dir_or_db_uri).startswith('sqlite:///'):
+        # This is used to compare the last recorded migration
+        # from the sqlite database file (i.e. the modified date)
+        # to the record in postgres.
+        self.database_modified_dates = {}
+
+        if str(db_dir_or_db_uri).startswith(SQLITE_URI_PREFIX):
             self.db_uri = db_dir_or_db_uri
             schema = get_schema_name_from_uri(self.db_uri)
             engine = sqlalchemy.create_engine(self.db_uri)
             self.engines[schema] = engine
             self.metadata[schema] = sqlalchemy.MetaData(bind=engine)
+            self.database_modified_dates[schema] = _modified_date(
+                Path(self.db_uri[len(SQLITE_URI_PREFIX) :])
+            )
         else:
             self.db_dir = Path(db_dir_or_db_uri)
             for db_path, _ in get_sqlite_db_paths(self.db_dir):
-                db_uri = f'sqlite:///{db_path}'
+                db_uri = f'{SQLITE_URI_PREFIX}{db_path}'
                 schema = get_schema_name_from_uri(db_uri)
                 engine = sqlalchemy.create_engine(db_uri)
                 self.engines[schema] = engine
                 self.metadata[schema] = sqlalchemy.MetaData(bind=engine)
+                self.database_modified_dates[schema] = _modified_date(db_path)
 
     def __str__(self):
         if self.db_dir:
@@ -112,6 +127,16 @@ class SqliteDatabaseInfo:
         stmt = sqlalchemy.select(columns=[column], from_obj=table).order_by(column)
         return self.engines[schema].execute(stmt)
 
+    def has_matching_migration(self, pg_info: 'PostgresDatabaseInfo', schema: str):
+        """Check if the this database has been migrated and that the data matches"""
+        migrations = pg_info.sqlite_migrations
+        if schema in migrations and (
+            migrations[schema] == self.database_modified_dates[schema]
+        ):
+            return True
+        else:
+            return False
+
 
 class PostgresDatabaseInfo:
     def __init__(self, db_uri):
@@ -121,6 +146,9 @@ class PostgresDatabaseInfo:
         # Load the metadata
         for schema in self.get_schema():
             self.metadata.reflect(schema=schema)
+        self.metadata.reflect()
+        # create sqlite to postgres migration table
+        self.__sqlite_to_postgres_migration_table
 
     def __str__(self):
         return f'<PostgresDatabaseInfo db_uri={self.db_uri}>'
@@ -185,6 +213,53 @@ class PostgresDatabaseInfo:
         column = table.c[column_name]
         stmt = sqlalchemy.select(column).order_by(column)
         return self.engine.execute(stmt)
+
+    @property
+    def __sqlite_to_postgres_migration_table(self):
+        """schema name to sqlite database file modified date mapping in SQL"""
+        table_name = 'sqlite_to_postgres_migration'
+        if table_name not in self.metadata.tables:
+            table = sqlalchemy.schema.Table(
+                table_name,
+                self.metadata,
+                sqlalchemy.Column('name', sqlalchemy.Text, primary_key=True),
+                sqlalchemy.Column('modified_date', sqlalchemy.Text),
+            )
+            try:
+                table.create(checkfirst=True)
+            except (sqlalchemy.exc.IntegrityError, sqlalchemy.exc.ProgrammingError):
+                # table created between check and creation
+                table = self.metadata.tables[table_name]
+        else:
+            table = self.metadata.tables[table_name]
+        return table
+
+    @property
+    def sqlite_migrations(self) -> dict:
+        """schema name to a sqlite database file modified_date mapping"""
+        # This is used to compare the last recorded migration
+        # from the sqlite database file (i.e. the modified date)
+        # to the record in postgres.
+
+        # Query the table for values
+        query = sqlalchemy.select(self.__sqlite_to_postgres_migration_table)
+        result = self.engine.execute(query)
+        return {r.name: r.modified_date for r in result.fetchall()}
+
+    def stamp_migration(self, name: str, modified_date: str):
+        """Stamp the database as having migrated ``name``
+        with sqlite database file ``modified_date``
+
+        """
+        t = self.__sqlite_to_postgres_migration_table
+        from sqlalchemy.dialects.postgresql import insert
+
+        stmt = insert(t).values(name=name, modified_date=modified_date)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=['name'],
+            set_=dict(modified_date=stmt.excluded.modified_date),
+        )
+        self.engine.execute(stmt)
 
 
 def rows_equal(row1, row2):
@@ -578,7 +653,7 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     run_pgloader(sqlite_uri, postgres_uri)
     after_pgloader(sl_engine, pg_engine, schema_name)
     # Record in postgres having migrated the sqlite database in its current state
-    pg_info.stamp_migration(schema_name, sl_info.database_checksums[schema_name])
+    pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
 
 
 def copy_sqlite_to_postgres(
