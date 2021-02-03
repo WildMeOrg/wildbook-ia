@@ -71,17 +71,6 @@ def main(db_dir, db_uri, verbose, num_procs):
     finally:
         engine.dispose()
 
-    # Check that the database hasn't already been migrated.
-    db_infos = [
-        SqliteDatabaseInfo(Path(db_dir)),
-        PostgresDatabaseInfo(db_uri),
-    ]
-    differences = compare_databases(*db_infos)
-
-    if not differences:
-        logger.info('Database already migrated')
-        sys.exit(0)
-
     # Migrate
     problems = {}
     with click.progressbar(length=100000, show_eta=True) as bar:
@@ -114,6 +103,10 @@ def main(db_dir, db_uri, verbose, num_procs):
             logger.info(exc.stdout.decode())
 
     # Verify the migration
+    db_infos = [
+        SqliteDatabaseInfo(Path(db_dir)),
+        PostgresDatabaseInfo(db_uri),
+    ]
     differences = compare_databases(*db_infos)
 
     if differences:
