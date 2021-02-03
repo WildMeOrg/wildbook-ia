@@ -35,7 +35,13 @@ logger = logging.getLogger('wbia')
     default=False,
     help='Show debug messages',
 )
-def main(db_dir, db_uri, verbose):
+@click.option(
+    '--num-procs',
+    type=int,
+    default=6,
+    help='number of migration processes to concurrently run',
+)
+def main(db_dir, db_uri, verbose, num_procs):
     """"""
     # Set up logging
     if verbose:
@@ -44,6 +50,7 @@ def main(db_dir, db_uri, verbose):
         logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
 
+    logger.info(f'running {num_procs} concurrent processes')
     logger.info(f'using {db_dir} ...')
 
     # Create the database if it doesn't exist
@@ -79,7 +86,9 @@ def main(db_dir, db_uri, verbose):
     problems = {}
     with click.progressbar(length=100000, show_eta=True) as bar:
         for path, completed_future, db_size, total_size in copy_sqlite_to_postgres(
-            Path(db_dir), db_uri
+            Path(db_dir),
+            db_uri,
+            num_procs=num_procs,
         ):
             try:
                 completed_future.result()
