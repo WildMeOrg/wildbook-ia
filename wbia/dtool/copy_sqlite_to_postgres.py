@@ -37,6 +37,53 @@ def _modified_date(f: Path):
     return str(f.stat().st_mtime)
 
 
+def get_sqlite_db_paths(db_dir: Path):
+    """Generates a sequence of sqlite database file paths and sizes.
+    The sequence is sorted by database size, smallest first.
+
+    """
+    base_loc = (db_dir / '_ibsdb').resolve()
+    main_db = base_loc / MAIN_DB_FILENAME
+    staging_db = base_loc / STAGING_DB_FILENAME
+    cache_directory = base_loc / CACHE_DIRECTORY_NAME
+    paths = []
+
+    # churn over the cache databases
+    for f in cache_directory.glob('*.sqlite'):
+        if 'backup' in f.name:
+            continue
+        p = f.resolve()
+        paths.append((p, p.stat().st_size))
+
+    if staging_db.exists():
+        # doesn't exist in test databases
+        paths.append((staging_db, staging_db.stat().st_size))
+    paths.append((main_db, main_db.stat().st_size))
+
+    # Sort databases by file size, smallest first
+    paths.sort(key=lambda a: a[1])
+    return paths
+
+
+def get_schema_name_from_uri(uri: str):
+    """Derives the schema name from a sqlite URI (e.g. sqlite:///foo/bar/baz.sqlite)"""
+    db_path = Path(uri[len('sqlite:///') :])
+    name = db_path.stem  # filename without extension
+
+    # special names
+    if name == '_ibeis_staging':
+        name = 'staging'
+    elif name == '_ibeis_database':
+        name = 'main'
+
+    return name
+
+
+# ##############################
+#   Information Structs
+# ##############################
+
+
 class SqliteDatabaseInfo:
     def __init__(self, db_dir_or_db_uri):
         self.engines = {}
@@ -259,6 +306,11 @@ class PostgresDatabaseInfo:
         self.engine.execute(stmt)
 
 
+# ##############################
+#   Comparison
+# ##############################
+
+
 def rows_equal(row1, row2):
     """Check the rows' values for equality"""
     for e1, e2 in zip(row1, row2):
@@ -385,46 +437,9 @@ def compare_databases(
     return messages
 
 
-def get_sqlite_db_paths(db_dir: Path):
-    """Generates a sequence of sqlite database file paths and sizes.
-    The sequence is sorted by database size, smallest first.
-
-    """
-    base_loc = (db_dir / '_ibsdb').resolve()
-    main_db = base_loc / MAIN_DB_FILENAME
-    staging_db = base_loc / STAGING_DB_FILENAME
-    cache_directory = base_loc / CACHE_DIRECTORY_NAME
-    paths = []
-
-    # churn over the cache databases
-    for f in cache_directory.glob('*.sqlite'):
-        if 'backup' in f.name:
-            continue
-        p = f.resolve()
-        paths.append((p, p.stat().st_size))
-
-    if staging_db.exists():
-        # doesn't exist in test databases
-        paths.append((staging_db, staging_db.stat().st_size))
-    paths.append((main_db, main_db.stat().st_size))
-
-    # Sort databases by file size, smallest first
-    paths.sort(key=lambda a: a[1])
-    return paths
-
-
-def get_schema_name_from_uri(uri: str):
-    """Derives the schema name from a sqlite URI (e.g. sqlite:///foo/bar/baz.sqlite)"""
-    db_path = Path(uri[len('sqlite:///') :])
-    name = db_path.stem  # filename without extension
-
-    # special names
-    if name == '_ibeis_staging':
-        name = 'staging'
-    elif name == '_ibeis_database':
-        name = 'main'
-
-    return name
+# ##############################
+#   SQLite to Postgres Migration/Copy
+# ##############################
 
 
 def add_rowids(engine):
