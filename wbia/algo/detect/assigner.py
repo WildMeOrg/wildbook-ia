@@ -5,7 +5,6 @@ import logging
 from wbia import constants as const
 from wbia.control.controller_inject import make_ibs_register_decorator
 import utool as ut
-import numpy as np
 import os
 from collections import defaultdict
 
@@ -283,21 +282,23 @@ def assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
     # parallel lists representing all possible part/body pairs
     all_pairs_parallel = _all_pairs_parallel(part_aids, body_aids)
     pair_parts, pair_bodies = all_pairs_parallel
+    n_assigner_pairs = len(pair_parts)  # pair_bodies is the same length
 
-    assigner_features = ibs.depc_annot.get(feature_defn, all_pairs_parallel)
-    # make sure assigner_features is 2d:
-    dim_features = len(np.array(assigner_features).shape)
-    if (dim_features == 1):
-        assigner_features = [assigner_features]
+    if n_assigner_pairs > 0:
+        assigner_features = ibs.depc_annot.get(feature_defn, all_pairs_parallel)
+        assigner_classifier = load_assigner_classifier(ibs, part_aids)
+        assigner_scores = assigner_classifier.predict_proba(assigner_features)
+        #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
+        assigner_scores = [score[1] for score in assigner_scores]
+        good_pairs, unassigned_aids = _make_assignments(
+            ibs, pair_parts, pair_bodies, assigner_scores, cutoff_score
+        )
+    else:
+        print("Assigner called for aids %s, which have no valid part-body annot pairs. Returning all aids unassigned."
+              % aid_list)
+        good_pairs = []
+        unassigned_aids = aid_list
 
-    assigner_classifier = load_assigner_classifier(ibs, part_aids)
-
-    assigner_scores = assigner_classifier.predict_proba(assigner_features)
-    #  assigner_scores is a list of [P_false, P_true] probabilities which sum to 1, so here we just pare down to the true probabilities
-    assigner_scores = [score[1] for score in assigner_scores]
-    good_pairs, unassigned_aids = _make_assignments(
-        ibs, pair_parts, pair_bodies, assigner_scores, cutoff_score
-    )
     return good_pairs, unassigned_aids
 
 
