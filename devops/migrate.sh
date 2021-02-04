@@ -93,6 +93,7 @@ services:
     image: wildme/wbia:develop
     depends_on:
       - \"db\"
+    shm_size: '1g'
     command: [\"sleep\", \"infinity\"]
     volumes:
       - ${DB_PATH}:${DB_DIR}
@@ -139,7 +140,7 @@ docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
 
 # sudo watch -n 30 "du -sh ${DB_POSTGRES}"
 
-docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia shell -c \
+docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
   '/virtualenv/env3/bin/wbia-compare-databases -v --db-dir ${DB_DIR} --pg-uri ${DB_URI} --check-pc 1 --check-max -1'
 
 docker-compose -f ${COMPOSE_MIGRATE_YAML} down
