@@ -532,9 +532,9 @@ LOAD DATABASE
 
   WITH create tables,
        create indexes,
-       reset no sequences
+       reset no sequences,
        workers = 8, concurrency = 1,
-       batch rows = 1000,
+       batch rows = 1000
 
     SET work_mem to '4MB',
         maintenance_work_mem to '64MB',
