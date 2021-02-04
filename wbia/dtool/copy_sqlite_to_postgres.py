@@ -572,10 +572,6 @@ TRANSFORMS_LISP = """\
 
 (defun wbia-integer-to-string (integer-string)
   (declare (type (or null string fixnum float) integer-string))
-  (with-open-file (stream "/tmp/a.txt" :direction :output
-                          :if-exists :append
-                          :if-does-not-exist :create)
-    (format stream "wbia-integer-to-string ~a~%" integer-string))
   (when integer-string
     (princ-to-string
      (typecase integer-string
