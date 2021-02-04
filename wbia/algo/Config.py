@@ -883,7 +883,7 @@ class OccurrenceConfig(ConfigBase):
                 hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative',
             ),
             ut.ParamInfo('use_gps', True, hideif=False),
-            ut.ParamInfo('km_per_sec', 0.001),
+            ut.ParamInfo('km_per_sec', 0.002),
         ]
         return param_info_list
 

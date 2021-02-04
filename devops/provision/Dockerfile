@@ -201,8 +201,9 @@ RUN set -ex \
         'tensorflow-gpu==1.15.4' \
         'keras==2.2.5' \
         'h5py<3.0.0' \
- && /virtualenv/env3/bin/pip install \
-        'jedi==0.17.2'
+        'jedi==0.17.2' \
+ && /virtualenv/env3/bin/pip install --upgrade \
+        numpy
 
 RUN set -ex \
  && /virtualenv/env3/bin/pip freeze | grep wbia \
