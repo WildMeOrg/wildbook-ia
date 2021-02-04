@@ -652,12 +652,6 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     sl_engine = create_engine(sqlite_uri)
     pg_engine = create_engine(postgres_uri)
 
-    if not compare_databases(sl_info, pg_info, exact=False):
-        logger.info(f'{sl_info} already migrated to {pg_info} [comparison]')
-        # Record in postgres having migrated the sqlite database in its current state
-        pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
-        return
-
     # Add sqlite built-in rowid column to tables
     logger.debug(f'({schema_name}) adding rowids to database')
     add_rowids(sl_engine)
