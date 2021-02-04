@@ -100,7 +100,3 @@ RUN set -ex \
  && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/env3/lib -I /virtualenv/env3/include \
  && /virtualenv/env3/bin/pip install -e . \
  && rm -rf /wbia/libgpuarray/build
-
-# Fix install pygraphviz (for developer use)
-RUN set -ex \
- && /virtualenv/env3/bin/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
