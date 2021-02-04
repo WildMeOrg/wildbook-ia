@@ -88,6 +88,37 @@ def get_schema_name_from_uri(uri: str):
     return name
 
 
+class Timer:
+    class TimerError(Exception):
+        """A custom exception used to report errors in use of Timer class"""
+
+    def __init__(self):
+        self._start_time = None
+        self._elapsed_time = None
+
+    def start(self):
+        """Start a new timer"""
+        import time
+
+        if self._start_time is not None:
+            raise self.TimerError('Timer is running. Use .stop() to stop it')
+
+        self._start_time = time.perf_counter()
+
+    def stop(self):
+        """Stop the timer, and report the elapsed time"""
+        import time
+
+        if self._start_time is None:
+            raise self.TimerError('Timer is not running. Use .start() to start it')
+
+        self._elapsed_time = time.perf_counter() - self._start_time
+        self._start_time = None
+
+    def report(self):
+        return f'Elapsed time: {self._elapsed_time:0.4f} seconds'
+
+
 # ##############################
 #   Information Structs
 # ##############################
@@ -651,19 +682,32 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     pg_info = PostgresDatabaseInfo(postgres_uri)
     sl_engine = create_engine(sqlite_uri)
     pg_engine = create_engine(postgres_uri)
+    timer = Timer()
 
     # Add sqlite built-in rowid column to tables
     logger.debug(f'({schema_name}) adding rowids to database')
+    timer.start()
     add_rowids(sl_engine)
+    timer.stop()
+    logger.debug(f'({schema_name}) added rowids to database ... {timer.report()}')
 
     logger.debug(f'({schema_name}) running pre-pgloader operations')
+    timer.start()
     before_pgloader(pg_engine, schema_name)
+    timer.stop()
+    logger.debug(f'({schema_name}) ran pre-pgloader operations ... {timer.report()}')
 
     logger.debug(f'({schema_name}) running pgloader ...')
+    timer.start()
     run_pgloader(sqlite_uri, postgres_uri)
+    timer.stop()
+    logger.debug(f'({schema_name}) ran pgloader ... {timer.report()}')
 
     logger.debug(f'({schema_name}) running post-pgloader operations')
+    timer.start()
     after_pgloader(sl_engine, pg_engine, schema_name)
+    timer.stop()
+    logger.debug(f'({schema_name}) ran post-pgloader operations ... {timer.report()}')
 
     # Record in postgres having migrated the sqlite database in its current state
     logger.debug(f'({schema_name}) recorded the migration')
