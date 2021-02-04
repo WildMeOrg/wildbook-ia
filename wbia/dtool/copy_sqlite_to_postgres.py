@@ -617,7 +617,7 @@ def _use_copy_of_sqlite_database(f):
         db = Path(uri.split(':')[-1]).resolve()
         with tempfile.TemporaryDirectory() as tempdir:
             temp_db = Path(tempdir) / db.name
-            shutil.copy(db, temp_db)
+            shutil.copy2(db, temp_db)
             new_uri = f'sqlite:///{str(temp_db)}'
             return f(new_uri, *args[1:])
 
@@ -635,11 +635,11 @@ def migrate(sqlite_uri: str, postgres_uri: str):
 
     # Check for prior migration
     if sl_info.has_matching_migration(pg_info, schema_name):
-        logger.info(f'{sl_info} already migrated to {pg_info}')
+        logger.info(f'{sl_info} already migrated to {pg_info} [matched modify time]')
         return
 
     if not compare_databases(sl_info, pg_info, exact=False):
-        logger.info(f'{sl_info} already migrated to {pg_info}')
+        logger.info(f'{sl_info} already migrated to {pg_info} [comparison]')
         # Record in postgres having migrated the sqlite database in its current state
         pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
         return
