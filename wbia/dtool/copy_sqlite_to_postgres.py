@@ -11,7 +11,7 @@ import tempfile
 import traceback
 import typing
 from concurrent.futures import as_completed, ProcessPoolExecutor
-from functools import wraps
+from functools import partial, wraps
 from pathlib import Path
 
 import numpy as np
@@ -180,16 +180,6 @@ class SqliteDatabaseInfo:
         stmt = sqlalchemy.select(columns=[column], from_obj=table).order_by(column)
         return self.engines[schema].execute(stmt)
 
-    def has_matching_migration(self, pg_info: 'PostgresDatabaseInfo', schema: str):
-        """Check if the this database has been migrated and that the data matches"""
-        migrations = pg_info.sqlite_migrations
-        if schema in migrations and (
-            migrations[schema] == self.database_modified_dates[schema]
-        ):
-            return True
-        else:
-            return False
-
 
 class PostgresDatabaseInfo:
     def __init__(self, db_uri):
@@ -287,17 +277,20 @@ class PostgresDatabaseInfo:
             table = self.metadata.tables[table_name]
         return table
 
-    @property
-    def sqlite_migrations(self) -> dict:
+    def get_sqlite_db_modified_date(self, name: str) -> str:
         """schema name to a sqlite database file modified_date mapping"""
         # This is used to compare the last recorded migration
         # from the sqlite database file (i.e. the modified date)
         # to the record in postgres.
 
         # Query the table for values
-        query = sqlalchemy.select(self.__sqlite_to_postgres_migration_table)
-        result = self.engine.execute(query)
-        return {r.name: r.modified_date for r in result.fetchall()}
+        t = self.__sqlite_to_postgres_migration_table
+        query = sqlalchemy.select(t.c.modified_date).where(t.c.name == name)
+        try:
+            mod_date = self.engine.execute(query).fetchone()[0]
+        except TypeError:  # NoneType
+            mod_date = None
+        return mod_date
 
     def stamp_migration(self, name: str, modified_date: str):
         """Stamp the database as having migrated ``name``
@@ -658,11 +651,6 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     sl_engine = create_engine(sqlite_uri)
     pg_engine = create_engine(postgres_uri)
 
-    # Check for prior migration
-    if sl_info.has_matching_migration(pg_info, schema_name):
-        logger.info(f'{sl_info} already migrated to {pg_info} [matched modify time]')
-        return
-
     if not compare_databases(sl_info, pg_info, exact=False):
         logger.info(f'{sl_info} already migrated to {pg_info} [comparison]')
         # Record in postgres having migrated the sqlite database in its current state
@@ -676,6 +664,18 @@ def migrate(sqlite_uri: str, postgres_uri: str):
     after_pgloader(sl_engine, pg_engine, schema_name)
     # Record in postgres having migrated the sqlite database in its current state
     pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
+
+
+def _by_modification_date(path: Path, pg_info: PostgresDatabaseInfo) -> bool:
+    """Filter out the SQLite database files that have unchanged or not-yet-migrated paths"""
+    name = get_schema_name_from_uri(_sqlite_path_to_uri(path))
+    current_mod_date = _modified_date(path)
+    recorded_mod_date = pg_info.get_sqlite_db_modified_date(name)
+    if current_mod_date != recorded_mod_date:
+        return True
+    else:
+        logger.info(f'Skipping already migrated SQLite database at {str(path)}')
+        return False
 
 
 def copy_sqlite_to_postgres(
@@ -692,7 +692,12 @@ def copy_sqlite_to_postgres(
 
     """
     executor = ProcessPoolExecutor(max_workers=num_procs)
-    sqlite_dbs = dict(get_sqlite_db_paths(db_dir))
+    mod_date_filter = partial(
+        _by_modification_date, pg_info=PostgresDatabaseInfo(postgres_uri)
+    )
+    sqlite_dbs = dict(
+        filter(lambda x: mod_date_filter(x[0]), dict(get_sqlite_db_paths(db_dir)).items())
+    )
     total_size = sum(sqlite_dbs.values())
 
     if num_procs <= 1:
