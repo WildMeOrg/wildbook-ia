@@ -23,7 +23,6 @@ from wbia.dtool.sql_control import create_engine
 logger = logging.getLogger('wbia')
 
 
-SQLITE_URI_PREFIX = 'sqlite:///'
 MAIN_DB_FILENAME = '_ibeis_database.sqlite3'
 STAGING_DB_FILENAME = '_ibeis_staging.sqlite3'
 CACHE_DIRECTORY_NAME = '_ibeis_cache'
@@ -32,9 +31,19 @@ DEFAULT_CHECK_MAX = 100
 DEFAULT_CHECK_MIN = 10
 
 
-def _modified_date(f: Path):
+def _modified_date(f: Path) -> str:
     """Get the modified date of the file"""
     return str(f.stat().st_mtime)
+
+
+def _sqlite_uri_to_path(uri: str) -> Path:
+    """Convert a SQLite URI to a pathlib.Path"""
+    return Path(uri.split(':')[-1]).resolve()
+
+
+def _sqlite_path_to_uri(path: Path) -> str:
+    """Convert a pathlib.Path to a SQLite database to a URI"""
+    return f'sqlite:///{str(path)}'
 
 
 def get_sqlite_db_paths(db_dir: Path):
@@ -67,7 +76,7 @@ def get_sqlite_db_paths(db_dir: Path):
 
 def get_schema_name_from_uri(uri: str):
     """Derives the schema name from a sqlite URI (e.g. sqlite:///foo/bar/baz.sqlite)"""
-    db_path = Path(uri[len('sqlite:///') :])
+    db_path = _sqlite_uri_to_path(uri)
     name = db_path.stem  # filename without extension
 
     # special names
@@ -94,19 +103,19 @@ class SqliteDatabaseInfo:
         # to the record in postgres.
         self.database_modified_dates = {}
 
-        if str(db_dir_or_db_uri).startswith(SQLITE_URI_PREFIX):
+        if str(db_dir_or_db_uri).startswith('sqlite://'):
             self.db_uri = db_dir_or_db_uri
             schema = get_schema_name_from_uri(self.db_uri)
             engine = sqlalchemy.create_engine(self.db_uri)
             self.engines[schema] = engine
             self.metadata[schema] = sqlalchemy.MetaData(bind=engine)
             self.database_modified_dates[schema] = _modified_date(
-                Path(self.db_uri[len(SQLITE_URI_PREFIX) :])
+                _sqlite_uri_to_path(self.db_uri)
             )
         else:
             self.db_dir = Path(db_dir_or_db_uri)
             for db_path, _ in get_sqlite_db_paths(self.db_dir):
-                db_uri = f'{SQLITE_URI_PREFIX}{db_path}'
+                db_uri = _sqlite_path_to_uri(db_path)
                 schema = get_schema_name_from_uri(db_uri)
                 engine = sqlalchemy.create_engine(db_uri)
                 self.engines[schema] = engine
@@ -630,11 +639,11 @@ def _use_copy_of_sqlite_database(f):
     @wraps(f)
     def wrapper(*args):
         uri = args[0]
-        db = Path(uri.split(':')[-1]).resolve()
+        db = _sqlite_uri_to_path(uri)
         with tempfile.TemporaryDirectory() as tempdir:
             temp_db = Path(tempdir) / db.name
             shutil.copy2(db, temp_db)
-            new_uri = f'sqlite:///{str(temp_db)}'
+            new_uri = _sqlite_path_to_uri(temp_db)
             return f(new_uri, *args[1:])
 
     return wrapper
@@ -690,7 +699,7 @@ def copy_sqlite_to_postgres(
         # serial migration
         for path in sqlite_dbs:
             try:
-                migrate(f'sqlite://{str(path)}', postgres_uri)
+                migrate(_sqlite_path_to_uri(path), postgres_uri)
             except Exception as e:
                 exc = e
                 traceback.print_exc()
@@ -700,7 +709,7 @@ def copy_sqlite_to_postgres(
             yield (path, exc, db_size, total_size)
     else:
         migration_futures_to_paths = {
-            executor.submit(migrate, f'sqlite://{str(p)}', postgres_uri): p
+            executor.submit(migrate, _sqlite_path_to_uri(p), postgres_uri): p
             for p in sqlite_dbs
         }
         for future in as_completed(migration_futures_to_paths):
