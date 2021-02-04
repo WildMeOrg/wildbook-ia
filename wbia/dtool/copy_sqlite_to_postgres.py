@@ -617,8 +617,22 @@ def run_pgloader(sqlite_uri: str, postgres_uri: str) -> subprocess.CompletedProc
         with wbia_transforms.open('w') as fb:
             fb.write(TRANSFORMS_LISP)
 
+        try:
+            from subprocess import DEVNULL  # Python 3
+        except ImportError:
+            import os
+
+            DEVNULL = open(os.devnull, 'r+b', 0)
+
         proc = subprocess.run(
-            ['pgloader', '--load-lisp-file', str(wbia_transforms), str(pgloader_config)],
+            [
+                'pgloader',
+                '--verbose',
+                '--load-lisp-file',
+                str(wbia_transforms),
+                str(pgloader_config),
+            ],
+            stdin=DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
