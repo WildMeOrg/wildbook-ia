@@ -8,8 +8,9 @@ import re
 import shutil
 import subprocess
 import tempfile
+import traceback
 import typing
-from concurrent.futures import as_completed, Future, ProcessPoolExecutor
+from concurrent.futures import as_completed, ProcessPoolExecutor
 from functools import wraps
 from pathlib import Path
 
@@ -657,7 +658,7 @@ def copy_sqlite_to_postgres(
     db_dir: Path,
     postgres_uri: str,
     num_procs: int = 6,
-) -> typing.Generator[typing.Tuple[Path, Future, int, int], None, None]:
+) -> typing.Generator[typing.Tuple[Path, Exception, int, int], None, None]:
     """Copies all the sqlite databases into a single postgres database
 
     Args:
@@ -669,11 +670,25 @@ def copy_sqlite_to_postgres(
     executor = ProcessPoolExecutor(max_workers=num_procs)
     sqlite_dbs = dict(get_sqlite_db_paths(db_dir))
     total_size = sum(sqlite_dbs.values())
-    migration_futures_to_paths = {
-        executor.submit(migrate, f'sqlite://{str(p)}', postgres_uri): p
-        for p in sqlite_dbs
-    }
-    for future in as_completed(migration_futures_to_paths):
-        path = migration_futures_to_paths[future]
-        db_size = sqlite_dbs[path]
-        yield (path, future, db_size, total_size)
+
+    if num_procs <= 1:
+        # serial migration
+        for path in sqlite_dbs:
+            try:
+                migrate(f'sqlite://{str(path)}', postgres_uri)
+            except Exception as e:
+                exc = e
+                traceback.print_exc()
+            else:
+                exc = None
+            db_size = sqlite_dbs[path]
+            yield (path, exc, db_size, total_size)
+    else:
+        migration_futures_to_paths = {
+            executor.submit(migrate, f'sqlite://{str(p)}', postgres_uri): p
+            for p in sqlite_dbs
+        }
+        for future in as_completed(migration_futures_to_paths):
+            path = migration_futures_to_paths[future]
+            db_size = sqlite_dbs[path]
+            yield (path, future.exception(), db_size, total_size)

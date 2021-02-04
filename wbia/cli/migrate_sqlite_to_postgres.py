@@ -74,20 +74,17 @@ def main(db_dir, db_uri, verbose, num_procs):
     # Migrate
     problems = {}
     with click.progressbar(length=100000, show_eta=True) as bar:
-        for path, completed_future, db_size, total_size in copy_sqlite_to_postgres(
+        for path, exc, db_size, total_size in copy_sqlite_to_postgres(
             Path(db_dir),
             db_uri,
             num_procs=num_procs,
         ):
-            try:
-                completed_future.result()
-            except Exception as exc:
-                logger.info(f'\nfailed while processing {str(path)}\n{exc.__cause__}')
+            if exc is not None:
+                logger.info(f'\nfailed while processing {str(path)}\n{exc}')
                 problems[path] = exc
             else:
                 logger.info(f'\nfinished processing {str(path)}')
-            finally:
-                bar.update(int(db_size / total_size * bar.length))
+            bar.update(int(db_size / total_size * bar.length))
 
     # Report problems
     for path, exc in problems.items():
