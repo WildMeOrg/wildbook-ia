@@ -533,9 +533,11 @@ LOAD DATABASE
   WITH create tables,
        create indexes,
        reset no sequences
+       workers = 8, concurrency = 1,
+       batch rows = 1000,
 
-    SET work_mem to '16MB',
-        maintenance_work_mem to '512 MB',
+    SET work_mem to '4MB',
+        maintenance_work_mem to '64MB',
         search_path to '{schema_name}'
 
   CAST type uuid to uuid using wbia-uuid-bytes-to-uuid,

@@ -171,10 +171,12 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # Ensure no previous or deprecated repositories are installed
 # Ensure that opencv-python is un-installed since we want to use our built version
 # Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)
+# When opencv-python is installed and subsequently un-installed is clobbers our version
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
         opencv-python \
         opencv-python-headless \
+ && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
  && /virtualenv/env3/bin/pip uninstall -y \
         dtool-ibeis \
         guitool-ibeis \
@@ -208,12 +210,5 @@ RUN set -ex \
 RUN set -ex \
  && /virtualenv/env3/bin/pip freeze | grep wbia \
  && /virtualenv/env3/bin/pip freeze | grep wildbook
-
-# Restore copy of our build OpenCV
-# When opencv-python is installed and subsequently un-installed is clobbers our version
-RUN set -ex \
- && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
- && mv /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \
- && rm -rf /tmp/cv2
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]

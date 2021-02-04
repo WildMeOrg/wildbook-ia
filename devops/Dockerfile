@@ -25,23 +25,6 @@ RUN set -ex \
  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
  && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
-# Run smoke tests
-RUN set -ex \
- && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
- && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
- && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()" \
- && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_flukematch;  from wbia_flukematch.plugin   import *" \
- && /virtualenv/env3/bin/python -c "import wbia_curvrank;    from wbia_curvrank._plugin    import *" \
- && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
- && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
- && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
- && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
- && find /wbia/wbia* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wbia* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
-
 ##########################################################################################
 
 FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.install
@@ -80,6 +63,9 @@ COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
 
+# Restore copy of our build OpenCV
+COPY --from=org.wildme.wbia.build /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2
+
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 
@@ -95,13 +81,30 @@ ADD ./_config/shell.sh /bin/shell
 # Add entrypoint
 ADD ./_config/entrypoint.sh /bin/entrypoint
 
+# Add Python health check
+ADD ./_config/healthcheck.py /bin/healthcheck.py
+
+# Run smoke tests
+RUN set -ex \
+ && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
+ && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_flukematch;  from wbia_flukematch.plugin   import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_curvrank;    from wbia_curvrank._plugin    import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
+ && find /wbia/wbia* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wbia* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
+
 # Specify database directory
 RUN set -x \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
-
-# Add Python health check
-ADD ./_config/healthcheck.py /bin/healthcheck.py
 
 HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
