@@ -286,10 +286,10 @@ def get_dbinfo(
         return occurid2_aids
 
     nids = ibs.get_annot_nids(valid_aids)
-    nid2_sightxs = ut.ddict(set)
+    nid2_annotxs = ut.ddict(set)
     for aid, nid in zip(valid_aids, nids):
         if nid >= 0:
-            nid2_sightxs[nid].add(aid)
+            nid2_annotxs[nid].add(aid)
 
     occurence_config = {'use_gps': True, 'seconds_thresh': 10 * 60}
     occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids, config=occurence_config)
@@ -315,16 +315,8 @@ def get_dbinfo(
             if nid >= 0:
                 nid2_occurxs[nid].add(occurx)
 
-    # nid2_occurx_single = {
-    #     nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1
-    # }
-    # nid2_occurx_resight = {
-    #     nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1
-    # }
-    # singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
-
-    annot_sighting_stats = ut.get_stats(
-        list(map(len, nid2_sightxs.values())), use_median=True, use_sum=True
+    name_annot_stats = ut.get_stats(
+        list(map(len, nid2_annotxs.values())), use_median=True, use_sum=True
     )
     occurence_annot_stats = ut.get_stats(
         list(map(len, occurid2_aids_named.values())), use_median=True, use_sum=True
@@ -335,9 +327,6 @@ def get_dbinfo(
     annot_encounter_stats = ut.get_stats(
         list(map(len, nid2_occurxs.values())), use_median=True, use_sum=True
     )
-    # resight_name_stats = ut.get_stats(
-    #     list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True
-    # )
 
     if verbose:
         logger.info('Checking Annot Species')
@@ -939,8 +928,8 @@ def get_dbinfo(
 
     header_block_lines = [('+============================')] + (
         [
-            ('+ singleton := single sighting'),
-            ('+ multiton  := multiple sightings'),
+            ('+ singleton := names with a single annotation'),
+            ('+ multiton  := names with multiple annotations'),
             ('--' * num_tabs),
         ]
         if not short and with_header
@@ -1065,11 +1054,11 @@ def get_dbinfo(
                 '# Encounters per Name            = %s'
                 % (align_dict2(annot_encounter_stats),)
             ),
-            '# Sightings with Names           = %s'
-            % (len(set(ut.flatten(nid2_sightxs.values()))),),
+            '# Annotations with Names           = %s'
+            % (len(set(ut.flatten(nid2_annotxs.values()))),),
             (
-                '# Sightings per Name             = %s'
-                % (align_dict2(annot_sighting_stats),)
+                '# Annotations per Name             = %s'
+                % (align_dict2(name_annot_stats),)
             ),
             # ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
         ]
