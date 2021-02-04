@@ -427,8 +427,8 @@ def assigner_feat_for_aids(ibs, aid_list, default_species_conf='wild_dog'):
         >>> from wbia.algo.detect.train_assigner import *
         >>> ibs = assigner_testdb_ibs()
         >>> aids = ibs.get_valid_aids()
-        >>> result = assigner_feat_for_aids(aids)
-        >>> 'assigner_viewpoint_features'
+        >>> assigner_feat_for_aids(ibs, aids)
+        'assigner_viewpoint_features'
     """
     species = _get_assigner_species_for_aids(ibs, aid_list, default_species_conf)
     feature_col = SPECIES_CONFIG_MAP[species]['annot_feature_col']
