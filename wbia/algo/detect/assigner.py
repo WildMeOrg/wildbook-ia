@@ -5,6 +5,7 @@ import logging
 from wbia import constants as const
 from wbia.control.controller_inject import make_ibs_register_decorator
 import utool as ut
+import numpy as np
 import os
 from collections import defaultdict
 
@@ -284,6 +285,11 @@ def assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
     pair_parts, pair_bodies = all_pairs_parallel
 
     assigner_features = ibs.depc_annot.get(feature_defn, all_pairs_parallel)
+    # make sure assigner_features is 2d:
+    dim_features = len(np.array(assigner_features).shape)
+    if (dim_features == 1):
+        assigner_features = [assigner_features]
+
     assigner_classifier = load_assigner_classifier(ibs, part_aids)
 
     assigner_scores = assigner_classifier.predict_proba(assigner_features)
@@ -370,6 +376,7 @@ def load_assigner_classifier(ibs, aid_list, fallback_species='wild_dog'):
         from joblib import load
 
         clf = load(model_fpath)
+        INMEM_ASSIGNER_MODELS[species] = clf
 
     return clf
 
@@ -385,21 +392,14 @@ def _get_assigner_species_for_aids(ibs, aid_list, fallback_species='wild_dog'):
     supported_species = [
         specie for specie in species if specie in SPECIES_CONFIG_MAP.keys()
     ]
-    species_counts = {
-        spec: supported_species.count(spec) for spec in set(supported_species)
-    }
-    max_count = max(species_counts.values())
-    candidate_species = [
-        spec for spec, count in species_counts.items() if count == max_count
-    ]
-    if len(candidate_species) == 0:
+    if len(supported_species) > 0:
+        best_species = max(set(supported_species), key=supported_species.count)
+    else:
         print(
             'WARNING: Assigner called for species %s which do not have an assigner modelfile specified. Falling back to the model for %s'
             % (set(species), fallback_species)
         )
         best_species = fallback_species
-    else:
-        best_species = candidate_species[0]
     return best_species
 
 
