@@ -4974,7 +4974,7 @@ def turk_identification_graph(
                     'autoreview.prioritize_nonpos': True,
                     'inference.enabled': True,
                     'ranking.enabled': True,
-                    'ranking.ntop': 20,
+                    'ranking.ntop': 10,
                     'redun.enabled': True,
                     'redun.enforce_neg': True,
                     'redun.enforce_pos': True,
