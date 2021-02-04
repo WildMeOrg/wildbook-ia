@@ -355,6 +355,11 @@ def rows_equal(row1, row2):
 def _complex_type_equality_check(v1, v2):
     """Returns True on the equality of ``v1`` and ``v2``; otherwise False"""
     if type(v1) != type(v2):
+        if isinstance(v1, (float, int)) and isinstance(v2, (float, int)):
+            # We have some float in integer fields in sqlite, for example in
+            # annotmatch, the annotmatch_posixtime_modified field has values
+            # like 1607396181.67946
+            return int(v1) == int(v2)
         return False
     if isinstance(v1, float):
         if abs(v1 - v2) >= 0.0000000001:
@@ -534,13 +539,14 @@ LOAD DATABASE
         search_path to '{schema_name}'
 
   CAST type uuid to uuid using wbia-uuid-bytes-to-uuid,
+       type integer to bigint using wbia-integer-to-string,
        type ndarray to ndarray using byte-vector-to-bytea,
        type numpy to numpy using byte-vector-to-bytea;
 """
 # Copied from the built-in sql-server-uniqueidentifier-to-uuid
 # transform in pgloader 3.6.2
 # Prior to 3.6.2, the transform was for uuid in big-endian order
-UUID_LOADER_LISP = """\
+TRANSFORMS_LISP = """\
 (in-package :pgloader.transforms)
 
 (defmacro arr-to-bytes-rev (from to array)
@@ -561,6 +567,31 @@ UUID_LOADER_LISP = """\
                :clock-seq-low (aref id 9)
                :node (uuid::arr-to-bytes 10 15 id))))
       (princ-to-string uuid))))
+
+(defun wbia-integer-to-string (integer-string)
+  (declare (type (or null string fixnum float) integer-string))
+  (with-open-file (stream "/tmp/a.txt" :direction :output
+                          :if-exists :append
+                          :if-does-not-exist :create)
+    (format stream "wbia-integer-to-string ~a~%" integer-string))
+  (when integer-string
+    (princ-to-string
+     (typecase integer-string
+       (integer integer-string)
+       (float   (floor integer-string))
+       (string  (let ((with-decimal (position #\\. integer-string)))
+                  (handler-case
+                    (if with-decimal
+                      (parse-integer integer-string :start 0
+                                     :end with-decimal)
+                      (parse-integer integer-string :start 0))
+                    (condition (c)
+                      (declare (ignore c))
+                        (if with-decimal
+                          (parse-integer integer-string :start 1
+                                         :end with-decimal)
+                          (parse-integer integer-string :start 1
+                                         :end (- (length integer-string) 1)))))))))))
 """
 
 
@@ -579,12 +610,12 @@ def run_pgloader(sqlite_uri: str, postgres_uri: str) -> subprocess.CompletedProc
         with pgloader_config.open('w') as fb:
             fb.write(PGLOADER_CONFIG_TEMPLATE.format(**locals()))
 
-        wbia_uuid_loader = td / 'wbia_uuid_loader.lisp'
-        with wbia_uuid_loader.open('w') as fb:
-            fb.write(UUID_LOADER_LISP)
+        wbia_transforms = td / 'wbia_transforms.lisp'
+        with wbia_transforms.open('w') as fb:
+            fb.write(TRANSFORMS_LISP)
 
         proc = subprocess.run(
-            ['pgloader', '--load-lisp-file', str(wbia_uuid_loader), str(pgloader_config)],
+            ['pgloader', '--load-lisp-file', str(wbia_transforms), str(pgloader_config)],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
