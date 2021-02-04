@@ -635,6 +635,7 @@ def _use_copy_of_sqlite_database(f):
         db = _sqlite_uri_to_path(uri)
         with tempfile.TemporaryDirectory() as tempdir:
             temp_db = Path(tempdir) / db.name
+            logger.debug(f'Copying {str(db)} to {str(temp_db)} ({db.stat().st_size} B)')
             shutil.copy2(db, temp_db)
             new_uri = _sqlite_path_to_uri(temp_db)
             return f(new_uri, *args[1:])
@@ -658,11 +659,20 @@ def migrate(sqlite_uri: str, postgres_uri: str):
         return
 
     # Add sqlite built-in rowid column to tables
+    logger.debug(f'({schema_name}) adding rowids to database')
     add_rowids(sl_engine)
+
+    logger.debug(f'({schema_name}) running pre-pgloader operations')
     before_pgloader(pg_engine, schema_name)
+
+    logger.debug(f'({schema_name}) running pgloader ...')
     run_pgloader(sqlite_uri, postgres_uri)
+
+    logger.debug(f'({schema_name}) running post-pgloader operations')
     after_pgloader(sl_engine, pg_engine, schema_name)
+
     # Record in postgres having migrated the sqlite database in its current state
+    logger.debug(f'({schema_name}) recorded the migration')
     pg_info.stamp_migration(schema_name, sl_info.database_modified_dates[schema_name])
 
 
