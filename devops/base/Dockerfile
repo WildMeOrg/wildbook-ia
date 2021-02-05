@@ -61,6 +61,7 @@ RUN set -ex \
  && apt clean \
  && apt autoclean \
  && apt autoremove -y \
+ && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Docker CE
