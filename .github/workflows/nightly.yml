@@ -53,9 +53,6 @@ jobs:
           echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
           echo $'{\n    "experimental": "enabled"\n}' | tee $HOME/.docker/config.json
           sudo systemctl restart docker.service
-          cat /etc/docker/daemon.json
-          cat $HOME/.docker/config.json
-          docker version
 
           # Build Image
           bash devops/build.sh ${{ matrix.images }}

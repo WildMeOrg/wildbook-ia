@@ -21,8 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Update Docker
+      # Build images
+      - name: Build images
         run: |
+          # Update Docker
           sudo apt-get remove docker docker-engine docker.io containerd runc
           sudo apt-get update
           sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
@@ -31,13 +33,11 @@ jobs:
           sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
           sudo apt-get update
           sudo apt-get install docker-ce docker-ce-cli containerd.io
-          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json;
-          docker version
-          cat /etc/docker/daemon.json
+          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          echo $'{\n    "experimental": "enabled"\n}' | tee $HOME/.docker/config.json
+          sudo systemctl restart docker.service
 
-      # Build images
-      - name: Build images
-        run: bash devops/build.sh ${{ matrix.images }}
+          bash devops/build.sh ${{ matrix.images }}
 
       # Log into image registries
       - name: Login to DockerHub

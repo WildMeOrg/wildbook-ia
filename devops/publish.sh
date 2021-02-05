@@ -21,10 +21,9 @@ TAG=${TAG:-latest}
 REGISTRY=${REGISTRY:-wildme}
 IMAGES=${@:-wbia-base wbia-dependencies wbia-provision wbia wildbook-ia}
 
-IMG_TAG="${REGISTRY}/${IMG}:${TAG}"
-
 # Tag built images from `build.sh`, which tags as `latest`
 for IMG in $IMAGES; do
+    IMG_TAG="${REGISTRY}/${IMG}:${TAG}"
     echo "Tagging wildme/${IMG}:latest --> ${IMG_TAG}"
     docker tag wildme/${IMG}:latest ${IMG_TAG}
     echo "Pushing ${IMG_TAG}"
