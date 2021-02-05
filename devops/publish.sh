@@ -18,19 +18,15 @@ shift $((OPTIND - 1))
 
 # Assign variables
 TAG=${TAG:-latest}
-REGISTRY=${REGISTRY:-}
+REGISTRY=${REGISTRY:-wildme}
 IMAGES=${@:-wbia-base wbia-dependencies wbia-provision wbia wildbook-ia}
-# Set the image prefix
-if [ -n "$REGISTRY" ]; then
-    IMG_PREFIX="${REGISTRY}/wildmeorg/wildbook-ia/"
-else
-    IMG_PREFIX="wildme/"
-fi
+
+IMG_TAG="${REGISTRY}/${IMG}:${TAG}"
 
 # Tag built images from `build.sh`, which tags as `latest`
 for IMG in $IMAGES; do
-    echo "Tagging wildme/${IMG}:latest --> ${IMG_PREFIX}${IMG}:${TAG}"
-    docker tag wildme/${IMG}:latest ${IMG_PREFIX}${IMG}:${TAG}
-    echo "Pushing ${IMG_PREFIX}${IMG}:${TAG}"
-    docker push ${IMG_PREFIX}${IMG}:${TAG}
+    echo "Tagging wildme/${IMG}:latest --> ${IMG_TAG}"
+    docker tag wildme/${IMG}:latest ${IMG_TAG}
+    echo "Pushing ${IMG_TAG}"
+    docker push ${IMG_TAG}
 done

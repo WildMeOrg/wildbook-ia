@@ -7,6 +7,8 @@ export ROOT_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 
 export DOCKER_BUILDKIT=1
 
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
 # Change to the script's root directory location
 cd ${ROOT_LOC}
 

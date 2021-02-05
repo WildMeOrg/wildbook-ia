@@ -34,25 +34,50 @@ jobs:
         if: github.event_name == 'schedule'
         with:
           ref: develop
+
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
 
+      - name: Update Docker
+        run: |
+          sudo apt-get remove docker docker-engine docker.io containerd runc
+          sudo apt-get update
+          sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo apt-key fingerprint 0EBFCD88
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install docker-ce docker-ce-cli containerd.io
+          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json;
+          docker version
+          cat /etc/docker/daemon.json
+
       # Build images
       - name: Build images
-        run: bash devops/build.sh ${{ matrix.images }}
+        run: |
+          bash devops/build.sh ${{ matrix.images }}
 
       # Log into image registries
-      - name: Log into Docker Hub
-        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
-      - name: Log into GitHub Packages
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
 
       # Push images out to image registries
-      - name: Push to GitHub Packages
-        run: bash devops/publish.sh -t nightly -r docker.pkg.github.com ${{ matrix.images }}
       - name: Push to Docker Hub
         if: github.event_name == 'schedule'
         run: bash devops/publish.sh -t nightly ${{ matrix.images }}
+
+      - name: Push to GitHub Packages
+        run: bash devops/publish.sh -t nightly -r ghcr.io/wildmeorg ${{ matrix.images }}
 
       # Notify status in Slack
       - name: Slack Notification

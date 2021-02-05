@@ -45,7 +45,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 2
+      max-parallel: 6
       fail-fast: false
       matrix:
         os: [ubuntu-latest] # Disable "macos-latest" for now

@@ -21,24 +21,37 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Update Docker
+        run: |
+          sudo apt-get remove docker docker-engine docker.io containerd runc
+          sudo apt-get update
+          sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo apt-key fingerprint 0EBFCD88
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install docker-ce docker-ce-cli containerd.io
+          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json;
+          docker version
+          cat /etc/docker/daemon.json
+
       # Build images
       - name: Build images
         run: bash devops/build.sh ${{ matrix.images }}
 
-      # Log into container registries
-      - name: Log into Docker Hub
-        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
+      # Log into image registries
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
 
-      - name: Log into GitHub Packages
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-
-      # Push containers out to container registries
-      - name: Push to GitHub Packages
-        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
-        run: |
-          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
-          bash devops/publish.sh -t ${VERSION} -r docker.pkg.github.com ${{ matrix.images }}
-          bash devops/publish.sh -t latest -r docker.pkg.github.com ${{ matrix.images }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Push to Docker Hub
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
@@ -46,6 +59,14 @@ jobs:
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           bash devops/publish.sh -t ${VERSION} ${{ matrix.images }}
           bash devops/publish.sh -t latest ${{ matrix.images }}
+
+      # Push containers out to container registries
+      - name: Push to GitHub Packages
+        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        run: |
+          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
+          bash devops/publish.sh -t ${VERSION} -r ghcr.io/wildmeorg ${{ matrix.images }}
+          bash devops/publish.sh -t latest -r ghcr.io/wildmeorg ${{ matrix.images }}
 
       # Notify status in Slack
       - name: Slack Notification
