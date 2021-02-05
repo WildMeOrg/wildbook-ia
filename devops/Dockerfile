@@ -63,9 +63,6 @@ COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.build /wbia /wbia
 
-# Restore copy of our build OpenCV
-COPY --from=org.wildme.wbia.build /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2
-
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
 
