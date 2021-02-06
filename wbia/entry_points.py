@@ -64,7 +64,9 @@ def _init_gui(activate=True):
     return back
 
 
-def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
+def _init_wbia(
+    dbdir=None, verbose=None, use_cache=True, web=None, daily_backup=True, **kwargs
+):
     """
     Private function that calls code to create an wbia controller
     """
@@ -97,7 +99,7 @@ def _init_wbia(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
             force_serial=force_serial,
         )
         # BBB (12-Jan-12021) daily database backup for the sqlite database
-        if not ibs.is_using_postgres_db:
+        if daily_backup and not ibs.is_using_postgres_db:
             ibs.daily_backup_database()
 
         if web is None:

@@ -1551,7 +1551,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
             print('connect collect_pull_url = %r' % (interface_collect_pull,))
             print('engine is initialized')
 
-        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
+        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, daily_backup=False)
         update_proctitle('engine_loop.%s.%s' % (lane, id_), dbname=ibs.dbname)
 
         try:
@@ -1756,7 +1756,7 @@ def collector_loop(port_dict, dbdir, containerized):
         if VERBOSE_JOBS:
             print('connect collect_push_url  = %r' % (port_dict['collect_push_url'],))
 
-        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False)
+        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, daily_backup=False)
         update_proctitle('collector_loop', dbname=ibs.dbname)
 
         shelve_path = ibs.get_shelves_path()
