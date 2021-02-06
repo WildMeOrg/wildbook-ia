@@ -73,7 +73,7 @@ METADATA_TABLE_COLUMNS = {
 METADATA_TABLE_COLUMN_NAMES = list(METADATA_TABLE_COLUMNS.keys())
 
 
-def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
+def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}, timeout=TIMEOUT):
     pid = os.getpid()
     if ENGINES.get('pid') != pid:
         # ENGINES contains engines from the parent process that the
@@ -83,6 +83,9 @@ def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}):
     kw = {
         # The echo flag is a shortcut to set up SQLAlchemy logging
         'echo': False,
+        'connect_args': {
+            'timeout': timeout,
+        },
     }
     if uri.startswith('sqlite:') and ':memory:' in uri:
         # Don't share engines for in memory sqlite databases
