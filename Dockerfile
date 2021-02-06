@@ -69,8 +69,6 @@ RUN set -x \
        libgl1 \
        #: required to stop prompting by pgloader
        libssl1.0.0 \
-       #: required by wait-for
-       netcat \
        #: sqlite->postgres dependency
        pgloader \
        #: dev debug dependency
@@ -81,7 +79,6 @@ RUN set -x \
        python3-setuptools \
        python3-venv \
        unzip \
-       wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Install CNMeM, a memory manager for CUDA
@@ -97,11 +94,6 @@ RUN set -x \
     && mkdir -p /data \
     && chown wbia:wbia /data \
     && chmod 755 /data
-
-# Install wait-for
-RUN set -x \
-    && wget -o /usr/local/bin/wait-for https://raw.githubusercontent.com/eficode/wait-for/master/wait-for \
-    && chmod a+x /usr/local/bin/wait-for
 
 # ###
 # Application setup

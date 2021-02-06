@@ -20,6 +20,6 @@ This will publish the four build images to [Docker Hub](https://hub.docker.com) 
 
 Do not run this locally, leave that to the continuous integration (CI) service. See the Nightly workflow in `.github/workflows/nightly.yml` for more information.
 
-## Deployment with Postgres
+## Deployment with PostgreSQL
 
-For example instruction on how to deploy the application with postgres see: [Deploying the application with Postgres](deploy-with-prostgres.md)
+For example instruction on how to migrate and deploy the application with PostgreSQL see: [Deploying the application with PostgreSQL](deploy-with-prostgres.md)

@@ -1,10 +1,15 @@
 #!/bin/bash
 
-export DB_NAME="jaguar"
+export DB_NAME="< INSERT NAME >"  # e.g. `manta` or `jaguar`
+export DB_PATH="/data/${DB_NAME}"
+
 export DB_PORT=6013
 
 export POSTGRES_PASSWORD="< INSERT POSTGRES_PASSWORD >"
 export DB_PASSWORD="< INSERT DB_PASSWORD >"
+
+export AWS_ACCESS_KEY_ID="< INSERT AWS_ACCESS_KEY_ID >"
+export AWS_SECRET_ACCESS_KEY="< INSERT AWS_SECRET_ACCESS_KEY >"
 
 ##########
 
@@ -15,17 +20,16 @@ export DB_USER="wbia"
 export POSTGRES_USER="postgres"
 export POSTGRES_DB="db"
 
-export DB_PATH="/data/${DB_NAME}"
 export DB_DIR="/data/db"
 export WBIA_CACHE_PATH="/data/cache"
 export WBIA_CACHE_DIR="/cache"
 
-export DB_POSTGRES="${DB_PATH}/_ibsdb_postgres"
-export DB_SCRIPTS="${DB_PATH}/_scripts"
-export DB_ENV="${DB_SCRIPTS}/env.wbia.${DB_NAME}"
+export DB_PATH_POSTGRES="${DB_PATH}/_ibsdb_postgres"
+export DB_DEVOPS="${DB_PATH}/_devops"
+export DB_ENV="${DB_DEVOPS}/.env"
 
-export COMPOSE_MIGRATE_YAML="${DB_SCRIPTS}/docker-compose.migrate.yml"
-export COMPOSE_RUNTIME_YAML="${DB_SCRIPTS}/docker-compose.yml"
+export COMPOSE_MIGRATE_YAML="${DB_DEVOPS}/docker-compose.migrate.yml"
+export COMPOSE_RUNTIME_YAML="${DB_DEVOPS}/docker-compose.yml"
 
 ##########
 
@@ -44,26 +48,24 @@ docker rm -f autoheal
 
 cd ${DB_PATH}
 
-sudo rm -rf ${DB_POSTGRES}
-sudo rm -rf ${DB_SCRIPTS}
+sudo rm -rf ${DB_PATH_POSTGRES}
+sudo rm -rf ${DB_DEVOPS}
 sudo rm -rf ${DB_PATH}/_ibsdb/_ibeis_database_backup_*.sqlite3
 sudo rm -rf ${DB_PATH}/_ibsdb/_ibeis_staging_backup_*.sqlite3
 sudo rm -rf ${DB_PATH}/_ibsdb/_ibeis_backups/
 
 find . -name '*.sqlite*' -print0 | du -ch --files0-from=- | sort -h
 
-mkdir -p ${DB_POSTGRES}
-mkdir -p ${DB_SCRIPTS}
+mkdir -p ${DB_PATH_POSTGRES}
+mkdir -p ${DB_DEVOPS}
 
 ##########
 
-wget -O ${DB_SCRIPTS}/init-db.sh https://raw.githubusercontent.com/WildMeOrg/wildbook-ia/develop/.dockerfiles/init-db.sh
+wget -O ${DB_DEVOPS}/init-db.sh https://raw.githubusercontent.com/WildMeOrg/wildbook-ia/develop/.dockerfiles/init-db.sh
 
 echo """
 COMPOSE_PROJECT_NAME=${DB_NAME}
-""" >> ${DB_SCRIPTS}/.env
 
-echo """
 HOST_UID=${HOST_UID}
 HOST_USER=\"${HOST_USER}\"
 
@@ -77,8 +79,8 @@ DB_PASSWORD=\"${DB_PASSWORD}\"
 DB_URI=\"postgresql://${DB_USER}:${DB_PASSWORD}@${POSTGRES_DB}/${DB_NAME}\"
 DB_DIR=\"${DB_DIR}\"
 
-AWS_ACCESS_KEY_ID=\"< INSERT AWS_ACCESS_KEY_ID >\"
-AWS_SECRET_ACCESS_KEY=\"< INSERT AWS_SECRET_ACCESS_KEY >\"
+AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID}\"
+AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY}\"
 """ >> ${DB_ENV}
 
 echo """version: \"3\"
@@ -86,8 +88,8 @@ services:
   db:
     image: postgres:latest
     volumes:
-      - ${DB_POSTGRES}:/var/lib/postgresql/data
-      - ${DB_SCRIPTS}/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ${DB_PATH_POSTGRES}:/var/lib/postgresql/data
+      - ${DB_DEVOPS}/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     env_file: ${DB_ENV}
   wbia:
     image: wildme/wbia:develop
@@ -105,13 +107,13 @@ services:
   db:
     image: postgres:latest
     volumes:
-      - ${DB_POSTGRES}:/var/lib/postgresql/data
+      - ${DB_PATH_POSTGRES}:/var/lib/postgresql/data
     env_file: ${DB_ENV}
   wbia:
     image: wildme/wbia:develop
     depends_on:
       - \"db\"
-    args: [\"--db-uri\", \"\${DB_URI}\", \"--https\", \"--container-name\", \"\${DB_NAME}\"]
+    command: [\"--db-uri\", \"\$DB_URI\", \"--https\", \"--container-name\", \"\$DB_NAME\"]
     ports:
       - \"${DB_PORT}:5000\"
     volumes:
@@ -121,11 +123,11 @@ services:
     restart: unless-stopped
 """ >> ${COMPOSE_RUNTIME_YAML}
 
-ls -al ${DB_SCRIPTS}
+ls -al ${DB_DEVOPS}
 
 ##########
 
-cd ${DB_SCRIPTS}
+cd ${DB_DEVOPS}
 
 docker-compose -f ${COMPOSE_MIGRATE_YAML} down
 
@@ -138,7 +140,7 @@ docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
 docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
   '/virtualenv/env3/bin/wbia-migrate-sqlite-to-postgres -v --db-dir ${DB_DIR} --db-uri ${DB_URI}'
 
-# sudo watch -n 30 "du -sh ${DB_POSTGRES}"
+# sudo watch -n 30 "du -sh ${DB_PATH_POSTGRES}"
 
 docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
   '/virtualenv/env3/bin/wbia-compare-databases -v --db-dir ${DB_DIR} --pg-uri ${DB_URI} --check-pc 1 --check-max -1'
@@ -151,13 +153,16 @@ docker rm -f ${DB_NAME}
 
 cd ${DB_PATH}
 
-find . -name '*.sqlite*' -print | grep -v "_ibsdb/_ibeis_backups" | xargs -i /bin/bash -c 'echo {}'  # && mv {} {}.migrated'
+find . -name '*.sqlite*' -print | grep -v "_ibsdb/_ibeis_backups" | grep -v "_ibsdb_postgres" | grep -v ".migrated" | xargs -i /bin/bash -c 'mv {} {}.migrated'  # echo {}
+find . -name '*.sqlite*' -print | grep -v ".migrated"
 
 ##########
 
-cd ${DB_SCRIPTS}
+cd ${DB_DEVOPS}
 
 docker-compose up -d
+
+docker logs --follow ${DB_NAME}_wbia_1
 
 ##########
 
