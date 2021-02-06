@@ -94,6 +94,9 @@ def create_engine(uri, POSTGRESQL_POOL_SIZE=20, ENGINES={}, timeout=TIMEOUT):
         if uri.startswith('postgresql:'):
             # pool_size is not available for sqlite
             kw['pool_size'] = POSTGRESQL_POOL_SIZE
+            kw['connect_args'] = {
+                'connect_timeout': timeout,
+            }
         ENGINES[uri] = sqlalchemy.create_engine(uri, **kw)
     return ENGINES[uri]
 
