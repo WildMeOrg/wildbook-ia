@@ -53,6 +53,8 @@ RUN set -x \
     && apt-get install -y --no-install-recommends \
        # ** Please sort alphabetically **
        ca-certificates \
+       #: required for downloading 'wait-for'
+       curl \
        #: used during package acquisition
        git \
        #: tool to setuid+setgid+setgroups+exec at execution time
@@ -69,6 +71,8 @@ RUN set -x \
        libgl1 \
        #: required to stop prompting by pgloader
        libssl1.0.0 \
+       #: required by wait-for
+       netcat \
        #: sqlite->postgres dependency
        pgloader \
        #: dev debug dependency
@@ -94,6 +98,13 @@ RUN set -x \
     && mkdir -p /data \
     && chown wbia:wbia /data \
     && chmod 755 /data
+
+# Install wait-for
+RUN set -x \
+    && curl -s https://raw.githubusercontent.com/eficode/wait-for/v2.0.0/wait-for > /usr/local/bin/wait-for \
+    && chmod a+x /usr/local/bin/wait-for \
+    # test it works
+    && wait-for google.com:80 -- echo "success"
 
 # ###
 # Application setup
