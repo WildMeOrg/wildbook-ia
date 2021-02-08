@@ -1278,7 +1278,12 @@ class QueryRequest(ut.NiceRepr):
             yield fpath
 
     def execute(
-        qreq_, qaids=None, prog_hook=None, use_cache=None, invalidate_supercache=None
+        qreq_,
+        qaids=None,
+        prog_hook=None,
+        use_cache=None,
+        use_supercache=None,
+        invalidate_supercache=None,
     ):
         r"""
         Runs the hotspotter pipeline and returns chip match objects.
@@ -1318,7 +1323,7 @@ class QueryRequest(ut.NiceRepr):
                 use_bigcache=use_cache,
                 verbose=True,
                 save_qcache=use_cache,
-                use_supercache=False,
+                use_supercache=use_supercache,
                 invalidate_supercache=invalidate_supercache,
             )
         return cm_list

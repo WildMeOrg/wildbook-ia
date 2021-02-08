@@ -4957,6 +4957,7 @@ def turk_identification_graph(
             elif kaia:
                 logger.info('[routes] Graph is in Kaia-mode')
                 query_config_dict = {
+                    'manual.n_peek': 500,
                     'autoreview.enabled': True,
                     'autoreview.prioritize_nonpos': True,
                     'inference.enabled': False,
@@ -4970,6 +4971,7 @@ def turk_identification_graph(
             elif census:
                 logger.info('[routes] Graph is in CA-mode')
                 query_config_dict = {
+                    'manual.n_peek': 500,
                     'autoreview.enabled': True,
                     'autoreview.prioritize_nonpos': True,
                     'inference.enabled': True,
@@ -4985,7 +4987,9 @@ def turk_identification_graph(
                 }
             else:
                 logger.info('[routes] Graph is not in hardcase-mode')
-                query_config_dict = {}
+                query_config_dict = {
+                    'manual.n_peek': 500,
+                }
 
             query_config_dict.update(kwargs.get('query_config_dict', {}))
 

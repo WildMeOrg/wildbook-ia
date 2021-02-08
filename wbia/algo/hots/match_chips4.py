@@ -22,15 +22,8 @@ USE_BIGCACHE = (
     )
     and ut.USE_CACHE
 )
-USE_SUPERCACHE = (
-    not ut.get_argflag(
-        ('--nocache-super', '--no-supercache-query', '--noqcache', '--nosupercache')
-    )
-    and ut.USE_CACHE
-)
+USE_SUPERCACHE = ut.USE_CACHE and ut.get_argflag('--supercache')
 SAVE_CACHE = not ut.get_argflag('--nocache-save')
-# MIN_BIGCACHE_BUNDLE = 20
-# MIN_BIGCACHE_BUNDLE = 150
 MIN_BIGCACHE_BUNDLE = 64
 HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
 

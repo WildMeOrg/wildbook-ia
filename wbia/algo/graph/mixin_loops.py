@@ -641,6 +641,7 @@ class InfrReviewers(object):
 
         hungry, finished, attempt = True, False, 0
         while hungry:
+            user_request = None
             try:
                 attempt += 1
                 with infr._gen_lock:
@@ -648,10 +649,9 @@ class InfrReviewers(object):
                 hungry = False
             except StopIteration:
                 pass
-            if attempt >= 100:
-                hungry = False
-                finished = True
-            if isinstance(user_request, str) and user_request in ['finished']:
+            if (
+                isinstance(user_request, str) and user_request in ['finished']
+            ) or attempt >= 100:
                 hungry = False
                 finished = True
 
