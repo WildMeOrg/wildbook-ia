@@ -13,8 +13,11 @@ if [ -d /code ]; then
 fi
 
 
-echo "*** $0 --- progressing to main execution"
+echo "*** $0 --- Assigning data directory ownership and permissions"
+chown -R wbia:wbia ${WBIA_DB_DIR}
 
+
+echo "*** $0 --- progressing to main execution"
 # Supply EXEC_PRIVILEGED=1 to run your given command as the privileged user.
 if [ $EXEC_PRIVILEGED ]; then
     exec "$@"
