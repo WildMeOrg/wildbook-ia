@@ -790,7 +790,7 @@ def query_chips_graph(
     query_config_dict={},
     echo_query_params=True,
     cache_images=True,
-    n=30,
+    n=20,
     view_orientation='horizontal',
     return_summary=True,
     **kwargs,

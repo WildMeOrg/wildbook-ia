@@ -4643,20 +4643,24 @@ def turk_identification_graph_refer(
         species_list = ibs.get_annot_species_texts(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         quality_list = ibs.get_annot_qualities(aid_list)
+        canonical_list = ibs.get_annot_canonical(aid_list)
 
         aid_list_ = []
-        zipped = list(zip(aid_list, species_list, viewpoint_list, quality_list))
-        for aid, species_, viewpoint_, quality_ in zipped:
+        zipped = list(
+            zip(aid_list, species_list, viewpoint_list, quality_list, canonical_list)
+        )
+        for aid, species_, viewpoint_, quality_, canonical_ in zipped:
             assert None not in [species_, viewpoint_, quality_]
             species_ = species_.lower()
             viewpoint_ = viewpoint_.lower()
             quality_ = int(quality_)
-            if species_ != 'zebra_grevys':
-                continue
-            if 'right' not in viewpoint_:
-                continue
-            if quality_ < 3:
-                continue
+            if not canonical_:
+                if species_ != 'zebra_grevys':
+                    continue
+                if 'right' not in viewpoint_:
+                    continue
+                if quality_ < 3:
+                    continue
             aid_list_.append(aid)
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
