@@ -533,9 +533,9 @@ LOAD DATABASE
   WITH create tables,
        create indexes,
        reset no sequences,
-       workers = 4, concurrency = 2,
+       workers = 2, concurrency = 2,
        batch rows = 128,
-       prefetch rows = 1024
+       prefetch rows = 512
 
     SET work_mem to '64MB',
         maintenance_work_mem to '512MB',
