@@ -14,7 +14,7 @@ from wbia.dtool import base
 from collections import defaultdict
 
 (print, rrr, profile) = ut.inject2(__name__)
-logger = logging.getLogger('wbia')
+logger = logging.getLogger('wbia.dtool')
 
 
 # global function registry

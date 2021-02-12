@@ -33,7 +33,7 @@ import tqdm
 
 
 print, rrr, profile = ut.inject2(__name__)
-logger = logging.getLogger('wbia')
+logger = logging.getLogger('wbia.dtool')
 
 
 READ_ONLY = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
@@ -704,7 +704,7 @@ class SQLDatabaseController(object):
             return
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        logger.info('[sql] running sql pragma optimizions')
+        logger.info('[sql] running sql pragma optimizions on %r' % (self.uri,))
 
         with self.connect() as conn:
             # conn.execute('PRAGMA cache_size = 0;')

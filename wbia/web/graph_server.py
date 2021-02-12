@@ -8,7 +8,7 @@ import random
 import time
 
 
-log = logging.getLogger('wbia')
+logger = logging.getLogger('wbia')
 
 
 class ProcessActorExecutor(ProcessPoolExecutor):
@@ -88,14 +88,14 @@ def double_review_test():
         'init': 'annotmatch',
     }
     start_resp = actor.handle(payload)
-    log.info('start_resp = {!r}'.format(start_resp))
+    logger.info('start_resp = {!r}'.format(start_resp))
     infr = actor.infr
 
     infr.verbose = 100
 
     user_resp = infr.continue_review()
     edge, p, d = user_resp[0]
-    log.info('edge = {!r}'.format(edge))
+    logger.info('edge = {!r}'.format(edge))
 
     last = None
 
@@ -103,7 +103,7 @@ def double_review_test():
         infr.add_feedback(edge, infr.edge_decision(edge))
         user_resp = infr.continue_review()
         edge, p, d = user_resp[0]
-        log.info('edge = {!r}'.format(edge))
+        logger.info('edge = {!r}'.format(edge))
         assert last != edge
         last = edge
 
@@ -147,7 +147,7 @@ def _testdata_feedback_payload(edge, decision):
 
 
 def _test_foo(future):
-    log.info('FOO %r' % (future,))
+    logger.info('FOO %r' % (future,))
 
 
 # GRAPH_ACTOR_CLASS = ProcessActor if ut.LINUX or ut.WIN32 else ThreadActor
@@ -248,8 +248,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                         actor.infr.print('Actor Server Error: {!r}'.format(ex))
                         actor.infr.print('Actor Server Traceback: {!r}'.format(trace))
                     else:
-                        log.info(ex)
-                        log.info(trace)
+                        logger.info(ex)
+                        logger.info(trace)
 
                     raise sys.exc_info()[0](trace)
 
@@ -261,7 +261,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         # Create the AnnotInference
-        log.info('starting via actor with ibs = %r' % (ibs,))
+        logger.info('starting via actor with ibs = %r' % (ibs,))
         actor.infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
@@ -282,10 +282,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
 
         # Load random forests (TODO: should this be config specifiable?)
         actor.infr.print('loading published models')
-        try:
-            actor.infr.load_published()
-        except Exception:
-            pass
+        actor.infr.load_published()
 
         # Start actor.infr Main Loop
         actor.infr.print('start id review')
@@ -302,20 +299,20 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return response
 
     def remove_annots(actor, aids, **kwargs):
-        log.info('Removing aids=%r from AnnotInference' % (aids,))
+        logger.info('Removing aids=%r from AnnotInference' % (aids,))
         response = actor.infr.remove_aids(aids)
-        log.info('\t got response = %r' % (response,))
-        log.info('Applying NonDynamic Update to AnnotInference')
+        logger.info('\t got response = %r' % (response,))
+        logger.info('Applying NonDynamic Update to AnnotInference')
         actor.infr.apply_nondynamic_update()
-        log.info('\t ...applied')
+        logger.info('\t ...applied')
         return 'removed'
 
     def update_task_thresh(actor, task, decision, value, **kwargs):
-        log.info(
+        logger.info(
             'Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value)
         )
         actor.infr.task_thresh[task][decision] = value
-        log.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
+        logger.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
         return 'updated'
 
     def add_annots(actor, aids, **kwargs):
@@ -554,7 +551,7 @@ class GraphClient(object):
         client.review_vip = None
 
         if data_list is None:
-            log.info('GRAPH CLIENT GOT NONE UPDATE')
+            logger.info('GRAPH CLIENT GOT NONE UPDATE')
             client.review_dict = None
         else:
             data_list = list(data_list)
@@ -563,8 +560,8 @@ class GraphClient(object):
             num_samples = min(num_samples, num_items)
             first = list(data_list[:num_samples])
 
-            log.info('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
-            log.info('First few are: ' + ut.repr4(first, si=2, precision=4))
+            logger.info('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
+            logger.info('First few are: ' + ut.repr4(first, si=2, precision=4))
             client.review_dict = {}
 
             for (edge, priority, edge_data_dict) in data_list:
@@ -593,7 +590,7 @@ class GraphClient(object):
     def sample(client, previous_edge_list=[], max_previous_edges=10):
         if client.review_dict is None:
             raise controller_inject.WebReviewFinishedException(client.graph_uuid)
-        log.info('SAMPLING')
+        logger.info('SAMPLING')
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
@@ -611,21 +608,21 @@ class GraphClient(object):
                         break
 
                 if not found:
-                    log.info('SHOWING VIP TO USER!!!')
+                    logger.info('SHOWING VIP TO USER!!!')
                     edge = client.review_vip
                     client.prev_vip = edge
                     client.review_vip = None
                 else:
-                    log.info(
+                    logger.info(
                         'VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)'
                     )
             else:
-                log.info('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
+                logger.info('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
 
         if edge is None:
-            log.info('VIP ALREADY SHOWN!!!')
+            logger.info('VIP ALREADY SHOWN!!!')
             edge = random.choice(edge_list)
 
         priority, data_dict = client.review_dict[edge]
-        log.info('SAMPLED edge = {!r}'.format(edge))
+        logger.info('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict

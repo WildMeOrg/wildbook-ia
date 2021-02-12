@@ -20,7 +20,7 @@ import sqlalchemy
 from wbia.dtool.sql_control import create_engine
 
 
-logger = logging.getLogger('wbia')
+logger = logging.getLogger('wbia.dtool')
 
 
 MAIN_DB_FILENAME = '_ibeis_database.sqlite3'

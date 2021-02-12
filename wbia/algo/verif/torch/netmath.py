@@ -10,10 +10,6 @@ import torch
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
-# from pysseg import getLogger
-# logger = getLogger(__name__)
-# print = logger.info
-
 
 def testdata_siam_desc(num_data=128, desc_dim=8):
     rng = np.random.RandomState(0)

@@ -90,7 +90,11 @@ def research_print_metrics(ibs, tag='metrics'):
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
-    flags = [confidence >= 0.31 for confidence in confidence_list]
-    ibs.set_annot_canonical(aids, flags)
+    for val in range(0, 101):
+        thresh = val / 100
+        globals().update(locals())
+        flags = [confidence >= thresh for confidence in confidence_list]
+        print(sum(flags), len(flags))
+        ibs.set_annot_canonical(aids, flags)
 
     ibs.print_dbinfo(with_ggr=True, with_map=True)

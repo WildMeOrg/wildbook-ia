@@ -4637,13 +4637,30 @@ def turk_identification_graph_refer(
         assert imgsetid == imgsetid_
         assert species in ['zebra_grevys']
 
-        gid_list = ibs.get_imageset_gids(imgsetid)
+        gid_list = ibs.get_imageset_gids(15)
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
 
         species_list = ibs.get_annot_species_texts(aid_list)
         viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         quality_list = ibs.get_annot_qualities(aid_list)
-        canonical_list = ibs.get_annot_canonical(aid_list)
+
+        flags = [species == 'zebra_grevys' for species in species_list]
+        aids = ut.compress(aid_list, flags)
+        config = {
+            'classifier_algo': 'densenet',
+            'classifier_weight_filepath': 'canonical_zebra_grevys_v4',
+        }
+        prediction_list = ibs.depc_annot.get_property(
+            'classifier', aids, 'class', config=config
+        )
+        confidence_list = ibs.depc_annot.get_property(
+            'classifier', aids, 'score', config=config
+        )
+        confidence_list = [
+            confidence if prediction == 'positive' else 1.0 - confidence
+            for prediction, confidence in zip(prediction_list, confidence_list)
+        ]
+        canonical_list = [confidence >= 0.01 for confidence in confidence_list]
 
         aid_list_ = []
         zipped = list(
@@ -4975,18 +4992,18 @@ def turk_identification_graph(
             elif census:
                 logger.info('[routes] Graph is in CA-mode')
                 query_config_dict = {
-                    'manual.n_peek': 500,
+                    'manual.n_peek': 100,
                     'autoreview.enabled': True,
                     'autoreview.prioritize_nonpos': True,
                     'inference.enabled': True,
                     'ranking.enabled': True,
-                    'ranking.ntop': 10,
+                    'ranking.ntop': 5,
                     'redun.enabled': True,
                     'redun.enforce_neg': True,
                     'redun.enforce_pos': True,
                     'redun.neg.only_auto': False,
-                    'redun.neg': 3,
-                    'redun.pos': 3,
+                    'redun.neg': 2,
+                    'redun.pos': 2,
                     'algo.hardcase': False,
                 }
             else:

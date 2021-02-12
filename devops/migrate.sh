@@ -1,9 +1,15 @@
 #!/bin/bash
 
-export DB_NAME="< INSERT NAME >"  # e.g. `manta` or `jaguar`
-export DB_PATH="/data/${DB_NAME}"
+export DB_NAME="NAME"  # e.g. `manta` or `jaguar`
+export DB_PATH="/data/path"
+export WBIA_CACHE_PATH="/data/cache"
 
-export DB_PORT=6013
+export DB_PORT=5000
+
+export WB_DOMAIN="domain.com"
+
+export HOST_UID=$(id -u)
+export HOST_USER="${USER}"
 
 export POSTGRES_PASSWORD="< INSERT POSTGRES_PASSWORD >"
 export DB_PASSWORD="< INSERT DB_PASSWORD >"
@@ -13,15 +19,11 @@ export AWS_SECRET_ACCESS_KEY="< INSERT AWS_SECRET_ACCESS_KEY >"
 
 ##########
 
-export HOST_UID=1000
-export HOST_USER="wildme"
-
 export DB_USER="wbia"
 export POSTGRES_USER="postgres"
 export POSTGRES_DB="db"
 
 export DB_DIR="/data/db"
-export WBIA_CACHE_PATH="/data/cache"
 export WBIA_CACHE_DIR="/cache"
 
 export DB_PATH_POSTGRES="${DB_PATH}/_ibsdb_postgres"
@@ -81,6 +83,8 @@ DB_DIR=\"${DB_DIR}\"
 
 AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID}\"
 AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY}\"
+
+WB_DOMAIN=\"${WB_DOMAIN}\"
 """ >> ${DB_ENV}
 
 echo """version: \"3\"
@@ -113,13 +117,19 @@ services:
     image: wildme/wbia:develop
     depends_on:
       - \"db\"
-    command: [\"--db-uri\", \"\$DB_URI\", \"--https\", \"--container-name\", \"\$DB_NAME\"]
+    command: [\"--db-uri\", \"\$DB_URI\", \"--https\", \"--container-name\", \"\$DB_NAME\", \"--wildbook-target\", \"\$WB_DOMAIN\"]
     ports:
       - \"${DB_PORT}:5000\"
     volumes:
       - ${DB_PATH}:${DB_DIR}
       - ${WBIA_CACHE_PATH}:${WBIA_CACHE_DIR}
     env_file: ${DB_ENV}
+    deploy:
+    resources:
+      reservations:
+        devices:
+          - capabilities:
+            - gpu
     restart: unless-stopped
 """ >> ${COMPOSE_RUNTIME_YAML}
 
@@ -139,6 +149,8 @@ docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
 
 docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
   '/virtualenv/env3/bin/wbia-migrate-sqlite-to-postgres -v --db-dir ${DB_DIR} --db-uri ${DB_URI}'
+
+# touch /data/ibeis/ACW_Master/_ibsdb/_ibeis_cache/featcache.sqlite
 
 # sudo watch -n 30 "du -sh ${DB_PATH_POSTGRES}"
 

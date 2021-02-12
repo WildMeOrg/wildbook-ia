@@ -6,7 +6,7 @@ import six
 import networkx as nx  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__, '[depc_input_helpers]')
-logger = logging.getLogger('wbia')
+logger = logging.getLogger('wbia.dtool')
 
 
 class BranchId(ut.HashComparable):
@@ -213,7 +213,7 @@ def make_expanded_input_graph(graph, target):
         return accum_ids
 
     sources = list(ut.nx_source_nodes(graph))
-    logger.info(sources)
+    # logger.info(sources)
     # assert len(sources) == 1, 'expected a unique source'
     source = sources[0]
 

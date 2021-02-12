@@ -12,6 +12,7 @@ import six
 import numpy as np
 import utool as ut
 import matplotlib.pyplot as plt
+from os.path import join, abspath, split
 
 
 print, rrr, profile = ut.inject2(__name__)
@@ -59,7 +60,7 @@ def get_dbinfo(
     with_agesex=True,
     with_header=True,
     with_reviews=True,
-    with_ggr=False,
+    with_ggr=True,
     with_map=False,
     short=False,
     tag='dbinfo',
@@ -872,6 +873,8 @@ def get_dbinfo(
             canonical_list,
         )
     )
+    ca_removed_aids = []
+    ca_added_aids = []
     for aid, species_, viewpoint_, quality_, interest_, canonical_ in zipped:
         assert None not in [species_, viewpoint_, quality_]
         species_ = species_.lower()
@@ -900,9 +903,11 @@ def get_dbinfo(
                     ggr_num_filter_overlap += 1
                 else:
                     ggr_num_filter_remove += 1
+                    ca_removed_aids.append(aid)
             else:
                 if canonical_:
                     ggr_num_filter_add += 1
+                    ca_added_aids.append(aid)
 
             if interest_:
                 ggr_num_aois += 1
@@ -913,6 +918,31 @@ def get_dbinfo(
             else:
                 if canonical_:
                     ggr_num_aoi_add += 1
+
+    print('CA REMOVED: %s' % (ca_removed_aids,))
+    print('CA ADDED: %s' % (ca_added_aids,))
+
+    removed_chip_paths = ibs.get_annot_chip_fpath(ca_removed_aids)
+    added_chip_paths = ibs.get_annot_chip_fpath(ca_added_aids)
+
+    removed_output_path = abspath(join('.', 'ca_removed'))
+    added_output_path = abspath(join('.', 'ca_added'))
+
+    ut.delete(removed_output_path)
+    ut.delete(added_output_path)
+
+    ut.ensuredir(removed_output_path)
+    ut.ensuredir(added_output_path)
+
+    for removed_chip_path in removed_chip_paths:
+        removed_chip_filename = split(removed_chip_path)[1]
+        removed_output_filepath = join(removed_output_path, removed_chip_filename)
+        ut.copy(removed_chip_path, removed_output_filepath, verbose=False)
+
+    for added_chip_path in added_chip_paths:
+        added_chip_filename = split(added_chip_path)[1]
+        added_output_filepath = join(added_output_path, added_chip_filename)
+        ut.copy(added_chip_path, added_output_filepath, verbose=False)
 
     #########
 
@@ -1027,6 +1057,82 @@ def get_dbinfo(
 
     from wbia.algo.preproc import occurrence_blackbox
 
+    valid_nids_ = ibs.get_annot_nids(valid_aids)
+    valid_gids_ = ibs.get_annot_gids(valid_aids)
+    date_str_list_ = get_dates(ibs, valid_gids_)
+    name_dates_stats = {}
+    for valid_aid, valid_nid, date_str in zip(valid_aids, valid_nids_, date_str_list_):
+        if valid_nid < 0:
+            continue
+        if valid_nid not in name_dates_stats:
+            name_dates_stats[valid_nid] = set([])
+        name_dates_stats[valid_nid].add(date_str)
+
+    ggr_name_dates_stats = {
+        'GGR-16 D1 OR D2': 0,
+        'GGR-16 D1 AND D2': 0,
+        'GGR-18 D1 OR D2': 0,
+        'GGR-18 D1 AND D2': 0,
+        'GGR-16 AND GGR-18': 0,
+        '1+ Days': 0,
+        '2+ Days': 0,
+        '3+ Days': 0,
+        '4+ Days': 0,
+    }
+    for date_str in sorted(set(date_str_list_)):
+        ggr_name_dates_stats[date_str] = 0
+    for nid in name_dates_stats:
+        date_strs = name_dates_stats[nid]
+        total_days = len(date_strs)
+        assert 0 < total_days and total_days <= 4
+        for val in range(1, total_days + 1):
+            key = '%d+ Days' % (val,)
+            ggr_name_dates_stats[key] += 1
+        for date_str in date_strs:
+            ggr_name_dates_stats[date_str] += 1
+        if '2016/01/30' in date_strs or '2016/01/31' in date_strs:
+            ggr_name_dates_stats['GGR-16 D1 OR D2'] += 1
+            if '2018/01/27' in date_strs or '2018/01/28' in date_strs:
+                ggr_name_dates_stats['GGR-16 AND GGR-18'] += 1
+        if '2018/01/27' in date_strs or '2018/01/28' in date_strs:
+            ggr_name_dates_stats['GGR-18 D1 OR D2'] += 1
+        if '2016/01/30' in date_strs and '2016/01/31' in date_strs:
+            ggr_name_dates_stats['GGR-16 D1 AND D2'] += 1
+        if '2018/01/27' in date_strs and '2018/01/28' in date_strs:
+            ggr_name_dates_stats['GGR-18 D1 AND D2'] += 1
+
+    ggr16_pl_index, ggr16_pl_error = sight_resight_count(
+        ggr_name_dates_stats['2016/01/30'],
+        ggr_name_dates_stats['2016/01/31'],
+        ggr_name_dates_stats['GGR-16 D1 AND D2'],
+    )
+    ggr_name_dates_stats['GGR-16 PL INDEX'] = '%0.01f +/- %0.01f' % (
+        ggr16_pl_index,
+        ggr16_pl_error,
+    )
+    total = ggr_name_dates_stats['GGR-16 D1 OR D2']
+    ggr_name_dates_stats['GGR-16 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
+        100.0 * total / ggr16_pl_index,
+        100.0 * total / (ggr16_pl_index + ggr16_pl_error),
+        100.0 * min(1.0, total / (ggr16_pl_index - ggr16_pl_error)),
+    )
+
+    ggr18_pl_index, ggr18_pl_error = sight_resight_count(
+        ggr_name_dates_stats['2018/01/27'],
+        ggr_name_dates_stats['2018/01/28'],
+        ggr_name_dates_stats['GGR-18 D1 AND D2'],
+    )
+    ggr_name_dates_stats['GGR-18 PL INDEX'] = '%0.01f +/- %0.01f' % (
+        ggr18_pl_index,
+        ggr18_pl_error,
+    )
+    total = ggr_name_dates_stats['GGR-18 D1 OR D2']
+    ggr_name_dates_stats['GGR-18 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
+        100.0 * total / ggr18_pl_index,
+        100.0 * total / (ggr18_pl_index + ggr18_pl_error),
+        100.0 * min(1.0, total / (ggr18_pl_index - ggr18_pl_error)),
+    )
+
     occurrence_block_lines = (
         [
             ('--' * num_tabs),
@@ -1110,9 +1216,12 @@ def get_dbinfo(
         None
         if short
         else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
-        None
+        ('GGR Days                     = %s' % (align_dict2(ggr_dates_stats),))
         if with_ggr
-        else ('GGR Days                     = %s' % (align_dict2(ggr_dates_stats),)),
+        else None,
+        ('GGR Name Stats               = %s' % (align_dict2(ggr_name_dates_stats),))
+        if with_ggr
+        else None,
     ]
 
     contributor_block_lines = (
@@ -1675,3 +1784,100 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         fnum = 0
 
     return fnum + 1
+
+
+def sight_resight_count(nvisit1, nvisit2, resight):
+    r"""
+    Lincoln Petersen Index
+
+    The Lincoln-Peterson index is a method used to estimate the total number of
+    individuals in a population given two independent sets observations.  The
+    likelihood of a population size is a hypergeometric distribution given by
+    assuming a uniform sampling distribution.
+
+    Args:
+        nvisit1 (int): the number of individuals seen on visit 1.
+        nvisit2 (int): be the number of individuals seen on visit 2.
+        resight (int): the number of (matched) individuals seen on both visits.
+
+    Returns:
+        tuple: (pl_index, pl_error)
+
+    LaTeX:
+        \begin{equation}\label{eqn:lpifull}
+            L(\poptotal \given \nvisit_1, \nvisit_2, \resight) =
+            \frac{
+                \binom{\nvisit_1}{\resight}
+                \binom{\poptotal - \nvisit_1}{\nvisit_2 - \resight}
+            }{
+                \binom{\poptotal}{\nvisit_2}
+            }
+        \end{equation}
+        Assuming that $T$ has a uniform prior distribution, the maximum
+          likelihood estimation of population size given two visits to a
+          location is:
+        \begin{equation}\label{eqn:lpi}
+            \poptotal \approx
+            \frac{\nvisit_1 \nvisit_2}{\resight} \pm 1.96 \sqrt{\frac{{(\nvisit_1)}^2 (\nvisit_2) (\nvisit_2 - \resight)}{\resight^3}}
+        \end{equation}
+
+    References:
+        https://en.wikipedia.org/wiki/Mark_and_recapture
+        https://en.wikipedia.org/wiki/Talk:Mark_and_recapture#Statistical_treatment
+        https://mail.google.com/mail/u/0/#search/lincoln+peterse+n/14c6b50227f5209f
+        https://probabilityandstats.wordpress.com/tag/maximum-likelihood-estimate/
+        http://math.arizona.edu/~jwatkins/o-mle.pdf
+
+    CommandLine:
+        python -m wbia.other.dbinfo sight_resight_count --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from wbia.other.dbinfo import *  # NOQA
+        >>> nvisit1 = 100
+        >>> nvisit2 = 20
+        >>> resight = 10
+        >>> (pl_index, pl_error) = sight_resight_count(nvisit1, nvisit2, resight)
+        >>> result = '(pl_index, pl_error) = %s' % ut.repr2((pl_index, pl_error))
+        >>> pl_low = max(pl_index - pl_error, 1)
+        >>> pl_high = pl_index + pl_error
+        >>> print('pl_low = %r' % (pl_low,))
+        >>> print('pl_high = %r' % (pl_high,))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import wbia.plottool as pt
+        >>> import scipy, scipy.stats
+        >>> x = pl_index  # np.array([10, 11, 12])
+        >>> k, N, K, n = resight, x, nvisit1, nvisit2
+        >>> #k, M, n, N = k, N, k, n  # Wiki to SciPy notation
+        >>> #prob = scipy.stats.hypergeom.cdf(k, N, K, n)
+        >>> fig = pt.figure(1)
+        >>> fig.clf()
+        >>> N_range = np.arange(1, pl_high * 2)
+        >>> # Something seems to be off
+        >>> probs = sight_resight_prob(N_range, nvisit1, nvisit2, resight)
+        >>> pl_prob = sight_resight_prob([pl_index], nvisit1, nvisit2, resight)[0]
+        >>> pt.plot(N_range, probs, 'b-', label='probability of population size')
+        >>> pt.plt.title('nvisit1=%r, nvisit2=%r, resight=%r' % (
+        >>>     nvisit1, nvisit2, resight))
+        >>> pt.plot(pl_index, pl_prob, 'rx', label='Lincoln Peterson Estimate')
+        >>> pt.plot([pl_low, pl_high], [pl_prob, pl_prob], 'gx-',
+        >>>         label='Lincoln Peterson Error Bar')
+        >>> pt.legend()
+        >>> ut.show_if_requested()
+    """
+    import math
+
+    try:
+        nvisit1 = float(nvisit1)
+        nvisit2 = float(nvisit2)
+        resight = float(resight)
+        pl_index = int(math.ceil((nvisit1 * nvisit2) / resight))
+        pl_error_num = float((nvisit1 ** 2) * nvisit2 * (nvisit2 - resight))
+        pl_error_dom = float(resight ** 3)
+        pl_error = int(math.ceil(1.96 * math.sqrt(pl_error_num / pl_error_dom)))
+    except ZeroDivisionError:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+        pl_error = 0
+    return pl_index, pl_error

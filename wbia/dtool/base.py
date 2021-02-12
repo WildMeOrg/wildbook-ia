@@ -9,7 +9,7 @@ import copy
 import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
-logger = logging.getLogger('wbia')
+logger = logging.getLogger('wbia.dtool')
 
 
 class StackedConfig(ut.DictLike, ut.HashComparable):

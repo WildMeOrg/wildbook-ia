@@ -40,7 +40,7 @@ import random
 
 
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
-logger = logging.getLogger('wbia')
+logger = logging.getLogger('wbia.dtool')
 
 
 EXTERN_SUFFIX = '_extern_uri'

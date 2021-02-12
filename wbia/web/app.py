@@ -17,9 +17,6 @@ import utool as ut
 logger = logging.getLogger('wbia')
 
 
-logger.setLevel(logging.INFO)
-
-
 try:
     try:
         from werkzeug.wsgi import DispatcherMiddleware
@@ -176,6 +173,10 @@ def start_tornado(
             utool_logfile_handler = None
 
         if utool_logfile_handler is not None:
+            for handler in utool_logfile_handler.handlers:
+                if isinstance(handler, ut.CustomStreamHandler):
+                    utool_logfile_handler.removeHandler(handler)
+
             logger_list = []
             try:
                 logger_list += [
@@ -190,12 +191,13 @@ def start_tornado(
             except AttributeError:
                 pass
             logger_list += [
+                logging.getLogger(),
                 logging.getLogger('concurrent'),
                 logging.getLogger('concurrent.futures'),
-                logging.getLogger('flask_cors.core'),
-                logging.getLogger('flask_cors'),
-                logging.getLogger('flask_cors.decorator'),
-                logging.getLogger('flask_cors.extension'),
+                # logging.getLogger('flask_cors.core'),
+                # logging.getLogger('flask_cors'),
+                # logging.getLogger('flask_cors.decorator'),
+                # logging.getLogger('flask_cors.extension'),
                 logging.getLogger('urllib3'),
                 logging.getLogger('requests'),
                 logging.getLogger('tornado'),
@@ -203,9 +205,10 @@ def start_tornado(
                 logging.getLogger('tornado.application'),
                 logging.getLogger('tornado.general'),
                 logging.getLogger('websocket'),
+                logging.getLogger('wbia'),
             ]
             for logger_ in logger_list:
-                logger_.setLevel(logging.INFO)
+                logger_.setLevel(logging.DEBUG)
                 logger_.addHandler(utool_logfile_handler)
 
         if start_web_loop:

@@ -48,10 +48,6 @@ PST = pytz.timezone('US/Pacific')
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
 logger = logging.getLogger('wbia')
 
-# logging.getLogger().setLevel(logging.DEBUG)
-# logger.setLevel(logging.DEBUG)
-
-
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -2588,12 +2584,12 @@ def _get_exemplar_gids(ibs):
 def print_dbinfo(ibs, **kwargs):
     from wbia.other import dbinfo
 
-    dbinfo.get_dbinfo(ibs, *kwargs)
+    dbinfo.get_dbinfo(ibs, **kwargs)
 
 
 @register_ibs_method
 def print_infostr(ibs, **kwargs):
-    logger.info(ibs.get_infostr())
+    logger.info(ibs.get_infostr(**kwargs))
 
 
 @register_ibs_method

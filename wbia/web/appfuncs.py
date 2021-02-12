@@ -206,23 +206,23 @@ def template(template_directory=None, template_filename=None, **kwargs):
     # Update global args with the template's args
     _global_args = dict(global_args)
     _global_args.update(kwargs)
-    logger.info('[appfuncs] template()')
+    # logger.info('[appfuncs] template()')
     app = controller_inject.get_flask_app()
     # flask hates windows apparently
     template_ = template_.replace('\\', '/')
-    logger.info('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
-    logger.info('[appfuncs.template] * template_directory = %r' % (template_directory,))
-    logger.info('[appfuncs.template] * template_filename = %r' % (template_filename,))
-    logger.info('[appfuncs.template] * template_ = %r' % (template_,))
+    # logger.info('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
+    # logger.info('[appfuncs.template] * template_directory = %r' % (template_directory,))
+    # logger.info('[appfuncs.template] * template_filename = %r' % (template_filename,))
+    # logger.info('[appfuncs.template] * template_ = %r' % (template_,))
     try:
         ret = flask.render_template(template_, **_global_args)
         # ret = flask.render_template(full_template_fpath, **_global_args)
     except jinja2.exceptions.TemplateNotFound as ex:
         logger.info('Error template not found')
         full_template_fpath = join(app.template_folder, template_)
-        logger.info(
-            '[appfuncs.template] * full_template_fpath = %r' % (full_template_fpath,)
-        )
+        # logger.info(
+        #     '[appfuncs.template] * full_template_fpath = %r' % (full_template_fpath,)
+        # )
         ut.checkpath(full_template_fpath, verbose=True)
         ut.printex(ex, 'Template error in appfuncs', tb=True)
         raise
