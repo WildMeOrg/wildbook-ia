@@ -483,12 +483,25 @@ class InfrLearning(object):
 
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
+        species = 'zebra_grevys'
         infr.print('Loading task_thresh for species: %r' % (species,))
         assert species in infr.task_thresh_dict
         infr.task_thresh = infr.task_thresh_dict[species]
         infr.print('infr.task_thresh: %r' % (infr.task_thresh,))
         infr.print('Loading verifiers for species: %r' % (species,))
-        infr.verifiers = deploy.Deployer().load_published(ibs, species)
+        try:
+            infr.verifiers = deploy.Deployer().load_published(ibs, species)
+            message = 'Loaded verifiers %r' % (infr.verifiers,)
+            infr.print(message)
+        except TypeError as ex:
+            message = 'Error: Failed to load verifiers for %r' % (species,)
+            ut.printex(
+                ex,
+                message,
+                iswarning=True,
+                tb=True,
+            )
+            infr.print(message)
 
     def load_latest_classifiers(infr, dpath):
         from wbia.algo.verif import deploy

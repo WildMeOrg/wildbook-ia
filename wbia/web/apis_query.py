@@ -2045,3 +2045,16 @@ def query_graph_v2_on_request_review(future):
             graph_client.update(None)
             callback_type = 'finished'
         query_graph_v2_callback(graph_client, callback_type)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m wbia.algo.detect.train_assigner --allexamples
+    """
+    import multiprocessing
+
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+
+    ut.doctest_funcs()
