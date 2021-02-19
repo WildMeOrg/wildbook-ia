@@ -4637,7 +4637,7 @@ def turk_identification_graph_refer(
         assert imgsetid == imgsetid_
         assert species in ['zebra_grevys']
 
-        gid_list = ibs.get_imageset_gids(15)
+        gid_list = ibs.get_imageset_gids(imgsetid)
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
 
         species_list = ibs.get_annot_species_texts(aid_list)
@@ -4646,6 +4646,7 @@ def turk_identification_graph_refer(
 
         flags = [species == 'zebra_grevys' for species in species_list]
         aids = ut.compress(aid_list, flags)
+
         config = {
             'classifier_algo': 'densenet',
             'classifier_weight_filepath': 'canonical_zebra_grevys_v4',
@@ -4660,11 +4661,17 @@ def turk_identification_graph_refer(
             confidence if prediction == 'positive' else 1.0 - confidence
             for prediction, confidence in zip(prediction_list, confidence_list)
         ]
-        canonical_list = [confidence >= 0.01 for confidence in confidence_list]
+        canonical_list = [confidence >= 0.001 for confidence in confidence_list]
+        canonical_dict = dict(zip(aids, canonical_list))
+
+        canonical_flag_list = []
+        for aid in aid_list:
+            canonical_flag = canonical_dict.get(aid, False)
+            canonical_flag_list.append(canonical_flag)
 
         aid_list_ = []
         zipped = list(
-            zip(aid_list, species_list, viewpoint_list, quality_list, canonical_list)
+            zip(aid_list, species_list, viewpoint_list, quality_list, canonical_flag_list)
         )
         for aid, species_, viewpoint_, quality_, canonical_ in zipped:
             assert None not in [species_, viewpoint_, quality_]
@@ -4676,7 +4683,7 @@ def turk_identification_graph_refer(
                     continue
                 if 'right' not in viewpoint_:
                     continue
-                if quality_ < 3:
+                if quality_ <= 2:
                     continue
             aid_list_.append(aid)
 
