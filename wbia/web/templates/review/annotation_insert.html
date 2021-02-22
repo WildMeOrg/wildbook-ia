@@ -7,7 +7,7 @@
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}" id="ia-annotation-form">
     <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 300px !important;">
     <div style="text-align: center; color: #aaa;">
-      <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+      <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
     </div>
     <br/>
 
@@ -85,16 +85,16 @@
 -->
     <br/>
     <!-- <span class="pull-left" style="margin-top: 15px;">Species:</span> -->
-    <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
-    <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
     {% if previous %}
-      <a class="btn btn-default pull-right" id="ia-turk-previous" href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+      <a class="btn btn-default pull-right" id="ia-review-previous" href="{{ url_for('review_annotation') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
     {% endif %}
     <br/>
     <br/>
-    <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
-    <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
-    <!-- <input type="submit" name="ia-annotation-submit" id="ia-turk-submit-junk" class="btn btn-default pull-right" value="Make Junk" style="margin-right: 20px;"> -->
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+    <!-- <input type="submit" name="ia-annotation-submit" id="ia-review-submit-junk" class="btn btn-default pull-right" value="Make Junk" style="margin-right: 20px;"> -->
 
     <div style="margin-top:-19px;">
       Species:
@@ -111,7 +111,7 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-annotation.js') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/review-annotation.js') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript">
@@ -131,7 +131,7 @@
       update_label();
 
       {% if display_instructions %}
-        $('#ia-turk-instructions').modal('show');
+        $('#ia-review-instructions').modal('show');
       {% endif %}
     });
 

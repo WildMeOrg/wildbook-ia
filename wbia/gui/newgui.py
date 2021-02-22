@@ -1649,14 +1649,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.show_imgsetid_list_in_web(imgsetid_list),
                     ),
                     (
-                        "Turk imageset's detections in Web",
-                        lambda: ibswgt.back.show_imgsetid_detection_turk_in_web(
+                        "Review imageset's detections in Web",
+                        lambda: ibswgt.back.show_imgsetid_detection_review_in_web(
                             imgsetid_list
                         ),
                     ),
                     (
-                        "Turk imageset's annotations in Web",
-                        lambda: ibswgt.back.show_imgsetid_annotation_turk_in_web(
+                        "Review imageset's annotations in Web",
+                        lambda: ibswgt.back.show_imgsetid_annotation_review_in_web(
                             imgsetid_list
                         ),
                     ),

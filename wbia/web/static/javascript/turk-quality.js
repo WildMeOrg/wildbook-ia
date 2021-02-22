@@ -19,17 +19,17 @@ $(window).keydown(function(event) {
   if(key == 13)
   {
     // Enter key pressed, submit form as accept
-    $('input#turk-submit-accept').click();
+    $('input#review-submit-accept').click();
   }
   else if(key == 32)
   {
     // Space key pressed, submit form as delete
-    $('input#turk-submit-delete').click();
+    $('input#review-submit-delete').click();
   }
   else if(key == 80)
   {
     // P key pressed, follow previous link
-    $('a#turk-previous')[0].click();
+    $('a#review-previous')[0].click();
   }
   else if(49 <= key && key <= 56)
   {

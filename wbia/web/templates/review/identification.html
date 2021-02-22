@@ -2,7 +2,7 @@
 {% block content %}
   {% if finished == 'engine' %}
   <div class="alert alert-info text-center" role="alert">
-    Please wait, ID is currently being started and will soon have matches to review.<br/><br/>This page will automatically refresh to check for status updates in <span id="ia-identification-engine-refresh-timer"></span> seconds.  You may safely navigate to other pages and return here when identification turking is ready.
+    Please wait, ID is currently being started and will soon have matches to review.<br/><br/>This page will automatically refresh to check for status updates in <span id="ia-identification-engine-refresh-timer"></span> seconds.  You may safely navigate to other pages and return here when identification reviewing is ready.
   </div>
 
   <script type="text/javascript">
@@ -24,11 +24,11 @@
   {% elif finished == 'unavailable' %}
   <div class="alert alert-info text-center" role="alert">
     The identification matching review you are attempting to review cannot be completed.  The aids in this
-    review are currently being used by <a href="{{ url_for('turk_identification_graph') }}?{{ refer_graph_uuid_str }}">UUID {{ refer_query_uuid }}</a>
+    review are currently being used by <a href="{{ url_for('review_identification_graph') }}?{{ refer_graph_uuid_str }}">UUID {{ refer_query_uuid }}</a>
   </div>
   {% elif finished %}
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, identification turking is completed.  Thank you!
+    Congratulations, identification reviewing is completed.  Thank you!
     <br/>
     <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View annotations</a>
   </div>
@@ -60,21 +60,21 @@
         Time Delta: {{ timedelta_str }}
         <br/>
         Match Aids: ({{ aid1 }}, {{ aid2 }})
-        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
+        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
         <br/>
-      {% include 'turk/identification_insert.html' %}
+      {% include 'review/identification_insert.html' %}
     </div>
 
     <div class="col-lg-1"></div>
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Identification Review Turking Instructions</h4>
+          <h4 class="modal-title" id="myModalLabel">Identification Reviewing Instructions</h4>
         </div>
         <div class="modal-body">
           <ol>

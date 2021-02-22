@@ -46,7 +46,7 @@ $(window).keydown(function(event) {
 
         if (key == 13) {
             // Enter key pressed
-            $('input#ia-turk-submit-accept').click();
+            $('input#ia-review-submit-accept').click();
         } else if (key == 81) {
             // Q key pressed
             update_radius_slider(1)
@@ -62,7 +62,7 @@ $(window).keydown(function(event) {
             element.prop('checked', !element.is(':checked')).trigger('change');
         } else if (key == 80) {
             // P key pressed, follow previous link
-            $('a#ia-turk-previous')[0].click();
+            $('a#ia-review-previous')[0].click();
         }
     }
 });

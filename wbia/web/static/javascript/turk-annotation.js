@@ -41,20 +41,20 @@ $(window).keydown(function(event) {
   if (!hotkeys_global_disabled) {
     if (key == 13) {
       // Enter key pressed, submit form as accept
-      $('input#ia-turk-submit-accept').click();
+      $('input#ia-review-submit-accept').click();
     } else if (key == 32) {
       // Space key pressed, submit form as delete
-      $('input#ia-turk-submit-delete').click();
+      $('input#ia-review-submit-delete').click();
     }
     else if(key == 76)
     {
       // L key pressed, submit form as left
-      $('input#ia-turk-submit-left').click();
+      $('input#ia-review-submit-left').click();
     }
     else if(key == 82)
     {
       // R key pressed, submit form as right
-      $('input#ia-turk-submit-right').click();
+      $('input#ia-review-submit-right').click();
     }
     else if (key == 69) {
       // E key pressed, No quality
@@ -111,7 +111,7 @@ $(window).keydown(function(event) {
       children.eq(index).prop('selected', true);
     } else if (key == 80) {
       // P key pressed, follow previous link
-      $('a#ia-turk-previous')[0].click();
+      $('a#ia-review-previous')[0].click();
     } else if (48 <= key && key <= 56) {
       // 48 == numeric key 0
       // 49 == numeric key 1

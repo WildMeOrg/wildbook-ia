@@ -93,7 +93,7 @@
             <tr {% if reviewed %}class="success"{% endif %}>
               <th scope="row">{{ pid }}</th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" pid="{{ pid }}" /></td>
-              <th><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}">{{ type }}</a></th>
+              <th><a href="{{ url_for('review_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}">{{ type }}</a></th>
               <td><a href="{{ url_for('view_annotations') }}?aid={{ aid }}">Go to</a></td>
               <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a>
             </tr>

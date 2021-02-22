@@ -3,7 +3,7 @@
 Dependencies: flask, tornado
 
 SeeAlso:
-    routes.turk_identification
+    routes.review_identification
 """
 import logging
 from wbia.control import controller_inject

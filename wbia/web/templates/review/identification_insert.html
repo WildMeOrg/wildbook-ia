@@ -49,23 +49,23 @@
           <div class="row" id="identification-buttons">
 
             <div class="col-lg-4">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-match" class="btn btn-info" value="Same Animal">
+              <input type="submit" name="identification-submit" id="ia-review-submit-match" class="btn btn-info" value="Same Animal">
             </div>
             <div class="col-lg-4">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-notmatch" class="btn btn-danger" value="Different Animals">
+              <input type="submit" name="identification-submit" id="ia-review-submit-notmatch" class="btn btn-danger" value="Different Animals">
             </div>
             <div class="col-lg-4">
-              <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
-              <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
+              <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
             </div>
 
             <!--
             <div class="col-lg-3"></div>
             <div class="col-lg-3">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-photobomb" class="btn btn-danger" value="Photobomb">
+              <input type="submit" name="identification-submit" id="ia-review-submit-photobomb" class="btn btn-danger" value="Photobomb">
             </div>
             <div class="col-lg-3">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-scenerymatch" class="btn btn-danger" value="Scenery Match">
+              <input type="submit" name="identification-submit" id="ia-review-submit-scenerymatch" class="btn btn-danger" value="Scenery Match">
             </div>
             <div class="col-lg-3"></div>
             -->
@@ -74,14 +74,14 @@
             <div class="col-lg-3">
               <div class="checkbox">
                 <label>
-                  <input id="ia-turk-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
+                  <input id="ia-review-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
                 </label>
               </div>
             </div>
             <div class="col-lg-3">
               <div class="checkbox">
                 <label>
-                  <input id="ia-turk-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
+                  <input id="ia-review-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
                 </label>
               </div>
             </div>
@@ -91,7 +91,7 @@
           <div class="row">
             <div class="col-lg-12" style="text-align: center;">
               Confidence:
-              <select id="ia-turk-confidence" class="form-control" name="ia-turk-confidence" style="width: 200px; margin-left: auto; margin-right: auto;" autofocus="autofocus">
+              <select id="ia-review-confidence" class="form-control" name="ia-review-confidence" style="width: 200px; margin-left: auto; margin-right: auto;" autofocus="autofocus">
                 {% for confidence_nice, confidence_text, confidence_selected in confidence_list %}
                   <option value="{{ confidence_text }}" {% if confidence_selected %}selected{% endif %}>{{ confidence_nice }}</option>
                 {% endfor %}
@@ -101,23 +101,23 @@
 
           <div class="row" style="margin-top: 10px;">
             <div class="col-lg-4">
-              <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-info" value="Exclude Top"> -->
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-exclude-top" class="btn btn-info" value="Exclude Top"> -->
             </div>
             <div class="col-lg-4">
               {% if previous %}
                 {% if previous_version == 1 %}
-                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                 {% else %}
                   {% if hogwild %}
-                      <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                   {% else %}
-                      <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                   {% endif %}
                 {% endif %}
               {% endif %}
             </div>
             <div class="col-lg-4">
-              <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-info" value="Exclude Bottom"> -->
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-exclude-bottom" class="btn btn-info" value="Exclude Bottom"> -->
             </div>
           </div>
         {% endif %}
@@ -126,24 +126,24 @@
         {% if view_orientation == 'horizontal' %}
           <div class="row" id="identification-buttons">
             <div class="col-lg-12">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-match" class="btn btn-info" value="Same Animal">
+              <input type="submit" name="identification-submit" id="ia-review-submit-match" class="btn btn-info" value="Same Animal">
             </div>
             <div class="col-lg-12">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-notmatch" class="btn btn-danger" value="Different Animals">
+              <input type="submit" name="identification-submit" id="ia-review-submit-notmatch" class="btn btn-danger" value="Different Animals">
             </div>
             <div class="col-lg-12">
-              <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
-              <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
+              <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
             </div>
             <div class="col-lg-12">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-photobomb" class="btn btn-danger" value="Photobomb">
+              <input type="submit" name="identification-submit" id="ia-review-submit-photobomb" class="btn btn-danger" value="Photobomb">
             </div>
             <div class="col-lg-12">
-              <input type="submit" name="identification-submit" id="ia-turk-submit-scenerymatch" class="btn btn-danger" value="Scenery Match">
+              <input type="submit" name="identification-submit" id="ia-review-submit-scenerymatch" class="btn btn-danger" value="Scenery Match">
             </div>
             <div class="col-lg-12">
               {% if previous %}
-                <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
               {% endif %}
             </div>
           </div>
@@ -155,7 +155,7 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-identification.js', version='20180606-0') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/review-identification.js', version='20180606-0') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">

@@ -2318,8 +2318,8 @@ class SQLDatabaseController(object):
                 default_value = six.text_type(column[4])
                 # HACK: add parens if the value contains parens in the future
                 # all default values should contain parens
-                LEOPARD_TURK_HACK = True
-                if LEOPARD_TURK_HACK and '(' not in default_value:
+                LEOPARD_HACK = True
+                if LEOPARD_HACK and '(' not in default_value:
                     col_type += ' DEFAULT %s' % default_value
                 else:
                     col_type += ' DEFAULT (%s)' % default_value

@@ -515,7 +515,7 @@ $(window).keydown(function(event) {
     // if(key == 13)
     // {
     //   // Enter key pressed, submit form as accept
-    //   // $('input#turk-submit-accept').click();
+    //   // $('input#review-submit-accept').click();
     // }
     // else
     if (key == 17) {
@@ -525,7 +525,7 @@ $(window).keydown(function(event) {
     else if(key == 32)
     {
       // Space key pressed, submit form as delete
-      $('input#turk-submit-delete').click();
+      $('input#review-submit-delete').click();
     }
     else if (key == 67) {
       // C pressed
@@ -545,17 +545,17 @@ $(window).keydown(function(event) {
     // else if(key == 76)
     // {
     //   // L key pressed, submit form as left
-    //   $('input#turk-submit-left').click();
+    //   $('input#review-submit-left').click();
     // }
     // else if(key == 82)
     // {
     //   // R key pressed, submit form as right
-    //   $('input#turk-submit-right').click();
+    //   $('input#review-submit-right').click();
     // }
     else if(key == 80)
     {
       // P key pressed, follow previous link
-      $('a#turk-previous')[0].click();
+      $('a#review-previous')[0].click();
     }
   }
 });

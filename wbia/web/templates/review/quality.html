@@ -2,7 +2,7 @@
 {% block content %}
   {% if finished %}
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, turking is completed.  Thank you!
+    Congratulations, reviewing is completed.  Thank you!
     {% if imgsetid %}
     <br/>
     <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">Return to imgsetid: {{ imgsetid }}</a>
@@ -30,10 +30,10 @@
 
 
       Aid: {{ aid }}
-      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
       <br/>
       <form method="post" action="{{ url_for('submit_quality') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
@@ -70,10 +70,10 @@
         </div>
         <br/>
         {% if previous %}
-          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+          <a class="btn btn-default pull-left" id="review-previous" href="{{ url_for('review_quality') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
-        <input type="submit" name="quality-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
-        <input type="submit" name="quality-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+        <input type="submit" name="quality-submit" id="review-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <input type="submit" name="quality-submit" id="review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
       </form
       <br/>
     </div>
@@ -82,15 +82,15 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Quality Turking Instructions</h4>
+          <h4 class="modal-title" id="myModalLabel">Quality Reviewing Instructions</h4>
         </div>
         <div class="modal-body">
-          To turk a quality, simply adjust the slider for the image based on the following guidelines:
+          To review a quality, simply adjust the slider for the image based on the following guidelines:
           <br/>
           <img class="image-center" src="{{ url_for('static', filename='images/example-quality1.jpg') }}" style="width:80%; margin-top: 30px;">
           <p style="width:100%; color:#888; text-align:center;"><i>The "information" (keypoints) in the image that we want to classify</i></p>
@@ -298,7 +298,7 @@
               </div>
             </div>
 
-            <li>For faster quality annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding star ratings.  We urge every turker to use the number pad to input the quality for speed purposes. </li>
+            <li>For faster quality annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding star ratings.  We urge every reviewer to use the number pad to input the quality for speed purposes. </li>
             <li>If the quality cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>
@@ -328,12 +328,12 @@
   {% endif %}
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-quality.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/review-quality.js') }}"></script>
 <script type="text/javascript">
   update_label();
 
   {% if display_instructions %}
-    $('#turk-instructions').modal('show');
+    $('#review-instructions').modal('show');
   {% endif %}
 </script>
 {% endblock %}

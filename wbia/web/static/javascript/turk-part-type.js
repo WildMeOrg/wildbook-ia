@@ -58,7 +58,7 @@ $(window).keydown(function(event) {
   if (!hotkeys_global_disabled) {
     if (key == 13) {
       // Enter key pressed, submit form as accept
-      $('input#ia-turk-submit-accept').click();
+      $('input#ia-review-submit-accept').click();
     }
     else if (49 <= key && key <= 57) {
       // 48 == numeric key 0
@@ -92,18 +92,18 @@ $(window).keydown(function(event) {
     }
     else if (key == 32) {
       // Space key pressed, submit form as delete
-      $('input#ia-turk-submit-skip').click();
+      $('input#ia-review-submit-skip').click();
       event.preventDefault()
     }
     // else if(key == 76)
     // {
     //   // L key pressed, submit form as left
-    //   $('input#ia-turk-submit-left').click();
+    //   $('input#ia-review-submit-left').click();
     // }
     // else if(key == 82)
     // {
     //   // R key pressed, submit form as right
-    //   $('input#ia-turk-submit-right').click();
+    //   $('input#ia-review-submit-right').click();
     // }
     else if (key == 67) {
       // C pressed
@@ -122,7 +122,7 @@ $(window).keydown(function(event) {
       update_buttons()
     } else if (key == 80) {
       // P key pressed, follow previous link
-      $('a#ia-turk-previous')[0].click();
+      $('a#ia-review-previous')[0].click();
     }
   }
 });

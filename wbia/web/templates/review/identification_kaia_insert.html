@@ -39,7 +39,7 @@
     <div class="row">
       <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: left;">
 <!--
-        <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-top" class="btn btn-default" value="Exclude Left">
+        <input type="submit" name="identification-submit" id="ia-review-submit-exclude-top" class="btn btn-default" value="Exclude Left">
         <br/>
 -->
 <!--
@@ -134,27 +134,27 @@
       <div class="col-lg-8 col-md-8 col-sm-8" id="identification-image-container">
         <div class="row" id="identification-buttons">
           <div class="col-lg-4 col-md-4 col-sm-4">
-            <input type="submit" name="identification-submit" id="ia-turk-submit-match" class="btn btn-info" value="Same Animal">
+            <input type="submit" name="identification-submit" id="ia-review-submit-match" class="btn btn-info" value="Same Animal">
           </div>
           <div class="col-lg-4 col-md-4 col-sm-4">
-            <input type="submit" name="identification-submit" id="ia-turk-submit-notmatch" class="btn btn-danger" value="Different Animals">
+            <input type="submit" name="identification-submit" id="ia-review-submit-notmatch" class="btn btn-danger" value="Different Animals">
           </div>
           <div class="col-lg-4 col-md-4 col-sm-4">
-            <!-- <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
-            <input type="submit" name="identification-submit" id="ia-turk-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
+            <!-- <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
+            <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
           </div>
           <div class="col-lg-2 col-md-2 col-sm-2"></div>
           <div class="col-lg-4 col-md-4 col-sm-4">
             <div class="checkbox">
               <label>
-                <input id="ia-turk-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
+                <input id="ia-review-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
               </label>
             </div>
           </div>
           <div class="col-lg-4 col-md-4 col-sm-4">
             <div class="checkbox">
               <label>
-                <input id="ia-turk-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
+                <input id="ia-review-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
               </label>
             </div>
           </div>
@@ -205,12 +205,12 @@
             <div class="col-lg-4 col-md-4 col-sm-4">
               {% if previous %}
                 {% if previous_version == 1 %}
-                  <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                 {% else %}
                   {% if hogwild %}
-                      <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                   {% else %}
-                      <a class="btn btn-default" id="ia-turk-previous" href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
                   {% endif %}
                 {% endif %}
               {% endif %}
@@ -221,7 +221,7 @@
       </div>
       <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: right;">
 <!--
-        <input type="submit" name="identification-submit" id="ia-turk-submit-exclude-bottom" class="btn btn-default" value="Exclude Right">
+        <input type="submit" name="identification-submit" id="ia-review-submit-exclude-bottom" class="btn btn-default" value="Exclude Right">
         <br/>
 -->
 <!--
@@ -317,7 +317,7 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-identification-kaia.js', version='20180606-0') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/review-identification-kaia.js', version='20180606-0') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">

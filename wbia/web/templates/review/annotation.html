@@ -13,7 +13,7 @@
   </div>
 
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, annotation turking is completed.  Thank you!
+    Congratulations, annotation reviewing is completed.  Thank you!
     <br/>
     <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View completed annotations</a>
   </div>
@@ -39,9 +39,9 @@
       {% endif %}
 
       Aid: {{ aid }}
-      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-turk-instructions" style="font-size: 18px;"></span>
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-review-instructions" style="font-size: 18px;"></span>
 
-      {% include 'turk/annotation_insert.html' %}
+      {% include 'review/annotation_insert.html' %}
 
       <br/>
     </div>
@@ -50,15 +50,15 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Annotation Turking Instructions</h4>
+          <h4 class="modal-title" id="myModalLabel">Annotation Reviewing Instructions</h4>
         </div>
         <div class="modal-body">
-          To turk a viewpoint, simply adjust the slider for the image based on the following guidelines:
+          To review a viewpoint, simply adjust the slider for the image based on the following guidelines:
           <br/>
           <img class="image-center" src="{{ url_for('static', filename='images/guideline-inverted.jpg') }}">
           <p style="width:100%; color:#888; text-align:center;"><i>Top-down view (view from above)</i></p>
@@ -117,14 +117,14 @@
               </div>
               <div class="col-lg-2"></div>
             </div>
-            <li>For faster viewpoint annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 8</b> are mapped to increments of 45&deg;.  We urge every turker to use the number pad to input the viewpoint, but you can further adjust the slider to get even closer accuracy, down to a precision of a single degree. </li>
+            <li>For faster viewpoint annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 8</b> are mapped to increments of 45&deg;.  We urge every reviewer to use the number pad to input the viewpoint, but you can further adjust the slider to get even closer accuracy, down to a precision of a single degree. </li>
             <li>If the viewpoint cannot be determined due to not enough information (e.g., the animal is obscured by some obstacle, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>
                 <li>simply press the <b>Delete</b> button</li>
               </ol>
 <!--               No degree information is saved for images that are skipped - the current value of the slider is completely ignored.</li>
-            <li>In the event that there is more than one animal in the image, give the viewpoint for the most dominant object.  This is a subjective decision and up to the turker to address the ambiguity.  However, if the ambiguity cannot be resolved <i>nicely</i> (i.e., there are two differing viewpoints of two equally dominant animals in the image), then simply skip the image.  All images that are skipped multiple times are automatically flagged for further review by the research team.</li>
+            <li>In the event that there is more than one animal in the image, give the viewpoint for the most dominant object.  This is a subjective decision and up to the reviewer to address the ambiguity.  However, if the ambiguity cannot be resolved <i>nicely</i> (i.e., there are two differing viewpoints of two equally dominant animals in the image), then simply skip the image.  All images that are skipped multiple times are automatically flagged for further review by the research team.</li>
  -->
             <li>The <b>Space</b> key deletes the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits the current quality of the slider as the image's viewpoint.</li>
             <li>Enter viewpoints as fast as you can while maintaining perfect accuracy.</li>
@@ -135,7 +135,7 @@
             <div class="col-lg-12"></div>
           </div>
 
-          To turk a quality, simply adjust the slider for the image based on the following guidelines:
+          To review a quality, simply adjust the slider for the image based on the following guidelines:
           <br/>
           <img class="image-center" src="{{ url_for('static', filename='images/example-quality1.jpg') }}" style="width:80%; margin-top: 30px;">
           <p style="width:100%; color:#888; text-align:center;"><i>The "information" (keypoints) in the image that we want to classify</i></p>
@@ -343,7 +343,7 @@
               </div>
             </div>
 
-            <li>For faster quality annotation, the number keys or a keypad can be used.  The letters <b>Q</b> (1), <b>W</b> (2), <b>E</b> (3), <b>R</b> (4), <b>T</b> (5) are mapped to their corresponding star ratings.  We urge every turker to use the number pad to input the quality for speed purposes. </li>
+            <li>For faster quality annotation, the number keys or a keypad can be used.  The letters <b>Q</b> (1), <b>W</b> (2), <b>E</b> (3), <b>R</b> (4), <b>T</b> (5) are mapped to their corresponding star ratings.  We urge every reviewer to use the number pad to input the quality for speed purposes. </li>
             <li>If the quality cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>

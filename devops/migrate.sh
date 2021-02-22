@@ -1,21 +1,21 @@
 #!/bin/bash
 
-export DB_NAME="NAME"  # e.g. `manta` or `jaguar`
-export DB_PATH="/data/path"
-export WBIA_CACHE_PATH="/data/cache"
+export DB_NAME="carnivore"  # e.g. `manta` or `jaguar`
+export DB_PATH="/data/ibeis/ACW_Master"
+export WBIA_CACHE_PATH="/data/ibeis/cache"
 
-export DB_PORT=5000
+export DB_PORT=5011
 
-export WB_DOMAIN="domain.com"
+export WB_DOMAIN="africancarnivore.wildbook.org"
 
-export HOST_UID=$(id -u)
-export HOST_USER="${USER}"
+export HOST_UID=1001
+export HOST_USER="jason.parham"
 
-export POSTGRES_PASSWORD="< INSERT POSTGRES_PASSWORD >"
-export DB_PASSWORD="< INSERT DB_PASSWORD >"
+export POSTGRES_PASSWORD="8kzu8Br3YMcdVLbJPmZGCkTuXM6j6n7L"
+export DB_PASSWORD="pZXUt3kysvcRPQCwCpcrACtPMC5aBQuM"
 
-export AWS_ACCESS_KEY_ID="< INSERT AWS_ACCESS_KEY_ID >"
-export AWS_SECRET_ACCESS_KEY="< INSERT AWS_SECRET_ACCESS_KEY >"
+export AWS_ACCESS_KEY_ID="AKIAJPDDJLGOCKGVSZAA"
+export AWS_SECRET_ACCESS_KEY="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"
 
 ##########
 

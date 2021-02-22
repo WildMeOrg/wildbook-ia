@@ -2,9 +2,9 @@
 {% block content %}
   {% if finished %}
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, cameratrap turking is completed.  Thank you!
+    Congratulations, cameratrap reviewing is completed.  Thank you!
     <br/>
-    <a href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}">Continue by turking detections</a>
+    <a href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}">Continue by reviewing detections</a>
   </div>
   {% else %}
   <div class="row">
@@ -37,7 +37,7 @@
           <div class="row">
             <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: left;">
               {% if previous %}
-                <a class="btn btn-default" id="turk-previous" href="{{ url_for('turk_cameratrap') }}?imgsetid={{ imgsetid }}&gid={{ previous }}">Previous {{ previous }}</a>
+                <a class="btn btn-default" id="review-previous" href="{{ url_for('review_cameratrap') }}?imgsetid={{ imgsetid }}&gid={{ previous }}">Previous {{ previous }}</a>
               {% endif %}
 
             </div>
@@ -45,7 +45,7 @@
               <input type="checkbox" name="cameratrap-toggle" id="ia-cameratrap-toggle" data-width="100" {% if positive %}checked{% endif %}>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: right;">
-              <input type="submit" name="cameratrap-submit" id="turk-submit-accept" class="btn btn-primary" value="Accept">
+              <input type="submit" name="cameratrap-submit" id="review-submit-accept" class="btn btn-primary" value="Accept">
             </div>
           </div>
 
@@ -61,7 +61,7 @@
 {% block content_custom_css %}
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-cameratrap.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/review-cameratrap.js') }}"></script>
 <script type="text/javascript">
 
   toggle = $('#ia-cameratrap-toggle');

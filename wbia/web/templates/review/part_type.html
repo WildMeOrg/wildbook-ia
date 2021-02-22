@@ -13,7 +13,7 @@
   </div>
 
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, part type turking is completed.  Thank you!
+    Congratulations, part type reviewing is completed.  Thank you!
     <br/>
     <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View completed part types</a>
   </div>
@@ -41,13 +41,13 @@
       Part Rowid: {{ part_rowid }}
       <br/>
       Aid: {{ aid }}
-      <!-- <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-turk-instructions" style="font-size: 18px;"></span> -->
+      <!-- <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-review-instructions" style="font-size: 18px;"></span> -->
 
       <div class="ia-container">
         <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}" id="ia-part-type-form"onsubmit="return check_form();" >
           <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 300px !important;">
           <div style="text-align: center; color: #aaa; margin-top: 5px">
-            <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+            <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
             <span id="ia-glyphicon-refresh" class="glyphicon glyphicon-refresh pull-right" style="font-size: 18px; color: #333" title="Refresh list of part types based on frequency"></span>
           </div>
           <br/>
@@ -85,16 +85,16 @@
           <br/>
 
           {% if previous %}
-            <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_part_types') }}?imgsetid={{ imgsetid }}&part_rowid={{ previous }}">Previous {{ previous }}</a>
+            <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_part_types') }}?imgsetid={{ imgsetid }}&part_rowid={{ previous }}">Previous {{ previous }}</a>
           {% endif %}
-          <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
 
           <br/>
           <br/>
 
-          <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
-          <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
-          <input type="submit" name="ia-part-type-submit" id="ia-turk-submit-refresh" class="btn btn-default pull-right" value="Refresh" style="margin-left: 20px; display: none">
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-refresh" class="btn btn-default pull-right" value="Refresh" style="margin-left: 20px; display: none">
 
         </form>
       </div>
@@ -106,12 +106,12 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Part Type Turking Instructions</h4>
+          <h4 class="modal-title" id="myModalLabel">Part Type Reviewing Instructions</h4>
         </div>
         <div class="modal-body">
           TODO
@@ -162,7 +162,7 @@
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-part-type.js', version='20200204-1') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/review-part-type.js', version='20200204-1') }}" ia-dependency="javascript"></script>
   {% endif %}
 
   <script type="text/javascript">
@@ -177,7 +177,7 @@
       });
 
       $('#ia-glyphicon-refresh').click(function () {
-        $('input#ia-turk-submit-refresh')[0].click();
+        $('input#ia-review-submit-refresh')[0].click();
       });
 
       $('#part-type-add').on('shown.bs.modal', function() {
@@ -194,7 +194,7 @@
       });
 
       {% if display_instructions %}
-        $('#ia-turk-instructions').modal('show');
+        $('#ia-review-instructions').modal('show');
       {% endif %}
 
       update_buttons();

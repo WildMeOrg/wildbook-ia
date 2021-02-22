@@ -9,15 +9,15 @@
             <br/>
             <textarea rows="10" cols="10" name="aid_list" id="aid_list" style="width: 100%; height: 200px;">{% autoescape false %}{{ candidate_aid_list }}{% endautoescape %}</textarea>
         </div>
-        <input type="submit" name="group-review-submit" id="turk-submit-review"   class="btn btn-default pull-left" value="Begin Review"/>
-        <input type="submit" name="group-review-submit" id="turk-submit-populate" class="btn btn-default pull-right" value="Populate"/>
+        <input type="submit" name="group-review-submit" id="review-submit-review"   class="btn btn-default pull-left" value="Begin Review"/>
+        <input type="submit" name="group-review-submit" id="review-submit-populate" class="btn btn-default pull-right" value="Populate"/>
         <br/>
         <select name="group-review-mode" class="form-control" style="margin-top:30px;">
             {% for mode, mode_nice in mode_list %}
             <option value="{{ mode }}" default>{{ mode_nice }}</option>
             {% endfor %}
-            <!--<option value="turk_viewpoint" default>Viewpoint</option>-->
-            <!--<option value="turk_quality">Quality</option>-->
+            <!--<option value="review_viewpoint" default>Viewpoint</option>-->
+            <!--<option value="review_quality">Quality</option>-->
         </select>
     </form>
   </div>

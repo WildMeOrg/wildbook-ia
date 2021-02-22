@@ -983,24 +983,24 @@ class MainWindowBackend(GUIBACK_BASE):
         url = 'http://%s/view/images/?imgsetid=%s' % (web_domain, imgsetid_str)
         webbrowser.open(url)
 
-    def show_imgsetid_detection_turk_in_web(back, imgsetid_list, **kwargs):
+    def show_imgsetid_detection_review_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
 
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid_str)
+        url = 'http://%s/review/detection/?imgsetid=%s' % (web_domain, imgsetid_str)
         webbrowser.open(url)
 
-    def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
+    def show_imgsetid_annotation_review_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
 
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join(map(str, imgsetid_list))
         web_domain = back.get_background_web_domain()
-        url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid_str)
+        url = 'http://%s/review/annotation/?imgsetid=%s' % (web_domain, imgsetid_str)
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
@@ -2100,9 +2100,9 @@ class MainWindowBackend(GUIBACK_BASE):
             # back.user_info(msg='Detection has finished. Launching web review')
             web_domain = back.get_background_web_domain()
             if review_in_web_mode == 'annotations':
-                url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid)
+                url = 'http://%s/review/annotation/?imgsetid=%s' % (web_domain, imgsetid)
             elif review_in_web_mode == 'detections':
-                url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid)
+                url = 'http://%s/review/detection/?imgsetid=%s' % (web_domain, imgsetid)
             else:
                 raise ValueError('invalid value for review_in_web_mode')
             logger.info('[guiback] Opening... %r' % (url,))

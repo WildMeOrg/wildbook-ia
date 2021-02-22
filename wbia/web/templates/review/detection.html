@@ -2,9 +2,9 @@
 {% block content %}
   {% if finished %}
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, detection turking is completed.  Thank you!
+    Congratulations, detection reviewing is completed.  Thank you!
     <br/>
-    <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Continue by turking annotation metadata</a>
+    <a href="{{ url_for('review_annotation') }}?imgsetid={{ imgsetid }}">Continue by reviewing annotation metadata</a>
   </div>
   {% else %}
     <div class="row">
@@ -43,7 +43,7 @@
  -->          </div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center; {% if is_staged %}font-weight: bold; color: #ac2925;"{% endif %}">
-            <b>Image ID{% if THROW_TEST_AOI_TURKING_AVAILABLE %}*{% endif %} (GID): {{ gid }}</b>
+            <b>Image ID{% if THROW_TEST_AOI_REVIEWING_AVAILABLE %}*{% endif %} (GID): {{ gid }}</b>
             {% if only_aid %}
               <br/>
               <b style="color: #c9302c;">Annotation ID (AID): {{ only_aid }}</b>
@@ -55,14 +55,14 @@
           </div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
-            <span class="glyphicon glyphicon-exclamation-sign pull-right" data-toggle="modal" data-target="#turk-new-features" style="font-size: 18px; color: #f0ad4e;"></span>
-            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px; margin-right: 8px; "></span>
-            <span class="glyphicon glyphicon-question-sign pull-right" data-toggle="modal" data-target="#turk-species-examples" style="font-size: 18px; margin-right: 8px; margin-left: 10px;"></span>
+            <span class="glyphicon glyphicon-exclamation-sign pull-right" data-toggle="modal" data-target="#review-new-features" style="font-size: 18px; color: #f0ad4e;"></span>
+            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px; margin-right: 8px; "></span>
+            <span class="glyphicon glyphicon-question-sign pull-right" data-toggle="modal" data-target="#review-species-examples" style="font-size: 18px; margin-right: 8px; margin-left: 10px;"></span>
             <span class="pull-right" style="color: #aaa;"><i>Hold <b>Ctrl</b> for hotkeys</i></span>
           </div>
         </div>
 
-        {% include 'turk/detection_insert.html' %}
+        {% include 'review/detection_insert.html' %}
       </div>
 
       <div class="col-lg-1"></div>
@@ -103,7 +103,7 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-species-examples" tabindex="-1" role="dialog" aria-labelledby="speciesModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-species-examples" tabindex="-1" role="dialog" aria-labelledby="speciesModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -212,7 +212,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-instructions">Go to instructions</button>
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#review-instructions">Go to instructions</button>
           <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-detection_species_examples_seen', '1');">Got it!</button>
         </div>
       </div>
@@ -220,12 +220,12 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Detection Review Turking Instructions</h4>
+          <h4 class="modal-title" id="myModalLabel">Detection Reviewing Instructions</h4>
         </div>
         <div class="modal-body">
           To review the detections for an image, simply draw new rectangle bounding boxes (annotations) around animals that are missing annotations and delete annotations that should not exist based on the following guidelines:
@@ -237,7 +237,7 @@
               <ol style="margin: 20px 0px;">
                 <li>An annotation should <i>include</i> as much of the <i>foreground</i> animal as possible; this means cover the <b>entire</b> animal with the bounding box.</li>
                 <li>An annotation should <i>exclude</i> as much of the <i>background</i> landscape or other animals as possible; this means fit the bounding box <b>tightly</b> around the animal.</li>
-                <li>Only annotations for the species specified (top left of the page) should exist.  If the species is '____', annotate the most frequent or predominate species in the image.  If you are uncertain as to what the specified species looks like, ask a graduate student or <span data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples" style="text-decoration: underline; cursor: pointer">click here</span>.</li>
+                <li>Only annotations for the species specified (top left of the page) should exist.  If the species is '____', annotate the most frequent or predominate species in the image.  If you are uncertain as to what the specified species looks like, ask a graduate student or <span data-dismiss="modal" data-toggle="modal" data-target="#review-species-examples" style="text-decoration: underline; cursor: pointer">click here</span>.</li>
 
               </ol>
               The example images below show how hard it can be to satisfy these three simple requirements.
@@ -256,7 +256,7 @@
               <div class="col-lg-1"></div>
               <div class="col-lg-10" style="margin-top: 20px;">
                 <img src="{{ url_for('static', filename='images/example-detection2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Keypoint descriptors.  The oval regions are extracted within the bounding box based on how much <b>useful information</b> the algorithm can find.  As we can see, the keypoints really respond the zebra's face, legs and mid body.  The entire body of the zebra produces good, usable, informative keypoints.  The background, however, produces small, and not very important keypoints.  In order to be the most productive turker, always keep in mind what information these keypoints are trying to capture. [7]</p>
+                <p>Keypoint descriptors.  The oval regions are extracted within the bounding box based on how much <b>useful information</b> the algorithm can find.  As we can see, the keypoints really respond the zebra's face, legs and mid body.  The entire body of the zebra produces good, usable, informative keypoints.  The background, however, produces small, and not very important keypoints.  In order to be the most productive reviewer, always keep in mind what information these keypoints are trying to capture. [7]</p>
               </div>
               <div class="col-lg-1"></div>
             </div>
@@ -329,8 +329,8 @@
           </span>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('ia-detection_instructions_seen', '1');">Got it!</button>
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#review-species-examples">Go to species example images</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#review-species-examples"{% endif %}onclick="submit_cookie('ia-detection_instructions_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>
@@ -338,12 +338,12 @@
 
 
   <!-- Modal -->
-  <div class="modal fade" id="turk-new-features" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+  <div class="modal fade" id="review-new-features" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">New Features for Detection Turking</h4>
+          <h4 class="modal-title" id="myModalLabel">New Features for Detection Reviewing</h4>
         </div>
         <div class="modal-body">
           Here are some of the new features in the redesigned detection interface:
@@ -353,7 +353,7 @@
 
           <div class="row" style="margin-bottom:10px;">
             <div class="col-lg-12" style="text-align: center;">
-              <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('ia-detection_new_features_seen', '1');">Got it!</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#review-species-examples"{% endif %}onclick="submit_cookie('ia-detection_new_features_seen', '1');">Got it!</button>
             </div>
           </div>
 
@@ -402,7 +402,7 @@
                 <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
 
                 <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
-                    <b style="color: #f0ad4e">Note:</b> As a small (but important) aside, <b>all</b> individual animals (of the target species) in the image should have an annotated bounding box.  The intent is to have the same number of bounding boxes as the number of animals that can realistically and reliably be manually counted in the image.  If one can reasonably count 30 animals in the image, there should exist 30 corresponding bounding boxes.  This completeness assumption is crucial to the validity of the Annotation of Interest decision for a given image; any image that does not satisfy this condition should first be turked to obtain a complete set of annotations.
+                    <b style="color: #f0ad4e">Note:</b> As a small (but important) aside, <b>all</b> individual animals (of the target species) in the image should have an annotated bounding box.  The intent is to have the same number of bounding boxes as the number of animals that can realistically and reliably be manually counted in the image.  If one can reasonably count 30 animals in the image, there should exist 30 corresponding bounding boxes.  This completeness assumption is crucial to the validity of the Annotation of Interest decision for a given image; any image that does not satisfy this condition should first be reviewed to obtain a complete set of annotations.
                 </div>
 
                 <br/>
@@ -608,7 +608,7 @@
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-instructions">Go to instructions</button>
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#review-instructions">Go to instructions</button>
           <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-detection_new_features_seen', '1');">Got it!</button>
         </div>
       </div>

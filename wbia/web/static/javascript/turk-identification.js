@@ -20,32 +20,32 @@ $(window).keydown(function(event) {
     if(key == 84 || key == 49 || key == 97)
     {
       // T key pressed + 1
-      $('input#ia-turk-submit-match').click();
+      $('input#ia-review-submit-match').click();
     }
     else if(key == 70 || key == 50 || key == 98)
     {
       // F key pressed + 2
-      $('input#ia-turk-submit-notmatch').click();
+      $('input#ia-review-submit-notmatch').click();
     }
     else if(key == 67 || key == 51 || key == 99)
     {
       // C key pressed + 3
-      // $('input#ia-turk-submit-notcomparable').click();
+      // $('input#ia-review-submit-notcomparable').click();
     }
     else if(key == 81)
     {
       // Q key pressed
-      $('#ia-turk-photobomb').trigger('click');
+      $('#ia-review-photobomb').trigger('click');
     }
     else if(key == 87)
     {
       // W key pressed
-      $('#ia-turk-scenerymatch').trigger('click');
+      $('#ia-review-scenerymatch').trigger('click');
     }
     else if(key == 80)
     {
       // P key pressed
-      $('a#ia-turk-previous')[0].click();
+      $('a#ia-review-previous')[0].click();
     }
     else if(key == 90)
     {

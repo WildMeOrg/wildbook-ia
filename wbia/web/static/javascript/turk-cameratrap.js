@@ -10,12 +10,12 @@ $(window).keydown(function(event) {
     if(key == 13)
     {
       // Enter key pressed, submit form as accept
-      $('input#turk-submit-accept').click();
+      $('input#review-submit-accept').click();
     }
     else if(key == 80)
     {
       // P key pressed, follow previous link
-      $('a#turk-previous')[0].click();
+      $('a#review-previous')[0].click();
     } else if (key == 84) {
         // T pressed
         $('#ia-cameratrap-toggle').bootstrapToggle('toggle');

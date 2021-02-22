@@ -1014,7 +1014,7 @@ def check_database_overlap(ibs1, ibs2):
         >>> import wbia
         >>> import utool as ut
         >>> #ibs1 = wbia.opendb(db='PZ_Master0')
-        >>> #ibs2 = wbia.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> #ibs2 = wbia.opendb(dbdir='/raid/work2/PZ_Master')
         >>> db1 = ut.get_argval('--db1', str, default='PZ_MTEST')
         >>> db2 = ut.get_argval('--db2', str, default='testdb1')
         >>> dbdir1 = ut.get_argval('--dbdir1', str, default=None)

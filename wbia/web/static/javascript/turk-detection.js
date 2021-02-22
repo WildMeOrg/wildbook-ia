@@ -463,18 +463,18 @@ $(window).keydown(function(event) {
             element.prop('checked', !element.is(':checked')).trigger('change');
         } else if (key == 13) {
             // Enter key pressed
-            $('input#ia-turk-submit-accept').click();
+            $('input#ia-review-submit-accept').click();
         }
         else if (key == 32) {
             // // Space key pressed
-            // $('input#ia-turk-submit-clear').click();
-            $('input#ia-turk-submit-accept').click();
+            // $('input#ia-review-submit-clear').click();
+            $('input#ia-review-submit-accept').click();
             event.preventDefault();
             return false;
         }
         else if (key == 80) {
             // P key pressed, follow previous link
-            $('a#ia-turk-previous')[0].click();
+            $('a#ia-review-previous')[0].click();
         }
 
         if ( ! hotkeys_disabled) {

@@ -86,11 +86,11 @@
         <div style="margin-top: -27px;">
           {% if previous %}
             {% if is_canonical %}
-              <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_detection_canonical') }}?imgsetid={{ imgsetid }}&aid={{ previous_only_aid }}&{{ config_str }}">
+              <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_detection_canonical') }}?imgsetid={{ imgsetid }}&aid={{ previous_only_aid }}&{{ config_str }}">
                 Previous GID {{ previous }}, AID {{ previous_only_aid }}
               </a>
             {% else %}
-              <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}&gid={{ previous }}&only_aid={{ previous_only_aid }}&{{ config_str }}">
+              <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}&gid={{ previous }}&only_aid={{ previous_only_aid }}&{{ config_str }}">
                 Previous GID {{ previous }}
               </a>
             {% endif %}
@@ -103,17 +103,17 @@
         <div id="ia-metadata-rowid" style="margin-top: 5px; height: 10px;">ROWID</div>
 
         <div style="margin-top: -27px;">
-          <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+          <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept">
           {% if not EMBEDDED_JAVASCRIPT %}
-            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-clear"  class="btn btn-warning pull-right" value="Clear" style="margin-right: 15px;"> -->
-            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-delete" class="btn btn-danger pull-right" value="Delete" style="margin-right: 15px;" onclick="return confirm('Are you sure you want to delete this image?')"> -->
+            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-clear"  class="btn btn-warning pull-right" value="Clear" style="margin-right: 15px;"> -->
+            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-delete" class="btn btn-danger pull-right" value="Delete" style="margin-right: 15px;" onclick="return confirm('Are you sure you want to delete this image?')"> -->
           {% endif %}
-          <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-turk-submit-accept" class="btn btn-danger pull-right" value="Poor Boxes" style="margin-right: 15px;"> -->
+          <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-accept" class="btn btn-danger pull-right" value="Poor Boxes" style="margin-right: 15px;"> -->
 
           <br/>
           <br/>
-          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-turk-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-top: 10px;">
-          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-turk-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-right: 15px; margin-top: 10px;">
+          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-review-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-top: 10px;">
+          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-review-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-right: 15px; margin-top: 10px;">
         </div>
       </div>
     </div>
@@ -302,13 +302,13 @@
     {% endif %}
 
     <textarea id="ia-detection-data" name="ia-detection-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form"></textarea>
-    <textarea id="ia-detection-manifest" name="ia-detection-manifest" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form">{% if THROW_TEST_AOI_TURKING_AVAILABLE %}{{ THROW_TEST_AOI_TURKING_MANIFEST|safe }}{% endif %}</textarea>
+    <textarea id="ia-detection-manifest" name="ia-detection-manifest" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form">{% if THROW_TEST_AOI_REVIEWING_AVAILABLE %}{{ THROW_TEST_AOI_REVIEWING_MANIFEST|safe }}{% endif %}</textarea>
   </form>
 
   {% if EMBEDDED_JAVASCRIPT %}
     {{ EMBEDDED_JAVASCRIPT|safe }}
   {% else %}
-    <script src="{{ url_for('static', filename='javascript/turk-detection.js', version='20190110-2') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/review-detection.js', version='20190110-2') }}" ia-dependency="javascript"></script>
     <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20190110-2') }}" ia-dependency="javascript"></script>
   {% endif %}
 
@@ -717,15 +717,15 @@
       $('.ia-detection-hotkey').hide();
 
       {% if display_instructions %}
-        $('#turk-instructions').modal('show');
+        $('#review-instructions').modal('show');
       {% endif %}
 
       {% if display_species_examples %}
-        $('#turk-class-examples').modal('show');
+        $('#review-class-examples').modal('show');
       {% endif %}
 
       {% if display_new_features %}
-        $('#turk-new-features').modal('show');
+        $('#review-new-features').modal('show');
       {% endif %}
     });
   </script>
