@@ -23,13 +23,13 @@
   {% if filtered %}
     {% if num_imgsetids > 0 %}
       <div class="alert alert-info" role="alert">
-        Filtering for imgsetids: {{ imgsetid_list }}
+        Filtering for ImageSet IDs: {{ imgsetid_list }}
         <a href="{{ url_for('view_images') }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
     {% if num_gids > 0 %}
       <div class="alert alert-info" role="alert">
-        Filtering for gids: {{ gid_list }}
+        Filtering for Image IDs: {{ gid_list }}
         <a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
@@ -66,7 +66,7 @@
       <table class="table table-striped table-fixed">
         <thead>
           <tr>
-            <th>GID</th>
+            <th>ID</th>
             <th>Thumbnail</th>
             <th>Image Name</th>
             <th>Date / Time</th>
@@ -87,7 +87,7 @@
             {% for (gid, imgsetid_list_str_, name, unixtime, datetime, gps, party, contributor, notes, reviewed) in image_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
               <th scope="row">{{ gid }}</th>
-              <td><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}"><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ gid }}" /></a></td>
+              <td><a href="{{ url_for('review_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}"><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ gid }}" /></a></td>
               <td>{{ name }}</td>
               <td>{{ datetime }}</td>
               <td>{{ gps }}</td>

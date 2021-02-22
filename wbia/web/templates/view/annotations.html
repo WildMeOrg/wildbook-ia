@@ -21,19 +21,19 @@
   {% if filtered %}
     {% if num_imgsetids > 0 %}
       <div class="alert alert-info" role="alert">
-        Filtering for imgsetids: {{ imgsetid_list }}
+        Filtering for ImageSet IDs: {{ imgsetid_list }}
         <a href="{{ url_for('view_annotations') }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
     {% if num_gids > 0 %}
       <div class="alert alert-info" role="alert">
-        Filtering for gids: {{ gid_list }}
+        Filtering for Image IDs: {{ gid_list }}
         <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
     {% if num_aids > 0 %}
       <div class="alert alert-info" role="alert">
-        Filtering for aids: {{ aid_list }}
+        Filtering for Annotation IDs: {{ aid_list }}
         <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
@@ -96,10 +96,10 @@
               <td>{{ src }}</td>
               <td>{{ name }}</td>
               <td>{{ exemplar }}</td>
-              <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ species }}</a></td>
-              <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
-              <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
-              <td><a href="{{ url_for('turk_demographics') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
+              <td><a href="{{ url_for('review_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ species }}</a></td>
+              <td><a href="{{ url_for('review_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
+              <td><a href="{{ url_for('review_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
+              <td><a href="{{ url_for('review_demographics') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
               <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid_list_str_ }}">Go to</a></td>
             </tr>

@@ -1,0 +1,204 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="row">
+    <div class="col-lg-12">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, part type reviewing is completed.  Thank you!
+    <br/>
+    <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View completed part types</a>
+  </div>
+
+  {% else %}
+  <div class="row">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not REFER_DST_ENCODED %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
+        </div>
+      {% endif %}
+
+      Part ID: {{ part_rowid }}
+      <br/>
+      Annotation ID: {{ aid }}
+      <!-- <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#ia-review-instructions" style="font-size: 18px;"></span> -->
+
+      <div class="ia-container">
+        <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}" id="ia-part-type-form"onsubmit="return check_form();" >
+          <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 300px !important;">
+          <div style="text-align: center; color: #aaa; margin-top: 5px">
+            <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
+            <span id="ia-glyphicon-refresh" class="glyphicon glyphicon-refresh pull-right" style="font-size: 18px; color: #333" title="Refresh list of part types based on frequency"></span>
+          </div>
+          <br/>
+
+          <input type="text" name="ia-part-type-part-rowid" value="{{ part_rowid }}" style="display: none;" readonly>
+          <input type="text" name="ia-part-type-aid" value="{{ aid }}" style="display: none;" readonly>
+          <input type="text" name="ia-part-types" value="{{ part_type_list_json }}" style="display: none;" readonly>
+          <input type="text" name="ia-part-type-value" value="" style="display: none;" readonly>
+
+          <div class="row">
+            {% for part_type_index, part_nice_text, part_type_text, part_type_selected in part_type_option_list %}
+              <div class="col-lg-3 col-md-3 col-sm-3" style="margin-bottom: 10px; text-align: center; {% if part_type_text == '____' %}padding-bottom: 20px;{% endif %}">
+                <div class="ia-part-type-button btn" id="ia-part-type-button-{{ part_type_index }}"  value="{{ part_type_text }}" style="position: relative;" {% if part_type_selected %}selected="selected"{% endif %}">
+                  <div style="position: absolute; left: -8px; top: -8px; background: white; border: 1px solid #888; width: 17px; height: 17px; border-radius: 17px; font-size: 10px; z-index: 10; color: #888">
+                    {{ part_type_index }}
+                  </div>
+                  {{ part_nice_text }}
+                </div>
+              </div>
+            {% endfor %}
+
+            <div id="ia-part-type-select-other" class="col-lg-3 col-md-3 col-sm-3" style="margin-bottom: 10px; text-align: center;">
+              <div style="max-width: 200px; margin-left: auto; margin-right: auto;">
+                <select id="ia-part-type-new" class="form-control" name="ia-part-type-new" style="width: 100%;" autofocus="autofocus">
+                  {% for part_type_index, part_nice_text, part_type_text, part_type_selected in part_type_extended_list %}
+                    <option value="{{ part_type_text }}" {% if part_type_selected %}selected{% endif %}>{{ part_nice_text }}</option>
+                  {% endfor %}
+                </select>
+                <span class="pull-left" data-toggle="modal" data-target="#part-type-add" style="color: #aaa; cursor: pointer;"><i>Add Part Type</i></span>
+              </div>
+            </div>
+
+          </div>
+
+          <br/>
+
+          {% if previous %}
+            <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_part_types') }}?imgsetid={{ imgsetid }}&part_rowid={{ previous }}">Previous {{ previous }}</a>
+          {% endif %}
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
+
+          <br/>
+          <br/>
+
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
+          <input type="submit" name="ia-part-type-submit" id="ia-review-submit-refresh" class="btn btn-default pull-right" value="Refresh" style="margin-left: 20px; display: none">
+
+        </form>
+      </div>
+
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Part Type Reviewing Instructions</h4>
+        </div>
+        <div class="modal-body">
+          TODO
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-part_type_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Modal -->
+  <div class="modal fade" id="part-type-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Part Type</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="part-type-add" class="form-control" placeholder="New part type" style="margin-top:10px;">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_part_type();">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+
+  {% if EMBEDDED_CSS %}
+    {{ EMBEDDED_CSS|safe }}
+  {% endif %}
+
+{% endblock %}
+{% block content_custom_javascript %}
+  {% if EMBEDDED_JAVASCRIPT %}
+    {{ EMBEDDED_JAVASCRIPT|safe }}
+  {% else %}
+    <script src="{{ url_for('static', filename='javascript/review-part-type.js', version='20200204-1') }}" ia-dependency="javascript"></script>
+  {% endif %}
+
+  <script type="text/javascript">
+    var hotkeys_global_disabled = false;
+
+    $(document).ready(function() {
+
+      $("#ia-part-type-new").focus()
+
+      $(".ia-part-type-button").click(function () {
+        update_buttons($(this));
+      });
+
+      $('#ia-glyphicon-refresh').click(function () {
+        $('input#ia-review-submit-refresh')[0].click();
+      });
+
+      $('#part-type-add').on('shown.bs.modal', function() {
+          $('input[name="part-type-add"]').val('')
+          hotkeys_global_disabled = true;
+      });
+
+      $('#part-type-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+      });
+
+      $('#ia-part-type-select-other').change(function () {
+        update_buttons();
+      });
+
+      {% if display_instructions %}
+        $('#ia-review-instructions').modal('show');
+      {% endif %}
+
+      update_buttons();
+    });
+
+  </script>
+{% endblock %}

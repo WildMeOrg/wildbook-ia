@@ -1,0 +1,355 @@
+<div class="ia-container">
+
+  {% if EMBEDDED_CSS %}
+    {{ EMBEDDED_CSS|safe }}
+  {% endif %}
+
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-identification-form">
+    <div id="ia-bbox-annotator"></div>
+    <div style="text-align: center; color: #aaa;">
+      <!-- <span><i>Note: A match should be marked as "Cannot Tell" if it is impossible to verify the match (e.g. differing viewpoints, unrecoverable quality, can not determine which is the main animal in the annotation).</i></span> -->
+    </div>
+    <br/>
+    <input type="text" name="identification-aid1" value="{{ aid1 }}" style="display: none;" readonly>
+    <input type="text" name="identification-aid2" value="{{ aid2 }}" style="display: none;" readonly>
+    <input type="text" name="identification-replace-review-rowid" value="{{ replace_review_rowid }}" style="display: none;" readonly>
+    <input type="text" name="identification-annot-uuid-1" value="{{ annot_uuid_1 }}" style="display: none;" readonly>
+    <input type="text" name="identification-annot-uuid-2" value="{{ annot_uuid_2 }}" style="display: none;" readonly>
+    <input type="text" name="identification-hogwild" value="{{ hogwild }}" style="display: none;" readonly>
+    <input type="text" name="identification-hogwild-species" value="{{ hogwild_species }}" style="display: none;" readonly>
+    <input type="text" name="identification-graph_uuid" value="{{ graph_uuid }}" style="display: none;" readonly>
+
+    {% if hogwild %}
+      <div class="row">
+        <div class="col-lg-2 col-md-2 col-sm-2"></div>
+        <div class="col-lg-8 col-md-8 col-sm-8" style="text-align: center; color: red; margin-top: -10px; margin-bottom: 10px;">
+          Hogwild UUID: {{ graph_uuid }}
+        </div>
+        <div class="col-lg-2 col-md-2 col-sm-2"></div>
+      </div>
+    {% endif %}
+
+<!--     <div class="row">
+      <div class="col-lg-2 col-md-2 col-sm-2"></div>
+      <div class="col-lg-8 col-md-8 col-sm-8" id="identification-score-container"{% if alert %}style="background-color: #c9302c; color: white;" {% endif %}>
+        <span id="identification-score">{{ match_data }}</span>
+      </div>
+      <div class="col-lg-2 col-md-2 col-sm-2"></div>
+    </div> -->
+    <div class="row">
+      <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: left;">
+<!--
+        <input type="submit" name="identification-submit" id="ia-review-submit-exclude-top" class="btn btn-default" value="Exclude Left">
+        <br/>
+-->
+<!--
+        <div class="form-group">
+          <h4><u>Sex</u></h4>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="sex-annot-1" id="radio-sex-1-1" value="male" {% if sex1 == 'male' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-sex-1-1">
+              Male
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="sex-annot-1" id="radio-sex-1-2" value="female" {% if sex1 == 'female' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-sex-1-2">
+              Female
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="sex-annot-1" id="radio-sex-1-3" value="unknown" {% if sex1 == 'unknown' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-sex-1-3">
+              Unknown
+            </label>
+          </div>
+        </div>
+ -->
+
+        <div class="form-group">
+          <h4><u>Age</u></h4>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-1" value="age1" {% if age1 == 'age1' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-1">
+              0-3 Months
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-2" value="age2" {% if age1 == 'age2' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-2">
+              3-6 Months
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-3" value="age3" {% if age1 == 'age3' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-3">
+              6-12 Months
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-4" value="age4" {% if age1 == 'age4' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-4">
+              Yearling
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-5" value="age5" {% if age1 == 'age5' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-5">
+              2-Year-Old
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-6" value="age6" {% if age1 == 'age6' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-6">
+              Adult
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="age-annot-1" id="radio-age-1-7" value="unknown" {% if age1 == 'unknown' %}checked{% endif %}>
+            <label class="form-check-label" for="radio-age-1-7">
+              Unknown
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4><u>Condition</u></h4>
+          <input type="range" class="custom-range" min="0" max="5" name="condition-annot-1" id="range-condition-annot-1" value="{{ condition1 }}">
+          <div class="row-custom-expand">
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">0</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">1</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">2</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">3</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">4</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">5</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4><u>Comment</u></h4>
+          <textarea class="form-control" id="textarea-comment-annot-1" name="comment-annot-1" rows="3">{{ comment1 }}</textarea>
+        </div>
+
+      </div>
+      <div class="col-lg-8 col-md-8 col-sm-8" id="identification-image-container">
+        <div class="row" id="identification-buttons">
+          <div class="col-lg-4 col-md-4 col-sm-4">
+            <input type="submit" name="identification-submit" id="ia-review-submit-match" class="btn btn-info" value="Same Animal">
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-4">
+            <input type="submit" name="identification-submit" id="ia-review-submit-notmatch" class="btn btn-danger" value="Different Animals">
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-4">
+            <!-- <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
+            <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
+          </div>
+          <div class="col-lg-2 col-md-2 col-sm-2"></div>
+          <div class="col-lg-4 col-md-4 col-sm-4">
+            <div class="checkbox">
+              <label>
+                <input id="ia-review-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
+              </label>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-4">
+            <div class="checkbox">
+              <label>
+                <input id="ia-review-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
+              </label>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-2 col-sm-2"></div>
+        </div>
+
+        <!-- <br/> -->
+
+        <img class="identification-image" id="identification-image-matches" src="{{ image_matches_src }}" />
+        <!-- <br/> -->
+        <img class="identification-image" id="identification-image-clean" src="{{ image_clean_src }}"/>
+        <br/>
+
+        <div class="row" id="image-spacer">
+          <div class="col-lg-5 col-md-5 col-sm-5">
+            <i>
+            {{ imagesettext_1_list_str }}
+            </i>
+            <br/>
+            <b>
+            {{ original_filename_1_str }}
+            </b>
+          </div>
+          <div class="col-lg-2 col-md-2 col-sm-2"></div>
+          <div class="col-lg-5 col-md-5 col-sm-5">
+            <i>
+            {{ imagesettext_2_list_str }}
+            </i>
+            <br/>
+            <b>
+            {{ original_filename_2_str }}
+            </b>
+          </div>
+
+        </div>
+        <div class="form-group">
+          <h4><u>Match Comment</u></h4>
+          <textarea class="form-control" id="textarea-comment-match" name="comment-match" rows="3">{{ comment_match }}</textarea>
+        </div>
+
+
+        {% if REFER_DST_STR %}
+          <a href="/{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
+        {% endif %}
+          <div class="row" style="margin-top: 10px;">
+            <div class="col-lg-4 col-md-4 col-sm-4">
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4">
+              {% if previous %}
+                {% if previous_version == 1 %}
+                  <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                {% else %}
+                  {% if hogwild %}
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% else %}
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4">
+            </div>
+          </div>
+      </div>
+      <div class="col-lg-2 col-md-2 col-sm-2" style="text-align: right;">
+<!--
+        <input type="submit" name="identification-submit" id="ia-review-submit-exclude-bottom" class="btn btn-default" value="Exclude Right">
+        <br/>
+-->
+<!--
+        <div class="form-group">
+          <h4><u>Sex</u></h4>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-sex-2-1">
+              Male
+            </label>
+            <input class="form-check-input" type="radio" name="sex-annot-2" id="radio-sex-2-1" value="male" {% if sex2 == 'male' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-sex-2-2">
+              Female
+            </label>
+            <input class="form-check-input" type="radio" name="sex-annot-2" id="radio-sex-2-2" value="female" {% if sex2 == 'female' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-sex-2-3">
+              Unknown
+            </label>
+            <input class="form-check-input" type="radio" name="sex-annot-2" id="radio-sex-2-3" value="unknown" {% if sex2 == 'unknown' %}checked{% endif %}>
+          </div>
+        </div>
+-->
+        <div class="form-group">
+          <h4><u>Age</u></h4>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-1">
+              0-3 Months
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-1" value="age1" {% if age2 == 'age1' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-2">
+              3-6 Months
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-2" value="age2" {% if age2 == 'age2' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-3">
+              6-12 Months
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-3" value="age3" {% if age2 == 'age3' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-4">
+              Yearling
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-4" value="age4" {% if age2 == 'age4' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-5">
+              2-Year-Old
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-5" value="age5" {% if age2 == 'age5' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-6">
+              Adult
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-6" value="age6" {% if age2 == 'age6' %}checked{% endif %}>
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="radio-age-2-7">
+              Unknown
+            </label>
+            <input class="form-check-input" type="radio" name="age-annot-2" id="radio-age-2-7" value="unknown" {% if age2 == 'unknown' %}checked{% endif %}>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4><u>Condition</u></h4>
+          <input type="range" class="custom-range" min="0" max="5" name="condition-annot-2" id="range-condition-annot-2" value="{{ condition2 }}">
+          <div class="row-custom-expand">
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">0</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">1</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">2</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">3</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">4</div>
+            <div class="col-custom-span col-custom-span-6 col-custom-span-6-2">5</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4><u>Comment</u></h4>
+          <textarea class="form-control" id="textarea-comment-annot-2" name="comment-annot-2" rows="3">{{ comment2 }}</textarea>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if EMBEDDED_JAVASCRIPT %}
+    {{ EMBEDDED_JAVASCRIPT|safe }}
+  {% else %}
+    <script src="{{ url_for('static', filename='javascript/review-identification-kaia.js', version='20180606-0') }}" ia-dependency="javascript"></script>
+  {% endif %}
+
+  <script type="text/javascript" ia-dependency="javascript">
+    var zoom = false;
+    var animation = null;
+
+    function fix_height()
+    {
+      var max_height = 0;
+      $("#identification-image-container img").each(function(){
+        current_height = $(this).height();
+        max_height = Math.max(max_height, current_height);
+      });
+
+      $("#image-spacer").css("margin-top", max_height + "px");
+      second_height = $("#identification-buttons").height();
+      $(".ia-form").css("height", (max_height + second_height + 100) + "px");
+
+      $("#identification-image-container").css("height", max_height + "px");
+      $(".ia-container").css("height", $(".ia-form").height() + "px");
+    }
+
+    $( window ).resize(function() {
+      fix_height();
+    });
+
+    $(".identification-image").load(function() {
+      fix_height();
+    });
+
+    $( document ).ready(function() {
+      fix_height();
+    });
+  </script>
+</div>

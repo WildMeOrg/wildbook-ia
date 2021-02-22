@@ -21,7 +21,7 @@ PROMETHEUS_LIMIT = 1
 PROMETHEUS_DATA = {
     'info': Info(
         'wbia_db',
-        'Description of IBEIS database',
+        'Description of WBIA database',
     ),
     'update': Gauge(
         'wbia_update_seconds',
@@ -30,32 +30,32 @@ PROMETHEUS_DATA = {
     ),
     'imagesets': Gauge(
         'wbia_assets_imagesets',
-        'Number of imagesets in IBEIS database',
+        'Number of imagesets in WBIA database',
         ['name'],
     ),
     'images': Gauge(
         'wbia_assets_images',
-        'Number of images in IBEIS database',
+        'Number of images in WBIA database',
         ['name'],
     ),
     'annotations': Gauge(
         'wbia_assets_annotations',
-        'Number of annotations in IBEIS database',
+        'Number of annotations in WBIA database',
         ['name'],
     ),
     'parts': Gauge(
         'wbia_assets_parts',
-        'Number of parts in IBEIS database',
+        'Number of parts in WBIA database',
         ['name'],
     ),
     'names': Gauge(
         'wbia_assets_names',
-        'Number of names in IBEIS database',
+        'Number of names in WBIA database',
         ['name'],
     ),
     'species': Gauge(
         'wbia_assets_species',
-        'Number of species in IBEIS database',
+        'Number of species in WBIA database',
         ['name'],
     ),
     'engine': Gauge(
@@ -85,12 +85,12 @@ PROMETHEUS_DATA = {
     ),
     'api': Counter(
         'wbia_api_counter',
-        'Number of calls per IBEIS API',
+        'Number of calls per WBIA API',
         ['name', 'tag'],
     ),
     'route': Counter(
         'wbia_route_counter',
-        'Number of calls per IBEIS route endpoint',
+        'Number of calls per WBIA route endpoint',
         ['name', 'tag'],
     ),
     'exception': Counter(

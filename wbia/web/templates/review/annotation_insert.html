@@ -1,0 +1,139 @@
+<div class="ia-container">
+
+  {% if EMBEDDED_CSS %}
+    {{ EMBEDDED_CSS|safe }}
+  {% endif %}
+
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}" id="ia-annotation-form">
+    <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 300px !important;">
+    <div style="text-align: center; color: #aaa;">
+      <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
+    </div>
+    <br/>
+
+    <input type="text" name="ia-annotation-aid" value="{{ aid }}" style="display: none;" readonly>
+    Viewpoint: <span id="ia-annotation-viewpoint-label-text"></span>
+    <br/>
+    <input id="ia-annotation-viewpoint" type="range" name="ia-annotation-viewpoint-value" value="{{ viewpoint_value }}" min="-1" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+    <div class="row-custom-expand">
+      <div class="col-custom-span col-custom-span-9"><i>null</i></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-down"            ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-right rotate-45"  ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-right"           ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-up rotate-45" ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-up"              ></span></div>
+      <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
+    </div>
+    <br/>
+
+    <div class="row">
+      <div class="col-lg-6 col-md-6 col-sm-6">
+        Quality: <span id="ia-quality-label-text"></span>
+        <input id="ia-annotation-quality" type="range" name="ia-quality-value" value="{{ quality_value }}" min="-1" max="1" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <div class="row-custom-expand">
+          <div class="col-custom-span col-custom-span-3">
+            <i>null</i>
+          </div>
+          <div class="col-custom-span col-custom-span-3">
+            <span class="glyphicon glyphicon-remove"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-3">
+            <span class="glyphicon glyphicon-ok"></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 col-md-6 col-sm-6">
+          <div class="checkbox pull-right">
+            <label>
+              <input id="ia-annotation-multiple" name="ia-multiple-value" type="checkbox" {% if multiple_value %}checked{% endif %}> Multiple animals in image
+            </label>
+          </div>
+
+      </div>
+    </div>
+
+<!--
+    <div class="row-custom-expand" style="height: 50px;">
+      <div class="col-custom-span col-custom-span-5">
+        <span class="glyphicon glyphicon-star"></span>
+      </div>
+      <div class="col-custom-span col-custom-span-5">
+        <span class="glyphicon glyphicon-star"></span>
+        <span class="glyphicon glyphicon-star"></span>
+      </div>
+      <div class="col-custom-span col-custom-span-5">
+        <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
+        <span class="glyphicon glyphicon-star"></span>
+        <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
+      </div>
+      <div class="col-custom-span col-custom-span-5">
+        <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
+        <span class="glyphicon glyphicon-star"></span>
+        <span class="glyphicon glyphicon-star"></span>
+        <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
+      </div>
+      <div class="col-custom-span col-custom-span-5">
+        <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
+        <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
+        <span class="glyphicon glyphicon-star"></span>
+        <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
+        <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+      </div>
+    </div>
+-->
+    <br/>
+    <!-- <span class="pull-left" style="margin-top: 15px;">Species:</span> -->
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-left: 20px;">
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-left: 20px;">
+    {% if previous %}
+      <a class="btn btn-default pull-right" id="ia-review-previous" href="{{ url_for('review_annotation') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+    {% endif %}
+    <br/>
+    <br/>
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept" style="margin-left: 20px;">
+    <input type="submit" name="ia-annotation-submit" id="ia-review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+    <!-- <input type="submit" name="ia-annotation-submit" id="ia-review-submit-junk" class="btn btn-default pull-right" value="Make Junk" style="margin-right: 20px;"> -->
+
+    <div style="margin-top:-19px;">
+      Species:
+      <select id="ia-annotation-species" class="form-control" name="ia-annotation-species" style="width: 200px;">
+        {% for species_nice, species_text, species_selected in species_list %}
+          <option value="{{ species_text }}" {% if species_selected %}selected{% endif %}>{{ species_nice }}</option>
+        {% endfor %}
+      </select>
+      <span class="pull-left" data-toggle="modal" data-target="#species-add" style="color: #aaa; cursor: pointer;"><i>Add Species</i></span>
+    </div>
+
+  </form>
+
+  {% if EMBEDDED_JAVASCRIPT %}
+    {{ EMBEDDED_JAVASCRIPT|safe }}
+  {% else %}
+    <script src="{{ url_for('static', filename='javascript/review-annotation.js') }}" ia-dependency="javascript"></script>
+  {% endif %}
+
+  <script type="text/javascript">
+    var hotkeys_global_disabled = false;
+
+    $(document).ready(function() {
+
+      $('#species-add').on('shown.bs.modal', function() {
+          $('input[name="species-add"]').val('')
+          hotkeys_global_disabled = true;
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+      });
+
+      update_label();
+
+      {% if display_instructions %}
+        $('#ia-review-instructions').modal('show');
+      {% endif %}
+    });
+
+  </script>
+</div>

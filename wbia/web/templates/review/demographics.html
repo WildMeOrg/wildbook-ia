@@ -1,0 +1,251 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, reviewing is completed.  Thank you!
+    {% if imgsetid %}
+    <br/>
+    <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">Return to ImageSet ID: {{ imgsetid }}</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not REFER_DST_ENCODED %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
+        </div>
+      {% endif %}
+
+
+      Annotation ID: {{ aid }}
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
+      <br/>
+      Region: {{ region_str }}
+      <img id="big-image" src="{{ image_src }}" src-original="{{ image_src }}" style="height: auto; max-height: 300px;max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; border: 3px solid transparent;">
+      <div style="text-align: center; color: #aaa;">
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
+      </div>
+
+      {% if name_aid_combined_list %}
+      <div id="scroll">
+        <ul>
+            {% for (name_aid, name_quality, name_quality_text, name_viewpoint) in name_aid_combined_list %}
+              <li>
+                <img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ name_aid }}" />
+                <span>
+                  {{ name_quality_text }} | {{ name_viewpoint }}
+                </span>
+              </li>
+            {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <br/>
+      <form method="post" action="{{ url_for('submit_demographics') }}?imgsetid={{ imgsetid }}&species={{ species }}&refer={{ REFER_DST_ENCODED }}">
+        <input type="text" name="demographics-aid" value="{{ aid }}" style="display: none;" readonly>
+        Sex: <span id="label-sex"></span> | Age: <span id="label-age"></span>
+        <br/>
+        <input type="range" name="demographics-sex-value" id="slider-demographics-sex" value="{% if value_sex %}{{ value_sex }}{% else %}1{% endif %}" min="1" max="4" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <div class="row-custom-expand" style="height: 50px;">
+          <div class="col-custom-span col-custom-span-4">
+            Unknown
+          </div>
+          <div class="col-custom-span col-custom-span-4">
+            Female
+          </div>
+          <div class="col-custom-span col-custom-span-4">
+            Male
+          </div>
+          <div class="col-custom-span col-custom-span-4">
+            Indeterminate
+          </div>
+        </div>
+
+        <input type="range" name="demographics-age-value" id="slider-demographics-age" value="{% if value_age %}{{ value_age }}{% else %}1{% endif %}" min="1" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <div class="row-custom-expand" style="height: 50px;">
+          <div class="col-custom-span col-custom-span-7">
+            Unknown
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            0-3<br/>(infant)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            3-6<br/>(infant)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            6-12<br/>(infant)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            12-24<br/>(yearling)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            24-36<br/>(2 y/o)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            36+<br/>(adult)
+          </div>
+        </div>
+        <br/>
+        {% if previous %}
+          <a class="btn btn-default pull-left" id="review-previous" href="{{ url_for('review_demographics') }}?imgsetid={{ imgsetid }}&aid={{ previous }}">Previous {{ previous }}</a>
+        {% endif %}
+        <input type="submit" name="demographics-submit" id="review-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <!-- <input type="submit" name="demographics-submit" id="review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')"> -->
+      </form
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Demographics Reviewing Instructions</h4>
+        </div>
+        <div class="modal-body">
+            <div style="text-align: center; margin-bottom: 30px;" id="biologist-approval">
+              <img src="{{ url_for('static', filename='images/example-demographics1.jpg') }}"/>
+              <h3>Are you Dr. Dan Rubenstein or a Princeton biologist with experience on sexing and aging equine species?</h3>
+              <br/>
+
+              <a class="btn btn-default" href="{{ url_for('root') }}" style="margin-right: 20px;">No</a>
+              <a class="btn btn-danger" onclick="is_biologist();">Yes</a>
+            </div>
+
+            <li>For faster sex annotation, the number keys or a keypad can be used.  The numbers <b>8, 9, and 0</b> are mapped to the corresponding sexes <b>Unknown, Female, Male</b>. The letters <b>'u', 'f', and 'm'</b> are also mapped to the corresponding sexes <b>Unknown, Female, Male</b>.
+            <li>For faster age annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding age categories.  We urge every reviewer to use the number pad to input the additional for speed purposes. </li>
+            <li>If the additional cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
+              <ol>
+                <li>edit the annotation by revisiting the image (link below the image)</li>
+                <!-- <li>simply press the <b>Delete</b> button</li> -->
+              </ol>
+            <li><!-- The <b>Space</b> key deletes the image and does not save any additional information for that image.   -->The <b>Enter</b> key submits the current value of the slider as the image's additional.</li>
+            <li>Enter qualities as fast as you can while maintaining perfect accuracy.</li>
+            <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-demographics_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+
+  <style>
+    .container
+    {
+      /*width: 1500px !important;*/
+    }
+
+    .big-image-zoom {
+      max-height: 500px !important;
+    }
+  </style>
+{% endblock %}
+{% block content_custom_javascript %}
+<script src="{{ url_for('static', filename='javascript/review-demographics.js', version='20180618-0') }}"></script>
+<script type="text/javascript">
+  var loading = [];
+  var requests = [];
+  var buffer = 5;
+
+  var zoom = false;
+  var animation = null;
+
+  function lazy_load_images()
+  {
+    while(loading.length > buffer)
+    {
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
+    }
+
+    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+      load_image_src(this);
+    });
+  }
+
+  function load_image_src(element)
+  {
+    var aid = $(element).attr('aid');
+    if(!contains(loading, aid) && requests.length <= buffer)
+    {
+      // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
+      request = $.ajax("/ajax/annot/src/" + aid + "/")
+      .done(function( response ) {
+        // Load SRC into Image
+        $(element).attr('src', response);
+        // Remove image class
+        $(element).removeClass('ajax-image-unloaded');
+        // Remove value from the arrays
+        var index = findValueIndexFromArray(aid, loading);
+        removeIndexFromArray(index, requests);
+        removeIndexFromArray(index, loading);
+        // Logging
+        console.log(aid);
+        console.log(loading);
+        console.log(requests);
+      });
+      loading.push(aid);
+      requests.push(request);
+    }
+  }
+
+  $(document).ready(function(){
+      $("#scroll").scroll(function(){
+        lazy_load_images();
+      });
+
+      $(".ajax-image-load").hover(function() {
+        $("#big-image").attr('src', $(this).attr('src'));
+        $("#big-image").css('border-color', '#d43f3a');
+      },
+      function() {
+        $("#big-image").attr('src', $("#big-image").attr('src-original'));
+        $("#big-image").css('border-color', 'transparent');
+      });
+
+      setInterval(function() {
+        lazy_load_images();
+      }, 100) ;
+
+      lazy_load_images();
+  });
+
+  update_label();
+
+  {% if display_instructions %}
+    $('#review-instructions').modal('show');
+  {% endif %}
+</script>
+{% endblock %}

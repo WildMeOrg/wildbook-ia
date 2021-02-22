@@ -1,0 +1,476 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, viewpoint reviewing is completed.  Thank you!
+    <br/>
+    <a href="{{ url_for('review_quality') }}?imgsetid={{ imgsetid }}">Continue by reviewing qualities</a>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not REFER_DST_ENCODED %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
+        </div>
+      {% endif %}
+
+      <div style="text-align: right;">
+        <a href="{{ url_for('review_viewpoint2') }}?aid={{ aid }}&imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">show in slider interface</a>
+      </div>
+      Annotation ID: {{ aid }}
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
+      <div style="margin: 20px auto; margin-bottom: 0px; width: 100%; height: 300px;">
+        <img src="{{ image_src }}" style="height: auto; max-width: 100%; display: block; max-height: 300px; margin: auto;">
+      </div>
+      <div style="text-align: center; color: #aaa;">
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
+      </div>
+      <br/>
+      <form method="post" action="{{ url_for('submit_viewpoint3') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
+        <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
+        <input type="text" name="viewpoint-text-code" value="" style="display: none" readonly>
+
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align: left">
+            Viewpoint: <input type="text" name="viewpoint-text" value="" style="border: none" readonly>
+          </div>
+          <div id="ia-previous-viewpoint" class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            Current:
+            <span id="ia-previous-viewpoint-value"></span>
+            <span id="ia-previous-viewpoint-warning"> (Use Shift to view)</span>
+          </div>
+        </div>
+
+        <div id="canvas-container" style="width: 100%; height: 300px; text-align: center;">
+          <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="row" style="text-align: center">
+          <div class=" col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <label class="radio-inline">
+              <input type="radio" name="ia-option-radio" id="ia-option-radio1" value="fb">
+                Front - Back
+            </label>
+          </div>
+          <div class=" col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <label class="radio-inline">
+              <input type="radio" name="ia-option-radio" id="ia-option-radio2" value="lr" checked>
+                Left - Right
+            </label>
+          </div>
+          <div class=" col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <label class="radio-inline">
+              <input type="radio" name="ia-option-radio" id="ia-option-radio3" value="ud">
+                Up - Down
+            </label>
+          </div>
+        </div>
+
+        <div class="row" style="text-align: center">
+          <div class=" col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <label class="radio-inline">
+              <input type="radio" name="ia-option-radio" id="ia-option-radio4" value="bf"> Back - Front
+            </label>
+          </div>
+          <div class=" col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <label class="radio-inline">
+              <input type="radio" name="ia-option-radio" id="ia-option-radio5" value="rl"> Right - Left
+            </label>
+          </div>
+          <div class=" col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <label class="radio-inline">
+              <input type="radio" name="ia-option-radio" id="ia-option-radio6" value="du"> Down - Up
+            </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            Quality: <span id="ia-quality-label-text"></span>
+            <input id="ia-annotation-quality" type="range" name="ia-quality-value" value="{{ quality_value }}" min="-1" max="1" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+            <div class="row-custom-expand">
+              <div class="col-custom-span col-custom-span-3">
+                <i>null</i>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
+                <span class="glyphicon glyphicon-remove"></span>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
+                <span class="glyphicon glyphicon-ok"></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6">
+              <div class="checkbox pull-right">
+                <label>
+                  <input id="ia-annotation-multiple" name="ia-multiple-value" type="checkbox" {% if multiple_value %}checked{% endif %}> Multiple animals in image
+                </label>
+              </div>
+          </div>
+        </div>
+
+        <br/>
+        {% if previous %}
+          <a class="btn btn-default pull-left" id="review-previous" href="{{ url_for('review_viewpoint3') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+        {% endif %}
+        <input type="submit" name="viewpoint-submit" id="review-submit-accept" class="btn btn-primary pull-right" style="display: none" value="Accept">
+        <input type="submit" name="viewpoint-submit" id="review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')" style="margin-right: 0px;">
+        <br/>
+        <br/>
+        <input type="submit" name="viewpoint-submit" id="review-submit-right" class="btn btn-default pull-right" value="Rotate Right">
+        <input type="submit" name="viewpoint-submit" id="review-submit-left" class="btn btn-default pull-right" value="Rotate Left">
+        <input type="submit" name="viewpoint-submit" id="review-submit-junk" class="btn btn-default pull-right" value="Make Junk" style="margin-right: 20px;">
+        <input type="submit" name="viewpoint-submit" id="review-submit-junk" class="btn btn-default pull-right" value="Ignore" style="margin-right: 20px;">
+
+        <select class="form-control" name="viewpoint-species" style="width: 200px;">
+          {% for species_nice, species_text, species_selected in species_list %}
+            <option value="{{ species_text }}" {% if species_selected %}selected{% endif %}>{{ species_nice }}</option>
+          {% endfor %}
+        </select>
+        <span class="pull-left" data-toggle="modal" data-target="#species-add" style="color: #aaa; cursor: pointer;"><i>Add Species</i></span>
+
+      </form>
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Viewpoint Reviewing Instructions</h4>
+        </div>
+        <div class="modal-body">
+          To review a viewpoint, simply click on the correct colored face based on the following guidelines:
+          <br/>
+
+          <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+            <a href="#"><h4 style="margin-bottom:2px;">What is a Rhombicuboctahedron?</h4></a>
+          </div>
+
+          <img class="image-center" src="{{ url_for('static', filename='images/rhombicuboctahedron.gif') }}" style="width: 50%; max-width: 400px;">
+          <p style="width:100%; color:#888; text-align:center;"><i>A conceptual animation of a "Rhombi-cube-octa-hedron" or, simply, a <a href="https://en.wikipedia.org/wiki/Rhombicuboctahedron">Rhombicuboctahedron</a></i></p>
+          <br/>
+
+          This shape gives us 26 axis-aligned faces to distinguish an animal's viewpoint.  The shape is made up of 3 octagons, each along the x-axis, y-axis, and z-axis.  The octagon faces are squares.  The 8 "corners" are shaped as triangles, with each side of the triangle touching each of the three axis.
+
+          <br/>
+          <br/>
+          <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+              <b style="color: #f0ad4e">Whew...</b> <i>That sounded complicated</i>
+          </div>
+          <br/>
+
+          Another way to think about this shape is to think of a standard <a href="https://en.wikipedia.org/wiki/Rubik%27s_Cube">Rubik's Cube</a> toy:
+          <br/>
+          <br/>
+
+          <img class="image-center" src="{{ url_for('static', filename='images/rubiks.jpg') }}" style="width: 50%; max-width: 400px;">
+          <p style="width:100%; color:#888; text-align:center;"><i>A Rubik's Cube</i></p>
+          <br/>
+
+          The shape of a standard cube (like a Rubik's Cube, above) has similar traits to the Rhombicuboctahedron.  Both shapes have 6 "primary" faces: <i>top, bottom, left, right, front, and back.</i>
+          <br/>
+          <br/>
+
+          A Rhombicuboctahedron, however, puts squares between these "primary" faces to make the various "secondary" combinations.  For example: top-front, front-left, front-right, bottom-front and left-front, top-left, left-back, and bottom-left.  There are 12 of these two-face combinations.  Using the example of the Rubik's Cube, there are 12 edges that touch two colors (red and white, or blue and red, or blue and white, or the other 9 edges on the back and underside of the cube).
+
+          <br/>
+          <br/>
+          The remaining 8 faces of the Rhombicuboctahedron that we have not discussed are the "tertiary" faces, which are a combination of three faces.  They are, in their entirety: top-front-left, top-front-right, top-back-left, top-back-right, bottom-front-left, bottom-front-right, bottom-back-left, and bottom-back-right.  On the Rhombicuboctahedron, these are triangle faces instead of rectangles.  Coming back to our ever-handy Rubik's Cube analogue, we can see that the 8 tertiary faces are represented by the 8 corner points of the cube.  For example, the corner that sits between the white-red-blue.
+
+          <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+            <a href="#"><h4 style="margin-bottom:2px;">How to interpret the color grid</h4></a>
+          </div>
+
+          The purpose of this interface is to allow a user to quickly and easily specify one of the 26 faces on the Rhombicuboctahedron in order to specify the viewpoint of the animal.  For example, the Rhombicuboctahedron shape allows us to specify just "front" or a combination of two viewpoints like "back-right" or even complicated views such as "bottom-top-left".  To keep it fast and easy to use, we flatten the Rhombicuboctahedron shape out to show only one "side" at a time, facing towards you.  To rotate the shape by 180 degrees, hold down the <b>Shift</b> key.
+
+          <br/>
+          <br/>
+          <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+              <b style="color: #f0ad4e">Note:</b> <i>Use the <b>Shift</b> key to rotate the grid and see other viewpoints</i>
+          </div>
+          <br/>
+
+          The colors of the grid indicate which type of faces you are looking at: primary, secondary, or tertiary.  The color blue is reserved for primary, green for secondary, and orange for tertiary.  The color red is reserved for the primary pair that is currently the default face, and is always shown in the center of the grid.  When viewing the grid, you can see 17 of the faces at one time.  To see the remaining 9 faces on the "back side" of the Rhombicuboctahedron, hold down the <b>Shift</b> key.
+
+          Lastly, when you hover over a face, it will highlight and show the full name of currently selected face at the top left of the grid.  To select that viewpoint for the given example, simply click on the viewpoint face and it will be saved automatically.
+
+          <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+            <a href="#"><h4 style="margin-bottom:2px;">How to change the default face</h4></a>
+          </div>
+
+          The default face (and actually a pair of faces) can be changed below the grid.  For example, the option "Left-Right" shows the Left viewpoint as the default face and the Right viewpoint as it's opposite when the <b>Shift</b> key is held down.  The option "Right-Left" reverses this and makes the Right viewpoint the default (no <b>Shift</b> key held down) and the Left viewpoint the opposite that is shown when <b>Shift</b> is held.
+
+          <br/>
+          <br/>
+          <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #f0ad4e; padding-left: 1%">
+              <b style="color: #f0ad4e">Note:</b> <i>There are 6 default face options, but all of the 26 faces of the Rhombicuboctahedron can be accessed from any of the options with the help of the Shift key.</i>
+          </div>
+          <br/>
+
+          The defaults are purely a user preference based on the frequency of a given viewpoint in the data that is being reviewed.  You can change these defaults as needed and they will stay saved between Accepting the viewpoint.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-viewpoint_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Modal -->
+  <div class="modal fade" id="species-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Species</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="species-add" class="form-control" placeholder="New species tag">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_species();">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+
+  <style>
+    canvas
+    {
+      width: 100%;
+      height: 300px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid #888;
+    }
+
+    .previous-warning {
+      font-weight: bold;
+      color: red;
+    }
+
+    .previous-missing {
+      font-style: italic;
+      color: #888;
+    }
+  </style>
+{% endblock %}
+{% block content_custom_javascript %}
+<script src="{{ url_for('static', filename='javascript/review-viewpoint3.js', version='20180524-0') }}"></script>
+<script type="text/javascript">
+    var hotkeys_disabled, hotkeys_global_disabled, viewpoint_code
+    var canvas, ctx, polygons, texts, text, hover, previous
+
+    viewpoint_code = '{{ viewpoint_code }}'
+    axis_preference = '{{ axis_preference }}'
+
+    axis2 = true
+    axis3 = true
+
+    hotkeys_disabled = false
+    hotkeys_global_disabled = false
+
+    function update_translate(final) {
+      final = final.replace('F', 'Front ')
+      final = final.replace('B', 'Back ')
+      final = final.replace('L', 'Left ')
+      final = final.replace('R', 'Right ')
+      final = final.replace('U', 'Up ')
+      final = final.replace('D', 'Down ')
+      final = final.trim()
+      return final
+    }
+
+    function update_previous() {
+      var final
+
+      if (previous == null) {
+        final = 'Unspecified'
+      } else {
+        final = update_translate(previous)
+      }
+      $('span#ia-previous-viewpoint-value').text(final)
+    }
+
+    function update_text() {
+      var final
+
+      if (text == null) {
+        $('input[name="viewpoint-text"]').val('Unspecified')
+        $('input[name="viewpoint-text-code"]').val(null)
+      } else {
+        final = update_translate(text)
+        $('input[name="viewpoint-text"]').val(final)
+        $('input[name="viewpoint-text-code"]').val(text)
+      }
+    }
+
+    function render(event) {
+      if (event == null) {
+        flag = false
+      } else {
+        flag = event.shiftKey
+      }
+
+      width = $(canvas).width()
+      height = $(canvas).height()
+
+      $(canvas).attr('width', width)
+      $(canvas).attr('height', height)
+      canvas.width = width;
+      canvas.height = height;
+      ctx.width = width;
+      ctx.height = height;
+
+      checked = $('input[name="ia-option-radio"]:checked').val()
+
+      if (checked == 'fb') {
+        option = (flag ? 2 : 1)
+      } else if (checked == 'bf') {
+        option = (flag ? 1 : 2)
+      } else if (checked == 'lr') {
+        option = (flag ? 4 : 3)
+      } else if (checked == 'rl') {
+        option = (flag ? 3 : 4)
+      } else if (checked == 'ud') {
+        option = (flag ? 6 : 5)
+      } else if (checked == 'du') {
+        option = (flag ? 5 : 6)
+      }
+      polygons, texts, text, found = render_canvas(option, hover)
+
+      if (previous == null) {
+        $('#ia-previous-viewpoint').addClass('previous-missing')
+        $('span#ia-previous-viewpoint-warning').hide()
+      } else {
+        $('#ia-previous-viewpoint').removeClass('previous-missing')
+        if (found) {
+          $('#ia-previous-viewpoint').removeClass('previous-warning')
+          $('span#ia-previous-viewpoint-warning').hide()
+        } else {
+          $('#ia-previous-viewpoint').addClass('previous-warning')
+          $('span#ia-previous-viewpoint-warning').show()
+        }
+      }
+
+      text = translate_text(text)
+      update_text()
+      update_previous()
+    }
+
+    $(document).ready(function() {
+      canvas = document.getElementById('canvas');
+      ctx = canvas.getContext('2d');
+      previous = translate_text(viewpoint_code)
+      hover = null
+
+      $('input[name="ia-option-radio"][value="' + axis_preference + '"]').click()
+
+      render(null)
+      $(canvas).mouseover()
+
+      $('.ia-detection-hotkey').hide();
+
+      {% if display_instructions %}
+        $('#review-instructions').modal('show');
+      {% endif %}
+
+      $('#species-add').on('shown.bs.modal', function() {
+          $('input[name="species-add"]').val('')
+          hotkeys_global_disabled = true;
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+      });
+
+      $(canvas).on('mousemove', function(event) {
+        var redraw, point
+        redraw = false
+
+        point = [event.offsetX, event.offsetY]
+        for (var index = 0; index < polygons.length; index++) {
+          polygon = polygons[index]
+          text = texts[index]
+          if (inside_polygon(point, polygon)) {
+            redraw = hover != index
+
+            disabled = is_disabled(index, text)
+            if (disabled) {
+              hover = undefined
+            } else {
+              hover = index
+              index = polygons.length
+            }
+          }
+        }
+
+        if (redraw) {
+          render(event)
+        }
+      });
+
+      $(canvas).hover(function(event) {
+        // NOTHING
+      }, function(event) {
+          hover = null
+          render(event)
+      });
+
+      $(canvas).click(function(event) {
+        if (hover != null && hover != undefined) {
+          $('input#review-submit-accept').click();
+        }
+      });
+
+      $(window).bind("resize", function(event) {
+          render(event)
+      })
+
+      $('input[name="ia-option-radio"]').change(function(event) {
+          render(event)
+          checked = $('input[name="ia-option-radio"]:checked').val()
+          submit_cookie('ia-viewpoint3_axis_preference', checked);
+      })
+
+      $(window).keydown(function(event) {
+        render(event)
+      });
+
+      $(window).keyup(function(event) {
+        render(event)
+      });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+<div class="ia-container">
+
+  {% if EMBEDDED_CSS %}
+    {{ EMBEDDED_CSS|safe }}
+  {% endif %}
+
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-identification-form">
+    <div id="ia-bbox-annotator"></div>
+    <div style="text-align: center; color: #aaa;">
+      <span><i>Note: A match should be marked as "Cannot Tell" if it is impossible to verify the match (e.g. differing viewpoints, unrecoverable quality, can not determine which is the main animal in the annotation).</i></span>
+    </div>
+    <br/>
+    <input type="text" name="identification-aid1" value="{{ aid1 }}" style="display: none;" readonly>
+    <input type="text" name="identification-aid2" value="{{ aid2 }}" style="display: none;" readonly>
+    <input type="text" name="identification-replace-review-rowid" value="{{ replace_review_rowid }}" style="display: none;" readonly>
+    <input type="text" name="identification-annot-uuid-1" value="{{ annot_uuid_1 }}" style="display: none;" readonly>
+    <input type="text" name="identification-annot-uuid-2" value="{{ annot_uuid_2 }}" style="display: none;" readonly>
+    <input type="text" name="identification-hogwild" value="{{ hogwild }}" style="display: none;" readonly>
+    <input type="text" name="identification-hogwild-species" value="{{ hogwild_species }}" style="display: none;" readonly>
+    <input type="text" name="identification-graph_uuid" value="{{ graph_uuid }}" style="display: none;" readonly>
+
+    {% if hogwild %}
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8" style="text-align: center; color: red; margin-top: -10px; margin-bottom: 10px;">
+          Hogwild UUID: {{ graph_uuid }}
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-8" id="identification-score-container"{% if alert %}style="background-color: #c9302c; color: white;" {% endif %}>
+        <span id="identification-score">{{ match_data }}</span>
+      </div>
+      <div class="col-lg-2"></div>
+    </div>
+    <div class="row">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-8" id="identification-image-container">
+        <img class="identification-image" id="identification-image-matches" src="{{ image_matches_src }}" />
+        <br/>
+        <img class="identification-image" id="identification-image-clean" src="{{ image_clean_src }}"/>
+        {% if REFER_DST_STR %}
+          <a href="/{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
+        {% endif %}
+        {% if view_orientation == 'vertical' %}
+          <div class="row" id="identification-buttons">
+
+            <div class="col-lg-4">
+              <input type="submit" name="identification-submit" id="ia-review-submit-match" class="btn btn-info" value="Same Animal">
+            </div>
+            <div class="col-lg-4">
+              <input type="submit" name="identification-submit" id="ia-review-submit-notmatch" class="btn btn-danger" value="Different Animals">
+            </div>
+            <div class="col-lg-4">
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
+              <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
+            </div>
+
+            <!--
+            <div class="col-lg-3"></div>
+            <div class="col-lg-3">
+              <input type="submit" name="identification-submit" id="ia-review-submit-photobomb" class="btn btn-danger" value="Photobomb">
+            </div>
+            <div class="col-lg-3">
+              <input type="submit" name="identification-submit" id="ia-review-submit-scenerymatch" class="btn btn-danger" value="Scenery Match">
+            </div>
+            <div class="col-lg-3"></div>
+            -->
+
+            <div class="col-lg-3"></div>
+            <div class="col-lg-3">
+              <div class="checkbox">
+                <label>
+                  <input id="ia-review-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
+                </label>
+              </div>
+            </div>
+            <div class="col-lg-3">
+              <div class="checkbox">
+                <label>
+                  <input id="ia-review-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
+                </label>
+              </div>
+            </div>
+            <div class="col-lg-3"></div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-12" style="text-align: center;">
+              Confidence:
+              <select id="ia-review-confidence" class="form-control" name="ia-review-confidence" style="width: 200px; margin-left: auto; margin-right: auto;" autofocus="autofocus">
+                {% for confidence_nice, confidence_text, confidence_selected in confidence_list %}
+                  <option value="{{ confidence_text }}" {% if confidence_selected %}selected{% endif %}>{{ confidence_nice }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 10px;">
+            <div class="col-lg-4">
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-exclude-top" class="btn btn-info" value="Exclude Top"> -->
+            </div>
+            <div class="col-lg-4">
+              {% if previous %}
+                {% if previous_version == 1 %}
+                  <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                {% else %}
+                  {% if hogwild %}
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ hogwild_graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}&hogwild=true">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% else %}
+                      <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification_graph') }}?{{ graph_uuid_str }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="col-lg-4">
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-exclude-bottom" class="btn btn-info" value="Exclude Bottom"> -->
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-2">
+        {% if view_orientation == 'horizontal' %}
+          <div class="row" id="identification-buttons">
+            <div class="col-lg-12">
+              <input type="submit" name="identification-submit" id="ia-review-submit-match" class="btn btn-info" value="Same Animal">
+            </div>
+            <div class="col-lg-12">
+              <input type="submit" name="identification-submit" id="ia-review-submit-notmatch" class="btn btn-danger" value="Different Animals">
+            </div>
+            <div class="col-lg-12">
+              <!-- <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-danger" value="Cannot Tell" onclick="return confirm('Are you sure you want to set this match as not comparable?')"> -->
+              <input type="submit" name="identification-submit" id="ia-review-submit-notcomparable" class="btn btn-warning" value="Cannot Tell">
+            </div>
+            <div class="col-lg-12">
+              <input type="submit" name="identification-submit" id="ia-review-submit-photobomb" class="btn btn-danger" value="Photobomb">
+            </div>
+            <div class="col-lg-12">
+              <input type="submit" name="identification-submit" id="ia-review-submit-scenerymatch" class="btn btn-danger" value="Scenery Match">
+            </div>
+            <div class="col-lg-12">
+              {% if previous %}
+                <a class="btn btn-default" id="ia-review-previous" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}&aid1={{ previous[0] }}&aid2={{ previous[1] }}&replace_review_rowid={{ previous[2] }}">Previous ({{ previous[0] }}, {{ previous[1] }})</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  {% if EMBEDDED_JAVASCRIPT %}
+    {{ EMBEDDED_JAVASCRIPT|safe }}
+  {% else %}
+    <script src="{{ url_for('static', filename='javascript/review-identification.js', version='20180606-0') }}" ia-dependency="javascript"></script>
+  {% endif %}
+
+  <script type="text/javascript" ia-dependency="javascript">
+    var zoom = false;
+    var animation = null;
+
+    function fix_height()
+    {
+      var max_height = 0;
+      $("#identification-image-container img").each(function(){
+        current_height = $(this).height();
+        max_height = Math.max(max_height, current_height);
+      });
+
+      {% if view_orientation == 'vertical' %}
+        $("#identification-buttons").css("margin-top", max_height + "px");
+        second_height = $("#identification-buttons").height();
+        $(".ia-form").css("height", (max_height + second_height + 100) + "px");
+      {% endif %}
+
+      $("#identification-image-container").css("height", max_height + "px");
+      $(".ia-container").css("height", $(".ia-form").height() + "px");
+    }
+
+    $( window ).resize(function() {
+      fix_height();
+    });
+
+    $(".identification-image").load(function() {
+      fix_height();
+    });
+
+    $( document ).ready(function() {
+      fix_height();
+    });
+  </script>
+</div>

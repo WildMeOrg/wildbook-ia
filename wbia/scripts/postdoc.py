@@ -27,7 +27,7 @@ CLF = 'VAMP'
 LNBNN = 'LNBNN'
 
 
-def turk_pz():
+def review_pz():
     import wbia
 
     ibs = wbia.opendb('GZ_Master1')

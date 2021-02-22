@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
   <div class="jumbotron">
-    <h1>IBEIS RESTful API</h1>
+    <h1>WBIA RESTful API</h1>
     <table class="table table-hover">
       <thead>
         <tr>
@@ -12,19 +12,19 @@
       <tbody>
         <tr>
           <th scope="row"><b>GET</b></th>
-          <td>Retrieves data from IBEIS</td>
+          <td>Retrieves data from WBIA</td>
         </tr>
         <tr>
           <th scope="row"><b>PUT</b></th>
-          <td>Sets data in IBEIS using specified items and the new values.  PUT can also be used to update the state of IBEIS by running algorithm subroutines</td>
+          <td>Sets data in WBIA using specified items and the new values.  PUT can also be used to update the state of WBIA by running algorithm subroutines</td>
         </tr>
         <tr>
           <th scope="row"><b>POST</b></th>
-          <td>Adds data to IBEIS using new values</td>
+          <td>Adds data to WBIA using new values</td>
         </tr>
         <tr>
           <th scope="row"><b>DELETE</b></th>
-          <td>Deletes data from IBEIS using specified items</td>
+          <td>Deletes data from WBIA using specified items</td>
         </tr>
       </tbody>
     </table>
@@ -42,7 +42,7 @@ Python Version:
         return str(hmac.new(key, message, sha1).digest().encode("base64").rstrip('\n'))
 
     def get_authorization_header(url):
-        app_name = 'IBEIS'
+        app_name = 'WBIA'
         app_secret = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
         url = str(request.url)
@@ -61,7 +61,7 @@ C# Version:
 
     public static string GetAuthorizationHeader(string url)
     {
-        string appName = "IBEIS";
+        string appName = "WBIA";
         string appSecret = "CB73808F-A6F6-094B-5FCD-385EBAFF8FC0";
 
         var messageToSendBytes = Encoding.ASCII.GetBytes(url);
@@ -79,7 +79,7 @@ Javascript Version (using CryptoJS):
         }
         return {
             getAuthorizationHeader: function(url) {
-                var app_name = 'IBEIS'
+                var app_name = 'WBIA'
                 var app_secret = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
                 var hash = getSignature(url, app_secret)
@@ -101,7 +101,7 @@ Java Version:
     }
 
     public static String getAuthorizationHeader(String url) throws NoSuchAlgorithmException, InvalidKeyException {
-        String appName = "IBEIS";
+        String appName = "WBIA";
         String appSecret = "CB73808F-A6F6-094B-5FCD-385EBAFF8FC0";
         return appName + ":" + getSignature(appSecret, url.getBytes());
     }</pre></div>
@@ -109,7 +109,7 @@ Java Version:
     <h4>Example Request</h4>
     <div class="well well-lg"><pre>
 Request:
-    Name:    IBEIS
+    Name:    WBIA
     Secret:  CB73808F-A6F6-094B-5FCD-385EBAFF8FC0
     Method:  GET
     URL:     {{ app_url }}    * NOTE: The URL sent to the server includes the protocol and port.

@@ -3,7 +3,7 @@
 Dependencies: flask, tornado
 
 SeeAlso:
-    routes.turk_identification
+    routes.review_identification
 """
 import logging
 from wbia.control import controller_inject
@@ -176,7 +176,7 @@ def process_graph_match_html(ibs, **kwargs):
             tag_list.append(checbox_tag)
     tag_list = sorted(set(tag_list))
     confidence_default = const.CONFIDENCE.INT_TO_CODE[const.CONFIDENCE.UNKNOWN]
-    confidence = request.form.get('ia-turk-confidence', confidence_default)
+    confidence = request.form.get('ia-review-confidence', confidence_default)
     if confidence not in const.CONFIDENCE.CODE_TO_INT.keys():
         confidence = confidence_default
     if len(tag_list) == 0:
@@ -545,7 +545,7 @@ def review_graph_match_html(
     annot_uuid_2 = str(annot_uuid_2)
 
     embedded = dict(globals(), **locals())
-    return appf.template('turk', 'identification_insert', **embedded)
+    return appf.template('review', 'identification_insert', **embedded)
 
 
 @register_route('/test/review/query/chip/', methods=['GET'])
@@ -1458,8 +1458,8 @@ def query_chips_graph_v2(
 
         python -m wbia reset_mtest_graph
 
-        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
-        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/
+        python -m wbia --db PZ_MTEST --web --browser --url=/review/identification/hardcase/
+        python -m wbia --db PZ_MTEST --web --browser --url=/review/identification/graph/
 
     Example:
         >>> # xdoctest: +REQUIRES(--web-tests)
@@ -1764,7 +1764,7 @@ def review_graph_match_html_v2(
             EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(),)
 
     embedded = dict(globals(), **locals())
-    return appf.template('turk', 'identification_insert', **embedded)
+    return appf.template('review', 'identification_insert', **embedded)
 
 
 @register_api('/api/status/query/graph/v2/', methods=['GET'], __api_plural_check__=False)

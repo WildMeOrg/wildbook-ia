@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, cameratrap reviewing is completed.  Thank you!
+    <br/>
+    <a href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}">Continue by reviewing detections</a>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not REFER_DST_ENCODED %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
+        </div>
+      {% endif %}
+
+      <div style="text-align: center;">
+        Image ID: {{ gid }}
+      </div>
+      <img src="{{ image_src }}" style="height: auto; max-width: 100%; max-height: 500px; margin: 20px auto; margin-bottom: 0px; display: block;">
+      <br/>
+      <form method="post" action="{{ url_for('submit_cameratrap') }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}">
+        <input type="text" name="cameratrap-gid" value="{{ gid }}" style="display: none;" readonly>
+
+          <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: left;">
+              {% if previous %}
+                <a class="btn btn-default" id="review-previous" href="{{ url_for('review_cameratrap') }}?imgsetid={{ imgsetid }}&gid={{ previous }}">Previous {{ previous }}</a>
+              {% endif %}
+
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center;">
+              <input type="checkbox" name="cameratrap-toggle" id="ia-cameratrap-toggle" data-width="100" {% if positive %}checked{% endif %}>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: right;">
+              <input type="submit" name="cameratrap-submit" id="review-submit-accept" class="btn btn-primary" value="Accept">
+            </div>
+          </div>
+
+      </form>
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+  {% endif %}
+
+{% endblock %}
+{% block content_custom_css %}
+{% endblock %}
+{% block content_custom_javascript %}
+<script src="{{ url_for('static', filename='javascript/review-cameratrap.js') }}"></script>
+<script type="text/javascript">
+
+  toggle = $('#ia-cameratrap-toggle');
+  toggle.bootstrapToggle({
+    on: 'Positive',
+    off: 'Negative',
+    onstyle: 'primary',
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,308 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, viewpoint reviewing is completed.  Thank you!
+    <br/>
+    <a href="{{ url_for('review_quality') }}?imgsetid={{ imgsetid }}">Continue by reviewing qualities</a>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not REFER_DST_ENCODED %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
+        </div>
+      {% endif %}
+
+      <div style="text-align: right;">
+        <a href="{{ url_for('review_viewpoint3') }}?aid={{ aid }}&imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">show in layout interface</a>
+      </div>
+      Annotation ID: {{ aid }}
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
+      <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 500px;">
+      <div style="text-align: center; color: #aaa;">
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
+      </div>
+      <br/>
+      <form method="post" action="{{ url_for('submit_viewpoint2') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
+        <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
+        <div id="ia-metadata-panel-annotation-viewpoint">
+          Viewpoint: <span id="ia-detection-annotation-viewpoint-label"></span>
+          <br/>
+          <div class="ia-viewpoint-axis-1">
+            Primary <span class="ia-detection-hotkey">(&#8679 / Shift)</span>
+            <input id="ia-detection-annotation-viewpoint-1" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-1" value="-1" min="-1" max="5" style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+            <br/>
+          </div>
+          <div class="ia-viewpoint-axis-2">
+            Secondary <span id="ia-viewpoint-axis-2-hotkey" class="ia-detection-hotkey">(&#8997; / Alt / Option)</span>
+            <br/>
+            <input id="ia-detection-annotation-viewpoint-2" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-2" value="-1" min="-1" max="5" style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div id="col-viewpoint-ticks-2-0" class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div id="col-viewpoint-ticks-2-1" class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div id="col-viewpoint-ticks-2-2" class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div id="col-viewpoint-ticks-2-3" class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div id="col-viewpoint-ticks-2-4" class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div id="col-viewpoint-ticks-2-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div id="col-viewpoint-ticks-2-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+            <br/>
+          </div>
+          <div class="ia-viewpoint-axis-3">
+            Third
+            <br/>
+            <input id="ia-detection-annotation-viewpoint-3" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-3" value="-1" min="-1" max="5"style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div id="col-viewpoint-ticks-3-0" class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div id="col-viewpoint-ticks-3-1" class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div id="col-viewpoint-ticks-3-2" class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div id="col-viewpoint-ticks-3-3" class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div id="col-viewpoint-ticks-3-4" class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            Quality: <span id="ia-quality-label-text"></span>
+            <input id="ia-annotation-quality" type="range" name="ia-quality-value" value="{{ quality_value }}" min="-1" max="1" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+            <div class="row-custom-expand">
+              <div class="col-custom-span col-custom-span-3">
+                <i>null</i>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
+                <span class="glyphicon glyphicon-remove"></span>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
+                <span class="glyphicon glyphicon-ok"></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6">
+              <div class="checkbox pull-right">
+                <label>
+                  <input id="ia-annotation-multiple" name="ia-multiple-value" type="checkbox" {% if multiple_value %}checked{% endif %}> Multiple animals in image
+                </label>
+              </div>
+
+          </div>
+        </div>
+        <br/>
+        {% if previous %}
+          <a class="btn btn-default pull-left" id="review-previous" href="{{ url_for('review_viewpoint2') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+        {% endif %}
+        <input type="submit" name="viewpoint-submit" id="review-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <!-- <input type="submit" name="viewpoint-submit" id="review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')"> -->
+        <br/>
+        <br/>
+        <input type="submit" name="viewpoint-submit" id="review-submit-right" class="btn btn-default pull-right" value="Rotate Right">
+        <input type="submit" name="viewpoint-submit" id="review-submit-left" class="btn btn-default pull-right" value="Rotate Left">
+        <!-- <input type="submit" name="viewpoint-submit" id="review-submit-junk" class="btn btn-default pull-right" value="Make Junk" style="margin-right: 20px;"> -->
+        <input type="submit" name="viewpoint-submit" id="review-submit-junk" class="btn btn-default pull-right" value="Ignore" style="margin-right: 20px;">
+
+        <select class="form-control" name="viewpoint-species" style="width: 200px;">
+          {% for species_nice, species_text, species_selected in species_list %}
+            <option value="{{ species_text }}" {% if species_selected %}selected{% endif %}>{{ species_nice }}</option>
+          {% endfor %}
+        </select>
+        <span class="pull-left" data-toggle="modal" data-target="#species-add" style="color: #aaa; cursor: pointer;"><i>Add Species</i></span>
+
+      </form>
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Viewpoint Reviewing Instructions</h4>
+        </div>
+        <div class="modal-body">
+          To review a viewpoint, simply adjust the slider for the image based on the following guidelines:
+          <br/>
+          <img class="image-center" src="{{ url_for('static', filename='images/guideline-inverted.jpg') }}">
+          <p style="width:100%; color:#888; text-align:center;"><i>Top-down view (view from above)</i></p>
+          <br/>
+          <ul style="padding-right:30px;">
+            <li>
+              The easiest way to mentally-visualize and decide on the correct viewpoint is by asking <b>"Which way is the head pointing?"</b> in relation to the <b>camera</b>.  However, the pose of the animal will vary wildly based on physical characteristics of the species (long knecks, long legs, etc).  In all cases, use the <b>body</b> position of the animal to decide the orientation instead of the position of the animal's face.
+              <br/>
+              <i>For example:</i>
+            </li>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the <b>left side</b> of the animal (looking from above), and the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, again, the <b>camera</b> is on the <b>left side</b> of the animal (looking from above). However, even though the animal's face is pointed towards the camera, we use the body position to decide the correct orientation. The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This is a boarder-line example that is ultimately a <b>left side</b> view of the animal and <u>not</u> front-left.  Therefore, the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>Another boarder-line example that is also ultimately a <b>left side</b> view of the animal and <u>not</u> back-left. The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint5.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This example, however, <u>is</u> a <b>back-left side</b> of the animal (looking from above).  The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left rotate-45"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px; margin-bottom: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint6.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the <b>front-right side</b> of the animal (looking from above).  The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-right rotate-45"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <li>For faster viewpoint annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 8</b> are mapped to increments of 45&deg;.  We urge every reviewer to use the number pad to input the viewpoint, but you can further adjust the slider to get even closer accuracy, down to a precision of a single degree. </li>
+            <li>If the viewpoint cannot be determined due to not enough information (e.g., the animal is obscured by some obstacle, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
+              <ol>
+                <li>edit the annotation by revisiting the image (link below the image)</li>
+                <li>simply press the <b>Delete</b> button</li>
+              </ol>
+<!--               No degree information is saved for images that are skipped - the current value of the slider is completely ignored.</li>
+            <li>In the event that there is more than one animal in the image, give the viewpoint for the most dominant object.  This is a subjective decision and up to the reviewer to address the ambiguity.  However, if the ambiguity cannot be resolved <i>nicely</i> (i.e., there are two differing viewpoints of two equally dominant animals in the image), then simply skip the image.  All images that are skipped multiple times are automatically flagged for further review by the research team.</li>
+ -->
+            <li>The <b>Space</b> key deletes the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits the current value of the slider as the image's viewpoint.</li>
+            <li>Enter viewpoints as fast as you can while maintaining perfect accuracy.</li>
+            <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-viewpoint_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Modal -->
+  <div class="modal fade" id="species-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Species</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="species-add" class="form-control" placeholder="New species tag">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_species();">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+{% endblock %}
+{% block content_custom_javascript %}
+<script src="{{ url_for('static', filename='javascript/review-viewpoint2.js') }}"></script>
+<script type="text/javascript">
+    var hotkeys_disabled, hotkeys_global_disabled, axis2, axis3, viewpoint1, viewpoint2, viewpoint3
+
+    viewpoint1 = {{ viewpoint1 }}
+    viewpoint2 = {{ viewpoint2 }}
+    viewpoint3 = {{ viewpoint3 }}
+
+    $('#ia-detection-annotation-viewpoint-1').val(viewpoint1);
+    $('#ia-detection-annotation-viewpoint-2').val(viewpoint2);
+    $('#ia-detection-annotation-viewpoint-3').val(viewpoint3);
+
+    hotkeys_disabled = false
+    hotkeys_global_disabled = false
+    axis2 = true;
+    axis3 = false;
+
+    $(document).ready(function() {
+      if( ! axis2) {
+        hide_viewpoint_2_axis_panel(2)
+      }
+      if( ! axis3) {
+        hide_viewpoint_2_axis_panel(3)
+      }
+
+      $(".ia-detection-form-annotation-value").change(function(e)
+      {
+        update_label()
+      });
+
+      $('#species-add').on('shown.bs.modal', function() {
+          $('input[name="species-add"]').val('')
+          hotkeys_global_disabled = true;
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+      });
+
+      // Update metadata labels for form inputs
+      update_label();
+      $('.ia-detection-hotkey').hide();
+
+      {% if display_instructions %}
+        $('#review-instructions').modal('show');
+      {% endif %}
+    });
+</script>
+{% endblock %}
