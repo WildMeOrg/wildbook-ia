@@ -109,7 +109,7 @@ def _assert_remote_online(ibs):
         if REMOTE_UUID is not None:
             assert uuid == REMOTE_UUID
     except Exception:
-        raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE_URL,))
+        raise IOError('Remote WBIA DETECT database offline at %s' % (REMOTE_URL,))
 
 
 @register_ibs_method

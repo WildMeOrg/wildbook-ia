@@ -14,7 +14,7 @@
 <!--
         {% if imgsetid %}
           <div class="alert alert-info" role="alert">
-            Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+            Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
             <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
           </div>
         {% endif %}
@@ -43,10 +43,10 @@
  -->          </div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center; {% if is_staged %}font-weight: bold; color: #ac2925;"{% endif %}">
-            <b>Image ID{% if THROW_TEST_AOI_REVIEWING_AVAILABLE %}*{% endif %} (GID): {{ gid }}</b>
+            <b>Image ID{% if THROW_TEST_AOI_REVIEWING_AVAILABLE %}*{% endif %}: {{ gid }}</b>
             {% if only_aid %}
               <br/>
-              <b style="color: #c9302c;">Annotation ID (AID): {{ only_aid }}</b>
+              <b style="color: #c9302c;">Annotation ID: {{ only_aid }}</b>
             {% endif %}
               <br/>
               <b>Folder(s): {{ imagesettext_list_str }}</b>
@@ -108,10 +108,10 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Example Images of Species Found in IBEIS</h4>
+          <h4 class="modal-title" id="myModalLabel">Example Images of Species Found in WBIA</h4>
         </div>
         <div class="modal-body">
-          Here are example images of the different species that IBEIS recognizes.
+          Here are example images of the different species that WBIA recognizes.
           <br/>
           <br/>
           Only annotations for the species specified (top left of the page) should exist in the image. If the species is '____', annotate the most frequent or predominate species in the image. If you are uncertain as to what the specified species looks like, ask a graduate student.
@@ -233,7 +233,7 @@
           <br/>
           <ul style="padding-right:30px;">
             <li>
-              When deciding to add, edit, or remove an annotation, it is important to understand to what ends IBEIS will use annotations.  IBEIS uses the annotation's <b>usable information</b> (a picture is worth a thousand words) to assign keypoint descriptors (see below), which are oval regions on the image that have a lot of <i>information</i> in them.  The algorithms in IBEIS use the bounding boxes and annotations to <b>detect</b> animals (draw bounding boxes automatically) and <b>distinguish</b> animals (differentiate between two individuals) in an image.  In order to capture the most <i>information</i> about an animal, the bounding box should satisfy the following three requirements:
+              When deciding to add, edit, or remove an annotation, it is important to understand to what ends WBIA will use annotations.  WBIA uses the annotation's <b>usable information</b> (a picture is worth a thousand words) to assign keypoint descriptors (see below), which are oval regions on the image that have a lot of <i>information</i> in them.  The algorithms in WBIA use the bounding boxes and annotations to <b>detect</b> animals (draw bounding boxes automatically) and <b>distinguish</b> animals (differentiate between two individuals) in an image.  In order to capture the most <i>information</i> about an animal, the bounding box should satisfy the following three requirements:
               <ol style="margin: 20px 0px;">
                 <li>An annotation should <i>include</i> as much of the <i>foreground</i> animal as possible; this means cover the <b>entire</b> animal with the bounding box.</li>
                 <li>An annotation should <i>exclude</i> as much of the <i>background</i> landscape or other animals as possible; this means fit the bounding box <b>tightly</b> around the animal.</li>
@@ -272,7 +272,7 @@
               <div class="col-lg-1"></div>
               <div class="col-lg-10" style="margin-top: 20px; margin-bottom: 20px;">
                 <img src="{{ url_for('static', filename='images/example-detection4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Whenever there is large overlap in animals that share roughly the same bounding box, always add a bounding box for each animal.  Even if the resulting bounding boxes are almost duplicates, it gives IBEIS a useful notion of how many animals of a particular species are in the image.  For this example, both bounding boxes are necessary. [7]</p>
+                <p>Whenever there is large overlap in animals that share roughly the same bounding box, always add a bounding box for each animal.  Even if the resulting bounding boxes are almost duplicates, it gives WBIA a useful notion of how many animals of a particular species are in the image.  For this example, both bounding boxes are necessary. [7]</p>
               </div>
               <div class="col-lg-1"></div>
             </div>

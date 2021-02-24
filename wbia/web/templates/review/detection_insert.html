@@ -87,11 +87,11 @@
           {% if previous %}
             {% if is_canonical %}
               <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_detection_canonical') }}?imgsetid={{ imgsetid }}&aid={{ previous_only_aid }}&{{ config_str }}">
-                Previous GID {{ previous }}, AID {{ previous_only_aid }}
+                Previous Image ID {{ previous }}, Annotation ID {{ previous_only_aid }}
               </a>
             {% else %}
               <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}&gid={{ previous }}&only_aid={{ previous_only_aid }}&{{ config_str }}">
-                Previous GID {{ previous }}
+                Previous Image ID {{ previous }}
               </a>
             {% endif %}
           {% endif %}
@@ -100,7 +100,7 @@
         <span id="ia-metadata-badge-annotation" class="badge" style="margin-left: auto; margin-right: -5px; border-top-right-radius: 0; border-bottom-right-radius: 0;">Annotation</span>
         <span id="ia-metadata-badge-part" class="badge" style="border-top-left-radius: 0;border-bottom-left-radius: 0; margin-right: auto;">Part</span>
         <br/>
-        <div id="ia-metadata-rowid" style="margin-top: 5px; height: 10px;">ROWID</div>
+        <div id="ia-metadata-rowid" style="margin-top: 5px; height: 10px;">ID</div>
 
         <div style="margin-top: -27px;">
           <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept">

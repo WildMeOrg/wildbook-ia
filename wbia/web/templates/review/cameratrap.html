@@ -13,7 +13,7 @@
     <div class="col-lg-8">
       {% if imgsetid %}
         <div class="alert alert-info" role="alert">
-          Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
           <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
         </div>
       {% endif %}
@@ -27,7 +27,7 @@
       {% endif %}
 
       <div style="text-align: center;">
-        Gid: {{ gid }}
+        Image ID: {{ gid }}
       </div>
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; max-height: 500px; margin: 20px auto; margin-bottom: 0px; display: block;">
       <br/>

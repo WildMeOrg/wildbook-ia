@@ -13,7 +13,7 @@
     <div class="col-lg-8">
       {% if imgsetid %}
         <div class="alert alert-info" role="alert">
-          Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
           <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
         </div>
       {% endif %}
@@ -26,11 +26,11 @@
         </div>
       {% endif %}
 
-      Aid: {{ aid }}
+      Annotation ID: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 500px;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
       </div>
       <br/>
       <form method="post" action="{{ url_for('submit_viewpoint2') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
@@ -80,6 +80,31 @@
               <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
               <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
             </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            Quality: <span id="ia-quality-label-text"></span>
+            <input id="ia-annotation-quality" type="range" name="ia-quality-value" value="{{ quality_value }}" min="-1" max="1" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+            <div class="row-custom-expand">
+              <div class="col-custom-span col-custom-span-3">
+                <i>null</i>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
+                <span class="glyphicon glyphicon-remove"></span>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
+                <span class="glyphicon glyphicon-ok"></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6">
+              <div class="checkbox pull-right">
+                <label>
+                  <input id="ia-annotation-multiple" name="ia-multiple-value" type="checkbox" {% if multiple_value %}checked{% endif %}> Multiple animals in image
+                </label>
+              </div>
+
           </div>
         </div>
         <br/>

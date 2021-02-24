@@ -5,7 +5,7 @@
 
     <form action="{{ url_for('group_review_submit') }}" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
         <div class="form-group">
-            <label for="aid_list">AIDs (comma separated)</label>
+            <label for="aid_list">Annotation IDs (comma separated)</label>
             <br/>
             <textarea rows="10" cols="10" name="aid_list" id="aid_list" style="width: 100%; height: 200px;">{% autoescape false %}{{ candidate_aid_list }}{% endautoescape %}</textarea>
         </div>

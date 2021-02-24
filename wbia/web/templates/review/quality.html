@@ -5,7 +5,7 @@
     Congratulations, reviewing is completed.  Thank you!
     {% if imgsetid %}
     <br/>
-    <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">Return to imgsetid: {{ imgsetid }}</a>
+    <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">Return to ImageSet ID: {{ imgsetid }}</a>
     {% endif %}
   </div>
   {% else %}
@@ -15,7 +15,7 @@
     <div class="col-lg-8">
       {% if imgsetid %}
         <div class="alert alert-info" role="alert">
-          Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
           <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
         </div>
       {% endif %}
@@ -29,11 +29,11 @@
       {% endif %}
 
 
-      Aid: {{ aid }}
+      Annotation ID: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
       </div>
       <br/>
       <form method="post" action="{{ url_for('submit_quality') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">

@@ -206,7 +206,7 @@ function show_annotation_metadata(entry) {
     entry.highlighted         !== undefined || (entry.highlighted = false)
 
     if (entry.label !== null) {
-        $('#ia-metadata-rowid').text('AID: ' + entry.label);
+        $('#ia-metadata-rowid').text('Annotation ID: ' + entry.label);
     } else {
         $('#ia-metadata-rowid').text('');
     }
@@ -236,7 +236,7 @@ function show_part_metadata(entry, parent_entry) {
     parent_entry.metadata.species !== undefined || (parent_entry.metadata.species = '____')
 
     if (entry.label !== null) {
-        $('#ia-metadata-rowid').text('PART ROWID: ' + entry.label);
+        $('#ia-metadata-rowid').text('Part ID: ' + entry.label);
     } else {
         $('#ia-metadata-rowid').text('');
     }

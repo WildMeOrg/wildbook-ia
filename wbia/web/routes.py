@@ -2886,7 +2886,7 @@ def review_detection_dynamic(**kwargs):
     )
 
 
-@register_route('/review/annotation/', methods=['GET'])
+@register_route('/review/deprecated/annotation/', methods=['GET'])
 def review_annotation(**kwargs):
     """
     CommandLine:
@@ -3563,7 +3563,7 @@ def review_part_types(
     )
 
 
-@register_route('/review/viewpoint/', methods=['GET'])
+@register_route('/review/deprecated/viewpoint/', methods=['GET'])
 def review_viewpoint(**kwargs):
     """
     CommandLine:
@@ -3630,7 +3630,7 @@ def review_viewpoint(**kwargs):
     )
 
 
-@register_route('/review/viewpoint2/', methods=['GET'])
+@register_route('/review/annotation/slider/', methods=['GET'])
 def review_viewpoint2(**kwargs):
     """
     CommandLine:
@@ -3646,7 +3646,7 @@ def review_viewpoint2(**kwargs):
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_review_annot_args(appf.imageset_annot_viewpoint_processed)
+    tup = appf.get_review_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     viewpoint = ibs.get_annot_viewpoints(aid)
@@ -3659,10 +3659,20 @@ def review_viewpoint2(**kwargs):
         gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
         species = ibs.get_annot_species_texts(aid)
+        quality_value = ibs.get_annot_qualities(aid)
+        if quality_value in [-1, None]:
+            quality_value = -1
+        elif quality_value > 2:
+            quality_value = 1
+        elif quality_value <= 2:
+            quality_value = 0
+        multiple_value = ibs.get_annot_multiple(aid) == 1
     else:
         gid = None
         image_src = None
         species = None
+        quality_value = -1
+        multiple_value = False
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3689,6 +3699,8 @@ def review_viewpoint2(**kwargs):
         viewpoint1=viewpoint1,
         viewpoint2=viewpoint2,
         viewpoint3=viewpoint3,
+        quality_value=quality_value,
+        multiple_value=multiple_value,
         image_src=image_src,
         previous=previous,
         species_list=species_list,
@@ -3700,21 +3712,12 @@ def review_viewpoint2(**kwargs):
     )
 
 
-@register_route('/review/viewpoint3/', methods=['GET'])
+@register_route('/review/annotation/layout/', methods=['GET'])
 def review_viewpoint3(**kwargs):
     with ut.Timer('[review_viewpoint3]'):
         ibs = current_app.ibs
-        tup = appf.get_review_annot_args(appf.imageset_annot_viewpoint_processed)
-        (
-            aid_list,
-            reviewed_list,
-            imgsetid,
-            src_ag,
-            dst_ag,
-            progress,
-            aid,
-            previous,
-        ) = tup
+        tup = appf.get_review_annot_args(appf.imageset_annot_processed)
+        (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
         viewpoint = None if aid is None else ibs.get_annot_viewpoints(aid)
         viewpoint_code = const.YAWALIAS.get(viewpoint, None)
@@ -3728,10 +3731,20 @@ def review_viewpoint3(**kwargs):
             gid = ibs.get_annot_gids(aid)
             image_src = routes_ajax.annotation_src(aid)
             species = ibs.get_annot_species_texts(aid)
+            quality_value = ibs.get_annot_qualities(aid)
+            if quality_value in [-1, None]:
+                quality_value = -1
+            elif quality_value > 2:
+                quality_value = 1
+            elif quality_value <= 2:
+                quality_value = 0
+            multiple_value = ibs.get_annot_multiple(aid) == 1
         else:
             gid = None
             image_src = None
             species = None
+            quality_value = -1
+            multiple_value = False
 
         imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3761,6 +3774,8 @@ def review_viewpoint3(**kwargs):
             aid=aid,
             viewpoint_code=viewpoint_code,
             axis_preference=axis_preference,
+            quality_value=quality_value,
+            multiple_value=multiple_value,
             image_src=image_src,
             previous=previous,
             species_list=species_list,

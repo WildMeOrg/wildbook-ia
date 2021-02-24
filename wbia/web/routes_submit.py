@@ -656,7 +656,7 @@ def submit_detection(**kwargs):
             )
 
 
-@register_route('/submit/viewpoint/', methods=['POST'])
+@register_route('/submit/deprecated/viewpoint/', methods=['POST'])
 def submit_viewpoint(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
@@ -739,7 +739,7 @@ def submit_viewpoint(**kwargs):
         )
 
 
-@register_route('/submit/viewpoint2/', methods=['POST'])
+@register_route('/submit/annotation/slider/', methods=['POST'])
 def submit_viewpoint2(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
@@ -809,10 +809,28 @@ def submit_viewpoint2(**kwargs):
                 viewpoint3,
             )
             viewpoint = appf.convert_tuple_to_viewpoint(viewpoint_tup)
+
+        try:
+            quality = int(request.form['ia-quality-value'])
+        except ValueError:
+            quality = int(float(request.form['ia-quality-value']))
+        if quality in [-1, None]:
+            quality = None
+        elif quality == 0:
+            quality = 2
+        elif quality == 1:
+            quality = 4
+        else:
+            raise ValueError('quality must be -1, 0 or 1')
+
         ibs.set_annot_viewpoints([aid], [viewpoint])
         species_text = request.form['viewpoint-species']
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_qualities([aid], [quality])
+        multiple = 1 if 'ia-multiple-value' in request.form else 0
+        ibs.set_annot_multiple([aid], [multiple])
+        ibs.set_annot_reviewed([aid], [1])
         logger.info(
             '[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint)
         )
@@ -832,7 +850,7 @@ def submit_viewpoint2(**kwargs):
         )
 
 
-@register_route('/submit/viewpoint3/', methods=['POST'])
+@register_route('/submit/annotation/layout/', methods=['POST'])
 def submit_viewpoint3(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
@@ -908,8 +926,24 @@ def submit_viewpoint3(**kwargs):
                 viewpoint = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
             ibs.set_annot_viewpoint_int([aid], [viewpoint])
 
+        try:
+            quality = int(request.form['ia-quality-value'])
+        except ValueError:
+            quality = int(float(request.form['ia-quality-value']))
+        if quality in [-1, None]:
+            quality = None
+        elif quality == 0:
+            quality = 2
+        elif quality == 1:
+            quality = 4
+        else:
+            raise ValueError('quality must be -1, 0 or 1')
+
         species_text = request.form['viewpoint-species']
         ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_qualities([aid], [quality])
+        multiple = 1 if 'ia-multiple-value' in request.form else 0
+        ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
         logger.info(
             '[web] user_id: %s, aid: %d, viewpoint: %s' % (user_id, aid, viewpoint)
@@ -933,7 +967,7 @@ def submit_viewpoint3(**kwargs):
     return retval
 
 
-@register_route('/submit/annotation/', methods=['POST'])
+@register_route('/submit/deprecated/annotation/', methods=['POST'])
 def submit_annotation(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('ia-annotation-submit', '')

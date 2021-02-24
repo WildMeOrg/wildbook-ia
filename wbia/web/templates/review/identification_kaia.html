@@ -23,7 +23,7 @@
   </script>
   {% elif finished == 'unavailable' %}
   <div class="alert alert-info text-center" role="alert">
-    The identification matching review you are attempting to review cannot be completed.  The aids in this
+    The identification matching review you are attempting to review cannot be completed.  The Annotation IDs in this
     review are currently being used by <a href="{{ url_for('review_identification_graph') }}?{{ refer_graph_uuid_str }}">UUID {{ refer_query_uuid }}</a>
   </div>
   {% elif finished %}
@@ -39,7 +39,7 @@
       <div class="col-lg-10">
         {% if imgsetid %}
           <div class="alert alert-info" role="alert">
-            Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+            Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
             <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
           </div>
         {% endif %}
@@ -59,7 +59,7 @@
 
         Time Delta: {{ timedelta_str }}
         <br/>
-        Match Aids: ({{ aid1 }}, {{ aid2 }})
+        Match Annotation IDs: ({{ aid1 }}, {{ aid2 }})
         <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
         <br/>
       {% include 'review/identification_kaia_insert.html' %}
