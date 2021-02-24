@@ -1,0 +1,124 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished == 'engine' %}
+  <div class="alert alert-info text-center" role="alert">
+    Please wait, ID is currently being started and will soon have matches to review.<br/><br/>This page will automatically refresh to check for status updates in <span id="ia-identification-engine-refresh-timer"></span> seconds.  You may safely navigate to other pages and return here when identification reviewing is ready.
+  </div>
+
+  <script type="text/javascript">
+      var timer = 10;
+
+      function start_timer() {
+        if(timer == 0) {
+          location.reload();
+        }
+        else {
+          document.getElementById("ia-identification-engine-refresh-timer").innerHTML = timer;
+          timer -= 1;
+          setTimeout(start_timer, 1000);
+        }
+      }
+
+      start_timer();
+  </script>
+  {% elif finished == 'unavailable' %}
+  <div class="alert alert-info text-center" role="alert">
+    The identification matching review you are attempting to review cannot be completed.  The Annotation IDs in this
+    review are currently being used by <a href="{{ url_for('review_identification_graph') }}?{{ refer_graph_uuid_str }}">UUID {{ refer_query_uuid }}</a>
+  </div>
+  {% elif finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, identification reviewing is completed.  Thank you!
+    <br/>
+    <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View annotations</a>
+  </div>
+  {% else %}
+    <div class="row">
+      <div class="col-lg-1"></div>
+
+      <div class="col-lg-10">
+        {% if imgsetid %}
+          <div class="alert alert-info" role="alert">
+            Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+            <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+          </div>
+        {% endif %}
+
+        {% if not REFER_DST_ENCODED and progress %}
+          <div class="progress" style="margin-bottom: 0px;">
+            <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="{{ progress }}" style="width: 100%;">
+              {{ progress }} Names (PCCs)
+            </div>
+          </div>
+        {% endif %}
+
+        {% if session %}
+          Session: [ {{ session_counter }} / {{ session_limit }} ]
+        {% endif %}
+        <br/>
+
+        Time Delta: {{ timedelta_str }}
+        <br/>
+        Match Annotation IDs: ({{ aid1 }}, {{ aid2 }})
+        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
+        <br/>
+      {% include 'review/identification_insert.html' %}
+    </div>
+
+    <div class="col-lg-1"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Identification Reviewing Instructions</h4>
+        </div>
+        <div class="modal-body">
+          <ol>
+            <li>A “Photobomb” occurs when the foreground animals in the two annotations are different, but a correct match appears in the image anyway, either between one foreground annotation and one background annotation, or between two background annotations.  We only want to say that two annotations are the same animal when both are clearly the primary animals in the annotation.  Therefore, when you see a photobomb, please click on the Photobomb box and then select Different Animals as the decision.</li>
+
+            <li>A “Scenery Match” occurs when the animals in the foreground of the annotations are not the same and the primary matching information is in the background / scenery of the annotations.  In this case click the Scenery Match box and select either Different Animals or Cannot Tell, as appropriate.  Note that you can click on both Photobomb and Scenery Match for one pair of annotations.</li>
+
+            <li>If an annotation is too poor to reliably match, please click on the corresponding Exclude button at the bottom.  Such an annotation will be removed from further consideration during the id process.</li>
+          </ol>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-identification_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+
+  <style>
+    .container
+    {
+      /*width: 1500px !important;*/
+    }
+
+    .label-text-box
+    {
+      visibility: hidden !important;
+    }
+
+    .identification-image-zoom {
+      width: 100%;
+      max-height: none;
+    }
+  </style>
+{% endblock %}
+{% block content_custom_javascript %}
+{% endblock %}

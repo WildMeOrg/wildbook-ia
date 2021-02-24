@@ -23,11 +23,11 @@ DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
 TARGET_WIDTH = 1200.0
 TARGET_HEIGHT = 800.0
 PAGE_SIZE = 500
-VALID_TURK_MODES = [
-    ('turk_annotation', 'Annotation'),
-    ('turk_viewpoint', 'Viewpoint'),
-    ('turk_quality', 'Quality'),
-    ('turk_demographics', 'Demographics'),
+VALID_REVIEW_MODES = [
+    ('review_annotation', 'Annotation'),
+    ('review_viewpoint', 'Viewpoint'),
+    ('review_quality', 'Quality'),
+    ('review_demographics', 'Demographics'),
 ]
 
 
@@ -64,7 +64,7 @@ class NavbarClass(object):
             # ('view_names', 'Names'),
             ('view_graphs', 'Graphs'),
             # ('action', 'Action'),
-            ('turk', 'Turk'),
+            ('review', 'Review'),
             # ('view_experiments', 'Experiments'),
             ('view_jobs', 'Jobs'),
             # ('api_root',  'API'),
@@ -242,7 +242,7 @@ def send_csv_file(string, filename):
     return response
 
 
-def get_turk_image_args(is_reviewed_func):
+def get_review_image_args(is_reviewed_func):
     """
     Helper to return gids in an imageset or a group review
     """
@@ -279,7 +279,7 @@ def get_turk_image_args(is_reviewed_func):
     return gid_list, reviewed_list, imgsetid, progress, gid, previous
 
 
-def get_turk_annot_args(is_reviewed_func, speed_hack=False):
+def get_review_annot_args(is_reviewed_func, speed_hack=False):
     """
     Helper to return aids in an imageset or a group review
     """

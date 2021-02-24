@@ -1,0 +1,133 @@
+<div class="ia-container">
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}&{{ config_str }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form(this.clear);" id="ia-contour-form">
+    <div id="ia-contour-annotator-container"></div>
+
+    <div class="row">
+      <div class="col-lg-12 col-md-12 col-sm-12">
+        <div style="text-align: center; color: #aaa;">
+<!--           <span><a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_part_rowid={{ part_rowid }}" style="color: #aaa; text-decoration: underline;">Edit the part for Image ID: {{ gid }}</a></span> -->
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-4 col-md-4 col-sm-4">
+<!--
+        <input type="range" name="radius-value" id="slider-radius" value="30" min="10" max="50" style="margin-bottom:5px; margin-top: 10px;" onchange="update_radius();" oninput="update_radius();">
+        <div class="row-custom-expand">
+          <div class="col-custom-span col-custom-span-2"><span class="glyphicon glyphicon-resize-small"></span></div>
+          <div class="col-custom-span col-custom-span-2"><span class="glyphicon glyphicon-resize-full" ></span></div>
+        </div>
+ -->
+      </div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <div id="ia-metadata-panel-annotation-quickhelp" style="text-align: center; color: #aaa;">
+          <a tabindex="0" id="ia-contour-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='' style="margin-top: 10px;">Quick Help</a>
+        </div>
+        <br/>
+      </div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <div style="text-align: right; margin-top: 6px;">
+          <div id="ia-detection-setting-orientation-wrapper">
+            <i>Show Guidelines</i>
+            <input type="checkbox" id="ia-contour-setting-guiderail" {% if settings['ia-contour-setting-guiderail'] %}checked{% endif %}>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <input type="text" name="contour-part-rowid" value="{{ part_rowid }}" style="display: none;" readonly>
+    <input type="text" name="contour-part-uuid" value="{{ part_uuid }}" style="display: none;" readonly>
+
+    <div class="row" style="margin-top: 20px;">
+      <div class="col-lg-12" style="text-align: center;">
+        <div style="margin-top: -27px;">
+          {% if previous %}
+            <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_contour') }}?imgsetid={{ imgsetid }}&part_rowid={{ previous }}&{{ config_str }}" style="margin-right: 10px;">Previous {{ previous }}</a>
+          {% endif %}
+        </div>
+
+        <div style="margin-top: -27px;">
+          <input onclick="this.form.clear=true;"  type="submit" name="contour-submit" id="ia-review-submit-clear" class="btn btn-warning pull-left" value="Clear">
+          <input onclick="this.form.clear=false;" type="submit" name="contour-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        </div>
+      </div>
+    </div>
+
+    <textarea id="ia-contour-data" name="ia-contour-data" style="font-family:monospace; margin-top:30px; width: 100%; height: 100px; display: none;" readonly="" form="ia-contour-form"></textarea>
+  </form>
+
+  <script src="{{ url_for('static', filename='javascript/review-contour.js', version='20180517-0') }}" ia-dependency="javascript"></script>
+  <script src="{{ url_for('static', filename='include/contour_annotator_percent.js', version='20180517-0') }}" ia-dependency="javascript"></script>
+
+  <script type="text/javascript" ia-dependency="javascript">
+    var cta, hotkeys_global_disabled
+
+    config_temp = {% if config['temp'] %}true{% else %}false{% endif %}
+
+    existing_contour = JSON.parse('{{ existing_contour_json|safe }}')
+
+    hotkeys_global_disabled = false
+
+    $(document).ready(function() {
+      // Initialize the contour annotator.
+      cta = new ContourAnnotator("{{ image_src }}", existing_contour, {
+        prefix: "ia-",
+        guiderail: {
+          "enabled": {% if settings['ia-contour-setting-guiderail'] %}true{% else %}false{% endif %},
+          "percent": {{ padding }},
+        },
+        mode: "finish", // "finish" or "edit" or "draw"
+        warning: "Too fast!  Please restart from last reliable point.",
+        zoom: {
+          enabled: false,
+        },
+        size: {
+          radius: 15,
+        },
+        actions: {
+          click: {
+            right: false,
+          },
+        },
+        callbacks: {
+          onchange: function(data) {
+            $('#ia-contour-data').text(JSON.stringify(data, null, "  "));
+          }
+        }
+      });
+
+      update_radius()
+
+      $("#ia-contour-setting-guiderail").change(function(event) {
+        update_guiderail()
+      });
+
+      var quickhelp_instructions = `<ul>
+        <li><b>Left Click</b>: Start or stop contour if none exists</li>
+        <li><b>Right Click</b>: Start or stop contour anytime</li>
+        <li><b>Shift</b>: Highlight point as occluded</li>
+        <li><b>Ctrl</b>: Un-highlight point as occluded</li>
+        <li><b>Esc</b>: Cancel all drawing</li>
+        <li><b>Delete</b>: Cancel all drawing or clear contour</li>
+        <li><b>R</b>: Reset segment back to original</li>
+        <li><b>Q</b>: Increase radius</li>
+        <li><b>A</b>: Decrease radius</li>
+        <li><b>G</b>: Toggle guidelines</li>
+        <li><b>Z</b>: Zoom view</li>
+        <li><b>H</b>: Toggle hiding current contour</li>
+      </ul>`
+
+      $('#ia-contour-quickhelp').popover({
+        html: true,
+      }).attr('data-content', quickhelp_instructions);
+
+      // Update metadata labels for form inputs
+      $('.ia-contour-hotkey').hide();
+
+      {% if display_instructions %}
+        $('#review-instructions').modal('show');
+      {% endif %}
+    });
+  </script>
+</div>

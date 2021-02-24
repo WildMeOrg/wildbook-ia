@@ -1,0 +1,732 @@
+<div class="ia-container">
+
+  {% if EMBEDDED_CSS %}
+    {{ EMBEDDED_CSS|safe }}
+  {% endif %}
+
+  <div class="row" id="ia-detection-setting-wrapper">
+
+    <div class="col-lg-4 col-md-4 col-sm-4">
+        <div style="text-align: left; margin-top: 8px;">
+          <div id="ia-detection-setting-orientation-wrapper">
+            <input type="checkbox" id="ia-detection-setting-orientation" {% if settings['ia-detection-setting-orientation'] %}checked{% endif %}>
+            <i> Axis-to-Axis Mid-line <span class="ia-detection-hotkey">(M)</span></i>
+          </div>
+          <span class="ia-detection-parts-toggle">
+            <input type="checkbox" id="ia-detection-setting-parts-assignments" {% if settings['ia-detection-setting-parts-assignments'] %}checked{% endif %}>
+            <i> Show Part Assignments <span class="ia-detection-hotkey">(A)</span></i>
+          </span>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-4 col-sm-4">
+        <div id="ia-detection-setting-toggle-wrapper" style="text-align: center; margin-top: 10px; margin-bottom: 2px;">
+          <!-- <input type="checkbox" id="ia-detection-setting-toggle" checked> -->
+          <input type="checkbox" id="ia-detection-setting-toggle" data-width="150" {% if settings['ia-detection-setting-toggle-annotations'] %}checked{% endif %}>
+          <br/>
+          <div style="font-size: 10px; margin: 0px; line-height: 10px;">
+            <span id="ia-detection-setting-toggle-label">Annotation</span>
+            <span class="ia-detection-hotkey">(T)</span>
+          </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-4 col-sm-4">
+        <div style="text-align: right; margin-top: 8px;">
+          <span class="ia-detection-parts-toggle">
+            <i><span class="ia-detection-hotkey">(S)</span> Always Show Parts</i>
+            <input type="checkbox" id="ia-detection-setting-parts-show" {% if settings['ia-detection-setting-parts-show'] %}checked{% endif %}><br/>
+          </span>
+
+          <span class="ia-detection-parts-toggle">
+            <i><span class="ia-detection-hotkey">(D / H)</span> Always Hide Parts</i>
+            <input type="checkbox" id="ia-detection-setting-parts-hide" {% if settings['ia-detection-setting-parts-hide'] %}checked{% endif %}>
+          </span>
+        </div>
+    </div>
+  </div>
+
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}&{{ config_str }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form(this.skipcheck);" id="ia-detection-form">
+    <div id="ia-bbox-annotator-container"></div>
+
+    <div class="row">
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <!-- <div>Staged Annots / Parts: {{ num_staged_aids }} / {{ num_staged_part_rowids }}</div> -->
+        <!-- <div>Staged Sessions: {{ num_staged_sessions }}</div> -->
+        <div>Staged Users: {{ num_staged_users }}</div>
+        {% if is_staged %}
+          <div style="color: #aaa; display: inline;">
+            Staged Progress: {{ staged_progress }}%
+          </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <div id="ia-metadata-panel-annotation-quickhelp" style="text-align: center; color: #aaa;">
+          <a tabindex="0" id="ia-detection-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='' style="margin-top: 10px;">Quick Help</a>
+        </div>
+        <br/>
+      </div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+      </div>
+    </div>
+
+    <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
+    <input type="text" name="detection-only-aid" value="{{ only_aid }}" style="display: none;" readonly>
+    <input type="text" name="detection-image-uuid" value="{{ image_uuid }}" style="display: none;" readonly>
+    <div class="row">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-8" style="text-align:center;">
+        {% if REFER_DST_STR and refer_aid %}
+          <a href="/{{ REFER_DST_STR }}&aid={{ refer_aid }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
+        {% endif %}
+      </div>
+      <div class="col-lg-2"></div>
+    </div>
+
+    <div class="row" style="margin-top: 20px;">
+      <div class="col-lg-12" style="text-align: center;">
+        <div style="margin-top: -27px;">
+          {% if previous %}
+            {% if is_canonical %}
+              <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_detection_canonical') }}?imgsetid={{ imgsetid }}&aid={{ previous_only_aid }}&{{ config_str }}">
+                Previous Image ID {{ previous }}, Annotation ID {{ previous_only_aid }}
+              </a>
+            {% else %}
+              <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}&gid={{ previous }}&only_aid={{ previous_only_aid }}&{{ config_str }}">
+                Previous Image ID {{ previous }}
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <span id="ia-metadata-badge-annotation" class="badge" style="margin-left: auto; margin-right: -5px; border-top-right-radius: 0; border-bottom-right-radius: 0;">Annotation</span>
+        <span id="ia-metadata-badge-part" class="badge" style="border-top-left-radius: 0;border-bottom-left-radius: 0; margin-right: auto;">Part</span>
+        <br/>
+        <div id="ia-metadata-rowid" style="margin-top: 5px; height: 10px;">ID</div>
+
+        <div style="margin-top: -27px;">
+          <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-accept" class="btn btn-primary pull-right" value="Accept">
+          {% if not EMBEDDED_JAVASCRIPT %}
+            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-clear"  class="btn btn-warning pull-right" value="Clear" style="margin-right: 15px;"> -->
+            <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-delete" class="btn btn-danger pull-right" value="Delete" style="margin-right: 15px;" onclick="return confirm('Are you sure you want to delete this image?')"> -->
+          {% endif %}
+          <!-- <input onclick="this.form.skipcheck=false;" type="submit" name="detection-submit" id="ia-review-submit-accept" class="btn btn-danger pull-right" value="Poor Boxes" style="margin-right: 15px;"> -->
+
+          <br/>
+          <br/>
+          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-review-submit-right" class="btn btn-default pull-right" value="Rotate Right" style="margin-top: 10px;">
+          <input onclick="this.form.skipcheck=true;" type="submit" name="detection-submit" id="ia-review-submit-left" class="btn btn-default pull-right" value="Rotate Left" style="margin-right: 15px; margin-top: 10px;">
+        </div>
+      </div>
+    </div>
+
+    <div id="ia-metadata-panel-container" style="position: relative; width: 100%;">
+      <div id="ia-metadata-panel-annotation" style="position: absolute; width: 100%;">
+
+        <div id="ia-metadata-panel-annotation-viewpoint">
+          Viewpoint: <span id="ia-detection-annotation-viewpoint-label"></span>
+          <br/>
+          <div class="ia-viewpoint-axis-1">
+            Primary <span class="ia-detection-hotkey">(&#8679 / Shift)</span>
+            <span id="ia-detection-form-annotation-warning" class="pull-right" style="color: #ac2925;"><i>focus an annotation to edit these values</i></span>
+            <br/>
+            <input id="ia-detection-annotation-viewpoint-1" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-1" value="-1" min="-1" max="5" style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+            <br/>
+          </div>
+          <div class="ia-viewpoint-axis-2">
+            Secondary <span id="ia-viewpoint-axis-2-hotkey" class="ia-detection-hotkey">(&#8997; / Alt / Option)</span>
+            <br/>
+            <input id="ia-detection-annotation-viewpoint-2" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-2" value="-1" min="-1" max="5" style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div id="col-viewpoint-ticks-2-0" class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div id="col-viewpoint-ticks-2-1" class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div id="col-viewpoint-ticks-2-2" class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div id="col-viewpoint-ticks-2-3" class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div id="col-viewpoint-ticks-2-4" class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div id="col-viewpoint-ticks-2-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div id="col-viewpoint-ticks-2-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+            <br/>
+          </div>
+          <div class="ia-viewpoint-axis-3">
+            Third
+            <br/>
+            <input id="ia-detection-annotation-viewpoint-3" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-3" value="-1" min="-1" max="5"style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div id="col-viewpoint-ticks-3-0" class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div id="col-viewpoint-ticks-3-1" class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div id="col-viewpoint-ticks-3-2" class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div id="col-viewpoint-ticks-3-3" class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div id="col-viewpoint-ticks-3-4" class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" id="ia-metadata-panel-annotation-row2">
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            <div id="ia-metadata-panel-annotation-quality">
+
+              Quality: <span id="ia-detection-annotation-quality-label"></span>
+              <input id="ia-detection-annotation-quality" class="ia-detection-form-annotation-value" type="range" name="ia-quality-value" value="0" min="0" max="2" style="margin-bottom:5px;">
+              <div class="row-custom-expand">
+                <div class="col-custom-span col-custom-span-3">
+                  <i>null</i> <span class="ia-detection-hotkey">(E)</span>
+                </div>
+                <div class="col-custom-span col-custom-span-3">
+                  <span class="glyphicon glyphicon-remove"></span> <span class="ia-detection-hotkey">(Q)</span>
+                </div>
+                <div class="col-custom-span col-custom-span-3">
+                  <span class="glyphicon glyphicon-ok"></span> <span class="ia-detection-hotkey">(W)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            <div style="text-align: right;">
+
+              <div id="ia-metadata-panel-annotation-flags">
+                <div id="ia-metadata-panel-annotation-flags-aoi">
+                  <span class="ia-detection-hotkey">(I)</span> Annotation of Interest
+                  <input id="ia-detection-annotation-interest" class="ia-detection-form-annotation-value" name="ia-interest-value" type="checkbox"><br/>
+                </div>
+
+                <div id="ia-metadata-panel-annotation-flags-multiple">
+                  <span class="ia-detection-hotkey">(O)</span> Multiple Animals
+                  <input id="ia-detection-annotation-multiple" class="ia-detection-form-annotation-value" name="ia-multiple-value" type="checkbox">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 20px;">
+          <div class="col-lg-4">
+            <div id="ia-metadata-panel-annotation-species">
+
+              Species: <span class="ia-detection-hotkey">(C to cycle)</span>
+              <select id="ia-detection-annotation-class"  class="form-control ia-detection-form-annotation-value" name="ia-class-value" style="width: 200px;">
+                {% for species_nice, species_text in species_list %}
+                  <option value="{{ species_text }}">{{ species_nice }}</option>
+                {% endfor %}
+              </select>
+              {% if EMBEDDED %}
+                <span class="pull-left" data-toggle="modal" data-target="#species-add" style="color: #aaa; cursor: pointer;"><i>Add Species</i></span>
+              {% endif %}
+              <br/>
+            </div>
+          </div>
+
+          <div class="col-lg-4"></div>
+          <div class="col-lg-4"></div>
+        </div>
+      </div>
+
+      <div id="ia-metadata-panel-part" style="position: absolute; width: 100%;">
+        <div id="ia-metadata-panel-part-viewpoint">
+          Viewpoint: <span id="ia-detection-part-viewpoint-label"></span>
+          <br/>
+          <div class="ia-viewpoint-axis-1">
+            Primary <span class="ia-detection-hotkey">(&#8679 / Shift)</span>
+            <span id="ia-detection-form-part-warning" class="pull-right" style="color: #ac2925;"><i>focus a part to edit these values</i></span>
+            <br/>
+            <input id="ia-detection-part-viewpoint-1" class="ia-detection-form-part-value" type="range" name="ia-viewpoint-value-1" value="-1" min="-1" max="5" style="margin-bottom:5px;">
+            <div class="row-custom-expand">
+              <div class="col-custom-span col-custom-span-7"><i>inherit</i> <span class="ia-detection-hotkey">(0)</span></div>
+              <div class="col-custom-span col-custom-span-7">top <span class="ia-detection-hotkey">(1)</span></div>
+              <div class="col-custom-span col-custom-span-7">bottom <span class="ia-detection-hotkey">(2)</span></div>
+              <div class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+              <div class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+              <div class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+              <div class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
+            </div>
+            <br/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            <div id="ia-metadata-panel-part-quality">
+              Quality: <span id="ia-detection-part-quality-label"></span>
+              <input id="ia-detection-part-quality" class="ia-detection-form-part-value" type="range" name="ia-quality-value" value="0" min="0" max="2" style="margin-bottom:5px;">
+              <div class="row-custom-expand">
+                <div class="col-custom-span col-custom-span-3">
+                  <i>inherit</i> <span class="ia-detection-hotkey">(E)</span>
+                </div>
+                <div class="col-custom-span col-custom-span-3">
+                  <span class="glyphicon glyphicon-remove"></span> <span class="ia-detection-hotkey">(Q)</span>
+                </div>
+                <div class="col-custom-span col-custom-span-3">
+                  <span class="glyphicon glyphicon-ok"></span> <span class="ia-detection-hotkey">(W)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6"></div>
+        </div>
+
+        <div class="row" style="margin-top: 20px;">
+          <div class="col-lg-4">
+            <div id="ia-metadata-panel-part-type">
+              Type: <span class="ia-detection-hotkey">(C to cycle)</span>
+              <select id="ia-detection-part-class" class="form-control ia-detection-form-part-value"  name="ia-part-value" style="width: 200px;">
+              </select>
+              {% if EMBEDDED %}
+                <span class="pull-left" data-toggle="modal" data-target="#part-add" style="color: #aaa; cursor: pointer;"><i>Add Type</i></span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-lg-4"></div>
+
+          <div class="col-lg-4"></div>
+        </div>
+      </div>
+    </div>
+
+    {% if not EMBEDDED %}
+      <div id="ia-metadata-panel-annotation-quickhelp-fallback">
+        Quick Help:
+        <br/>
+        <span id="ia-detection-quickhelp-fallback">
+        </span>
+      </div>
+    {% endif %}
+
+    <textarea id="ia-detection-data" name="ia-detection-data" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form"></textarea>
+    <textarea id="ia-detection-manifest" name="ia-detection-manifest" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="ia-detection-form">{% if THROW_TEST_AOI_REVIEWING_AVAILABLE %}{{ THROW_TEST_AOI_REVIEWING_MANIFEST|safe }}{% endif %}</textarea>
+  </form>
+
+  {% if EMBEDDED_JAVASCRIPT %}
+    {{ EMBEDDED_JAVASCRIPT|safe }}
+  {% else %}
+    <script src="{{ url_for('static', filename='javascript/review-detection.js', version='20190110-2') }}" ia-dependency="javascript"></script>
+    <script src="{{ url_for('static', filename='include/bbox_annotator_percent.js', version='20190110-2') }}" ia-dependency="javascript"></script>
+  {% endif %}
+
+  <script type="text/javascript" ia-dependency="javascript">
+    var bba, toggle, axis2, axis3, states, species_part_dict, hotkeys_disabled, hotkeys_global_disabled
+
+    species_part_dict = JSON.parse('{{ species_part_dict_json|safe }}')
+
+    config_autointerest    = {% if config['autointerest']            %}true{% else %}false{% endif %}
+    config_interest_bypass = {% if config['interest_bypass']         %}true{% else %}false{% endif %}
+    config_metadata        = {% if config['metadata']                %}true{% else %}false{% endif %}
+    config_viewpoint       = {% if config['metadata_viewpoint']      %}true{% else %}false{% endif %}
+    config_quality         = {% if config['metadata_quality']        %}true{% else %}false{% endif %}
+    config_flags           = {% if config['metadata_flags']          %}true{% else %}false{% endif %}
+    config_flags_aoi       = {% if config['metadata_flags_aoi']      %}true{% else %}false{% endif %}
+    config_flags_multiple  = {% if config['metadata_flags_multiple'] %}true{% else %}false{% endif %}
+    config_species         = {% if config['metadata_species']        %}true{% else %}false{% endif %}
+    config_label           = {% if config['metadata_label']          %}true{% else %}false{% endif %}
+    config_quickhelp       = {% if config['metadata_quickhelp']      %}true{% else %}false{% endif %}
+    config_parts           = {% if config['parts']                   %}true{% else %}false{% endif %}
+    config_modes_rectangle = {% if config['modes_rectangle']         %}true{% else %}false{% endif %}
+    config_modes_diagonal  = {% if config['modes_diagonal']          %}true{% else %}false{% endif %}
+    config_modes_diagonal2 = {% if config['modes_diagonal2']         %}true{% else %}false{% endif %}
+
+    hotkeys_disabled = true
+    hotkeys_global_disabled = false
+    axis2 = true;
+    axis3 = false;
+
+    states = {
+      annotations: {% if settings['ia-detection-setting-toggle-annotations'] %}true{% else %}false{% endif %},
+      parts: {% if settings['ia-detection-setting-toggle-parts'] %}true{% else %}false{% endif %},
+      active: null,
+    }
+
+    modes = []
+    if(config_modes_diagonal) {
+      modes.push('diagonal')
+    }
+    if(config_modes_diagonal2) {
+      modes.push('diagonal2')
+    }
+    if(config_modes_rectangle) {
+      modes.push('rectangle')
+    }
+    if(modes.length == 0) {
+      console.log('[Detection] All modes are turned off, using rectangle as default')
+      modes.push('rectangle')
+    }
+    single_mode = modes.length == 1
+
+    $(document).ready(function() {
+
+      if( ! axis2) {
+        hide_viewpoint_2_axis_panel(2)
+      }
+      if( ! axis3) {
+        hide_viewpoint_2_axis_panel(3)
+      }
+
+      $(window).bind("resize", function() {
+          fix_metadata_panels()
+      })
+
+      mode = {% if settings['ia-detection-setting-toggle-annotations'] %}{% if settings['ia-detection-setting-orientation'] %}"diagonal"{% else %}"diagonal2"{% endif %}{% else %}"rectangle"{% endif %}
+      visible = {% if settings['ia-detection-setting-parts-show'] %}true{% else %}{% if settings['ia-detection-setting-parts-hide'] %}false{% else %}null{% endif %}{% endif %}
+      assignments = {% if settings['ia-detection-setting-parts-assignments'] %}true{% else %}false{% endif %}
+
+      if(single_mode) {
+        mode = modes[0]
+        console.log('[Detection] Overriding all mode options, always using: ' + mode)
+      }
+
+      {% if is_canonical %}
+        config_interest_bypass = true
+
+        var entry = {
+          addition: false,
+          parts: false,
+          translation: false,
+          scaling: false,
+          rotation: false,
+          deletion: false,
+          defocus: false,
+        }
+      {% else %}
+        var entry = {}
+      {% endif %}
+
+      // Initialize the bounding-box annotator.
+      bba = new BBoxAnnotator("{{ image_src }}", {
+        prefix: "ia-",
+        modes: modes,
+        mode: mode,
+        colors: {
+          // anchor: "#FFFFFF",
+        },
+        actions: {
+          entry: entry,
+          subentry: {
+            addition: config_parts,
+          },
+        },
+        subentries: {
+          visible: visible,
+          assignments: assignments,
+        },
+        callbacks: {
+          onload: function() {
+            {% if is_canonical %}
+              bba.hover_entry(0)
+              bba.focus_entry(0)
+            {% endif %}
+          },
+          onchange: function(entries) {
+            $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));
+          },
+          onhover: function(index, entry) {
+            if(index == null || entry == null) {
+              hotkeys_disabled = true;
+              update_metadata_panel();
+              return
+            }
+            if(entry.parent == null) {
+              update_metadata_panel("annotation");
+              show_annotation_metadata(entry)
+            } else {
+              update_metadata_panel("part");
+              parent = entry.parent
+              parent_entry = bba.entries[parent]
+              show_part_metadata(entry, parent_entry)
+            }
+            hotkeys_disabled = false;
+          },
+          onselector: function() {
+            if(bba.state.focus == null) {
+              update_metadata_panel("annotation");
+            } else {
+              update_metadata_panel("part");
+            }
+          },
+          onfocus: function(index, entry) {
+            // if(index == null || entry == null) {
+            //   return
+            // }
+
+            if(entry == null) {
+              disable_metadata_annotations()
+              disable_metadata_parts()
+            } else {
+              if (entry.parent == null) {
+                enable_metadata_annotations()
+                disable_metadata_parts()
+              } else {
+                enable_metadata_parts()
+              }
+            }
+
+            checked_mode = $("#ia-detection-setting-toggle").prop("checked");
+
+            if(bba.state.focus == null) {
+              $("#ia-detection-setting-toggle-label").html("Annotations")
+              wanted_mode = states.annotations
+            } else {
+              $("#ia-detection-setting-toggle-label").html("Parts")
+              wanted_mode = states.parts
+            }
+
+            if(wanted_mode) {
+              $('#ia-detection-setting-toggle').prop('checked', true).trigger('change');
+              // $('#ia-detection-setting-toggle').bootstrapToggle('on')
+            } else {
+              $('#ia-detection-setting-toggle').prop('checked', false).trigger('change');
+              // $('#ia-detection-setting-toggle').bootstrapToggle('off')
+            }
+          },
+        },
+      });
+
+      // Add pre-existing annotations as entries
+      {% for annot in annotation_list %}
+        bba.add_entry({
+          label:    '{{ annot['id'] }}',
+          percent:  {
+            left:      {{ annot['left'] }},
+            top:       {{ annot['top'] }},
+            width:     {{ annot['width'] }},
+            height:    {{ annot['height'] }},
+          },
+          angles:   {
+            theta:     {{ annot['theta'] }},
+          },
+          highlighted: {{ annot['interest'] }},
+          metadata: {
+            viewpoint1: {{ annot['viewpoint1'] }},
+            viewpoint2: {{ annot['viewpoint2'] }},
+            viewpoint3: {{ annot['viewpoint3'] }},
+            quality:    {{ annot['quality'] }},
+            multiple:   {{ annot['multiple'] }},
+            species:    '{{ annot['species'] }}',
+          },
+        });
+      {% endfor %}
+
+      // Add pre-existing annotations as entries
+      {% for part in part_list %}
+        bba.add_entry({
+          label:    '{{ part['id'] }}',
+          parent:   {{ part['parent'] }},
+          percent:  {
+            left:       {{ part['left'] }},
+            top:        {{ part['top'] }},
+            width:      {{ part['width'] }},
+            height:     {{ part['height'] }},
+          },
+          angles:   {
+            theta:      {{ part['theta'] }},
+          },
+          metadata: {
+            viewpoint1: {{ part['viewpoint1'] }},
+            quality:    {{ part['quality'] }},
+            type:       '{{ part['type'] }}',
+          },
+        });
+      {% endfor %}
+
+      {% if EMBEDDED %}
+        // Create the toggle's user interaction
+        toggle = $('#ia-detection-setting-toggle');
+        toggle.bootstrapToggle({
+          on: 'Axis-to-Axis',
+          off: 'Corner-to-Corner',
+          onstyle: {% if is_staged %}'danger'{% else %}'primary'{% endif %},
+          offstyle: {% if is_staged %}'danger'{% else %}'primary'{% endif %}
+        });
+      {% endif %}
+
+      $("#ia-detection-setting-toggle,#ia-detection-setting-orientation").change(function() {
+
+        if(single_mode) {
+          return true;
+        }
+
+        var checked_mode, diagonal_mode, checked_tag;
+        checked_mode = $("#ia-detection-setting-toggle").prop("checked");
+        diagonal_mode = $("#ia-detection-setting-orientation").prop("checked");
+
+        // Save the mode
+        if(bba.state.focus == null) {
+          states.annotations = checked_mode
+        } else {
+          states.parts = checked_mode
+        }
+
+        submit_cookie('ia-detection-setting-toggle-annotations', states.annotations ? '1' : '0');
+        submit_cookie('ia-detection-setting-toggle-parts', states.parts ? '1' : '0');
+        submit_cookie('ia-detection-setting-orientation', diagonal_mode ? '1' : '0');
+
+        if (diagonal_mode) {
+          diagonal_tag = "diagonal"
+        } else {
+          diagonal_tag = "diagonal2"
+        }
+
+        checked_tag = checked_mode ? diagonal_tag : "rectangle";
+        bba.update_mode(checked_tag);
+      });
+
+      $("#ia-detection-setting-parts-assignments").change(function() {
+        var checked_mode, checked_tag;
+        checked_mode = $(this).prop("checked");
+
+        submit_cookie('ia-detection-setting-parts-assignments', checked_mode ? '1' : '0');
+
+        checked_tag = checked_mode ? true : null;
+        bba.update_subentries_assignments(checked_tag);
+      });
+
+      $("#ia-detection-setting-parts-show").change(function() {
+        var checked_mode, checked_tag
+        checked_mode = $(this).prop("checked");
+
+        submit_cookie('ia-detection-setting-parts-show', checked_mode ? '1' : '0');
+
+        if(checked_mode) {
+          $('#ia-detection-setting-parts-hide').prop('checked', false);
+          submit_cookie('ia-detection-setting-parts-hide', '0');
+        }
+        checked_tag = checked_mode ? true : null;
+        bba.update_subentries_visible(checked_tag);
+      });
+
+      $("#ia-detection-setting-parts-hide").change(function() {
+        var checked_mode, checked_tag
+        checked_mode = $(this).prop("checked");
+
+        submit_cookie('ia-detection-setting-parts-hide', checked_mode ? '1' : '0');
+
+        if(checked_mode) {
+          $('#ia-detection-setting-parts-show').prop('checked', false);
+          submit_cookie('ia-detection-setting-parts-show', '0');
+        }
+        checked_tag = checked_mode ? false : null;
+        bba.update_subentries_visible(checked_tag);
+      });
+
+      $(".ia-detection-form-annotation-value").change(function(e)
+      {
+        metadata = bba.get_metadata()
+        if(metadata == null) {
+          return
+        }
+        metadata.version    = "annotation"
+        metadata.viewpoint1 = $('#ia-detection-annotation-viewpoint-1').val();
+        if (axis2) {
+          metadata.viewpoint2 = $('#ia-detection-annotation-viewpoint-2').val();
+        } else if (axis3) {
+          metadata.viewpoint3 = $('#ia-detection-annotation-viewpoint-3').val();
+        }
+        metadata.quality    = $('#ia-detection-annotation-quality').val();
+        metadata.species    = $('#ia-detection-annotation-class').find("option:selected").val();
+        metadata.multiple   = $('#ia-detection-annotation-multiple').is(":checked")
+
+        // Set highlighted
+        bba.set_metadata(metadata)
+        bba.set_highlighted($('#ia-detection-annotation-interest').is(":checked"))
+
+        update_label()
+      });
+
+      $(".ia-detection-form-part-value").change(function(e)
+      {
+        metadata = bba.get_metadata()
+        if(metadata == null) {
+          return
+        }
+        metadata.version    = "part"
+        metadata.viewpoint1 = $('#ia-detection-part-viewpoint-1').val();
+        metadata.quality    = $('#ia-detection-part-quality').val();
+        metadata.type       = $('#ia-detection-part-class').find("option:selected").val();
+        bba.set_metadata(metadata)
+
+        update_label()
+      });
+
+      var quickhelp_instructions = `<ul>
+        <li><b>Left-click</b>: add a new box <span style="color: #00e100; opacity: 0.75"><b>(green)</b></span></li>
+        <li><b>Hover</b>: highlight a box <span style="color: #F0AD4E; opacity: 0.75"><b>(orange)</b></span></li>
+        <li><b>Right-click</b> or <b>F</b>: focus a highlighted box <span style="color: #EB2A18; opacity: 0.75"><b>(red).</b></span></li>
+          When in focus: <ul>
+            <li>parts <span style="color: #444444; opacity: 0.75"><b>(dark outline)</b></span> can be added</li>
+            <li>metadata can be changed below</li>
+            <li>a part can be highlighted and focused</li>
+          </ul>
+        <li><b>Hover+Left-drag</b>: move the highlighted box
+        <li><b>Hover+Right-drag</b>: resize the highlighted box<br/>using the closest handle <span style="color: #EB2A18; opacity: 0.75"><b>(red)</b>
+        <li><b>Z</b>: toggle zoom</li>
+        <li><b>Esc</b>: cancel any action and unfocus</li>
+        <li><b>Delete</b> or <b>k</b>: delete a highlighted box</li>
+        <li><b>Delete+Shift</b> delete all parts of a highlighted box</li>
+        <li><b>Enter</b> or <b>Space</b>: accept the current bounding boxes and get a new example</li>
+        <li><b>Crtl</b>: hold to show all available hotkeys</li>
+        <li><b>I</b>: mark a highlighted box with Interest <span style="color: #2E63FF; opacity: 0.75"><b>(blue)</b></span></li>
+        <li><b>R</b>: rotate a highlighted box right by 90&#176;</li>
+        <li><b>L</b>: rotate a highlighted box left by 90&#176;</li>
+        <li><b>B</b>: send a box to the background</li>
+      </ul>`
+
+      {% if EMBEDDED %}
+        $('#ia-detection-quickhelp').popover({
+          html: true,
+        }).attr('data-content', quickhelp_instructions);
+      {% else %}
+        $('#ia-detection-quickhelp').css('visibility', 'hidden');
+        $('#ia-detection-quickhelp-fallback').html(quickhelp_instructions);
+      {% endif %}
+
+      $('#species-add').on('shown.bs.modal', function() {
+          $('input[name="species-add"]').val('')
+          hotkeys_global_disabled = true;
+          bba.options.hotkeys.enabled = false
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+          bba.options.hotkeys.enabled = true
+      });
+
+      $('#part-add').on('shown.bs.modal', function() {
+          $('input[name="part-add"]').val('')
+          hotkeys_global_disabled = true;
+          bba.options.hotkeys.enabled = false
+      });
+
+      $('#part-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+          bba.options.hotkeys.enabled = true
+      });
+
+      // Update metadata labels for form inputs
+      update_label();
+      disable_metadata_annotations();
+      disable_metadata_parts();
+      update_metadata_panel();
+      fix_metadata_panels();
+      $('.ia-detection-hotkey').hide();
+
+      {% if display_instructions %}
+        $('#review-instructions').modal('show');
+      {% endif %}
+
+      {% if display_species_examples %}
+        $('#review-class-examples').modal('show');
+      {% endif %}
+
+      {% if display_new_features %}
+        $('#review-new-features').modal('show');
+      {% endif %}
+    });
+  </script>
+</div>

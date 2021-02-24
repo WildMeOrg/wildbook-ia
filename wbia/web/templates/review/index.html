@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="row marketing">
+    <div class="col-lg-4">
+      <h4>Image Cameratrap</h4>
+      <p>Online reviewing for cameratrap review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('review_cameratrap') }}?imgsetid={{ imgsetid }}" role="button">Cameratraps</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Image Detections</h4>
+      <p>Online reviewing for detection review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}" role="button">Detections</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Annotation Metadata</h4>
+      <p>Online reviewing for annotation review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('review_viewpoint2') }}?imgsetid={{ imgsetid }}" role="button">Annotations</a></p>
+    </div>
+  </div>
+
+  <div class="row marketing">
+    <div class="col-lg-4">
+      <h4>Annotation Species</h4>
+      <p>Online reviewing for annotation species</p>
+      <p><a class="btn btn-lg btn-info" href="{{ url_for('review_species') }}?imgsetid={{ imgsetid }}" role="button">Annotation Species</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Annotation Viewpoints</h4>
+      <p>Online reviewing for annotation viewpoints</p>
+      <p><a class="btn btn-lg btn-info" href="{{ url_for('review_viewpoint3') }}?imgsetid={{ imgsetid }}" role="button">Annotation Viewpoints</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Annotation Qualities</h4>
+      <p>Online reviewing for annotation qualities</p>
+      <p><a class="btn btn-lg btn-info" href="{{ url_for('review_quality') }}?imgsetid={{ imgsetid }}" role="button">Annotation Qualities</a></p>
+    </div>
+  </div>
+
+  <div class="row marketing">
+    <div class="col-lg-4">
+      <h4>Part Types</h4>
+      <p>Online reviewing for part types</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('review_part_types') }}?imgsetid={{ imgsetid }}" role="button">Part Types</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Part Contours</h4>
+      <p>Online reviewing for part contours</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('review_contour') }}?imgsetid={{ imgsetid }}" role="button">Part Contours</a></p>
+    </div>
+  </div>
+
+  <div class="row marketing">
+    <div class="col-lg-4">
+      <h4>Name Demographics</h4>
+      <p>Online reviewing for name age and sex</p>
+      <p><a class="btn btn-lg btn-warning" href="{{ url_for('review_demographics') }}?imgsetid={{ imgsetid }}" role="button">Name Demographics</a></p>
+    </div>
+  </div>
+
+  <div class="row marketing">
+    <div class="col-lg-4">
+      <h4>LNBNN Matches</h4>
+      <p>Online reviewing for LNBNN identification matches</p>
+      <p><a class="btn btn-lg btn-danger" href="{{ url_for('review_identification') }}?imgsetid={{ imgsetid }}" role="button">LNBNN Matches</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Graph Matches</h4>
+      <p>Online reviewing for Graph identification matches</p>
+      <p><a class="btn btn-lg btn-danger" href="{{ url_for('review_identification_graph') }}" role="button">Graph Matches</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Hardcases</h4>
+      <p>Online reviewing for hardcase re-review</p>
+      <p><a class="btn btn-lg btn-danger" href="{{ url_for('review_identification_hardcase') }}" role="button">Hardcases</a></p>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Reviewer ID</h4>
+        </div>
+        <div class="modal-body">
+          What is your reviewer ID?
+          <br/>
+          <input id="review-id-value" type="text">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-review_id', $('input#ia-review-id-value').val());">Enter!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  // $('#review-id').modal('show');
+</script>
+{% endblock %}

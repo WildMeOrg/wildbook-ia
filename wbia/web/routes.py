@@ -25,9 +25,9 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
-THROW_TEST_AOI_TURKING = False
-THROW_TEST_AOI_TURKING_PERCENTAGE = 0.05
-THROW_TEST_AOI_TURKING_ERROR_MODES = {
+THROW_TEST_AOI_REVIEWING = False
+THROW_TEST_AOI_REVIEWING_PERCENTAGE = 0.05
+THROW_TEST_AOI_REVIEWING_ERROR_MODES = {
     'addition': [1, 2, 3],
     'deletion': [1, 2, 3],
     'alteration': [1, 2, 3],
@@ -2163,9 +2163,9 @@ def action_identification(**kwargs):
     return redirect(url_for('action'))
 
 
-@register_route('/turk/', methods=['GET'])
-def turk(imgsetid=None):
-    return appf.template('turk', None, imgsetid=imgsetid)
+@register_route('/review/', methods=['GET'])
+def review(imgsetid=None):
+    return appf.template('review', None, imgsetid=imgsetid)
 
 
 def _make_review_image_info(ibs, gid):
@@ -2202,10 +2202,10 @@ def _make_review_image_info(ibs, gid):
     annotation_list.append(temp)
 
 
-@register_route('/turk/cameratrap/', methods=['GET'])
-def turk_cameratrap(**kwargs):
+@register_route('/review/cameratrap/', methods=['GET'])
+def review_cameratrap(**kwargs):
     ibs = current_app.ibs
-    tup = appf.get_turk_image_args(appf.imageset_image_cameratrap_processed)
+    tup = appf.get_review_image_args(appf.imageset_image_cameratrap_processed)
     (gid_list, reviewed_list, imgsetid, progress, gid, previous) = tup
 
     finished = gid is None
@@ -2219,7 +2219,7 @@ def turk_cameratrap(**kwargs):
     imagesettext = ibs.get_imageset_text(imgsetid)
 
     embedded = dict(globals(), **locals())
-    return appf.template('turk', 'cameratrap', **embedded)
+    return appf.template('review', 'cameratrap', **embedded)
 
 
 @register_ibs_method
@@ -2247,8 +2247,8 @@ def precompute_web_viewpoint_thumbnails(ibs, aid_list=None, **kwargs):
     ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=kwargs)
 
 
-@register_route('/turk/detection/', methods=['GET'])
-def turk_detection(
+@register_route('/review/detection/', methods=['GET'])
+def review_detection(
     gid=None,
     only_aid=None,
     refer_aid=None,
@@ -2538,38 +2538,38 @@ def turk_detection(
     num_staged_sessions = len(set(staged_uuid_list))
     num_staged_users = len(set(staged_user_id_list))
 
-    THROW_TEST_AOI_TURKING_MANIFEST = []
-    THROW_TEST_AOI_TURKING_AVAILABLE = False
-    if THROW_TEST_AOI_TURKING:
-        if random.uniform(0.0, 1.0) <= THROW_TEST_AOI_TURKING_PERCENTAGE:
-            THROW_TEST_AOI_TURKING_AVAILABLE = True
+    THROW_TEST_AOI_REVIEWING_MANIFEST = []
+    THROW_TEST_AOI_REVIEWING_AVAILABLE = False
+    if THROW_TEST_AOI_REVIEWING:
+        if random.uniform(0.0, 1.0) <= THROW_TEST_AOI_REVIEWING_PERCENTAGE:
+            THROW_TEST_AOI_REVIEWING_AVAILABLE = True
             annotation_list = list(annotation_list)
             part_list = list(part_list)
 
-            key_list = list(THROW_TEST_AOI_TURKING_ERROR_MODES.keys())
-            throw_test_aoi_turking_mode = random.choice(key_list)
-            throw_test_aoi_turking_severity = random.choice(
-                THROW_TEST_AOI_TURKING_ERROR_MODES[throw_test_aoi_turking_mode]
+            key_list = list(THROW_TEST_AOI_REVIEWING_ERROR_MODES.keys())
+            throw_test_aoi_reviewing_mode = random.choice(key_list)
+            throw_test_aoi_reviewing_severity = random.choice(
+                THROW_TEST_AOI_REVIEWING_ERROR_MODES[throw_test_aoi_reviewing_mode]
             )
-            throw_test_aoi_turking_severity = min(
-                throw_test_aoi_turking_severity, len(annotation_list)
+            throw_test_aoi_reviewing_severity = min(
+                throw_test_aoi_reviewing_severity, len(annotation_list)
             )
             args = (
-                throw_test_aoi_turking_mode,
-                throw_test_aoi_turking_severity,
+                throw_test_aoi_reviewing_mode,
+                throw_test_aoi_reviewing_severity,
             )
-            logger.info('throw_test_aoi_turking: %r mode with %r severity' % args)
+            logger.info('throw_test_aoi_reviewing: %r mode with %r severity' % args)
 
             index_list = list(range(len(annotation_list)))
             random.shuffle(index_list)
-            index_list = index_list[:throw_test_aoi_turking_severity]
+            index_list = index_list[:throw_test_aoi_reviewing_severity]
             index_list = sorted(index_list, reverse=True)
 
             args = (
-                throw_test_aoi_turking_mode,
-                throw_test_aoi_turking_severity,
+                throw_test_aoi_reviewing_mode,
+                throw_test_aoi_reviewing_severity,
             )
-            if throw_test_aoi_turking_mode == 'addition':
+            if throw_test_aoi_reviewing_mode == 'addition':
 
                 for index in index_list:
                     width = random.uniform(0.0, 100.0)
@@ -2593,20 +2593,20 @@ def turk_detection(
                         'viewpoint3': -1,
                     }
                     annotation_list.append(annotation)
-                    THROW_TEST_AOI_TURKING_MANIFEST.append(
+                    THROW_TEST_AOI_REVIEWING_MANIFEST.append(
                         {'action': 'addition', 'values': annotation}
                     )
-            elif throw_test_aoi_turking_mode == 'deletion':
+            elif throw_test_aoi_reviewing_mode == 'deletion':
                 if len(part_list) == 0:
 
                     for index in index_list:
                         annotation = annotation_list.pop(index)
-                        THROW_TEST_AOI_TURKING_MANIFEST.append(
+                        THROW_TEST_AOI_REVIEWING_MANIFEST.append(
                             {'action': 'deletion', 'values': annotation}
                         )
                 else:
-                    THROW_TEST_AOI_TURKING_AVAILABLE = False
-            elif throw_test_aoi_turking_mode == 'alteration':
+                    THROW_TEST_AOI_REVIEWING_AVAILABLE = False
+            elif throw_test_aoi_reviewing_mode == 'alteration':
                 for index in index_list:
                     direction_list = ['left', 'right', 'up', 'down']
                     direction = random.choice(direction_list)
@@ -2635,13 +2635,13 @@ def turk_detection(
                     annotation_list[index]['left'] = min(max(left, 0.0), 100.0)
                     annotation_list[index]['top'] = min(max(top, 0.0), 100.0)
 
-                    THROW_TEST_AOI_TURKING_MANIFEST.append(
+                    THROW_TEST_AOI_REVIEWING_MANIFEST.append(
                         {
                             'action': 'alteration-%s' % (direction,),
                             'values': annotation_list[index],
                         }
                     )
-            elif throw_test_aoi_turking_mode == 'translation':
+            elif throw_test_aoi_reviewing_mode == 'translation':
                 for index in index_list:
                     direction_list = ['left', 'right', 'up', 'down']
                     direction = random.choice(direction_list)
@@ -2668,17 +2668,17 @@ def turk_detection(
                     annotation_list[index]['left'] = min(max(left, 0.0), 100.0)
                     annotation_list[index]['top'] = min(max(top, 0.0), 100.0)
 
-                    THROW_TEST_AOI_TURKING_MANIFEST.append(
+                    THROW_TEST_AOI_REVIEWING_MANIFEST.append(
                         {
                             'action': 'translation-%s' % (direction,),
                             'values': annotation_list[index],
                         }
                     )
             else:
-                raise ValueError('Invalid throw_test_aoi_turking_mode')
-            logger.info(ut.repr3(THROW_TEST_AOI_TURKING_MANIFEST))
+                raise ValueError('Invalid throw_test_aoi_reviewing_mode')
+            logger.info(ut.repr3(THROW_TEST_AOI_REVIEWING_MANIFEST))
 
-    THROW_TEST_AOI_TURKING_MANIFEST = ut.to_json(THROW_TEST_AOI_TURKING_MANIFEST)
+    THROW_TEST_AOI_REVIEWING_MANIFEST = ut.to_json(THROW_TEST_AOI_REVIEWING_MANIFEST)
 
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)
@@ -2736,7 +2736,7 @@ def turk_detection(
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid)
     return appf.template(
-        'turk',
+        'review',
         'detection',
         imgsetid=imgsetid,
         gid=gid,
@@ -2762,8 +2762,8 @@ def turk_detection(
         display_new_features=display_new_features,
         display_species_examples=display_species_examples,
         settings=settings,
-        THROW_TEST_AOI_TURKING_AVAILABLE=THROW_TEST_AOI_TURKING_AVAILABLE,
-        THROW_TEST_AOI_TURKING_MANIFEST=THROW_TEST_AOI_TURKING_MANIFEST,
+        THROW_TEST_AOI_REVIEWING_AVAILABLE=THROW_TEST_AOI_REVIEWING_AVAILABLE,
+        THROW_TEST_AOI_REVIEWING_MANIFEST=THROW_TEST_AOI_REVIEWING_MANIFEST,
         is_staged=is_staged,
         is_canonical=is_canonical,
         num_staged_aids=num_staged_aids,
@@ -2779,8 +2779,8 @@ def turk_detection(
     )
 
 
-@register_route('/turk/detection/canonical/', methods=['GET'])
-def turk_detection_canonical(
+@register_route('/review/detection/canonical/', methods=['GET'])
+def review_detection_canonical(
     aid=None, imgsetid=None, previous=None, previous_only_aid=None, **kwargs
 ):
     ibs = current_app.ibs
@@ -2823,7 +2823,7 @@ def turk_detection_canonical(
     )
 
     kwargs['canonical'] = True
-    return turk_detection(
+    return review_detection(
         gid,
         only_aid=aid,
         imgsetid=imgsetid,
@@ -2834,8 +2834,8 @@ def turk_detection_canonical(
     )
 
 
-@register_route('/turk/detection/dynamic/', methods=['GET'])
-def turk_detection_dynamic(**kwargs):
+@register_route('/review/detection/dynamic/', methods=['GET'])
+def review_detection_dynamic(**kwargs):
     ibs = current_app.ibs
     gid = request.args.get('gid', None)
 
@@ -2871,7 +2871,7 @@ def turk_detection_dynamic(**kwargs):
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), gid)
     return appf.template(
-        'turk',
+        'review',
         'detection_dynamic',
         gid=gid,
         refer_aid=None,
@@ -2886,11 +2886,11 @@ def turk_detection_dynamic(**kwargs):
     )
 
 
-@register_route('/turk/annotation/', methods=['GET'])
-def turk_annotation(**kwargs):
+@register_route('/review/deprecated/annotation/', methods=['GET'])
+def review_annotation(**kwargs):
     """
     CommandLine:
-        python -m wbia.web.app --exec-turk_annotation --db PZ_Master1
+        python -m wbia.web.app --exec-review_annotation --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -2902,7 +2902,7 @@ def turk_annotation(**kwargs):
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_processed)
+    tup = appf.get_review_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     review = 'review' in request.args.keys()
@@ -2951,7 +2951,7 @@ def turk_annotation(**kwargs):
 
     callback_url = url_for('submit_annotation')
     return appf.template(
-        'turk',
+        'review',
         'annotation',
         imgsetid=imgsetid,
         src_ag=src_ag,
@@ -2976,8 +2976,8 @@ def turk_annotation(**kwargs):
     )
 
 
-@register_route('/turk/annotation/dynamic/', methods=['GET'])
-def turk_annotation_dynamic(**kwargs):
+@register_route('/review/annotation/dynamic/', methods=['GET'])
+def review_annotation_dynamic(**kwargs):
     ibs = current_app.ibs
     aid = request.args.get('aid', None)
     imgsetid = request.args.get('imgsetid', None)
@@ -3008,7 +3008,7 @@ def turk_annotation_dynamic(**kwargs):
 
     callback_url = url_for('submit_annotation')
     return appf.template(
-        'turk',
+        'review',
         'annotation_dynamic',
         imgsetid=imgsetid,
         gid=gid,
@@ -3026,8 +3026,8 @@ def turk_annotation_dynamic(**kwargs):
     )
 
 
-@register_route('/turk/annotation/canonical/', methods=['GET'])
-def turk_annotation_canonical(
+@register_route('/review/annotation/canonical/', methods=['GET'])
+def review_annotation_canonical(
     imgsetid=None, samples=200, species=None, version=1, **kwargs
 ):
     import random
@@ -3048,8 +3048,8 @@ def turk_annotation_canonical(
     # metadata_list = ibs.get_annot_metadata(aid_list)
     # canonical_flag_list = []
     # for metadata in metadata_list:
-    #     turk = metadata.get('turk', {})
-    #     canonical = turk.get('canonical', turk.get('grid', None))
+    #     review = metadata.get('review', {})
+    #     canonical = review.get('canonical', review.get('grid', None))
     #     canonical_flag_list.append(canonical)
 
     canonical_flag_list = ibs.get_annot_canonical(aid_list)
@@ -3146,7 +3146,7 @@ def turk_annotation_canonical(
     )
     callback_url = '%s?imgsetid=%s&version=%d&samples=%d&species=%s' % args
     return appf.template(
-        'turk',
+        'review',
         'canonical',
         imgsetid=imgsetid,
         canonical_str=canonical_str,
@@ -3162,8 +3162,8 @@ def turk_annotation_canonical(
     )
 
 
-@register_route('/turk/splits/', methods=['GET'])
-def turk_splits(aid=None, **kwargs):
+@register_route('/review/splits/', methods=['GET'])
+def review_splits(aid=None, **kwargs):
     ibs = current_app.ibs
 
     annotation_list = []
@@ -3176,7 +3176,7 @@ def turk_splits(aid=None, **kwargs):
     annotation_list.sort(key=lambda t: t[0])
     callback_url = '%s' % (url_for('submit_splits'),)
     return appf.template(
-        'turk',
+        'review',
         'splits',
         aid=aid,
         annotation_list=annotation_list,
@@ -3186,8 +3186,8 @@ def turk_splits(aid=None, **kwargs):
     )
 
 
-@register_route('/turk/part/contour/', methods=['GET'])
-def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
+@register_route('/review/part/contour/', methods=['GET'])
+def review_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     ibs = current_app.ibs
 
     default_list = [
@@ -3255,7 +3255,7 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
 
     callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid)
     return appf.template(
-        'turk',
+        'review',
         'contour',
         imgsetid=imgsetid,
         part_rowid=part_rowid,
@@ -3275,10 +3275,10 @@ def turk_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     )
 
 
-@register_route('/turk/species/', methods=['GET'])
-def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwargs):
+@register_route('/review/species/', methods=['GET'])
+def review_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwargs):
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_processed)
+    tup = appf.get_review_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     review = 'review' in request.args.keys()
@@ -3375,7 +3375,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
 
     callback_url = url_for('submit_species')
     return appf.template(
-        'turk',
+        'review',
         'species',
         imgsetid=imgsetid,
         src_ag=src_ag,
@@ -3400,8 +3400,8 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
     )
 
 
-@register_route('/turk/part/type/', methods=['GET'])
-def turk_part_types(
+@register_route('/review/part/type/', methods=['GET'])
+def review_part_types(
     part_rowid=None,
     imgsetid=None,
     previous=None,
@@ -3540,7 +3540,7 @@ def turk_part_types(
 
     callback_url = url_for('submit_part_types')
     return appf.template(
-        'turk',
+        'review',
         'part_type',
         imgsetid=imgsetid,
         part_rowid=part_rowid,
@@ -3563,11 +3563,11 @@ def turk_part_types(
     )
 
 
-@register_route('/turk/viewpoint/', methods=['GET'])
-def turk_viewpoint(**kwargs):
+@register_route('/review/deprecated/viewpoint/', methods=['GET'])
+def review_viewpoint(**kwargs):
     """
     CommandLine:
-        python -m wbia.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m wbia.web.app --exec-review_viewpoint --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -3579,7 +3579,7 @@ def turk_viewpoint(**kwargs):
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+    tup = appf.get_review_annot_args(appf.imageset_annot_viewpoint_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     viewpoint_text = ibs.get_annot_viewpoints(aid)
@@ -3611,7 +3611,7 @@ def turk_viewpoint(**kwargs):
     species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     return appf.template(
-        'turk',
+        'review',
         'viewpoint',
         imgsetid=imgsetid,
         src_ag=src_ag,
@@ -3630,11 +3630,11 @@ def turk_viewpoint(**kwargs):
     )
 
 
-@register_route('/turk/viewpoint2/', methods=['GET'])
-def turk_viewpoint2(**kwargs):
+@register_route('/review/annotation/slider/', methods=['GET'])
+def review_viewpoint2(**kwargs):
     """
     CommandLine:
-        python -m wbia.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m wbia.web.app --exec-review_viewpoint --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -3646,7 +3646,7 @@ def turk_viewpoint2(**kwargs):
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+    tup = appf.get_review_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     viewpoint = ibs.get_annot_viewpoints(aid)
@@ -3659,10 +3659,20 @@ def turk_viewpoint2(**kwargs):
         gid = ibs.get_annot_gids(aid)
         image_src = routes_ajax.annotation_src(aid)
         species = ibs.get_annot_species_texts(aid)
+        quality_value = ibs.get_annot_qualities(aid)
+        if quality_value in [-1, None]:
+            quality_value = -1
+        elif quality_value > 2:
+            quality_value = 1
+        elif quality_value <= 2:
+            quality_value = 0
+        multiple_value = ibs.get_annot_multiple(aid) == 1
     else:
         gid = None
         image_src = None
         species = None
+        quality_value = -1
+        multiple_value = False
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3679,7 +3689,7 @@ def turk_viewpoint2(**kwargs):
     species_list = [('Unspecified', const.UNKNOWN, True)] + species_list
 
     return appf.template(
-        'turk',
+        'review',
         'viewpoint2',
         imgsetid=imgsetid,
         src_ag=src_ag,
@@ -3689,6 +3699,8 @@ def turk_viewpoint2(**kwargs):
         viewpoint1=viewpoint1,
         viewpoint2=viewpoint2,
         viewpoint3=viewpoint3,
+        quality_value=quality_value,
+        multiple_value=multiple_value,
         image_src=image_src,
         previous=previous,
         species_list=species_list,
@@ -3700,21 +3712,12 @@ def turk_viewpoint2(**kwargs):
     )
 
 
-@register_route('/turk/viewpoint3/', methods=['GET'])
-def turk_viewpoint3(**kwargs):
-    with ut.Timer('[turk_viewpoint3]'):
+@register_route('/review/annotation/layout/', methods=['GET'])
+def review_viewpoint3(**kwargs):
+    with ut.Timer('[review_viewpoint3]'):
         ibs = current_app.ibs
-        tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
-        (
-            aid_list,
-            reviewed_list,
-            imgsetid,
-            src_ag,
-            dst_ag,
-            progress,
-            aid,
-            previous,
-        ) = tup
+        tup = appf.get_review_annot_args(appf.imageset_annot_processed)
+        (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
         viewpoint = None if aid is None else ibs.get_annot_viewpoints(aid)
         viewpoint_code = const.YAWALIAS.get(viewpoint, None)
@@ -3728,10 +3731,20 @@ def turk_viewpoint3(**kwargs):
             gid = ibs.get_annot_gids(aid)
             image_src = routes_ajax.annotation_src(aid)
             species = ibs.get_annot_species_texts(aid)
+            quality_value = ibs.get_annot_qualities(aid)
+            if quality_value in [-1, None]:
+                quality_value = -1
+            elif quality_value > 2:
+                quality_value = 1
+            elif quality_value <= 2:
+                quality_value = 0
+            multiple_value = ibs.get_annot_multiple(aid) == 1
         else:
             gid = None
             image_src = None
             species = None
+            quality_value = -1
+            multiple_value = False
 
         imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -3752,7 +3765,7 @@ def turk_viewpoint3(**kwargs):
         axis_preference = request.cookies.get('ia-viewpoint3_axis_preference', None)
 
         template = appf.template(
-            'turk',
+            'review',
             'viewpoint3',
             imgsetid=imgsetid,
             src_ag=src_ag,
@@ -3761,6 +3774,8 @@ def turk_viewpoint3(**kwargs):
             aid=aid,
             viewpoint_code=viewpoint_code,
             axis_preference=axis_preference,
+            quality_value=quality_value,
+            multiple_value=multiple_value,
             image_src=image_src,
             previous=previous,
             species_list=species_list,
@@ -3995,8 +4010,8 @@ def check_engine_identification_query_object(
     return False
 
 
-@register_route('/turk/identification/lnbnn/', methods=['GET'])
-def turk_identification(
+@register_route('/review/identification/lnbnn/', methods=['GET'])
+def review_identification(
     aid1=None,
     aid2=None,
     use_engine=False,
@@ -4005,16 +4020,16 @@ def turk_identification(
 ):
     """
     CommandLine:
-        python -m wbia.web.routes turk_identification --db PZ_Master1
-        python -m wbia.web.routes turk_identification --db PZ_MTEST
-        python -m wbia.web.routes turk_identification --db testdb1 --show
+        python -m wbia.web.routes review_identification --db PZ_Master1
+        python -m wbia.web.routes review_identification --db PZ_MTEST
+        python -m wbia.web.routes review_identification --db testdb1 --show
 
     Example:
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
-        ...     resp = client.get('/turk/identification/lnbnn/')
+        ...     resp = client.get('/review/identification/lnbnn/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
         >>> ut.render_html(resp.data.decode('utf8'))
@@ -4022,7 +4037,7 @@ def turk_identification(
     """
     from wbia.web import apis_query
 
-    with ut.Timer('[web.routes.turk_identification] Load query_object'):
+    with ut.Timer('[web.routes.review_identification] Load query_object'):
         ibs = current_app.ibs
 
         if use_engine:
@@ -4040,7 +4055,7 @@ def turk_identification(
                 global_feedback_limit=global_feedback_limit
             )
 
-            with ut.Timer('[web.routes.turk_identification] Get matches'):
+            with ut.Timer('[web.routes.review_identification] Get matches'):
                 # Get raw list of reviews
                 review_cfg = GLOBAL_FEEDBACK_CONFIG_DICT.copy()
                 raw_review_list = []
@@ -4057,7 +4072,7 @@ def turk_identification(
                 review_aid1_list = [review_aid1_list]
                 review_aid2_list = [review_aid2_list]
 
-            with ut.Timer('[web.routes.turk_identification] Get status'):
+            with ut.Timer('[web.routes.review_identification] Get status'):
                 # Get status
                 try:
                     status_dict = query_object.connected_component_status()
@@ -4088,10 +4103,10 @@ def turk_identification(
                 replace_review_rowid = int(request.args.get('replace_review_rowid', -1))
                 choice = aid1 is not None and aid2 is not None
 
-            with ut.Timer('[web.routes.turk_identification] Process choice'):
+            with ut.Timer('[web.routes.review_identification] Process choice'):
                 if choice or (len(review_aid1_list) > 0 and len(review_aid2_list) > 0):
 
-                    with ut.Timer('[web.routes.turk_identification] ... Pick choice'):
+                    with ut.Timer('[web.routes.review_identification] ... Pick choice'):
                         finished = False
                         if not choice:
                             index = random.randint(0, len(review_aid1_list) - 1)
@@ -4107,7 +4122,7 @@ def turk_identification(
                     # lookup ChipMatch object
                     qreq_ = query_object.qreq_
 
-                    with ut.Timer('[web.routes.turk_identification] ... Get scores'):
+                    with ut.Timer('[web.routes.review_identification] ... Get scores'):
                         # Get score
                         # idx = cm.daid2_idx[aid2]
                         # match_score = cm.name_score_list[idx]
@@ -4115,13 +4130,13 @@ def turk_identification(
                         graph_dict = query_object.graph.get_edge_data(aid1, aid2)
                         match_score = graph_dict.get('score', -1.0)
 
-                    with ut.Timer('[web.routes.turk_identification] ... Make images'):
+                    with ut.Timer('[web.routes.review_identification] ... Make images'):
                         cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
                         view_orientation = request.args.get(
                             'view_orientation', 'vertical'
                         )
                         with ut.Timer(
-                            '[web.routes.turk_identification] ... ... Render images2'
+                            '[web.routes.review_identification] ... ... Render images2'
                         ):
                             try:
                                 image_matches, _ = apis_query.ensure_review_image(
@@ -4158,13 +4173,13 @@ def turk_identification(
                                 )
 
                         with ut.Timer(
-                            '[web.routes.turk_identification] ... ... Embed images'
+                            '[web.routes.review_identification] ... ... Embed images'
                         ):
                             image_matches_src = appf.embed_image_html(image_matches)
                             image_clean_src = appf.embed_image_html(image_clean)
 
                     with ut.Timer(
-                        '[web.routes.turk_identification] ... Process previous'
+                        '[web.routes.review_identification] ... Process previous'
                     ):
                         # Get previous
                         previous = request.args.get('previous', None)
@@ -4240,7 +4255,7 @@ def turk_identification(
 
     callback_url = url_for('submit_identification')
     return appf.template(
-        'turk',
+        'review',
         'identification',
         match_data='Score: ' + str(match_score),
         image_clean_src=image_clean_src,
@@ -4520,8 +4535,8 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
     return new_aid_list
 
 
-@register_route('/turk/identification/graph/refer/', methods=['GET'])
-def turk_identification_graph_refer(
+@register_route('/review/identification/graph/refer/', methods=['GET'])
+def review_identification_graph_refer(
     imgsetid, species=None, tier=1, year=2019, option=None, **kwargs
 ):
     ibs = current_app.ibs
@@ -4543,7 +4558,7 @@ def turk_identification_graph_refer(
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list)
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4586,7 +4601,7 @@ def turk_identification_graph_refer(
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4626,7 +4641,7 @@ def turk_identification_graph_refer(
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4689,7 +4704,7 @@ def turk_identification_graph_refer(
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4710,7 +4725,7 @@ def turk_identification_graph_refer(
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4744,7 +4759,7 @@ def turk_identification_graph_refer(
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4761,7 +4776,7 @@ def turk_identification_graph_refer(
             'threshold': 0.75,
             'enable_canonical': True,
         }
-        return turk_identification_graph(
+        return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
@@ -4769,25 +4784,25 @@ def turk_identification_graph_refer(
         )
 
 
-@register_route('/turk/query/graph/v2/refer/', methods=['GET'])
+@register_route('/review/query/graph/v2/refer/', methods=['GET'])
 def delete_query_chips_graph_v2_refer(graph_uuid):
     ibs = current_app.ibs
     ibs.delete_query_chips_graph_v2(graph_uuid=graph_uuid)
     return redirect(url_for('view_graphs'))
 
 
-@register_route('/turk/identification/hardcase/', methods=['GET'])
-def turk_identification_hardcase(*args, **kwargs):
+@register_route('/review/identification/hardcase/', methods=['GET'])
+def review_identification_hardcase(*args, **kwargs):
     """
     CommandLine:
-        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/hardcase/
-        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/
+        python -m wbia --db PZ_MTEST --web --browser --url=/review/identification/hardcase/
+        python -m wbia --db PZ_MTEST --web --browser --url=/review/identification/graph/
 
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_with_web('PZ_Master1') as (ibs, client):
-        ...     resp = client.get('/turk/identification/hardcase/')
+        ...     resp = client.get('/review/identification/hardcase/')
 
     Ignore:
         import wbia
@@ -4816,11 +4831,11 @@ def turk_identification_hardcase(*args, **kwargs):
         aids = wbia.testdata_aids(ibs=ibs, a=':species=primary')
         kwargs['annot_uuid_list'] = ibs.annots(aids).uuids
 
-    return turk_identification_graph(*args, **kwargs)
+    return review_identification_graph(*args, **kwargs)
 
 
-@register_route('/turk/identification/graph/', methods=['GET', 'POST'])
-def turk_identification_graph(
+@register_route('/review/identification/graph/', methods=['GET', 'POST'])
+def review_identification_graph(
     graph_uuid=None,
     aid1=None,
     aid2=None,
@@ -4837,18 +4852,18 @@ def turk_identification_graph(
 ):
     """
     CommandLine:
-        python -m wbia.web.routes turk_identification_graph --db PZ_Master1
-        python -m wbia.web.routes turk_identification_graph --db PZ_MTEST
-        python -m wbia.web.routes turk_identification_graph --db testdb1 --show
+        python -m wbia.web.routes review_identification_graph --db PZ_Master1
+        python -m wbia.web.routes review_identification_graph --db PZ_MTEST
+        python -m wbia.web.routes review_identification_graph --db testdb1 --show
 
-        python -m wbia --db PZ_MTEST --web --browser --url=/turk/identification/graph/ --noengine
+        python -m wbia --db PZ_MTEST --web --browser --url=/review/identification/graph/ --noengine
 
     Example:
         >>> # SCRIPT
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
-        ...     resp = client.get('/turk/identification/graph/')
+        ...     resp = client.get('/review/identification/graph/')
         >>> ut.quit_if_noshow()
         >>> import wbia.plottool as pt
         >>> ut.render_html(resp.data.decode('utf8'))
@@ -4969,7 +4984,7 @@ def turk_identification_graph(
                 annot_uuid_list = ibs.annots(aids).uuids
 
             logger.info(
-                '[routes] Starting graph turk of {} annotations'.format(
+                '[routes] Starting graph review of {} annotations'.format(
                     len(annot_uuid_list)
                 )
             )
@@ -5039,9 +5054,9 @@ def turk_identification_graph(
             )
             # HACK probably should be a config flag instead
             if query_config_dict:
-                base = url_for('turk_identification_hardcase')
+                base = url_for('review_identification_hardcase')
             else:
-                base = url_for('turk_identification_graph')
+                base = url_for('review_identification_graph')
             sep = '&' if '?' in base else '?'
             url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid))
             if hardcase:
@@ -5067,7 +5082,7 @@ def turk_identification_graph(
     except controller_inject.WebReviewFinishedException:
         finished = True
     except controller_inject.WebUnknownUUIDException:
-        return redirect(url_for('turk'))
+        return redirect(url_for('review'))
 
     if not finished:
         (
@@ -5314,8 +5329,8 @@ def turk_identification_graph(
     assert 0 <= condition2 and condition2 <= 5
 
     metadata1, metadata2 = ibs.get_annot_metadata([aid1, aid2])
-    comment1 = metadata1.get('turk', {}).get('match', {}).get('comment', '')
-    comment2 = metadata2.get('turk', {}).get('match', {}).get('comment', '')
+    comment1 = metadata1.get('review', {}).get('match', {}).get('comment', '')
+    comment2 = metadata2.get('review', {}).get('match', {}).get('comment', '')
 
     try:
         edge = (
@@ -5326,14 +5341,16 @@ def turk_identification_graph(
         assert len(review_rowid_list) > 0
         review_rowid = review_rowid_list[-1]
         metadata_match = ibs.get_review_metadata(review_rowid)
-        comment_match = metadata_match.get('turk', {}).get('match', {}).get('comment', '')
+        comment_match = (
+            metadata_match.get('review', {}).get('match', {}).get('comment', '')
+        )
     except Exception:
         comment_match = ''
 
     graph_uuid_ = '' if graph_uuid is None else str(graph_uuid)
     template_name = 'identification_kaia' if kaia else 'identification'
     return appf.template(
-        'turk',
+        'review',
         template_name,
         match_data=match_data,
         image_clean_src=image_clean_src,
@@ -5379,8 +5396,8 @@ def turk_identification_graph(
     )
 
 
-@register_route('/turk/quality/', methods=['GET'])
-def turk_quality(**kwargs):
+@register_route('/review/quality/', methods=['GET'])
+def review_quality(**kwargs):
     """
     PZ Needs Tags:
         17242
@@ -5397,9 +5414,9 @@ def turk_quality(**kwargs):
     1302
 
     CommandLine:
-        python -m wbia.web.app --exec-turk_quality --db PZ_Master1
-        python -m wbia.web.app --exec-turk_quality --db GZ_Master1
-        python -m wbia.web.app --exec-turk_quality --db GIRM_Master1
+        python -m wbia.web.app --exec-review_quality --db PZ_Master1
+        python -m wbia.web.app --exec-review_quality --db GZ_Master1
+        python -m wbia.web.app --exec-review_quality --db GIRM_Master1
 
     Example:
         >>> # SCRIPT
@@ -5412,7 +5429,7 @@ def turk_quality(**kwargs):
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_quality_processed)
+    tup = appf.get_review_annot_args(appf.imageset_annot_quality_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     value = ibs.get_annot_qualities(aid)
@@ -5431,7 +5448,7 @@ def turk_quality(**kwargs):
         image_src = None
     imagesettext = ibs.get_imageset_text(imgsetid)
     return appf.template(
-        'turk',
+        'review',
         'quality',
         imgsetid=imgsetid,
         src_ag=src_ag,
@@ -5452,14 +5469,14 @@ def turk_quality(**kwargs):
 GLOBAL_KAIA_CACHE = {}
 
 
-@register_route('/turk/demographics/', methods=['GET'])
-def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
-    with ut.Timer('turk_demographics'):
+@register_route('/review/demographics/', methods=['GET'])
+def review_demographics(species='zebra_grevys', aid=None, **kwargs):
+    with ut.Timer('review_demographics'):
         ibs = current_app.ibs
         imgsetid = request.args.get('imgsetid', '')
         imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-        with ut.Timer('turk_demographics 0'):
+        with ut.Timer('review_demographics 0'):
             if ibs.dbname == 'GGR2-IBEIS':
                 gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
                 aid_list = ut.flatten(ibs.get_image_aids(gid_list))
@@ -5579,7 +5596,7 @@ def turk_demographics(species='zebra_grevys', aid=None, **kwargs):
             region_str = ', '.join(imgset_text_list)
 
     return appf.template(
-        'turk',
+        'review',
         'demographics',
         imgsetid=imgsetid,
         species=species,
@@ -5639,7 +5656,7 @@ def group_review(**kwargs):
         None,
         'group_review',
         candidate_aid_list=candidate_aid_list,
-        mode_list=appf.VALID_TURK_MODES,
+        mode_list=appf.VALID_REVIEW_MODES,
     )
 
 

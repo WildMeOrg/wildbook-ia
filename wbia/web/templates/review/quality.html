@@ -1,0 +1,339 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, reviewing is completed.  Thank you!
+    {% if imgsetid %}
+    <br/>
+    <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">Return to ImageSet ID: {{ imgsetid }}</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not REFER_DST_ENCODED %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
+        </div>
+      {% endif %}
+
+
+      Annotation ID: {{ aid }}
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
+      <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
+      <div style="text-align: center; color: #aaa;">
+        <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
+      </div>
+      <br/>
+      <form method="post" action="{{ url_for('submit_quality') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
+        <input type="text" name="quality-aid" value="{{ aid }}" style="display: none;" readonly>
+        Value: <span id="label-value"></span> | Label: <span id="label-text"></span>
+        <br/>
+        <input type="range" name="quality-value" id="slider-quality" value="{% if value %}{{ value }}{% else %}3{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <div class="row-custom-expand" style="height: 50px;">
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
+            <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
+            <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+          </div>
+        </div>
+        <br/>
+        {% if previous %}
+          <a class="btn btn-default pull-left" id="review-previous" href="{{ url_for('review_quality') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+        {% endif %}
+        <input type="submit" name="quality-submit" id="review-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <input type="submit" name="quality-submit" id="review-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+      </form
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Quality Reviewing Instructions</h4>
+        </div>
+        <div class="modal-body">
+          To review a quality, simply adjust the slider for the image based on the following guidelines:
+          <br/>
+          <img class="image-center" src="{{ url_for('static', filename='images/example-quality1.jpg') }}" style="width:80%; margin-top: 30px;">
+          <p style="width:100%; color:#888; text-align:center;"><i>The "information" (keypoints) in the image that we want to classify</i></p>
+          <br/>
+          <ul style="padding-right:30px;">
+            <li>
+              When deciding the quality of an image, it is important to keep in mind what information the underlying image analysis algorithms care about.
+              Looking at the image above, the white ellipsis on the body of the animal indicate what informaiton is the most important, whereas the red and orange
+              ellipsis indicate information that is less important.
+            </li>
+            <li>
+              The quality of the annotation is decided by 4 metrics (by order of importance):
+              <ul style="padding-right:30px;">
+                <li>
+                  <u>Partially Visible</u> - the entire animal is not visible due to visual obstruction by <b>non-landscape objects (other animals, cars, buildings, the animal is off the side of the image, etc.)</b>
+                </li>
+                <li>
+                  <u>Occlusion</u> - the entire animal is not visible due to visual obstruction by <b>natural landscape (brush, trees, grass, etc.)</b>
+                </li>
+                <li>
+                  <u>Focus</u> - the image of the animal is out of focus
+                </li>
+                <li>
+                  <u>Lighting and Shadow</u> - the animal is under- or over-exposed, shadowed by another object, or its own pose is causing shadows on its body
+                </li>
+              </ul>
+            </li>
+            <li>
+              The way you measure the image's quality will <b>change for each viewpoint</b>.  If the viewpoint would not normally allow for one of the metrics above (e.g. a frontal image of a Plains Zebra would not normally
+              give a view of the rump) then that metric can be ignored.  Judge the image on what an <i>"ideal"</i> image of that species given the viewpoint the animal is in.
+              <br/>
+              <i>For example:</i>
+            </li>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star"></span>
+                <br/>
+                <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Junk</h3>
+                <br/>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Severe occlusion</li>
+                  <li>Little to no parts visible</li>
+                  <li>Out of focus</li>
+                  <li>Lots of shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <br/>
+                <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Poor</h3>
+                <br/>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Severe occlusion</li>
+                  <li>Head, shoulder, <b>OR</b> rump visible</li>
+                  <li>Mildly out of focus</li>
+                  <li>Lots of shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
+                <br/>
+                <h3 style="margin-top: 20px; margin-left: -6px; display: block;">OK</h3>
+                <br/>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Little occlusion</li>
+                  <li>Head, shoulder, <b>AND</b> rump visible</li>
+                  <li>In focus</li>
+                  <li>Moderate shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
+                <br/>
+                <h3 style="margin-top: 20px; margin-left: -6px; display: block;">Good</h3>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Little occlusion</li>
+                  <li>Entire animal visible</li>
+                  <li>In focus</li>
+                  <li>Little shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
+                <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
+                <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+                <br/>
+                <h3 style="margin-top: 30px; margin-left: -6px; display: block;">Excellent</h3>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>No occlusion</li>
+                  <li>Entire animal visible</li>
+                  <li>In focus</li>
+                  <li>No shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <li>For faster quality annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding star ratings.  We urge every reviewer to use the number pad to input the quality for speed purposes. </li>
+            <li>If the quality cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
+              <ol>
+                <li>edit the annotation by revisiting the image (link below the image)</li>
+                <li>simply press the <b>Delete</b> button</li>
+              </ol>
+            <li>The <b>Space</b> key deletes the image and does not save any quality information for that image.  The <b>Enter</b> key submits the current value of the slider as the image's quality.</li>
+            <li>Enter qualities as fast as you can while maintaining perfect accuracy.</li>
+            <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-quality_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+{% endblock %}
+{% block content_custom_javascript %}
+<script src="{{ url_for('static', filename='javascript/review-quality.js') }}"></script>
+<script type="text/javascript">
+  update_label();
+
+  {% if display_instructions %}
+    $('#review-instructions').modal('show');
+  {% endif %}
+</script>
+{% endblock %}

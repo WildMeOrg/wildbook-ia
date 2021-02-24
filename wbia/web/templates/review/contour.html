@@ -1,0 +1,285 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, contour reviewing is completed.  Thank you!
+  </div>
+  {% else %}
+    <div class="row">
+      <div class="col-lg-1"></div>
+
+      <div class="col-lg-10">
+        {% if not REFER_DST_ENCODED %}
+          <div class="progress">
+            <div class="progress-bar {% if is_staged %}progress-bar-danger{% endif %}" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+              {{ progress }}%
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row">
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: left;">
+          {% if imgsetid %}
+            <!-- Imageset ID: {{ imgsetid }} -->
+            Imageset: {{ imagesettext }}
+          {% endif %}
+          </div>
+
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center; {% if is_staged %}font-weight: bold; color: #ac2925;"{% endif %}">
+            Part ID: {{ part_rowid }}
+          </div>
+
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px; margin-left: 8px;"></span>
+          </div>
+        </div>
+
+        {% include 'review/contour_insert.html' %}
+      </div>
+
+      <div class="col-lg-1"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="review-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Part Contour Reviewing Instructions</h4>
+          </div>
+          <div class="modal-body">
+            <div style="width:100%; text-align: center; margin-bottom:20px; color: #999;">
+              <i>
+                These instructions are also available as a
+                <a href="https://docs.google.com/document/d/1OyKoZewYEZ2FAlXJNZy0KyxF3NMfKfMJXGjGONDfKvg/edit?usp=sharing" target="_blank">Google Document</a>
+              </i>
+            </div>
+
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10">
+
+                <div style="width:100%; text-align: center; margin-bottom:10px;">
+                  <a href="#"><h4 style="margin-bottom:2px;">Ear Contour Annotation</h4></a>
+                </div>
+
+                During an earlier phase of annotation, we placed bounding boxes around
+                all elephant ears, while simultaneously marking them as either <b><i>Left
+                Ear</i></b> or <b><i>Right Ear</i></b>.  The purpose of this was to train an algorithm to
+                find the ears.  During the current phase, we go one step further by
+                tracing the outline of each ear.
+
+                <br/>
+                <br/>
+
+                This outline contains the identifying
+                information for that particular elephant, and is what will eventually be
+                used to train the identification algorithm.  Given that it is
+                prohibitively time-consuming to trace the ear outline perfectly, we
+                compromise by tracing the outline at two levels of detail:
+
+                <ol style="margin: 20px 0px;">
+                  <li>a very narrow pencil-like line that follows the outline closely while accepting small imperfections as inevitable and</li>
+                  <li>a broader, paintbrush-like outline that traces a coarse approximation of the contour such that it is guaranteed that the true outline lies within the traced outline.</li>
+                </ol>
+
+                These are traced simultaneously.  Finally, we indicate those contour
+                points where the contour cannot be traced reliably, such as when the ear
+                is hidden by the branches, leaves, or another elephant.
+
+                <div style="width:80%; margin: 20px auto; border-bottom: 1px solid #ddd;"></div>
+
+
+                Each image shows the bounding box that was drawn around the ear, as well
+                as a small margin around it to provide context.  The exact bounding box
+                around the ear may be displayed by checking the <b>Show
+                Guidelines</b> checkbox.  This is useful when there are multiple ears visible in an
+                image, in which case the bounding box may resolve ambiguity about which
+                ear to trace.
+
+                <div style="margin-left: 4%; padding-right: 5%; margin-top: 10px; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Tip:</b> Use the hotkey <b>G</b> (for <b>g</b>uidelines) to toggle showing the original annotation's bounding box without the added margin
+                </div>
+
+                <div style="width:100%; text-align: center; margin-top: 40px; margin-bottom:10px;">
+                  <a href="#"><h4 style="margin-bottom:2px;">Example Images</h4></a>
+                </div>
+
+                Below we show two complete examples. Note how, in the second image,
+                the part of the contour behind the tusk has been marked to
+                indicate unreliable points.
+
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-contour1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 1</div>
+
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-contour2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 2</div>
+
+                <br/>
+
+                <div style="width:100%; text-align: center; margin-bottom:10px;">
+                  <a href="#"><h4 style="margin-bottom:2px;">Tracing</h4></a>
+                </div>
+
+                Initiate a contour by using <i>left-click</i> to place the start point, which
+                will appear as a green circle (<div style="width: 14px; height: 14px; border-radius: 14px; border: 1px solid #BBB; background-color: #7FFF7F; display: inline-block; margin: 0px 5px;"></div>).  The start point should be placed as
+                close as possible to the point where the outline of the ear meets the
+                top of the elephant's head.  In some cases, it may be that this start
+                point is far from the actual ear/head meeting point, such as when
+                viewing a right ear from the elephant's left, but that is OK.
+
+                <br/>
+                <br/>
+
+                Next, use the mouse to trace the ear outline.  The dark blue dots should follow
+                the outline as closely as possible, but are not required to lie exactly
+                on the outline at every point.  Instead, the outline should be contained
+                entirely within the surrounding transparent blue region at all points.
+                Once the contour is complete, use <i>left-click</i> to place the endpoint,
+                which will appear as a red circle (<div style="width: 14px; height: 14px; border-radius: 14px; border: 1px solid #BBB; background-color: #EB2A18; display: inline-block; margin: 0px 5px;"></div>).  The endpoint should be placed as
+                close as possible to the point in the image where the outline of the ear
+                meets the side of the elephant's head.
+
+                <br/>
+                <br/>
+
+                If the traced outline is
+                satisfactory, simply click <b>Accept</b> to continue.  If
+                not, the contour may be corrected by following the procedure outlined in
+                the next section.
+
+                <div style="margin-left: 4%; padding-right: 5%; margin-top: 10px; border-left: 5px solid #f0ad4e; padding-left: 1%">
+                    <b style="color: #f0ad4e">Tip:</b> Use the hotkey <b>Enter</b> to accept the current contour and continue
+                </div>
+
+                <br/>
+
+                <div style="width:100%; text-align: center; margin-bottom:10px;">
+                  <a href="#"><h4 style="margin-bottom:2px;">Correcting Mistakes</h4></a>
+                </div>
+
+                Mistakes are inevitable given the difficulty of the task.  It is always
+                possible to delete a contour and start over by pressing the <b>Delete</b> key or
+                clicking <b>Clear</b>.  It is also possible, however, to fix mistakes without
+                starting from scratch.  If a mistake is made, simply use left-click to
+                place an end point, and then move the cursor back to the last correct
+                point.  The point to be used for restart will turn red, and may be
+                selected by hovering over the point such that the cursor turns to a "+"
+                sign.  The restart is then initiated with a left-click.  All contour
+                points traced after that point will be erased immediately and tracing
+                can continue from there.
+
+                <br/>
+                <br/>
+
+                When tracing very fast, it may happen that the browser loses track of
+                the cursor movement.  In such a case, an endpoint will automatically be
+                placed at the last point that registered and a warning message will be
+                displayed.  In this case, simply initiate the restart procedure
+                described above to continue from any previous point on the contour.  If
+                you decide that the contour is actually completely drawn, you may simply
+                choose to accept it without change.
+
+                <br/>
+
+                <div style="margin-left: 4%; padding-right: 5%; margin-top: 10px; border-left: 5px solid #337ab7; padding-left: 1%">
+                  <h5 style="margin-bottom:2px;">Example Videos</h5>
+                  <ul>
+                    <li><a href="https://www.useloom.com/share/3dbdb26da60d48289afcdf0c562ae9c1" target="_blank">Tracing a contour while correcting mistakes</a></li>
+                    <li><a href="https://www.useloom.com/share/31a712507f3d4c958ba97dd6ffae0fb7" target="_blank">Recovering when the browser fails to keep up</a></li>
+                  </ul>
+                </div>
+
+                <br/>
+
+                <div style="width:100%; text-align: center; margin-bottom:10px;">
+                  <a href="#"><h4 style="margin-bottom:2px;">Handling Occlusion</h4></a>
+                </div>
+
+                Given the real-world nature of the images, it may happen that a part of
+                the ear outline to be traced is obscured by branches, leaves, the
+                boundary of the image or another elephant.  In these cases, simply trace
+                across the boundary of where you can see the ear until your tracing
+                rejoins the actual edge of the (unobscured) edge.  In doing so, you may
+                specify that the points you are tracing are unreliable.  This may be
+                done in two ways, namely:
+
+                <ol style="margin: 20px 0px;">
+                  <li>holding down the <b>Shift</b> key while tracing the
+                contour, or</li>
+                  <li>completing the contour and then holding the <b>Shift</b> key while
+                moving the cursor over the unreliable points.</li>
+                </ol>
+
+                Points that have been
+                marked as unreliable will be shown in orange rather than blue.  If a
+                point is mistakenly marked as unreliable, it may be changed back to
+                reliable by holding down <b>Ctrl</b> key (rather than <b>Shift</b>) and moving the
+                cursor over the desired points, which will turn blue.
+
+                <br/>
+
+                <div style="margin-left: 4%; padding-right: 5%; margin-top: 10px; border-left: 5px solid #337ab7; padding-left: 1%">
+                  <h5 style="margin-bottom:2px;">Example Videos</h5>
+                  <ul>
+                    <li><a href="https://www.useloom.com/share/ae7bf794782d4fd4b4fa378d8a05eafe" target="_blank">Handling occlusion with method 1</a></li>
+                    <li><a href="https://www.useloom.com/share/6266078c8f364188806323b5decda927" target="_blank">Handling occlusion with method 2</a></li>
+                  </ul>
+                </div>
+
+                <br/>
+
+                <div style="width:100%; text-align: center; margin-bottom:10px;">
+                  <a href="#"><h4 style="margin-bottom:2px;">Don't Trace Backward to Fix Mistakes</h4></a>
+                </div>
+                If you miss a spot on the boundary of the ear, it is quite tempting to
+                trace backward to cover it and then trace forward again.  Please do not
+                do this because it creates artificial duplication of the actual recorded
+                contour and makes it confusing for the machine learning algorithms we
+                need to train.  Instead, stop tracing with a left click of your mouse
+                and then treat this as something you need to fix by following the
+                procedure described under the Correcting Mistakes section.
+
+                <br/>
+
+                <div style="margin-left: 4%; padding-right: 5%; margin-top: 10px; border-left: 5px solid #337ab7; padding-left: 1%">
+                  <h5 style="margin-bottom:2px;">Example Videos</h5>
+                  <ul>
+                    <li><a href="https://www.useloom.com/share/3a70398820324b6cb032fd9e42dbb12e" target="_blank">Don't trace backward (don't do this)</a></li>
+                    <li><a href="https://www.useloom.com/share/301f160a6719479ea10ea49265b34b68" target="_blank">Don't trace backward (do this instead)</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-lg-1"></div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-contour_instructions_seen', '1');">Got it!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% endif %}
+
+{% endblock %}
+{% block content_custom_css %}
+  <style>
+    .container
+    {
+      /*width: 1500px !important;*/
+    }
+
+    .label-text-box
+    {
+      visibility: hidden !important;
+    }
+  </style>
+{% endblock %}
+{% block content_custom_javascript %}
+{% endblock %}

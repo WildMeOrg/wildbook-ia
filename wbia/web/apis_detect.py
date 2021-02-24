@@ -286,7 +286,7 @@ def review_detection_html(
         ['include', 'jquery.ui.rotatable', 'jquery.ui.rotatable.min.js'],
         ['include', 'bbox_annotator_percent.js'],
         ['javascript', 'script.js'],
-        ['javascript', 'turk-detection.js'],
+        ['javascript', 'review-detection.js'],
     ]
 
     if include_jquery:
@@ -362,7 +362,7 @@ def review_detection_html(
     }
 
     return appf.template(
-        'turk',
+        'review',
         'detection_insert',
         gid=gid,
         refer_aid=None,

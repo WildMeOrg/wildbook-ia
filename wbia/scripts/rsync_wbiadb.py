@@ -148,8 +148,8 @@ if __name__ == '__main__':
         #wbia rsync push --db lewa_grevys --user joncrall --remote hyrule --port 1022 --workdir=/data/wbia --dryrun
         wbia rsync pull --db lewa_grevys --user jonathan --remote lewa --port 1022 --dryrun
 
-        wbia rsync push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
-        wbia rsync push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
+        wbia rsync push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2 --dryrun
+        wbia rsync push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2
 
         wbia rsync pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
 

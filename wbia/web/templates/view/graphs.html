@@ -30,7 +30,7 @@
             <th>Status</th>
             <th>nAnnots</th>
             <th>nReviews</th>
-            <th>Turk</th>
+            <th>Review</th>
             <th>Sync</th>
             <th>Delete</th>
           </tr>
@@ -52,7 +52,7 @@
               </th>
               <td>{{ num_aids }}</td>
               <td>{{ num_edges }}</td>
-              <td><a href="{{ url_for('turk_identification_graph') }}?{{ graph_uuid_str }}">Review</a></td>
+              <td><a href="{{ url_for('review_identification_graph') }}?{{ graph_uuid_str }}">Review</a></td>
               <td><a href="{{ url_for('sync_query_chips_graph_v2') }}?{{ graph_uuid_str }}" style="color: #eea236;">Sync</a></td>
               <td><a href="{{ url_for('delete_query_chips_graph_v2_refer') }}?{{ graph_uuid_str }}" style="color: #d9534f;">Delete</a></td>
             </tr>
@@ -71,7 +71,7 @@
               <th scope="row"></th>
               <td></td>
               <td></td>
-              <td><a href="{{ url_for('turk_identification_graph') }}?hogwild=true">Review</a></td>
+              <td><a href="{{ url_for('review_identification_graph') }}?hogwild=true">Review</a></td>
               <td><a href="{{ url_for('view_graphs') }}?sync=true" style="color: #eea236;">Sync</a></td>
               <td></td>
             </tr>

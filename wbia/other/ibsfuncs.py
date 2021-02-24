@@ -3788,7 +3788,7 @@ def merge_names(ibs, merge_name, other_names):
 
 
 def inspect_nonzero_yaws(ibs):
-    """ python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show """
+    """ python dev.py --dbdir /raid/work2/PZ_Master --cmd --show """
     from wbia.viz import viz_chip
     import wbia.plottool as pt
 
@@ -4135,7 +4135,7 @@ def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwa
     quality_list = ibs.get_annot_qualities(aid_list)
     metadata_list = ibs.get_annot_metadata(aid_list)
     comment_list = [
-        metadata.get('turk', {}).get('match', {}).get('comment', '')
+        metadata.get('review', {}).get('match', {}).get('comment', '')
         for metadata in metadata_list
     ]
     contributor_list = ibs.get_image_contributor_tag(gid_list)
@@ -8493,7 +8493,7 @@ def check_ggr_valid_aids(
     excluded_list = [metadata.get('excluded', False) for metadata in metadata_list]
 
     grid_list = [
-        metadata.get('turk', {}).get('grid', False) for metadata in metadata_list
+        metadata.get('review', {}).get('grid', False) for metadata in metadata_list
     ]
     if not enable_grid:
         grid_list = [False] * len(grid_list)

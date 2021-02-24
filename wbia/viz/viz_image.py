@@ -67,7 +67,7 @@ def drive_test_script(ibs):
         python -m wbia.viz.viz_image --test-drive_test_script --db PZ_FlankHack --show
 
         python -m wbia.viz.viz_image --test-drive_test_script --db PZ_FlankHack --show
-        python -m wbia.viz.viz_image --test-drive_test_script --dbdir /raid/work2/Turk/GIR_Master --show
+        python -m wbia.viz.viz_image --test-drive_test_script --dbdir /raid/work2/GIR_Master --show
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -161,7 +161,7 @@ def start_tornado(
             else:
                 raise RuntimeError(
                     (
-                        ('The specified IBEIS web port %d is not available, ' 'but %d is')
+                        ('The specified web port %d is not available, ' 'but %d is')
                         % (app.server_port, fallback_port)
                     )
                 )

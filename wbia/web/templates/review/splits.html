@@ -1,0 +1,182 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  img.ajax-image-load
+  {
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  .ajax-image-container {
+    height: 200px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .ajax-image {
+    padding: 5px;
+    border: 5px solid white;
+  }
+
+  .ajax-image-suggested {
+    border: 5px dotted rgba(255, 0, 0, 0.25);
+  }
+
+  .ajax-image-highlighted {
+    border: 5px solid red;
+  }
+
+  .ajax-image-highlighted.ajax-image-unloaded {
+    border: 5px solid white;
+  }
+</style>
+{% endblock %}
+{% block content %}
+  {% if not aid %}
+    <div class="alert alert-info text-center" role="alert">
+      Specify an Annotation ID
+    </div>
+  {% else %}
+    <div class="row">
+      {% for (aid, ) in annotation_list %}
+        <div class="ajax-image-container col-lg-3 col-md-3 col-sm-4 col-xs-6">
+          <img class="ajax-image ajax-image-load ajax-image-unloaded {% if highlighted %}ajax-image-highlighted{% endif %}" src="" aid="{{ aid }}" confidence="{{ confidence }}" />
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="row">
+      <div class="col-lg-12" style="text-align: center; margin-top: 20px;">
+        <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}" onsubmit="return check_form();" id="ia-annotation-splits-form">
+          <input type="text" name="annotation-splits-aids" style="display: none" value="" readonly>
+          <input type="text" name="annotation-splits-highlighted" style="display: none" value="" readonly>
+          <input type="submit" name="annotation-splits-submit" id="ia-review-submit-split" class="btn btn-primary" value="Split Marked">
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var loading = [];
+  var requests = [];
+  var buffer = 20;
+
+  function check_form() {
+    images = $('.ajax-image');
+
+    aids = []
+    highlights = []
+    for (var index = 0; index < images.length; index++) {
+      image = images[index]
+      aid = parseInt($(image).attr('aid'))
+      highlighted = $(image).hasClass('ajax-image-highlighted')
+
+      aids.push(aid)
+      highlights.push(highlighted)
+    }
+
+    $('input[name="annotation-splits-aids"]').val(JSON.stringify(aids))
+    $('input[name="annotation-splits-highlighted"]').val(JSON.stringify(highlights))
+  }
+
+  function lazy_load_images()
+  {
+    while(loading.length > buffer)
+    {
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
+    }
+
+    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+      load_image_src(this);
+    });
+  }
+
+  function resize_margin(element) {
+    height1 = $(element).parent().height()
+    height2 = $(element).height()
+    margin = (height1 - height2) * 0.5
+    $(element).css('margin-top', margin + 'px');
+  }
+
+  function load_image_src(element)
+  {
+    var aid = $(element).attr('aid');
+    if(!contains(loading, aid) && requests.length <= buffer)
+    {
+      // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
+      request = $.ajax( "http://71.59.132.88:5002/ajax/annot/src/" + aid )
+      .done(function( response ) {
+        // Load SRC into Image
+        $(element).attr('src', response);
+        // Remove image class
+        $(element).removeClass('ajax-image-unloaded');
+        // Remove value from the arrays
+        var index = findValueIndexFromArray(aid, loading);
+        removeIndexFromArray(index, requests);
+        removeIndexFromArray(index, loading);
+        // Logging
+        // console.log(aid);
+        // console.log(loading);
+        // console.log(requests);
+      });
+
+      $(element).load(function() {
+        resize_margin(this)
+
+        confidence = parseFloat($(element).attr('confidence'))
+        if(confidence < thresh) {
+          $(element).addClass('ajax-image-suggested')
+        }
+      });
+
+      loading.push(aid);
+      requests.push(request);
+    }
+  }
+
+  $(document).ready(function(){
+      $(window).scroll(function(){
+        lazy_load_images();
+      });
+
+      $(window).resize(function(){
+        $('.ajax-image').each(function() {
+          resize_margin(this)
+        });
+      });
+
+      $('.ajax-image').click(function() {
+        highlighted = $(this).hasClass('ajax-image-highlighted')
+
+        if(highlighted) {
+          $(this).removeClass('ajax-image-highlighted')
+        } else {
+          $(this).addClass('ajax-image-highlighted')
+        }
+
+        check_form()
+      });
+
+      setInterval(function() {
+        lazy_load_images();
+      }, 500) ;
+
+      lazy_load_images();
+
+      $(window).keydown(function(event) {
+        key = event.which;
+        console.log(key)
+
+        if (key == 13) {
+            // Enter key pressed
+            $('input#ia-review-submit-accept').click();
+        }
+    });
+
+  });
+</script>
+{% endblock %}

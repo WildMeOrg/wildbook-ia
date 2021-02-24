@@ -7,7 +7,7 @@ from flask import request, redirect, url_for, current_app
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 from wbia import constants as const
-from wbia.web.routes import THROW_TEST_AOI_TURKING
+from wbia.web.routes import THROW_TEST_AOI_REVIEWING
 import utool as ut
 import numpy as np
 import uuid
@@ -68,7 +68,7 @@ def submit_cameratrap(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_cameratrap', imgsetid=imgsetid, previous=gid))
+        return redirect(url_for('review_cameratrap', imgsetid=imgsetid, previous=gid))
 
 
 @register_route('/submit/detection/', methods=['POST'])
@@ -211,7 +211,7 @@ def submit_detection(**kwargs):
                 # Make new annotations
                 width, height = ibs.get_image_sizes(gid)
 
-                if THROW_TEST_AOI_TURKING:
+                if THROW_TEST_AOI_REVIEWING:
                     # Separate out annotations vs parts
                     raw_manifest = request.form['ia-detection-manifest'].strip()
                     try:
@@ -642,7 +642,9 @@ def submit_detection(**kwargs):
         if len(refer) > 0:
             return redirect(appf.decode_refer_url(refer))
         else:
-            signature = 'turk_detection_canonical' if is_canonical else 'turk_detection'
+            signature = (
+                'review_detection_canonical' if is_canonical else 'review_detection'
+            )
             return redirect(
                 url_for(
                     signature,
@@ -654,7 +656,7 @@ def submit_detection(**kwargs):
             )
 
 
-@register_route('/submit/viewpoint/', methods=['POST'])
+@register_route('/submit/deprecated/viewpoint/', methods=['POST'])
 def submit_viewpoint(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
@@ -728,7 +730,7 @@ def submit_viewpoint(**kwargs):
     else:
         return redirect(
             url_for(
-                'turk_viewpoint',
+                'review_viewpoint',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -737,7 +739,7 @@ def submit_viewpoint(**kwargs):
         )
 
 
-@register_route('/submit/viewpoint2/', methods=['POST'])
+@register_route('/submit/annotation/slider/', methods=['POST'])
 def submit_viewpoint2(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
@@ -807,10 +809,28 @@ def submit_viewpoint2(**kwargs):
                 viewpoint3,
             )
             viewpoint = appf.convert_tuple_to_viewpoint(viewpoint_tup)
+
+        try:
+            quality = int(request.form['ia-quality-value'])
+        except ValueError:
+            quality = int(float(request.form['ia-quality-value']))
+        if quality in [-1, None]:
+            quality = None
+        elif quality == 0:
+            quality = 2
+        elif quality == 1:
+            quality = 4
+        else:
+            raise ValueError('quality must be -1, 0 or 1')
+
         ibs.set_annot_viewpoints([aid], [viewpoint])
         species_text = request.form['viewpoint-species']
         # TODO ibs.set_annot_viewpoint_code([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_qualities([aid], [quality])
+        multiple = 1 if 'ia-multiple-value' in request.form else 0
+        ibs.set_annot_multiple([aid], [multiple])
+        ibs.set_annot_reviewed([aid], [1])
         logger.info(
             '[web] user_id: %s, aid: %d, viewpoint_text: %s' % (user_id, aid, viewpoint)
         )
@@ -821,7 +841,7 @@ def submit_viewpoint2(**kwargs):
     else:
         return redirect(
             url_for(
-                'turk_viewpoint2',
+                'review_viewpoint2',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -830,7 +850,7 @@ def submit_viewpoint2(**kwargs):
         )
 
 
-@register_route('/submit/viewpoint3/', methods=['POST'])
+@register_route('/submit/annotation/layout/', methods=['POST'])
 def submit_viewpoint3(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
@@ -906,8 +926,24 @@ def submit_viewpoint3(**kwargs):
                 viewpoint = getattr(const.VIEW, viewpoint_str, const.VIEW.UNKNOWN)
             ibs.set_annot_viewpoint_int([aid], [viewpoint])
 
+        try:
+            quality = int(request.form['ia-quality-value'])
+        except ValueError:
+            quality = int(float(request.form['ia-quality-value']))
+        if quality in [-1, None]:
+            quality = None
+        elif quality == 0:
+            quality = 2
+        elif quality == 1:
+            quality = 4
+        else:
+            raise ValueError('quality must be -1, 0 or 1')
+
         species_text = request.form['viewpoint-species']
         ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_qualities([aid], [quality])
+        multiple = 1 if 'ia-multiple-value' in request.form else 0
+        ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
         logger.info(
             '[web] user_id: %s, aid: %d, viewpoint: %s' % (user_id, aid, viewpoint)
@@ -920,7 +956,7 @@ def submit_viewpoint3(**kwargs):
     else:
         retval = redirect(
             url_for(
-                'turk_viewpoint3',
+                'review_viewpoint3',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -931,7 +967,7 @@ def submit_viewpoint3(**kwargs):
     return retval
 
 
-@register_route('/submit/annotation/', methods=['POST'])
+@register_route('/submit/deprecated/annotation/', methods=['POST'])
 def submit_annotation(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('ia-annotation-submit', '')
@@ -1024,7 +1060,7 @@ def submit_annotation(**kwargs):
     else:
         return redirect(
             url_for(
-                'turk_annotation',
+                'review_annotation',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -1049,8 +1085,8 @@ def submit_annotation_canonical(samples=200, species=None, version=1, **kwargs):
     # metadata_list = ibs.get_annot_metadata(aid_list)
     # metadata_list_ = []
     # for metadata, highlight in zip(metadata_list, highlight_list):
-    #     if 'turk' not in metadata:
-    #         metadata['turk'] = {}
+    #     if 'review' not in metadata:
+    #         metadata['review'] = {}
 
     #     if version == 1:
     #         value = highlight
@@ -1059,7 +1095,7 @@ def submit_annotation_canonical(samples=200, species=None, version=1, **kwargs):
     #     elif version == 3:
     #         value = highlight
 
-    #     metadata['turk']['canonical'] = value
+    #     metadata['review']['canonical'] = value
     #     metadata_list_.append(metadata)
 
     # ibs.set_annot_metadata(aid_list, metadata_list_)
@@ -1083,7 +1119,7 @@ def submit_annotation_canonical(samples=200, species=None, version=1, **kwargs):
     else:
         return redirect(
             url_for(
-                'turk_annotation_canonical',
+                'review_annotation_canonical',
                 imgsetid=imgsetid,
                 samples=samples,
                 species=species,
@@ -1105,7 +1141,7 @@ def submit_splits(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_splits', aid=None))
+        return redirect(url_for('review_splits', aid=None))
 
 
 @register_route('/submit/species/', methods=['POST'])
@@ -1141,7 +1177,7 @@ def submit_species(**kwargs):
         logger.info('[web] (SKIP) user_id: %s' % (user_id,))
         return redirect(
             url_for(
-                'turk_species',
+                'review_species',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -1196,9 +1232,9 @@ def submit_species(**kwargs):
         ibs.set_annot_reviewed([aid], [1])
 
         metadata_dict = ibs.get_annot_metadata(aid)
-        if 'turk' not in metadata_dict:
-            metadata_dict['turk'] = {}
-        metadata_dict['turk']['species'] = user_id
+        if 'review' not in metadata_dict:
+            metadata_dict['review'] = {}
+        metadata_dict['review']['species'] = user_id
         ibs.set_annot_metadata([aid], [metadata_dict])
 
         logger.info(
@@ -1212,7 +1248,7 @@ def submit_species(**kwargs):
     else:
         return redirect(
             url_for(
-                'turk_species',
+                'review_species',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -1298,7 +1334,7 @@ def submit_part_types(**kwargs):
     else:
         return redirect(
             url_for(
-                'turk_part_types',
+                'review_part_types',
                 imgsetid=imgsetid,
                 previous=part_rowid,
                 previous_part_types=previous_part_types,
@@ -1341,7 +1377,7 @@ def submit_quality(**kwargs):
     else:
         return redirect(
             url_for(
-                'turk_quality',
+                'review_quality',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
                 dst_ag=dst_ag,
@@ -1423,7 +1459,9 @@ def submit_demographics(species='zebra_grevys', **kwargs):
         return redirect(appf.decode_refer_url(refer))
     else:
         return redirect(
-            url_for('turk_demographics', imgsetid=imgsetid, previous=aid, species=species)
+            url_for(
+                'review_demographics', imgsetid=imgsetid, previous=aid, species=species
+            )
         )
 
 
@@ -1491,7 +1529,7 @@ def submit_identification(**kwargs):
         return redirect(appf.decode_refer_url(refer))
     else:
         return redirect(
-            url_for('turk_identification', imgsetid=imgsetid, previous=previous)
+            url_for('review_identification', imgsetid=imgsetid, previous=previous)
         )
 
 
@@ -1521,7 +1559,7 @@ def submit_identification_v2(graph_uuid, **kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        base = url_for('turk_identification_graph')
+        base = url_for('review_identification_graph')
         sep = '&' if '?' in base else '?'
         args = (
             base,
@@ -1640,16 +1678,16 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     ibs.set_annot_qualities([aid1, aid2], [condition1, condition2])
 
     metadata1, metadata2 = ibs.get_annot_metadata([aid1, aid2])
-    if 'turk' not in metadata1:
-        metadata1['turk'] = {}
-    if 'turk' not in metadata2:
-        metadata2['turk'] = {}
-    if 'match' not in metadata1['turk']:
-        metadata1['turk']['match'] = {}
-    if 'match' not in metadata2['turk']:
-        metadata2['turk']['match'] = {}
-    metadata1['turk']['match']['comment'] = comment1
-    metadata2['turk']['match']['comment'] = comment2
+    if 'review' not in metadata1:
+        metadata1['review'] = {}
+    if 'review' not in metadata2:
+        metadata2['review'] = {}
+    if 'match' not in metadata1['review']:
+        metadata1['review']['match'] = {}
+    if 'match' not in metadata2['review']:
+        metadata2['review']['match'] = {}
+    metadata1['review']['match']['comment'] = comment1
+    metadata2['review']['match']['comment'] = comment2
     ibs.set_annot_metadata([aid1, aid2], [metadata1, metadata2])
 
     edge = (
@@ -1660,14 +1698,14 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     if len(review_rowid_list) > 0:
         review_rowid = review_rowid_list[-1]
         metadata_match = ibs.get_review_metadata(review_rowid)
-        if 'turk' not in metadata_match:
-            metadata_match['turk'] = {}
-        if 'match' not in metadata_match['turk']:
-            metadata_match['turk']['match'] = {}
+        if 'review' not in metadata_match:
+            metadata_match['review'] = {}
+        if 'match' not in metadata_match['review']:
+            metadata_match['review']['match'] = {}
         existing_comment = metadata_match.get('comment', '')
         updated_comment = '\n'.join([comment_match, existing_comment])
         updated_comment = updated_comment.strip()
-        metadata_match['turk']['match']['comment'] = updated_comment
+        metadata_match['review']['match']['comment'] = updated_comment
         ibs.set_review_metadata([review_rowid], [metadata_match])
 
     hogwild = kwargs.get('identification-hogwild', False)
@@ -1684,7 +1722,7 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        base = url_for('turk_identification_graph')
+        base = url_for('review_identification_graph')
         sep = '&' if '?' in base else '?'
         args = (
             base,
@@ -1736,7 +1774,7 @@ def group_review_submit(**kwargs):
     else:
         aid_list = []
     src_ag, dst_ag = ibs.prepare_annotgroup_review(aid_list)
-    valid_modes = ut.get_list_column(appf.VALID_TURK_MODES, 0)
+    valid_modes = ut.get_list_column(appf.VALID_REVIEW_MODES, 0)
     mode = request.form.get('group-review-mode', None)
     assert mode in valid_modes
     return redirect(url_for(mode, src_ag=src_ag, dst_ag=dst_ag))
@@ -1780,5 +1818,5 @@ def submit_contour(**kwargs):
         return redirect(appf.decode_refer_url(refer))
     else:
         return redirect(
-            url_for('turk_contour', imgsetid=imgsetid, previous=part_rowid, **config)
+            url_for('review_contour', imgsetid=imgsetid, previous=part_rowid, **config)
         )
