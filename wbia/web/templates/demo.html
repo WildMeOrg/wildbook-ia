@@ -40,8 +40,8 @@
         var registry = [];
 
         $(document).ready(function() {
-            var image1 = '{{ url_for('static', filename='images/logo-wildbook-zebra.png') }}';
-            var image2 = '{{ url_for('static', filename='images/logo-wildme.png') }}';
+            var image1 = '{{ url_for('static', filename='images/logo-wildme-slim.png', version='20210224') }}';
+            var image2 = '{{ url_for('static', filename='images/logo-wildme.png', version='20210224') }}';
             init(image1, image2);
 
         });
