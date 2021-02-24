@@ -26,6 +26,9 @@
         </div>
       {% endif %}
 
+      <div style="text-align: right;">
+        <a href="{{ url_for('review_viewpoint3') }}?aid={{ aid }}&imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">show in layout interface</a>
+      </div>
       Annotation ID: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 500px;">

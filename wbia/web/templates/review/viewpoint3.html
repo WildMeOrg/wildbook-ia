@@ -26,6 +26,9 @@
         </div>
       {% endif %}
 
+      <div style="text-align: right;">
+        <a href="{{ url_for('review_viewpoint2') }}?aid={{ aid }}&imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">show in slider interface</a>
+      </div>
       Annotation ID: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#review-instructions" style="font-size: 18px;"></span>
       <div style="margin: 20px auto; margin-bottom: 0px; width: 100%; height: 300px;">
