@@ -1112,6 +1112,20 @@ class IBEISController(BASE_CLASS):
         return locals_['info_str']
         # return ut.repr2(dbinfo.get_dbinfo(self), nl=1)['infostr']
 
+    @register_api('/api/core/db/numbers/', methods=['GET'], __api_plural_check__=False)
+    def get_db_numbers(ibs):
+        gid_list = ibs.get_valid_gids()
+        aid_list = ibs.get_valid_aids()
+        nid_list = ibs.get_valid_nids()
+
+        response = {
+            'images': len(gid_list),
+            'annotations': len(aid_list),
+            'names': len(nid_list),
+        }
+
+        return response
+
     # --------------
     # --- MISC ----
     # --------------

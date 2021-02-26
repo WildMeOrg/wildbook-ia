@@ -733,7 +733,15 @@ def labeler_cnn(
     output_list = []
     for result in result_list:
         score, species, viewpoint, quality, orientation, probs = result
-        output_list.append({'score': score, 'species': species, 'viewpoint': viewpoint})
+        output_list.append(
+            {
+                'score': score,
+                'species': species,
+                'viewpoint': viewpoint,
+                'species_nice': const.SPECIES_NICE_MAPPING.get(species, species),
+                'viewpoint_nice': const.VIEW.CODE_TO_NICE.get(viewpoint, viewpoint),
+            }
+        )
 
     return output_list
 
