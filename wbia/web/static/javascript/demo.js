@@ -1,3 +1,9 @@
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
 function monitorJob(jobid, callback, index, progress) {
 
     var progressBar = $('#progress-bar-' + index + '-' + progress);
@@ -15,7 +21,7 @@ function monitorJob(jobid, callback, index, progress) {
             if (status != 'completed') {
               setTimeout(function() {
                 monitorJob(jobid, callback, index);
-              }, 500);
+              }, getRandomInt(1000, 3001));
             } else {
 
               $.ajax({
@@ -41,47 +47,34 @@ function monitorJob(jobid, callback, index, progress) {
     });
 }
 
+function getValue(url, callback, index) {
+
+    $.ajax({
+        url: url,
+        method: "GET",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            response = response.response
+            callback(response, index)
+        }
+    });
+}
+
 function retrieveIdentification(index, response) {
     var progressBar = $('#progress-bar-' + index + '-3');
-
-    name = response
 
     // $('img#match-' + index).attr('src', response.match).on('load', function() {
     //   progressBar.removeClass('progress-bar-striped')
     //   progressBar.css({"width": "100%"});
     // })
 
-    if (name == 'Zak') {
-      species = 'Chapman’s Zebra'
-      viewpoint = 'Right side'
-      sex = 'Male'
-      age = '19 years old'
-    } else if (name == 'Florence') {
-      species = 'Grant’s Zebra'
-      viewpoint = 'Right side'
-      sex = 'Female'
-      age = '9 years old'
-    } else if (name == 'Pete') {
-      species = 'Grant’s Zebra'
-      viewpoint = 'Right side'
-      sex = 'Male'
-      age = '3 years old'
-    } else {
-      name = 'Unknown'
-      species = registry[index].detection.species2
-      viewpoint = registry[index].detection.viewpoint2 + ' side'
-      sex = 'Unknown'
-      age = 'Unknown'
-    }
+    console.log(response)
 
-    registry[index].detection.name = name
-    registry[index].detection.species = species
-    registry[index].detection.viewpoint = viewpoint
-    registry[index].detection.sex = sex
-    registry[index].detection.age = age
-
-    console.log(registry[index])
-    console.log(registry[index].detection)
+    registry[index].detection.name   = response.name
+    registry[index].detection.sex    = response.sex
+    registry[index].detection.age    = response.age
+    registry[index].detection.extern = response.extern
 
     $('#id-container-labels-' + index).html(
       'Name:<br/>' +
@@ -92,12 +85,45 @@ function retrieveIdentification(index, response) {
     )
 
     $('#id-container-values-' + index).html(
-      '' + name + '<br/>' +
-      '' + species + '<br/>' +
-      '' + viewpoint + '<br/>' +
-      '' + sex + '<br/>' +
-      '' + age
+      '' + registry[index].detection.name + '<br/>' +
+      '' + registry[index].detection.species + '<br/>' +
+      '' + registry[index].detection.viewpoint + '<br/>' +
+      '' + registry[index].detection.sex + '<br/>' +
+      '' + registry[index].detection.age + '<br/>' +
+      '<a class="btn btn-default btn-xs" role="button" data-toggle="collapse" style="margin-top: 3px;" id="button-' + index + '" href="#collapse-' + index + '" aria-expanded="false" aria-controls="collapse-' + index + '">Evidence</a>'
     )
+
+    extern = registry[index].detection.extern
+    match_url = '/api/query/graph/match/thumb/?extern_reference=' + extern.reference + '&query_annot_uuid=' + extern.qannot_uuid + '&database_annot_uuid=' + extern.dannot_uuid
+
+    registry[index].detection.match = {
+      'clean': match_url + '&version=clean',
+      'dirty': match_url + '&version=heatmask',
+    }
+
+    match = registry[index].detection.match
+    $evidence = $('img.evidence#evidence-' + index)
+
+    // Download both clean and dirty images, set to src (clean last)
+    $evidence.attr('src', match.dirty).on('load', function() {
+      $evidence.attr('src', match.clean).on('load', function() {
+        $('a#button-' + index).removeClass("hidden")
+        $evidence.off('load')
+      });
+    });
+
+    $evidence.hover(
+      function() {
+        index = $(this).attr('index');
+        match = registry[index].detection.match;
+        $(this).attr('src', match.dirty);
+      },
+      function() {
+        index = $(this).attr('index');
+        match = registry[index].detection.match;
+        $(this).attr('src', match.clean);
+      }
+    );
 
     progressBar.removeClass('progress-bar-striped')
     progressBar.css({"width": "100%"});
@@ -150,8 +176,8 @@ function retrieveClassification(index, response) {
 
     response = response[0]
 
-    registry[index].detection.species2 = response.species
-    registry[index].detection.viewpoint2 = response.viewpoint
+    registry[index].detection.species = response.species_nice
+    registry[index].detection.viewpoint = response.viewpoint_nice
 
     progressBar.removeClass('progress-bar-striped')
     progressBar.css({"width": "100%"});
@@ -199,6 +225,30 @@ function submitClassification() {
     submitClassification()
 }
 
+function drawDetection(response, index) {
+    response = response[0]
+
+    registry[index].detection.image = {
+      "width": response[0],
+      "height": response[1],
+    }
+
+    xtl    = 100.0 * registry[index].detection.xtl    / registry[index].detection.image.width
+    ytl    = 100.0 * registry[index].detection.ytl    / registry[index].detection.image.height
+    width  = 100.0 * registry[index].detection.width  / registry[index].detection.image.width
+    height = 100.0 * registry[index].detection.height / registry[index].detection.image.height
+
+    $bbox = $('#image-bbox-' + index)
+    $bbox.css({
+      'top':    ytl    + '%',
+      'left':   xtl    + '%',
+      'width':  width  + '%',
+      'height': height + '%',
+    })
+
+    $bbox.removeClass('image-bbox-hidden')
+}
+
 function retrieveDetection(index, response) {
     var progressBar = $('#progress-bar-' + index + '-1');
 
@@ -229,8 +279,16 @@ function retrieveDetection(index, response) {
       return
     }
 
+    url = '/api/image/size/?gid_list=[' + registry[index].gid + ']'
+    getValue(url, drawDetection, index)
+
     url = '/api/annot/src/' + bestDetection.id
     $('img#annot-' + index).attr('src', url).on('load', function() {
+
+      $('#annot-label-' + index).show()
+
+      resized()
+
       progressBar.removeClass('progress-bar-striped')
       progressBar.css({"width": "100%"});
 
@@ -349,6 +407,12 @@ function submitUpload() {
             // Load image
             url = '/api/image/src/' + gid
             $('img#image-' + index).attr('src', url).on('load', function() {
+
+              $('#image-label-' + index).html('Upload: ' + registry[index].file.name)
+              $('#image-label-' + index).show()
+
+              resized()
+
               progressBar.removeClass('progress-bar-striped')
               progressBar.css({"width": "100%"});
 
@@ -363,6 +427,25 @@ function submitUpload() {
     });
 
     submitUpload()
+}
+
+function addStats(response, index) {
+
+    $('#stats-container-labels').html(
+      '' + '<br/>' +
+      'Images:<br/>' +
+      'Sightings:<br/>' +
+      'Animals:<br/>'
+    );
+
+    $('#stats-container-values').html('' +
+      '<b>Reference DB</b><br/>' +
+      response.images + '<br/>' +
+      response.annotations + '<br/>' +
+      response.names + '<br/>'
+    );
+
+    $("#stats-container").delay(700).fadeIn(1200);
 }
 
 
@@ -380,6 +463,9 @@ function registerFiles(files) {
         registerFiles(files);
       }, 800);
 
+      url = '/api/core/db/numbers/'
+      getValue(url, addStats, null)
+
       initialized = true;
 
       return
@@ -395,9 +481,9 @@ function registerFiles(files) {
         var row = $('<div class="row" id="row-' + index + '"></div>')
         container.append(row)
 
-        var left    = $('<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2"></div>')
-        var element = $('<div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 element" id="element-' + index + '"></div>')
-        var right   = $('<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2"></div>')
+        var left    = $('<div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>')
+        var element = $('<div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 element" id="element-' + index + '"></div>')
+        var right   = $('<div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>')
 
         row.append(left);
         row.append(element);
@@ -406,26 +492,55 @@ function registerFiles(files) {
         var row2 = $('<div class="row" id="row-' + index + '"></div>')
         element.append(row2)
 
-        var left2   = $('<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 element-left"></div>')
-        var center2 = $('<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 element-center"></div>')
-        var right2  = $('<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 element-right"></div>')
+        var left2   = $('<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 element-left"></div>')
+        var center2 = $('<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 element-center"></div>')
+        var right2  = $('<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 element-right"></div>')
+
+        var evidence = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>')
+
+        evidence.append(
+          '<div class="collapse" id="collapse-' + index + '">' +
+          '  <div class="well" style="max-width: 1000px; margin-left: auto; margin-right: auto;">' +
+          '    <div class="element-evidence-image-container">' +
+          '      <img class="evidence" id="evidence-' + index + '" index="' + index + '" src="">' +
+          '      <div class="evidence-label evidence-label-left">Uploaded Query Animal</div>' +
+          '      <div class="evidence-label evidence-label-right">Best Matched Reference Animal</div>' +
+          '    </div>' +
+          '    <div style="width: 100%; text-align: center;"><i style="color: #ccc; margin-top: 20px;">hover to see matched areas</i></div>' +
+          '  </div>' +
+          '</div>'
+        )
 
         row2.append(left2)
         row2.append(center2)
         row2.append(right2)
+        row2.append(evidence);
 
-        var image = $('<img id="image-' + index + '" src="">');
-        left2.append(image)
+        var left3 = $('<div class="element-left-image-container"></div>');
+        left2.append(left3)
 
-        var annot = $('<img id="annot-' + index + '" src="">');
-        center2.append(annot)
+        var image = $('<img class="demo-image" id="image-' + index + '" src="">');
+
+        left3.append(image)
+        left3.append($('<div class="image-label" id="image-label-' + index + '"></div>'));
+        left3.append($('<div class="image-bbox image-bbox-hidden" id="image-bbox-' + index + '">'));
+
+        var center3 = $('<div class="element-center-image-container"></div>');
+        center2.append(center3)
+
+        var annot = $('<img class="demo-image" id="annot-' + index + '" src="">');
+
+        center3.append(annot)
+        center3.append($('<div class="annot-label" id="annot-label-' + index + '">Most Confident Detection</div>'));
+
+        var right3 = $('<div class="col-lg-12 col-md-12 col-sm-6 col-xs-6"></div>')
 
         var texts = ['Upload', 'Detect', 'Classify', 'Identify']
         for (var i2 = 0; i2 < texts.length; i2++) {
-          right2.append(
+          right3.append(
             '<div id="row-container-' + i2 + '" class="row">' +
-              '<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 text-container">' + texts[i2] + '</div>' +
-              '<div class="col-lg-9 col-md-9 col-sm-12 col-xs-12 progress-container">' +
+              '<div class="col-lg-3 col-md-3 col-sm-6 col-xs-6 text-container">' + texts[i2] + '</div>' +
+              '<div class="col-lg-9 col-md-9 col-sm-6 col-xs-6 progress-container">' +
                 '<div id="progress" class="progress">' +
                   '<div id="progress-bar-' + index + '-' + i2 + '" class="progress-bar progress-bar' + i2 + ' progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>' +
                 '</div>' +
@@ -434,10 +549,39 @@ function registerFiles(files) {
           )
         }
 
+        right2.append(right3)
+
         right2.append(
+          '<div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">' +
             '<div id="id-container-labels-' + index + '" class="col-lg-6 col-md-6 col-sm-6 col-xs-6 id-container-labels"></div>' +
-            '<div id="id-container-values-' + index + '" class="col-lg-6 col-md-6 col-sm-6 col-xs-6 id-container-values"></div>'
-          )
+            '<div id="id-container-values-' + index + '" class="col-lg-6 col-md-6 col-sm-6 col-xs-6 id-container-values"></div>' +
+          '</div>'
+        )
+
+        $('#image-label-' + index).hide()
+        $('#annot-label-' + index).hide()
+
+        // $(image).hover(
+        //   function() {
+        //     if( ! $(this).hasClass('unloaded')) {
+        //       $(this).next().show()
+        //     }
+        //   },
+        //   function() {
+        //     $(this).next().hide()
+        //   }
+        // );
+
+        // $(annot).hover(
+        //   function() {
+        //     if( ! $(this).hasClass('unloaded')) {
+        //       $(this).next().show()
+        //     }
+        //   },
+        //   function() {
+        //     $(this).next().hide()
+        //   }
+        // );
 
         // var center3 = $('<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 element-center"></div>')
         // row2.append(center3)
@@ -461,18 +605,21 @@ function registerFiles(files) {
 function positionLogoInit() {
     $("#dropbox-text").hide()
     $("#progress").hide()
-    $("#logo").hide()
+    $("#logo-container").hide()
+    $("#stats-container").hide()
+    $('#download-container').hide()
 
     $('#dropbox-container').removeClass("hidden")
     $('#dropbox-container').css({'height': window.innerHeight})
 
-    offset = (window.innerHeight - $("#dropbox").height()) * 0.5
+    offset = (window.innerHeight - $("#dropbox").height()) * 0.5 - 20
     $('#dropbox-container-inside').css('margin-top', offset + "px")
     $("#dropbox-container-inside").hide().fadeIn(1200)
 
     animations.dropbox = setTimeout(function() {
       $("#dropbox-text").fadeIn(1200)
-      $("#logo").fadeIn(1200)
+      $("#logo-container").fadeIn(1200)
+      $("#download-container").fadeIn(1200)
     }, 1000);
 }
 
@@ -482,13 +629,18 @@ function positionLogoUpload() {
     clearTimeout(animations.dropbox)
   }
 
-  $('#dropbox-text').animate({
-    'opacity': '0',
-    'height': '0px',
-  }, 300)
+  $('#dropbox-text').css({
+    'opacity': '0.0',
+  })
+
+  $('#dropbox-text').delay(300).css({
+    'margin-top': '-150px',
+    'margin-bottom': '113px',
+    'font-size': '12px',
+  })
 
   $('#dropbox-container-inside').animate({
-    'margin-top': "10px",
+    'margin-top': "30px",
     'margin-bottom': "10px",
   }, 700);
 
@@ -497,7 +649,34 @@ function positionLogoUpload() {
     'padding': '4px',
   }, 700);
 
+  $('#dropbox-text').delay(500).animate({
+    'opacity': '1.0',
+  }, 500)
+
   $('#progress').delay(300).fadeIn(1000)
+
+  $('#download-container').fadeOut(1000)
+}
+
+function resized() {
+    $('.demo-image').each(function(index) {
+        $(this).next().css('left', this.offsetLeft);
+    })
+
+    $('.demo-image').each(function(index) {
+        $(this).next().css('left', this.offsetLeft);
+    })
+}
+
+function scrolled() {
+    var offset = window.pageYOffset
+    // $("#dropbox-header").css('top', offset)
+
+    if (offset == 0) {
+      $("#dropbox-header").removeClass('dropbox-header-shaddow')
+    } else {
+      $("#dropbox-header").addClass('dropbox-header-shaddow')
+    }
 }
 
 function init(image1, image2) {
@@ -533,6 +712,14 @@ function init(image1, image2) {
 
         registerFiles(event.originalEvent.dataTransfer.files);
     });
+
+    $(window).on('resize', function(event) {
+        resized()
+    })
+
+    $(window).on('scroll', function(event) {
+        scrolled()
+    })
 
     function stopDefault(event) {
         event.stopPropagation();
