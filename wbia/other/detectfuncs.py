@@ -55,6 +55,16 @@ def _resize(image, t_width=None, t_height=None, verbose=False):
     return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
 
 
+@register_ibs_method
+def get_species_nice_mapping(ibs, species):
+    from wbia.constants import SPECIES_MAPPING
+
+    species_code, species_nice = SPECIES_MAPPING.get(species, (species, species))
+    while species_code is None:
+        species_code, species_nice = SPECIES_MAPPING[species_nice]
+    return species_nice
+
+
 def simple_code(label):
     from wbia.constants import YAWALIAS, SPECIES_MAPPING
 

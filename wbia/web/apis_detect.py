@@ -738,7 +738,7 @@ def labeler_cnn(
                 'score': score,
                 'species': species,
                 'viewpoint': viewpoint,
-                'species_nice': const.SPECIES_NICE_MAPPING.get(species, species),
+                'species_nice': ibs.get_species_nice_mapping(species),
                 'viewpoint_nice': const.VIEW.CODE_TO_NICE.get(viewpoint, viewpoint),
             }
         )
