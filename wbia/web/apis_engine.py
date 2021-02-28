@@ -738,7 +738,13 @@ def start_labeler_cnn(
 @register_ibs_method
 @register_api('/api/engine/review/query/chip/best/', methods=['POST'])
 def start_review_query_chips_best(
-    ibs, annot_uuid, callback_url=None, callback_method=None, lane='slow', **kwargs
+    ibs,
+    annot_uuid,
+    database_imgsetid=None,
+    callback_url=None,
+    callback_method=None,
+    lane='slow',
+    **kwargs
 ):
     annot_uuid_list = [annot_uuid]
 
@@ -751,7 +757,10 @@ def start_review_query_chips_best(
     annot_uuid_list = ensure_uuid_list(annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     aid = aid_list[0]
-    args = (aid,)
+    args = (
+        aid,
+        database_imgsetid,
+    )
     jobid = ibs.job_manager.jobiface.queue_job(
         'review_query_chips_best', callback_url, callback_method, lane, *args
     )

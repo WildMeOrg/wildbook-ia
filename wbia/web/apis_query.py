@@ -613,14 +613,23 @@ def review_query_chips_test(**kwargs):
 
 @register_ibs_method
 @register_api('/api/review/query/chip/best/', methods=['GET'])
-def review_query_chips_best(ibs, aid, **kwargs):
+def review_query_chips_best(ibs, aid, database_imgsetid=None, **kwargs):
     # from wbia.algo.hots import chip_match
 
     # query_config_dict = {}
 
     # Compile test data
     qaid_list = [aid]
-    daid_list = ibs.get_valid_aids()
+    if database_imgsetid is not None:
+        all_imgsetids = set(ibs.get_valid_imgsetids())
+        if database_imgsetid not in all_imgsetids:
+            database_imgsetid = None
+
+    if database_imgsetid is None:
+        daid_list = ibs.get_valid_aids()
+    else:
+        daid_list = ibs.get_imageset_aids(database_imgsetid)
+
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
 
     uuid = list(result_dict['cm_dict'].keys())[0]

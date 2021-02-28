@@ -146,6 +146,7 @@ function submitIdentification() {
 
     var data = {
       'annot_uuid': record.detection.uuid,
+      'database_imgsetid': 570,
     }
 
     $.ajax({
