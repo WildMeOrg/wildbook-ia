@@ -4693,11 +4693,11 @@ def review_identification_graph_refer(
             species_ = species_.lower()
             viewpoint_ = viewpoint_.lower()
             quality_ = int(quality_)
+            if species_ != 'zebra_grevys':
+                continue
+            if 'right' not in viewpoint_:
+                continue
             if not canonical_:
-                if species_ != 'zebra_grevys':
-                    continue
-                if 'right' not in viewpoint_:
-                    continue
                 if quality_ <= 2:
                     continue
             aid_list_.append(aid)
