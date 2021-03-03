@@ -100,8 +100,11 @@ class InfrLoops(object):
         if infr.params['inference.enabled']:
             infr.loop_phase = 'incon_recover_init'
             # First, fix any inconsistencies
-            for _ in infr.incon_recovery_gen():
-                yield _
+            try:
+                for _ in infr.incon_recovery_gen():
+                    yield _
+            except StopIteration:
+                pass
 
         # Phase 0.2: Ensure positive redundancy (this is generally quick)
         # so the user starts seeing real work after one random review is made
@@ -122,8 +125,11 @@ class InfrLoops(object):
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
                 infr.loop_phase = 'ranking_{}'.format(count)
-                for _ in infr.ranked_list_gen(use_refresh):
-                    yield _
+                try:
+                    for _ in infr.ranked_list_gen(use_refresh):
+                        yield _
+                except StopIteration:
+                    pass
 
                 terminate = infr.refresh.num_meaningful == 0
                 if terminate:
@@ -134,8 +140,11 @@ class InfrLoops(object):
                 infr.loop_phase = 'posredun_{}'.format(count)
                 if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                     # Fix positive redundancy of anything within the loop
-                    for _ in infr.pos_redun_gen():
-                        yield _
+                    try:
+                        for _ in infr.pos_redun_gen():
+                            yield _
+                    except StopIteration:
+                        pass
 
                 logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
                 logger.info(
@@ -159,8 +168,11 @@ class InfrLoops(object):
             # asking the user to do anything but resolve inconsistency.
             infr.print('Entering phase 3', 1, color='red')
             infr.loop_phase = 'negredun'
-            for _ in infr.neg_redun_gen():
-                yield _
+            try:
+                for _ in infr.neg_redun_gen():
+                    yield _
+            except StopIteration:
+                pass
 
         infr.phase = 4
         infr.print('Terminate', 1, color='red')
