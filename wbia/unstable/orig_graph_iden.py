@@ -123,8 +123,12 @@ class OrigAnnotInference(object):
         aid2_aidx = ut.make_index_lookup(unique_aids)
         prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
         for count, cm in enumerate(cm_list):
+            aid2_annot_score = {}
+            for aid, aidx in aid2_aidx.items():
+                aid2_annot_score[aid] = cm.annot_score_list[aidx]
+
             idx = aid2_aidx[cm.qaid]
-            annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
+            annot_scores = ut.dict_take(aid2_annot_score, unique_aids, 0)
             prob_annots[idx][:] = annot_scores
         prob_annots[np.diag_indices(len(prob_annots))] = np.inf
         prob_annots += 1e-9
@@ -142,7 +146,10 @@ class OrigAnnotInference(object):
         prob_names = np.zeros((len(cm_list), len(unique_nids)))
         for count, cm in enumerate(cm_list):
             try:
-                name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
+                nid2_name_score = {}
+                for nid, nidx in cm.nid2_nidx.items():
+                    nid2_name_score[nid] = cm.name_score_list[nidx]
+                name_scores = ut.dict_take(nid2_name_score, unique_nids, 0)
             except AttributeError:
                 unique_nidxs = ut.take(cm.nid2_nidx, unique_nids)
                 name_scores = ut.take(cm.name_score_list, unique_nidxs)
