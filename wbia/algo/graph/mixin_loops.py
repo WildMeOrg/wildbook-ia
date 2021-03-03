@@ -103,7 +103,7 @@ class InfrLoops(object):
             try:
                 for _ in infr.incon_recovery_gen():
                     yield _
-            except StopIteration:
+            except (StopIteration, RuntimeError):
                 pass
 
         # Phase 0.2: Ensure positive redundancy (this is generally quick)
@@ -115,7 +115,7 @@ class InfrLoops(object):
             try:
                 for _ in infr.pos_redun_gen():
                     yield _
-            except StopIteration:
+            except (StopIteration, RuntimeError):
                 pass
 
         infr.phase = 1
@@ -128,7 +128,7 @@ class InfrLoops(object):
                 try:
                     for _ in infr.ranked_list_gen(use_refresh):
                         yield _
-                except StopIteration:
+                except (StopIteration, RuntimeError):
                     pass
 
                 terminate = infr.refresh.num_meaningful == 0
@@ -143,7 +143,7 @@ class InfrLoops(object):
                     try:
                         for _ in infr.pos_redun_gen():
                             yield _
-                    except StopIteration:
+                    except (StopIteration, RuntimeError):
                         pass
 
                 logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
@@ -171,7 +171,7 @@ class InfrLoops(object):
             try:
                 for _ in infr.neg_redun_gen():
                     yield _
-            except StopIteration:
+            except (StopIteration, RuntimeError):
                 pass
 
         infr.phase = 4
@@ -659,7 +659,7 @@ class InfrReviewers(object):
                 with infr._gen_lock:
                     user_request = next(infr._gen)
                 hungry = False
-            except StopIteration:
+            except (StopIteration, RuntimeError):
                 pass
             if (
                 isinstance(user_request, str) and user_request in ['finished']

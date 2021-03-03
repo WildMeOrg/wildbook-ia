@@ -508,7 +508,7 @@ class Priority(object):
                             yield child
                             visited.add(child)
                             stack.append((child, iter(G[child]), new_state))
-                except StopIteration:
+                except (StopIteration, RuntimeError):
                     stack.pop()
 
         for node in dfs_cond_stack(infr.graph, u, 0):
