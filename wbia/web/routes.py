@@ -4684,11 +4684,15 @@ def review_identification_graph_refer(
             canonical_flag = canonical_dict.get(aid, False)
             canonical_flag_list.append(canonical_flag)
 
+        blacklist = [307, 332, 1091, 4988, 5277, 9174, 10456, 11968, 12217, 13975]
+
         aid_list_ = []
         zipped = list(
             zip(aid_list, species_list, viewpoint_list, quality_list, canonical_flag_list)
         )
         for aid, species_, viewpoint_, quality_, canonical_ in zipped:
+            if aid in blacklist:
+                continue
             assert None not in [species_, viewpoint_, quality_]
             species_ = species_.lower()
             viewpoint_ = viewpoint_.lower()
@@ -4701,6 +4705,18 @@ def review_identification_graph_refer(
                 if quality_ <= 2:
                     continue
             aid_list_.append(aid)
+
+        aid_set_ = set(aid_list_)
+        review_rowid_list = ibs._get_all_review_rowids()
+        review_aids_list = ibs.get_review_aid_tuple(review_rowid_list)
+        review_flags = []
+        for review_aids in review_aids_list:
+            review_aid1, review_aid2 = review_aids
+            review_flag = review_aid1 not in aid_set_ or review_aid2 not in aid_set_
+            review_flags.append(review_flag)
+
+        delete_reviews = ut.compress(review_rowid_list, review_flags)
+        ibs.delete_review(delete_reviews)
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
