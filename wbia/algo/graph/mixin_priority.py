@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 import numpy as np
 import utool as ut
 import networkx as nx
@@ -266,7 +265,7 @@ class Priority(object):
         """
         if priority is None:
             priority = 'prob_match'
-        if isinstance(priority, six.string_types):
+        if isinstance(priority, str):
             prob_match = infr.get_edge_attr(edge, priority, default=1e-9)
             priority = prob_match
         corrected_priority = infr._correct_priorities(edge, priority)
@@ -289,7 +288,8 @@ class Priority(object):
             try:
                 edge, priority = infr._pop()
             except IndexError:
-                raise StopIteration('no more to review!')
+                # Nothing more to review!
+                return
             else:
                 # Re-prioritize positive or negative relative to PCCs
                 corrected_priority = infr._correct_priorities(edge, priority)
@@ -378,6 +378,8 @@ class Priority(object):
                         logger.info('in error recover mode')
                 infr.assert_edge(edge)
                 return edge, priority
+
+        return
 
     def peek(infr):
         return infr.peek_many(n=1)[0]
@@ -488,8 +490,7 @@ class Priority(object):
         #             flag, new_state = can_cross(G, edge, state)
         #             if flag:
         #                 yield child
-        #                 for _ in dfs_cond_rec(G, child, new_state, visited):
-        #                     yield _
+        #                 yield from dfs_cond_rec(G, child, new_state, visited)
 
         # need to do DFS check for this. Make DFS only allowed to
         # cross a negative edge once.
@@ -508,7 +509,7 @@ class Priority(object):
                             yield child
                             visited.add(child)
                             stack.append((child, iter(G[child]), new_state))
-                except (StopIteration, RuntimeError):
+                except StopIteration:
                     stack.pop()
 
         for node in dfs_cond_stack(infr.graph, u, 0):
@@ -530,8 +531,7 @@ class Priority(object):
     def _generate_reviews(infr, data=False):
         if data:
             while True:
-                edge, priority = infr.pop()
-                yield edge, priority
+                yield from infr.pop()
         else:
             while True:
                 edge, priority = infr.pop()

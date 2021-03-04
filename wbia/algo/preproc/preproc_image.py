@@ -5,7 +5,6 @@ from os.path import splitext, basename, isabs
 import warnings
 import vtool.exif as vtexif
 import utool as ut
-import six
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -57,18 +56,11 @@ def parse_imageinfo(gpath):
     import tempfile
     import requests
 
-    if six.PY2:
-        import urllib
-        import urlparse
+    import urllib
 
-        urlsplit = urlparse.urlsplit
-        urlquote = urllib.quote
-    else:
-        import urllib
-
-        urlsplit = urllib.parse.urlsplit
-        urlquote = urllib.parse.quote
-        urlunquote = urllib.parse.unquote
+    urlsplit = urllib.parse.urlsplit
+    urlquote = urllib.parse.quote
+    urlunquote = urllib.parse.unquote
 
     gpath = gpath.strip()
 
@@ -111,7 +103,6 @@ def parse_imageinfo(gpath):
                     uri_ = uri_._replace(path=uri_path)
                     uri_ = uri_.geturl()
                     try:
-                        # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
                         assert (
                             response.status_code == 200
@@ -121,7 +112,6 @@ def parse_imageinfo(gpath):
                         uri_ = uri_.strip('%s://' % (scheme,))
                         uri_path = urlquote(uri_.encode('utf8'))
                         uri_ = '%s://%s' % (scheme, uri_path)
-                        # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
                         assert (
                             response.status_code == 200

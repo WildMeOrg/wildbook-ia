@@ -5,7 +5,6 @@ string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
 import logging
-import six
 import numpy as np
 import math
 import utool as ut
@@ -630,7 +629,6 @@ class _ConstHelper(type):
         return super(_ConstHelper, cls).__new__(cls, name, parents, dct)
 
 
-@six.add_metaclass(_ConstHelper)
 class EVIDENCE_DECISION(object):  # NOQA
     """
     TODO: change to EVIDENCE_DECISION / VISUAL_DECISION
@@ -643,6 +641,8 @@ class EVIDENCE_DECISION(object):  # NOQA
         notcomp: Not comparable means it is actually impossible to determine.
         unknown: means that it was reviewed, but we just can't figure it out.
     """
+
+    __metaclass__ = _ConstHelper
 
     UNREVIEWED = None
     NEGATIVE = 0
@@ -678,7 +678,6 @@ class EVIDENCE_DECISION(object):  # NOQA
     MATCH_CODE = CODE_TO_INT
 
 
-@six.add_metaclass(_ConstHelper)
 class META_DECISION(object):  # NOQA
     """
     Enumerated types of review codes and texts
@@ -701,6 +700,8 @@ class META_DECISION(object):  # NOQA
         >>> assert nice1 == nice2
     """
 
+    __metaclass__ = _ConstHelper
+
     NULL = None
     DIFF = 0
     SAME = 1
@@ -712,8 +713,10 @@ class META_DECISION(object):  # NOQA
     NICE_TO_INT = ut.invert_dict(INT_TO_NICE)
 
 
-@six.add_metaclass(_ConstHelper)
 class CONFIDENCE(object):
+
+    __metaclass__ = _ConstHelper
+
     UNKNOWN = None
     GUESSING = 1
     NOT_SURE = 2
@@ -746,8 +749,10 @@ class CONFIDENCE(object):
     NICE_TO_INT = ut.invert_dict(INT_TO_NICE)
 
 
-@six.add_metaclass(_ConstHelper)
 class QUAL(object):
+
+    __metaclass__ = _ConstHelper
+
     EXCELLENT = 5
     GOOD = 4
     OK = 3
@@ -783,7 +788,6 @@ class QUAL(object):
     NICE_TO_INT = ut.invert_dict(INT_TO_NICE)
 
 
-@six.add_metaclass(_ConstHelper)
 class VIEW(object):
     """
     categorical viewpoint using the faces of a Rhombicuboctahedron
@@ -791,6 +795,8 @@ class VIEW(object):
     References:
         https://en.wikipedia.org/wiki/Rhombicuboctahedron
     """
+
+    __metaclass__ = _ConstHelper
 
     UNKNOWN = None
     R = 1

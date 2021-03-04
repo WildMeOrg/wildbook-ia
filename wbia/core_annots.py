@@ -47,7 +47,6 @@ Setup:
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
 import logging
-from six.moves import zip
 from vtool import image_filters
 from wbia import dtool
 import math

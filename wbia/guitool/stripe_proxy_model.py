@@ -5,8 +5,6 @@ from wbia.guitool.__PYQT__.QtCore import Qt
 import math
 import utool
 
-import six
-
 utool.noinject(__name__, '[StripProxyModel]', DEBUG=False)
 
 # STRIPE_PROXY_BASE = QtGui.QAbstractProxyModel
@@ -32,13 +30,10 @@ STRIP_PROXY_META_CLASS = utool.makeForwardingMetaclass(
     base_class=STRIPE_PROXY_BASE,
 )
 
-STRIP_PROXY_SIX_BASE = six.with_metaclass(STRIP_PROXY_META_CLASS, STRIPE_PROXY_BASE)
 
+class StripeProxyModel(STRIPE_PROXY_BASE):
 
-class StripeProxyModel(
-    STRIP_PROXY_SIX_BASE
-):  # (STRIPE_PROXY_BASE, metaclass=STRIP_PROXY_META_CLASS):
-    # __metaclass__ = STRIP_PROXY_META_CLASS
+    __metaclass__ = STRIP_PROXY_META_CLASS
 
     def __init__(self, parent=None, numduplicates=1):
         STRIPE_PROXY_BASE.__init__(self, parent=parent)

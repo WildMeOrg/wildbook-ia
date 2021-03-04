@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from six.moves import range
-
 # import matplotlib.image as mpimg
 from wbia.plottool import viz_image2
 from wbia.plottool import interact_annotations
@@ -12,7 +10,6 @@ from wbia.plottool import abstract_interaction
 from matplotlib.widgets import Button  # NOQA
 import matplotlib.pyplot as plt  # NOQA
 import matplotlib as mpl  # NOQA
-import six
 
 try:
     import vtool as vt
@@ -196,7 +193,7 @@ class MultiImageInteraction(BASE_CLASS):
 
             ax = pt.gca()
         else:
-            if isinstance(gpath, six.string_types):
+            if isinstance(gpath, str):
                 img = vt.imread(gpath)
             else:
                 img = gpath
@@ -289,7 +286,7 @@ class MultiImageInteraction(BASE_CLASS):
                     theta_list = self.thetas_list[index]
                     print('theta_list = %r' % (theta_list,))
                     # img = mpimg.imread(gpath)
-                    if isinstance(gpath, six.string_types):
+                    if isinstance(gpath, str):
                         img = vt.imread(gpath)
                     else:
                         img = gpath
@@ -341,7 +338,7 @@ class MultiImageInteraction(BASE_CLASS):
     #        new_but.on_clicked(callback)
     #    ph.set_plotdat(new_ax, 'viztype', 'button')
     #    ph.set_plotdat(new_ax, 'text', text)
-    #    for key, val in six.iteritems(kwargs):
+    #    for key, val in kwargs.items():
     #        ph.set_plotdat(new_ax, key, val)
     #    # Keep buttons from losing scrop
     #    self.scope.append((new_but, new_ax))

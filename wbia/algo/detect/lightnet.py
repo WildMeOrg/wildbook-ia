@@ -2,7 +2,6 @@
 """Interface to Lightnet object proposals."""
 import logging
 import utool as ut
-from six.moves import zip
 import numpy as np
 from os.path import abspath, dirname, expanduser, join, exists, splitext  # NOQA
 from tqdm import tqdm

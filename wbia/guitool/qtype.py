@@ -2,7 +2,6 @@
 
 # from wbia.guitool.__PYQT__.QtCore import Qt
 import logging
-import six
 from wbia.guitool.__PYQT__.QtCore import QLocale
 import utool as ut
 import uuid
@@ -10,13 +9,9 @@ import numpy as np
 from wbia.guitool.__PYQT__ import QtGui
 from wbia.guitool.guitool_decorators import checks_qt_error
 
-# if six.PY2:
-#    from wbia.guitool.__PYQT__.QtCore import QString
-#    from wbia.guitool.__PYQT__.QtCore import QVariant
-# elif six.PY3:
 QVariant = None
 
-__STR__ = unicode if six.PY2 else str  # NOQA
+__STR__ = str
 
 QString = __STR__
 

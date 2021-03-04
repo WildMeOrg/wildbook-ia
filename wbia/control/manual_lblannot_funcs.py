@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import uuid
-from six.moves import range
 from wbia import constants as const
 from wbia.other import ibsfuncs
 from wbia.control.accessor_decors import (

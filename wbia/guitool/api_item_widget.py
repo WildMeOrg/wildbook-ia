@@ -14,9 +14,7 @@ from wbia.guitool.api_tree_view import APITreeView
 
 # from wbia.guitool import guitool_components as comp
 from functools import partial
-from six.moves import range
 import utool as ut
-import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[APIItemWidget]')
 logger = logging.getLogger('wbia')
@@ -282,11 +280,8 @@ class CustomAPI(object):
         # self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
         # Init iders to default and then overwite based on dict inputs
         self.col_ider_list = [None] * self.nCols  # ut.alloc_nones(self.nCols)
-        # for colname, ider_colnames in six.iteritems(col_ider_dict):
-        # import utool
-        # utool.embed()
         colname2_colx = ut.make_index_lookup(self.col_name_list)
-        for colname, ider_colnames in six.iteritems(col_ider_dict):
+        for colname, ider_colnames in col_ider_dict.items():
             if colname not in colname2_colx:
                 continue
             # for colname in self.col_name_list:
@@ -309,7 +304,7 @@ class CustomAPI(object):
                 raise
         # Init setters to data, and then overwrite based on dict inputs
         self.col_setter_list = list(self.col_getter_list)
-        for colname, col_setter in six.iteritems(col_setter_dict):
+        for colname, col_setter in col_setter_dict.items():
             colx = colname2_colx[colname]
             self.col_setter_list[colx] = col_setter
         # Init bgrole_getters to None, and then overwrite based on dict inputs
@@ -491,7 +486,7 @@ class APIItemWidget(WIDGET_BASE):
         doubleClicked=None,
     ):
         WIDGET_BASE.__init__(widget, parent)
-        if isinstance(view_class, six.string_types):
+        if isinstance(view_class, str):
             if view_class == 'tree':
                 view_class = APITreeView
             elif view_class == 'table':
@@ -560,7 +555,7 @@ class APIItemWidget(WIDGET_BASE):
         if api is None:
             api = self.api
         horizontal_header = self.view.horizontalHeader()
-        for col, width in six.iteritems(api.col_width_dict):
+        for col, width in api.col_width_dict.items():
             # horizontal_header.defaultSectionSize()
             try:
                 index = api.col_name_list.index(col)

@@ -19,7 +19,6 @@ import sklearn.impute
 import sklearn.pipeline
 import sklearn.neural_network
 from wbia.algo.verif import sklearn_utils
-from six.moves import range
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -1464,10 +1463,8 @@ class MultiClassLabels(ut.NiceRepr):
 
     @classmethod
     def from_indicators(MultiClassLabels, indicator, index=None, task_name=None):
-        import six
-
         labels = MultiClassLabels()
-        n_samples = len(six.next(six.itervalues(indicator)))
+        n_samples = len(next(indicator.values()))
         # if index is None:
         #     index = pd.Series(np.arange(n_samples), name='index')
         indicator_df = pd.DataFrame(indicator, index=index)

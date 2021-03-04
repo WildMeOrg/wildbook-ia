@@ -5,7 +5,6 @@ controller functions for contributors, versions, configs, and other metadata
 import logging
 import functools
 import utool as ut
-from six.moves import range, input, zip
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.algo import Config

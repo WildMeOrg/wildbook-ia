@@ -10,7 +10,6 @@ TODO: need to split up into sub modules:
     within this file
 """
 import logging
-from six.moves import zip
 from os.path import exists, expanduser, join, abspath
 import numpy as np
 import vtool as vt

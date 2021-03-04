@@ -12,8 +12,6 @@ ToRegenerate:
 """
 import logging
 import functools  # NOQA
-import six  # NOQA
-from six.moves import map, range, zip  # NOQA
 from wbia import constants as const
 import utool as ut
 from wbia.control import controller_inject

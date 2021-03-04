@@ -618,7 +618,6 @@ def pre_1_3_1(db, ibs=None):
     if ibs is not None:
         # from wbia.other import ibsfuncs
         import utool as ut
-        import six
 
         ibs._init_rowid_constants()
         ibs._init_config()
@@ -695,7 +694,7 @@ def pre_1_3_1(db, ibs=None):
         ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
         dupaids_list = []
         if len(ibs_dup_annots):
-            for key, dupxs in six.iteritems(ibs_dup_annots):
+            for key, dupxs in ibs_dup_annots.items():
                 aids = ut.take(aid_list, dupxs)
                 dupaids_list.append(aids[1:])
             toremove_aids = ut.flatten(dupaids_list)

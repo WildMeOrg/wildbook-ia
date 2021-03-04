@@ -11,8 +11,6 @@ TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
 import logging
-import six
-from six.moves import zip, map, range
 from wbia import constants as const
 import utool as ut
 from functools import partial
@@ -349,7 +347,7 @@ def partial_imap_1to1(func, si_func):
 
 def _tupstr(tuple_):
     """ maps each item in tuple to a string and doesnt include parens """
-    return ', '.join(list(map(six.text_type, tuple_)))
+    return ', '.join(list(map(str, tuple_)))
 
 
 def make_wbia_headers_dict(ibs):

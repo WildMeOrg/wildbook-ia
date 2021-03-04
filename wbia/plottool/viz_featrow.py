@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import utool as ut
-import six
 
 # import itertools
 from . import draw_func2 as df2
@@ -148,8 +147,8 @@ def draw_feat_row(
 
     if draw_unwarped:
         # Draw the unwarped selected feature
-        # ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)))
-        # pnum = pnum_(px + six.next(countgen)
+        # ax = _draw_patch(fnum=fnum, pnum=pnum_(px + next(countgen)))
+        # pnum = pnum_(px + next(countgen)
         pnum = pnum_()
         ax = _draw_patch(fnum=fnum, pnum=pnum)
         ph.set_plotdat(ax, 'viztype', 'unwarped')
@@ -161,7 +160,7 @@ def draw_feat_row(
 
     if draw_warped:
         # Draw the warped selected feature
-        # ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)), warped=True)
+        # ax = _draw_patch(fnum=fnum, pnum=pnum_(px + next(countgen)), warped=True)
         pnum = pnum_()
         ax = _draw_patch(fnum=fnum, pnum=pnum, warped=True, **kwargs)
         ph.set_plotdat(ax, 'viztype', 'warped')
@@ -189,7 +188,7 @@ def draw_feat_row(
             df2.draw_border(ax, color=border_color)
 
         # Draw the SIFT representation
-        # pnum = pnum_(px + six.next(countgen))
+        # pnum = pnum_(px + next(countgen))
         pnum = pnum_()
         sift_as_vecfield = ph.SIFT_OR_VECFIELD or vecfield
         if sift_as_vecfield:
@@ -218,7 +217,7 @@ def draw_feat_row(
                 + ', '.join(
                     [
                         '(%s, %s)' % (key, formatdist(val))
-                        for key, val in six.iteritems(distmap_orig)
+                        for key, val in distmap_orig.items()
                     ]
                 )
             )
@@ -229,7 +228,7 @@ def draw_feat_row(
                 + ', '.join(
                     [
                         '(%s, %s)' % (key, formatdist(val))
-                        for key, val in six.iteritems(distmap_prev)
+                        for key, val in distmap_prev.items()
                     ]
                 )
             )

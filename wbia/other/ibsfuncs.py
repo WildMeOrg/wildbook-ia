@@ -13,18 +13,16 @@ TODO: need to split up into sub modules:
     within this file
 """
 import logging
-import six
 import types
 import functools
 import re
 from collections import OrderedDict
-from six.moves import zip, range, map, reduce
 from os.path import split, join, exists
 import numpy as np
 import vtool as vt
 import utool as ut
 import ubelt as ub
-from utool._internal.meta_util_six import get_funcname, set_funcname
+from functools import reduce
 import itertools as it
 from wbia import constants as const
 from wbia.control import accessor_decors
@@ -1511,7 +1509,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
     ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
     dupaids_list = []
     if len(ibs_dup_annots):
-        for key, dupxs in six.iteritems(ibs_dup_annots):
+        for key, dupxs in ibs_dup_annots.items():
             aids = ut.take(aid_list, dupxs)
             dupaids_list.append(aids[1:])
 
@@ -1973,7 +1971,7 @@ def delete_all_imagesets(ibs):
 def delete_all_annotations(ibs):
     """ Carefull with this function. Annotations are not recomputable """
     logger.info('[ibs] delete_all_annotations')
-    ans = six.moves.input('Are you sure you want to delete all annotations?')
+    ans = input('Are you sure you want to delete all annotations?')
     if ans != 'yes':
         return
     all_aids = ibs._get_all_aids()
@@ -2112,7 +2110,7 @@ def _make_unflat_getter_func(flat_getter):
         func = ut.get_method_func(flat_getter)
     else:
         func = flat_getter
-    funcname = get_funcname(func)
+    funcname = ut.get_funcname(func)
     assert funcname.startswith('get_'), 'only works on getters, not: ' + funcname
 
     # Create new function
@@ -2125,7 +2123,7 @@ def _make_unflat_getter_func(flat_getter):
         unflat_vals = ut.unflatten2(flat_vals, reverse_list)
         return unflat_vals
 
-    set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
+    ut.set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
     return unflat_getter
 
 
@@ -3191,9 +3189,9 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     nid2_aids = ut.group_items(aid_list, nid_list)
 
     def aid_gen():
-        return six.itervalues(nid2_aids)
+        return nid2_aids.values()
 
-    isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
+    isunknown_list = ibs.is_nid_unknown(nid2_aids.keys())
     known_aids_list = list(ut.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(ut.iflatten(ut.iter_compress(aid_gen(), isunknown_list)))
     if __debug__:
@@ -4028,7 +4026,7 @@ def get_annot_quality_viewpoint_subset(
             # subgroup the names by viewpoints
             yawtexts = ibs.get_annot_viewpoints(aids_)
             yawtext2_aids = ut.group_items(aids_, yawtexts)
-            for yawtext, aids in six.iteritems(yawtext2_aids):
+            for yawtext, aids in yawtext2_aids.items():
                 flags = get_chosen_flags(aids)
                 new_aid_list.extend(aids)
                 new_flag_list.extend(flags)
@@ -6492,7 +6490,6 @@ def _clean_species(ibs):
     species_mapping_dict = {}
     if ibs is not None:
         flag = '--allow-keyboard-database-update'
-        from six.moves import input as raw_input_
         from wbia.control.manual_species_funcs import _convert_species_nice_to_code
 
         species_rowid_list = ibs._get_all_species_rowids()
@@ -6518,8 +6515,8 @@ def _clean_species(ibs):
                     species_code = _convert_species_nice_to_code([species_nice])[0]
                 else:
                     logger.info('Found an unknown species: %r' % (text,))
-                    species_nice = raw_input_('Input a NICE name for %r: ' % (text,))
-                    species_code = raw_input_('Input a CODE name for %r: ' % (text,))
+                    species_nice = input('Input a NICE name for %r: ' % (text,))
+                    species_code = input('Input a CODE name for %r: ' % (text,))
                     assert len(species_code) > 0 and len(species_nice) > 0
             else:
                 continue

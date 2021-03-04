@@ -6,13 +6,11 @@ import logging
 import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
-import six
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class OrigAnnotInference(object):
     """
     Make name inferences about a series of AnnotMatches
@@ -88,6 +86,8 @@ class OrigAnnotInference(object):
         >>> ut.show_if_requested()
         >>> ut.show_if_requested()
     """
+
+    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(self, qreq_, cm_list, user_feedback=None):
         self.qreq_ = qreq_
@@ -344,34 +344,38 @@ class OrigAnnotInference(object):
             error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
             # error_flag = split_case or merge_case
 
-            # <HACK>
-            # SET EXEMPLARS
-            ibs = self.qreq_.ibs
-            viewpoint_texts = ibs.get_annot_yaw_texts(aids)
-            view_to_aids = ut.group_items(aids, viewpoint_texts)
-            num_wanted_exemplars_per_view = 4
-            hack_set_these_qaids_as_exemplars = set([])
-            for view, aids_ in view_to_aids.items():
-                heuristic_exemplar_aids = set(aids) - qaid_set
-                heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
-                num_needed_exemplars = num_wanted_exemplars_per_view - len(
-                    heuristic_exemplar_aids
-                )
-                # Choose the best query annots to fill out exemplars
-                if len(heuristic_non_exemplar_aids) == 0:
-                    continue
-                quality_ints = ibs.get_annot_qualities(heuristic_non_exemplar_aids)
-                okish = ibs.const.QUALITY_TEXT_TO_INT[ibs.const.QUAL_OK] - 0.1
-                quality_ints = [x if x is None else okish for x in quality_ints]
-                aids_ = ut.sortedby(heuristic_non_exemplar_aids, quality_ints)[::-1]
-                chosen = aids_[:num_needed_exemplars]
-                for qaid_ in chosen:
-                    hack_set_these_qaids_as_exemplars.add(qaid_)
-            # </HACK>
+            if True:
+                # <HACK>
+                # SET EXEMPLARS
+                ibs = self.qreq_.ibs
+                viewpoint_texts = ibs.get_annot_yaw_texts(aids)
+                view_to_aids = ut.group_items(aids, viewpoint_texts)
+                num_wanted_exemplars_per_view = 4
+                hack_set_these_qaids_as_exemplars = set([])
+                for view, aids_ in view_to_aids.items():
+                    heuristic_exemplar_aids = set(aids) - qaid_set
+                    heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
+                    num_needed_exemplars = num_wanted_exemplars_per_view - len(
+                        heuristic_exemplar_aids
+                    )
+                    # Choose the best query annots to fill out exemplars
+                    if len(heuristic_non_exemplar_aids) == 0:
+                        continue
+                    quality_ints = ibs.get_annot_qualities(heuristic_non_exemplar_aids)
+                    okish = ibs.const.QUALITY_TEXT_TO_INT[ibs.const.QUAL_OK] - 0.1
+                    quality_ints = [x if x is None else okish for x in quality_ints]
+                    aids_ = ut.sortedby(heuristic_non_exemplar_aids, quality_ints)[::-1]
+                    chosen = aids_[:num_needed_exemplars]
+                    for qaid_ in chosen:
+                        hack_set_these_qaids_as_exemplars.add(qaid_)
+                # </HACK>
+            else:
+                hack_set_these_qaids_as_exemplars = set(aids)
+
             if not error_flag and not new_name:
                 new_nid = nids[0]
             else:
-                new_nid = six.next(next_new_nid)
+                new_nid = next(next_new_nid)
             for aid in aids:
                 if aid not in qaid_set:
                     if len(error_flag) == 0:

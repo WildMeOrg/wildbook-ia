@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 import utool as ut
-from six.moves import builtins
-from utool._internal.meta_util_six import get_funcname
+import builtins
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -313,7 +311,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                       signature. If this does not exist you should use None.
                       (default=None)
     """
-    colnames = [colnames] if isinstance(colnames, six.string_types) else colnames
+    colnames = [colnames] if isinstance(colnames, str) else colnames
 
     def closure_cache_invalidator(writer_func):
         """
@@ -326,7 +324,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
         def wrp_cache_invalidator(self, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
-            colnames_ = list(six.iterkeys(colscache_)) if colnames is None else colnames
+            colnames_ = list(colscache_.keys()) if colnames is None else colnames
             if DEBUG_API_CACHE:
                 indenter = ut.Indenter('[%s]' % (tblname,))
                 indenter.start()
@@ -346,7 +344,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                 for colname in colnames_:
                     kwargs_cache_ = colscache_[colname]
                     # We dont know the rowsids so clear everything
-                    for cache_ in six.itervalues(kwargs_cache_):
+                    for cache_ in kwargs_cache_.values():
                         cache_.clear()
             else:
                 rowid_list = args[rowidx]
@@ -354,7 +352,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                     kwargs_cache_ = colscache_[colname]
                     # We know the rowids to delete
                     # iterate over all getter kwargs values
-                    for cache_ in six.itervalues(kwargs_cache_):
+                    for cache_ in kwargs_cache_.values():
                         ut.delete_dict_keys(cache_, rowid_list)
 
             # Preform set/delete action
@@ -393,12 +391,12 @@ def adder(func):
     def wrp_adder(*args, **kwargs):
         if DEBUG_ADDERS or VERB_CONTROL:
             logger.info('+------')
-            logger.info('[ADD]: ' + get_funcname(func))
+            logger.info('[ADD]: ' + ut.get_funcname(func))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             logger.info('\n' + funccall_str + '\n')
             logger.info('L------')
         if VERB_CONTROL:
-            logger.info('[ADD]: ' + get_funcname(func))
+            logger.info('[ADD]: ' + ut.get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
 
@@ -415,7 +413,7 @@ def deleter(func):
     @ut.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
         if VERB_CONTROL:
-            logger.info('[DELETE]: ' + get_funcname(func))
+            logger.info('[DELETE]: ' + ut.get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
 
@@ -432,13 +430,13 @@ def setter(func):
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or VERB_CONTROL:
             logger.info('+------')
-            logger.info('[SET]: ' + get_funcname(func))
+            logger.info('[SET]: ' + ut.get_funcname(func))
             logger.info('[SET]: called by: ' + ut.get_caller_name(range(1, 7)))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             logger.info('\n' + funccall_str + '\n')
             logger.info('L------')
             # builtins.print('\n' + funccall_str + '\n')
-        # logger.info('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
+        # logger.info('set: funcname=%r, args=%r, kwargs=%r' % (ut.get_funcname(func), args, kwargs))
         return func(*args, **kwargs)
 
     wrp_setter = ut.preserve_sig(wrp_setter, func)
@@ -463,7 +461,7 @@ def getter(func):
         #    logger.info('[IN GETTER] kwargs=%r' % (kwargs,))
         if DEBUG_GETTERS or VERB_CONTROL:
             logger.info('+------')
-            logger.info('[GET]: ' + get_funcname(func))
+            logger.info('[GET]: ' + ut.get_funcname(func))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             logger.info('\n' + funccall_str + '\n')
             logger.info('L------')

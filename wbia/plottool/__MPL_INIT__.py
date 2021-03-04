@@ -38,11 +38,12 @@ CommandLine:
 import sys
 import os
 import utool as ut
-from six.moves import builtins
 
 ut.noinject(__name__, '[plottool.__MPL_INIT__]')
 
 try:
+    import builtins
+
     profile = getattr(builtins, 'profile')
 except AttributeError:
 

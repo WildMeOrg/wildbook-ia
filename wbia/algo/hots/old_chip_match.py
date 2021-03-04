@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-import six
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -84,7 +83,7 @@ class _OldStyleChipMatchSimulator(object):
             yield getattr(cm, field)
 
     def __getitem__(cm, index):
-        if isinstance(index, six.string_types):
+        if isinstance(index, str):
             return cm.__dict__[index]
         else:
             return getattr(cm, cm._oldfields[index])

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-import six
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
 
@@ -120,7 +119,6 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
 
 
 # @ut.reloadable_class
-@six.add_metaclass(ImageIBEISPropertyInjector)
 class Images(IMAGE_BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -141,6 +139,8 @@ class Images(IMAGE_BASE):
         <Images(num=13)>
     """
 
+    __metaclass__ = ImageIBEISPropertyInjector
+
     # def __init__(self, gids, ibs, config=None):
     #    super(Images, self).__init__(gids, ibs, config)
 
@@ -158,7 +158,7 @@ class Images(IMAGE_BASE):
 
     def remove_from_imageset(self, imageset_text):
         ibs = self._ibs
-        if isinstance(imageset_text, six.string_types):
+        if isinstance(imageset_text, str):
             gsid = ibs.get_imageset_imgsetids_from_text(imageset_text)
             gsids = [gsid] * len(self)
         else:
@@ -167,7 +167,7 @@ class Images(IMAGE_BASE):
 
     def append_to_imageset(self, imageset_text):
         ibs = self._ibs
-        if isinstance(imageset_text, six.string_types):
+        if isinstance(imageset_text, str):
             gsid = ibs.get_imageset_imgsetids_from_text(imageset_text)
             gsids = [gsid] * len(self)
         else:
@@ -247,7 +247,6 @@ class ImageSetAttrInjector(BASE_TYPE):
 
 
 # @ut.reloadable_class
-@six.add_metaclass(ImageSetAttrInjector)
 class ImageSets(IMAGESET_BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -267,6 +266,8 @@ class ImageSets(IMAGESET_BASE):
         <ImageSets(num=13)>
 
     """
+
+    __metaclass__ = ImageSetAttrInjector
 
     def __init__(self, gsids, ibs, config=None):
         super(ImageSets, self).__init__(gsids, ibs, config)

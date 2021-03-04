@@ -20,7 +20,6 @@ Notes:
            - relative size ratio vector (1 component for each widget)
 """
 import logging
-import six  # NOQA
 import sys
 import functools
 import traceback  # NOQA
@@ -41,7 +40,6 @@ from wbia.gui import newgui
 from wbia.viz import interact
 from os.path import exists, join, dirname, normpath
 from wbia.plottool import fig_presenter
-from six.moves import zip
 
 (print, rrr, profile) = ut.inject2(__name__, '[back]')
 logger = logging.getLogger('wbia')
@@ -851,7 +849,6 @@ class NewDatabaseWidget(gt.GuitoolWidget):
 GUIBACK_BASE = QtCore.QObject
 
 
-# @six.add_metaclass(QtReloadingMetaClass)  # cant do this quit yet
 class MainWindowBackend(GUIBACK_BASE):
     """
     Sends and recieves signals to and from the frontend
@@ -1265,7 +1262,7 @@ class MainWindowBackend(GUIBACK_BASE):
             return id_list
 
         def ensure_texts_are_ids(id_list, text_to_id_fn):
-            if len(id_list) > 0 and isinstance(id_list[0], six.string_types):
+            if len(id_list) > 0 and isinstance(id_list[0], str):
                 id_list = text_to_id_fn(id_list)
             return id_list
 

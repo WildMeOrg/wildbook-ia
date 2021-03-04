@@ -17,9 +17,7 @@ CommandLine:
     wbia --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --name-tab
 """
 import logging
-from six.moves import zip, map, filter
 from os.path import isdir
-import sys
 import functools
 import utool as ut
 from wbia.guitool.__PYQT__ import QtCore
@@ -34,7 +32,6 @@ import wbia.plottool as pt
 from wbia.plottool import color_funcs
 from wbia.gui import guiheaders as gh
 from wbia.gui import guimenus
-import six
 from wbia.viz.interact import interact_annotations2
 from wbia.gui.guiheaders import (
     IMAGE_TABLE,
@@ -664,11 +661,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         )
 
         table_key2_selected_rowids = {
-            key: list(set(val)) for key, val in six.iteritems(table_key2_selected_rowids)
+            key: list(set(val)) for key, val in table_key2_selected_rowids.items()
         }
         table_key2_deselected_rowids = {
-            key: list(set(val))
-            for key, val in six.iteritems(table_key2_deselected_rowids)
+            key: list(set(val)) for key, val in table_key2_deselected_rowids.items()
         }
         if ut.VERBOSE:
             logger.info(
@@ -687,10 +683,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             (NAMES_TREE, 1): const.ANNOTATION_TABLE,
         }
         # here tablename is a backend const tablename
-        for table_key, id_list in six.iteritems(table_key2_deselected_rowids):
+        for table_key, id_list in table_key2_deselected_rowids.items():
             tablename = gh_const_tablename_map[table_key]
             ibswgt.back._set_selection3(tablename, id_list, mode='diff')
-        for table_key, id_list in six.iteritems(table_key2_selected_rowids):
+        for table_key, id_list in table_key2_selected_rowids.items():
             tablename = gh_const_tablename_map[table_key]
             ibswgt.back._set_selection3(tablename, id_list, mode='add')
         ibswgt.back.update_selection_texts()
@@ -933,7 +929,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def select_imageset_tab(ibswgt, imgsetid):
         if VERBOSE_GUI:
             logger.info('[newgui] select_imageset_tab imgsetid=%r' % (imgsetid,))
-        if isinstance(imgsetid, six.string_types):
+        if isinstance(imgsetid, str):
             # Hack
             imagesettext = imgsetid
             imgsetid = ibswgt.ibs.get_imageset_imgsetids_from_text(imagesettext)
@@ -1268,9 +1264,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_list = [model._get_row_id(_qtindex) for _qtindex in qtindex_list]
         level_list = [model._get_level(_qtindex) for _qtindex in qtindex_list]
         level2_ids_ = ut.group_items(id_list, level_list)
-        level2_ids = {
-            level: ut.unique_ordered(ids) for level, ids in six.iteritems(level2_ids_)
-        }
+        level2_ids = {level: ut.unique_ordered(ids) for level, ids in level2_ids_.items()}
 
         ibs = ibswgt.back.ibs
         back = ibswgt.back
@@ -1978,10 +1972,7 @@ def testdata_guifront(defaultdb='testdb1'):
         globals_ = globals_.copy()
         locals_.update(locals__)
         globals_.update(globals__)
-        if '--cmd' in sys.argv:
-            gt.qtapp_loop(qwin=ibswgt, ipy=True)
-            six.exec_(ut.ipython_execstr(), globals_, locals_)
-        elif ut.show_was_requested():
+        if ut.show_was_requested():
             gt.qtapp_loop(qwin=ibswgt)
 
     return ibs, back, ibswgt, testdata_main_loop

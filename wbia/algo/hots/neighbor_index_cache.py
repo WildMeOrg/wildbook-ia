@@ -4,9 +4,7 @@ NEEDS CLEANUP
 """
 import logging
 from os.path import join
-import six
 import utool as ut
-from six.moves import range, zip, map  # NOQA
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from wbia.algo.hots.neighbor_index import NeighborIndex, get_support_data
 
@@ -77,7 +75,7 @@ class UUIDMapHyrbridCache(object):
     #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
     #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
     #            candidate_uuids = {
-    #                key: val for key, val in six.iteritems(uuid_map)
+    #                key: val for key, val in uuid_map.items()
     #                if len(val) >= min_reindex_thresh
     #            }
     #    return candidate_uuids
@@ -96,7 +94,7 @@ class UUIDMapHyrbridCache(object):
     #        try:
     #            uuid_map = ut.load_cPkl(uuid_map_fpath)
     #            candidate_uuids = {
-    #                key: val for key, val in six.iteritems(uuid_map)
+    #                key: val for key, val in uuid_map.items()
     #                if len(val) >= min_reindex_thresh
     #            }
     #        except IOError:
@@ -124,9 +122,7 @@ class UUIDMapHyrbridCache(object):
         """ uses in memory dictionary instead of disk """
         uuid_map = self.uuid_maps[uuid_map_fpath]
         candidate_uuids = {
-            key: val
-            for key, val in six.iteritems(uuid_map)
-            if len(val) >= min_reindex_thresh
+            key: val for key, val in uuid_map.items() if len(val) >= min_reindex_thresh
         }
         return candidate_uuids
 

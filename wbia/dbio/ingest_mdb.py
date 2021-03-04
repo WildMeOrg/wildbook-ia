@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
-from six.moves import range, input
 from os.path import join, expanduser, exists, basename  # NOQA
 from wbia.control import IBEISControl
 from wbia.other import ibsfuncs

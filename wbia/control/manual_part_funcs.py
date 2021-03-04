@@ -7,7 +7,6 @@ Autogen:
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA
 """
 import logging
-import six
 import uuid
 import numpy as np
 from wbia import constants as const
@@ -232,7 +231,7 @@ def add_parts(
         type_list = [const.UNKNOWN] * len(aid_list)
 
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [six.text_type(verts) for verts in vert_list]
+    vertstr_list = [str(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
 
@@ -952,7 +951,7 @@ def update_part_rotate_90(ibs, part_rowid_list, direction):
     from wbia.constants import PI, TAU
     import vtool as vt
 
-    if isinstance(direction, six.string_types):
+    if isinstance(direction, str):
         direction = direction.lower()
 
     if direction in ['left', 'l', -1]:
@@ -1193,7 +1192,7 @@ def set_part_verts(
         if isinstance(vert_list, np.ndarray):
             verts_list[index] = vert_list.tolist()
     num_verts_list = list(map(len, verts_list))
-    verts_as_strings = list(map(six.text_type, verts_list))
+    verts_as_strings = list(map(str, verts_list))
     id_iter1 = ((part_rowid,) for part_rowid in part_rowid_list)
     # also need to set the internal number of vertices
     val_iter1 = (
@@ -1266,7 +1265,7 @@ def set_part_quality_texts(ibs, part_rowid_list, quality_text_list):
     """
     if not ut.isiterable(part_rowid_list):
         part_rowid_list = [part_rowid_list]
-    if isinstance(quality_text_list, six.string_types):
+    if isinstance(quality_text_list, str):
         quality_text_list = [quality_text_list]
     quality_list = ut.dict_take(const.QUALITY_TEXT_TO_INT, quality_text_list)
     ibs.set_part_qualities(part_rowid_list, quality_list)

@@ -8,10 +8,8 @@
 6) human in loop
 """
 import logging
-import six  # NOQA
 import utool as ut
 import numpy as np
-from six.moves import zip
 from wbia.unstable import pgm_ext
 
 print, rrr, profile = ut.inject2(__name__)
@@ -189,7 +187,7 @@ def make_name_model(
         p_score_given_same = tmp
 
     def score_pmf(score_type, match_type):
-        if isinstance(score_type, six.string_types):
+        if isinstance(score_type, str):
             score_type = score_states.index(score_type)
         if match_type == 'same':
             return p_score_given_same[score_type]
@@ -267,7 +265,7 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
             if isinstance(ev, int):
                 # hard internal evidence
                 evidence[cpd.variable] = ev
-            if isinstance(ev, six.string_types):
+            if isinstance(ev, str):
                 # hard external evidence
                 evidence[cpd.variable] = cpd._internal_varindex(cpd.variable, ev)
             if isinstance(ev, dict):

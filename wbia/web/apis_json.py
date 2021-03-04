@@ -6,7 +6,6 @@ Dependencies: flask, tornado
 # from os.path import splitext, basename
 import logging
 import uuid
-import six
 from wbia.web.routes_ajax import image_src
 from wbia.control import controller_inject
 import utool as ut
@@ -215,12 +214,11 @@ def add_imagesets_json(
 
 #     def _uuid(value):
 #         import uuid
-#         import six
 
 #         if value is None:
 #             return None
 
-#         if isinstance(value, six.string_types):
+#         if isinstance(value, str):
 #             value = uuid.UUID(value)
 
 #         return value
@@ -652,7 +650,7 @@ def add_annots_json(
         if value is None:
             return ParseError(value)
 
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = uuid.UUID(value)
 
         return value
@@ -845,7 +843,7 @@ def add_parts_json(ibs, annot_uuid_list, part_bbox_list, part_theta_list, **kwar
         if value is None:
             return ParseError(value)
 
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = uuid.UUID(value)
 
         return value

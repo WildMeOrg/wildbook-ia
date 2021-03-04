@@ -3,7 +3,6 @@
 Unfinished non-wbia dependent version of interact matches
 """
 import utool as ut
-import six
 import numpy as np
 from wbia.plottool import abstract_interaction
 
@@ -12,7 +11,6 @@ BASE_CLASS = abstract_interaction.AbstractInteraction
 
 # TODO: move to plottool and decouple with IBEIS
 # TODO: abstract interaction
-@six.add_metaclass(ut.ReloadingMetaclass)
 class MatchInteraction2(BASE_CLASS):
     """
     TODO: replace functional version with this class
@@ -53,6 +51,8 @@ class MatchInteraction2(BASE_CLASS):
         >>> pt.show_if_requested()
 
     """
+
+    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(
         self,

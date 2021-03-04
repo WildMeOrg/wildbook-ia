@@ -6,7 +6,6 @@ CommandLine:
 """
 from wbia.guitool.__PYQT__ import QtGui, QtCore
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-import six
 from os.path import exists
 import utool as ut
 
@@ -252,7 +251,7 @@ class APIThumbDelegate(DELEGATE_BASE):
             data = data.toPyObject()
         if data is None:
             return None
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             # data = (data, None, None, None, None)
             return data
         if isinstance(data, dict):
@@ -322,7 +321,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return
             thumbtup_mode = isinstance(data, tuple)
             thumbdat_mode = isinstance(data, dict)
-            if isinstance(data, six.string_types):
+            if isinstance(data, str):
                 thumb_path = data
                 assert exists(thumb_path), 'must exist'
                 return thumb_path

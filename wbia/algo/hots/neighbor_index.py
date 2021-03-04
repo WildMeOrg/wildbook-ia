@@ -7,7 +7,6 @@ multi_index.py as well
 https://github.com/spotify/annoy
 """
 import logging
-import six
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -16,7 +15,6 @@ from vtool._pyflann_backend import pyflann as pyflann
 # import itertools as it
 # import lockfile
 from os.path import basename
-from six.moves import range, zip, map  # NOQA
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 
@@ -201,7 +199,6 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class NeighborIndex(object):
     r"""
     wrapper class around flann
@@ -212,6 +209,8 @@ class NeighborIndex(object):
         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
+
+    __metaclass__ = ut.ReloadingMetaclass
 
     ext = '.flann'
     prefix1 = 'flann'
@@ -648,7 +647,7 @@ class NeighborIndex(object):
             short_params = ut.odict(
                 [
                     (shortnames.get(key, key), str(val)[0:7])
-                    for key, val in six.iteritems(flann_params_clean)
+                    for key, val in flann_params_clean.items()
                 ]
             )
             flann_valsig_ = ut.repr2(short_params, nl=False, explicit=True, strvals=True)

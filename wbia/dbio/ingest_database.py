@@ -31,7 +31,6 @@ Example:
     >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
 import logging
-from six.moves import zip, map, range
 import wbia
 import os
 from os.path import relpath, dirname, exists, join, realpath, basename, abspath

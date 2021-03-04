@@ -29,8 +29,8 @@ import numpy as np
 #     bother casting back to UUIDS
 #     """
 #     sep_str = '-'
-#     sep_byte = six.b(sep_str)
-#     pref = six.b('{}2'.format(sep_str))
+#     sep_byte = sep_str
+#     pref = '{}2'.format(sep_str)
 #     combined_bytes = pref + sep_byte.join([uuid1.bytes, uuid2.bytes])
 #     bytes_sha1 = hashlib.sha1(combined_bytes)
 #     # Digest them into a hash

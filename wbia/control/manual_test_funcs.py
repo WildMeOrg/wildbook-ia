@@ -6,8 +6,6 @@ sh Tgen.sh --key test --invert --Tcfg with_getters=True with_setters=False --mod
 # TODO: Fix this name it is too special case
 """
 import logging
-import six  # NOQA
-from six.moves import zip
 import ubelt as ub  # NOQA
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject  # NOQA

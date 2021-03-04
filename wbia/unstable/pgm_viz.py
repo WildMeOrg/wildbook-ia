@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 import networkx as nx
-import six  # NOQA
 import utool as ut
 import numpy as np
-from six.moves import zip
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -17,10 +15,10 @@ def print_ascii_graph(model_):
     python -c
     """
     from PIL import Image  # NOQA
-    from six.moves import StringIO
 
     # import networkx as nx
     import copy
+    from io import StringIO
 
     model = copy.deepcopy(model_)
     assert model is not model_

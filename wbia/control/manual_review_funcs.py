@@ -6,8 +6,7 @@ sh Tgen.sh --key review --invert --Tcfg with_getters=True with_setters=False --m
 # TODO: Fix this name it is too special case
 """
 import logging
-import six  # NOQA
-from six.moves import zip, map, reduce
+from functools import reduce
 
 # import numpy as np
 # import vtool as vt

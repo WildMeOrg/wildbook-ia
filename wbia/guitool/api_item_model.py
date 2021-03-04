@@ -11,9 +11,7 @@ from wbia.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
 from wbia.guitool.__PYQT__.QtCore import Qt
 from wbia.guitool import qtype
 from wbia.guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
-from six.moves import zip  # builtins  # NOQA
 
-# from utool._internal.meta_util_six import get_funcname
 import functools
 import utool as ut
 
@@ -377,8 +375,8 @@ class APIItemModel(API_MODEL_BASE):
                     values = id_list
                 reverse = model.col_sort_reverse
 
-                # <NUMPY MULTIARRAY SORT>
                 if True:
+                    # <NUMPY MULTIARRAY SORT>
                     if values is None:
                         logger.info('SORTING VALUES IS NONE. VERY WEIRD')
                     if type_ is float:
@@ -391,6 +389,7 @@ class APIItemModel(API_MODEL_BASE):
 
                     sortx = vt.argsort_records([values, id_list], reverse=reverse)
                     # </NUMPY MULTIARRAY SORT>
+
                     nodes = ut.take(children, sortx)
                     level = model.col_level_list[sort_index]
                     if level == 0:
@@ -626,7 +625,6 @@ class APIItemModel(API_MODEL_BASE):
                 # getting from: %r' % ut.util_str.get_callable_name(getter))
                 raise
             model.cache[cachekey] = data
-        # </MODEL_CACHE>
         return data
 
     @default_method_decorator
@@ -641,13 +639,15 @@ class APIItemModel(API_MODEL_BASE):
         """
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)
-        # <HACK: MODEL_CACHE>
+
+        # <HACK>
         cachekey = (row_id, col)
         try:
             del model.cache[cachekey]
         except KeyError:
             pass
-        # </HACK: MODEL_CACHE>
+        # </HACK>
+
         setter = model.col_setter_list[col]
         if VERBOSE_MODEL:
             logger.info('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
@@ -690,6 +690,7 @@ class APIItemModel(API_MODEL_BASE):
         if qindex.isValid():
             try:
                 node = qindex.internalPointer()
+
                 # <HACK>
                 # A segfault happens in isinstance when updating rows?
                 if not isinstance(node, _atn.TreeNode):
@@ -699,6 +700,7 @@ class APIItemModel(API_MODEL_BASE):
                     return QtCore.QModelIndex()
                 # assert node.__dict__, "node.__dict__=%r" % node.__dict__
                 # </HACK>
+
                 parent_node = node.get_parent()
                 parent_id = parent_node.get_id()
                 if parent_id == -1 or parent_id is None:

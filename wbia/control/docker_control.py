@@ -344,13 +344,6 @@ def docker_get_container(ibs, container_name, clone=None):
     return None
 
 
-# # am interested in benchmarking these two funcs
-# @register_ibs_method
-# def docker_get_container_oneliner(ibs, container_name, clone=None):
-#     return next((cont for cont in DOCKER_CLIENT.containers.list()
-#                 if cont.name == docker_container_clone_name(container_name, clone)), None)
-
-
 @register_ibs_method
 def docker_ensure(ibs, container_name, check_container=True, clone=None):
     config = ibs.docker_get_config(container_name)

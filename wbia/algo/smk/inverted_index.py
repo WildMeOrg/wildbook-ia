@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from six.moves import zip, range
 from wbia import dtool
 import utool as ut
 import vtool as vt

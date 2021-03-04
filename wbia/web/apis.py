@@ -7,14 +7,12 @@ from os.path import join, exists
 import zipfile
 import time
 from io import BytesIO
-from six.moves import cStringIO as StringIO
 from flask import request, current_app, send_file
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 import utool as ut
 import vtool as vt
 import uuid as uuid_module
-import six
 from wbia.web.app import PROMETHEUS
 
 print, rrr, profile = ut.inject2(__name__)
@@ -112,10 +110,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    if six.PY2:
-        img_io = StringIO()
-    else:
-        img_io = BytesIO()
+    img_io = BytesIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -161,10 +156,7 @@ def annot_src_api(rowid=None, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    if six.PY2:
-        img_io = StringIO()
-    else:
-        img_io = BytesIO()
+    img_io = BytesIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -210,10 +202,7 @@ def background_src_api(rowid=None, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    if six.PY2:
-        img_io = StringIO()
-    else:
-        img_io = BytesIO()
+    img_io = BytesIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -247,7 +236,7 @@ def image_src_api_json(uuid=None, **kwargs):
     """
     ibs = current_app.ibs
     try:
-        if isinstance(uuid, six.string_types):
+        if isinstance(uuid, str):
             uuid = uuid_module.UUID(uuid)
     except Exception:
         from wbia.control.controller_inject import translate_wbia_webreturn
@@ -298,7 +287,7 @@ def image_conv_feature_api_json(uuid=None, model='resnet50', **kwargs):
     ibs = current_app.ibs
 
     try:
-        if isinstance(uuid, six.string_types):
+        if isinstance(uuid, str):
             uuid = uuid_module.UUID(uuid)
         assert uuid is not None
     except Exception:

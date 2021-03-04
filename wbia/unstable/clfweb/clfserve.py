@@ -4,7 +4,6 @@ A example for creating a Table that is sortable by its header
 """
 import logging
 import flask_table
-import six
 
 # from flask_table import Table, Col, LinkCol
 import tornado.wsgi
@@ -82,7 +81,7 @@ def ensure_task_table():
                     show=True,
                 )
                 new_col = flask_table.LinkCol(**link_kw)
-            elif isinstance(tup, six.string_types):
+            elif isinstance(tup, str):
                 colname = tup
                 colnice = col_nice_lookup.get(colname, colname)
                 new_col = flask_table.Col(

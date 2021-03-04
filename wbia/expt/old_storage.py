@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 
-# import six
 import utool as ut
 from wbia import guitool
 
@@ -10,8 +8,10 @@ print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
 logger = logging.getLogger('wbia')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class ResultMetadata(object):
+
+    __metaclass__ = ut.ReloadingMetaclass
+
     def __init__(metadata, fpath, autoconnect=False):
         """
         metadata_fpath = join(figdir, 'result_metadata.shelf')
@@ -57,7 +57,7 @@ class ResultMetadata(object):
             cfgstr = testres.get_cfgstr(cfgx)
             qaids = testres.qaids
             cfgresinfo = testres.cfgx2_cmsinfo[cfgx]
-            for key, val_list in six.iteritems(cfgresinfo):
+            for key, val_list in cfgresinfo.items():
                 for qaid, val in zip(qaids, val_list):
                     metadata.set_global_data(cfgstr, qaid, key, val)
         metadata.write()
@@ -69,7 +69,7 @@ class ResultMetadata(object):
     def get_column_keys(metadata):
         unflat_colname_list = [
             [cols.keys() for cols in qaid2_cols.values()]
-            for qaid2_cols in six.itervalues(metadata.dictstore)
+            for qaid2_cols in metadata.dictstore.values()
         ]
         colname_list = ut.unique_ordered(ut.flatten(ut.flatten(unflat_colname_list)))
         return colname_list
@@ -86,7 +86,7 @@ class ResultMetadata(object):
         # col_name_list = ['qx2_scoreexpdiff', 'qx2_gt_aid']
         # colname2_colvals = [None for colname in col_name_list]
         column_list = [
-            [colvals.get(colname, None) for qaid, colvals in six.iteritems(qaid2_cols)]
+            [colvals.get(colname, None) for qaid, colvals in qaid2_cols.items()]
             for colname in col_name_list
         ]
         col_name_list = ['qaids'] + col_name_list

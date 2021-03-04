@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-import six
 from . import draw_func2 as df2
 from wbia.plottool import plot_helpers as ph
 from wbia.plottool import interact_helpers as ih
@@ -125,7 +124,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         >>> pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4)
         >>> pt.show_if_requested()
     """
-    if isinstance(chip, six.string_types):
+    if isinstance(chip, str):
         import vtool as vt
 
         chip = vt.imread(chip)

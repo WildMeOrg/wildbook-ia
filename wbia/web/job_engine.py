@@ -518,7 +518,7 @@ class JobBackend(object):
             print('Killed external procs')
 
     def _initialize_job_ports(self, use_static_ports=False, static_root=51381):
-        # _portgen = functools.partial(six.next, itertools.count(51381))
+        # _portgen = functools.partial(next, itertools.count(51381))
         key_list = [
             'collect_pull_url',
             'collect_push_url',

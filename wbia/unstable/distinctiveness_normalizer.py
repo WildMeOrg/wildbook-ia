@@ -10,8 +10,6 @@ their parent.
 import logging
 import utool as ut
 import numpy as np
-from six.moves import map
-import six  # NOQA
 from wbia import constants as const
 from wbia.init import sysres
 from wbia.algo.hots import hstypes
@@ -68,7 +66,6 @@ def testdata_distinctiveness():
     return dstcnvs_normer, qreq_
 
 
-# @six.add_metaclass(ut.ReloadingMetaclass)
 class DistinctivnessNormalizer(ut.Cachable):
     ext = '.cPkl'
     prefix = 'distinctivness'

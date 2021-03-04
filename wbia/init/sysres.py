@@ -12,7 +12,6 @@ from pathlib import Path
 
 import utool as ut
 import ubelt as ub
-from six.moves import input, zip, map
 from wbia import constants as const
 from wbia.dtool.copy_sqlite_to_postgres import copy_sqlite_to_postgres
 

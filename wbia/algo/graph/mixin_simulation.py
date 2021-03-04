@@ -5,7 +5,6 @@ This includes recordings measures used to generate plots in JC's thesis.
 """
 # -*- coding: utf-8 -*-
 import logging
-import six
 import utool as ut
 import ubelt as ub
 import pandas as pd
@@ -425,7 +424,7 @@ class SimulationHelpers(object):
 
 class UserOracle(object):
     def __init__(oracle, accuracy, rng):
-        if isinstance(rng, six.string_types):
+        if isinstance(rng, str):
             rng = sum(map(ord, rng))
         rng = ut.ensure_rng(rng, impl='python')
 

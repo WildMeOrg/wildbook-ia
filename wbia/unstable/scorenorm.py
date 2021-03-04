@@ -34,7 +34,6 @@ from wbia import dtool
 import numpy as np
 import utool as ut
 import vtool as vt
-import six  # NOQA
 from functools import partial
 from os.path import join
 from wbia import constants as const
@@ -158,7 +157,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         thresh = ut.get_argval('--thresh', type_=float, default=0.9)
         num = ut.get_argval('--num', type_=int, default=1)
         cfg_components = [cfgstr, disttype, namemode, fsvx, threshx, thresh, f, num]
-        cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
+        cache_cfgstr = ','.join(ut.lmap(str, cfg_components))
         cache_hashid = ut.hashstr27(cache_cfgstr + '_v1')
         cache_name = 'get_cfgx_feat_scores_' + cache_hashid
 

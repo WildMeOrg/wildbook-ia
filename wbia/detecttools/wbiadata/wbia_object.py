@@ -3,7 +3,6 @@
 import math
 from . import common as com
 from .wbia_part import IBEIS_Part
-import six
 
 
 BINS = [
@@ -18,7 +17,7 @@ BINS = [
 ]
 
 
-class IBEIS_Object(object):
+class IBEIS_Object(object):  # NOQA
     def __init__(ibso, _xml, width, height, name=None, **kwargs):
         if name is None:
             ibso.name = com.get(_xml, 'name')
@@ -50,7 +49,7 @@ class IBEIS_Object(object):
             ibso.parts = []
 
         # Pose
-        if isinstance(ibso.pose, six.string_types):
+        if isinstance(ibso.pose, str):
             ibso.pose_str = ibso.pose
         elif ibso.pose < 0 or ibso.pose == []:
             ibso.pose_str = 'Unspecified'

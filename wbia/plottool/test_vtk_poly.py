@@ -16,10 +16,9 @@ def rhombicuboctahedron():
     # left view faces us
 
     import utool as ut
-    import six
     import itertools
 
-    counter = ut.partial(six.next, itertools.count(0))
+    counter = ut.partial(next, itertools.count(0))
 
     vertex_locations = vtk.vtkPoints()
     vertex_locations.SetNumberOfPoints(24)
@@ -27,7 +26,7 @@ def rhombicuboctahedron():
     p1, p2, p3 = np.array([(-hu, -hu, hh), (hu, -hu, hh), (hu, hu, hh), (-hu, hu, hh)]).T
     plist = [p1, p2, p3]
 
-    # three of the six main faces
+    # three of the 6 main faces
     # perms = list(itertools.permutations((0, 1, 2), 3))
     perms = [(0, 1, 2), (0, 2, 1), (2, 0, 1)]
 
@@ -49,7 +48,7 @@ def rhombicuboctahedron():
         vertex_locations.SetPoint(counts[2], p[2])
         vertex_locations.SetPoint(counts[3], p[3])
 
-    # three more of the six main faces
+    # three more of the 6 main faces
     perms = [(0, 1, 2), (0, 2, 1), (2, 0, 1)]
     plist[-1] = -plist[-1]
     # right, down, front

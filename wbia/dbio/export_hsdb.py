@@ -4,7 +4,6 @@
 Converts an IBEIS database to a hotspotter db
 """
 import logging
-from six.moves import map
 from os.path import join, relpath
 import utool as ut
 

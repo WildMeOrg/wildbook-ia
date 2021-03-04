@@ -5,7 +5,6 @@ sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=T
 sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs
 """
 import logging
-import six  # NOQA
 from wbia.control.accessor_decors import getter_1to1, getter_1toM, deleter
 import utool as ut
 from wbia.control import controller_inject

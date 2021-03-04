@@ -157,8 +157,7 @@ def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False, assume_dens
     else:
         edges = _edges_between_sparse(graph, nodes1, nodes2, assume_disjoint)
     if graph.is_directed():
-        for u, v in edges:
-            yield u, v
+        yield from edges
     else:
         for u, v in edges:
             yield e_(u, v)
@@ -309,8 +308,7 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
                 _edges_between_disjoint(graph, only2_adj, both),  # 2-to-B
             )
 
-    for u, v in it.chain.from_iterable(edge_sets):
-        yield u, v
+    yield from it.chain.from_iterable(edge_sets)
 
 
 def group_name_edges(g, node_to_label):

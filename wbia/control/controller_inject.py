@@ -10,7 +10,6 @@ python -c "import wbia"
 """
 import logging
 import utool as ut
-import six
 import sys
 from wbia import dtool
 from datetime import timedelta
@@ -22,7 +21,6 @@ from os.path import abspath, join, dirname
 # import simplejson as json
 # import json
 # import pickle
-# from six.moves import cPickle as pickle
 import traceback
 from hashlib import sha1
 import os
@@ -181,12 +179,9 @@ try:
     if GLOBAL_APP_ENABLED:
         get_flask_app()
 except AttributeError:
-    if six.PY3:
-        logger.info('Warning flask is broken in python-3.4.0')
-        GLOBAL_APP_ENABLED = False
-        HAS_FLASK = False
-    else:
-        raise
+    logger.info('Warning flask is broken in python-3.4.0')
+    GLOBAL_APP_ENABLED = False
+    HAS_FLASK = False
 
 
 class WebException(ut.NiceRepr, Exception):
@@ -418,7 +413,7 @@ def translate_wbia_webreturn(
         }
     response = ut.to_json(template)
 
-    if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
+    if jQuery_callback is not None and isinstance(jQuery_callback, str):
         logger.info('[web] Including jQuery callback function: %r' % (jQuery_callback,))
         response = '%s(%s)' % (jQuery_callback, response)
     return response
@@ -675,9 +670,8 @@ def get_signature(key, message):
     def decode(x):
         return x.decode('utf-8')
 
-    if six.PY3:
-        key = encode(key)
-        message = encode(message)
+    key = encode(key)
+    message = encode(message)
 
     signature = hmac.new(key, message, sha1)
     signature = signature.digest()
@@ -1083,7 +1077,7 @@ def get_user(username=None, name=None, organization=None):
             session[USER_KEY] = None
         else:
             # Authenticate
-            assert isinstance(username, six.string_types), 'user must be a string'
+            assert isinstance(username, str), 'user must be a string'
             username = username.lower()
             session[USER_KEY] = {
                 'username': username,

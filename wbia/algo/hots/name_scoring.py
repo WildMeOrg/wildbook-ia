@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from six.moves import zip, range, map  # NOQA
 import numpy as np
 import vtool as vt
 import utool as ut

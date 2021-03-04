@@ -111,7 +111,6 @@ import utool as ut  # NOQA
 
 # ut.show_if_requested()
 # sys.exit(1)
-from utool.util_six import get_funcname  # NOQA
 
 # import functools
 
@@ -158,7 +157,7 @@ def devcmd(*args):
 
     def closure_devcmd(func):
         global DEVCMD_FUNCTIONS
-        func_aliases.extend([get_funcname(func)])
+        func_aliases.extend([ut.get_funcname(func)])
         DEVCMD_FUNCTIONS.append((tuple(func_aliases), func))
 
         def func_wrapper(*args_, **kwargs_):
@@ -186,7 +185,7 @@ def devprecmd(*args):
 
     def closure_devprecmd(func):
         global DEVPRECMD_FUNCTIONS
-        func_aliases.extend([get_funcname(func)])
+        func_aliases.extend([ut.get_funcname(func)])
         DEVPRECMD_FUNCTIONS.append((tuple(func_aliases), func))
 
         def func_wrapper(*args_, **kwargs_):

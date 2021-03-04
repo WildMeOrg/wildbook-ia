@@ -2,7 +2,6 @@
 # developer convenience functions for ibs
 import logging
 import utool as ut
-from six.moves import zip
 from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__, '[duct_tape]')

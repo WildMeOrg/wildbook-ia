@@ -6,7 +6,6 @@ from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__.QtCore import Qt
 from wbia.guitool.guitool_delegates import ComboDelegate, ButtonDelegate
 from wbia.guitool import qtype
-from six.moves import range, map
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__)

@@ -989,7 +989,7 @@ def end_to_end():
     expt_dpath = fig_dpath.joinpath(expt_dname)
     ut.ensuredir(str(expt_dpath))
     # expt_dpath.mkdir(exist_ok=True)
-    from six.moves import cPickle
+    import pickle
 
     for count, (dials, metrics_df, infr) in expt_metrics.items():
         ete_info = {
@@ -1012,7 +1012,7 @@ def end_to_end():
         except Exception:
             for k, v in vars(ete_info['infr']).items():
                 logger.info('k = %r' % (k,))
-                cPickle.dumps(v)
+                pickle.dumps(v)
             raise
 
     dbname = ibs.dbname

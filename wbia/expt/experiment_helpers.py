@@ -6,7 +6,6 @@ TODO: move into custom pipe_cfg and annot_cfg modules
 import logging
 import utool as ut
 import sys
-import six
 import itertools
 from wbia.expt import experiment_configs
 from wbia.expt import cfghelpers
@@ -92,7 +91,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
             '[expt_help.get_pipecfg_list] building pipecfg_list using: %s'
             % test_cfg_name_list
         )
-    if isinstance(test_cfg_name_list, six.string_types):
+    if isinstance(test_cfg_name_list, str):
         test_cfg_name_list = [test_cfg_name_list]
     _standard_cfg_names = []
     _pcfgdict_list = []

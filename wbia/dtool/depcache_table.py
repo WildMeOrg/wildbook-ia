@@ -26,10 +26,8 @@ import itertools as it
 from os.path import join, exists
 
 import networkx as nx
-import six
 import utool as ut
 import ubelt as ub
-from six.moves import zip, range
 
 from wbia.dtool import sqlite3 as lite
 from wbia.dtool.sql_control import SQLDatabaseController, compare_coldef_lists
@@ -833,7 +831,7 @@ class _TableInternalSetup(ub.NiceRepr):
                 colattr['isnwise'] = True
                 colattr['nwise_total'] = nwise_total
                 colattr['nwise_idx'] = nwise_idx
-                colattr['local_input_id'] += six.text_type(nwise_idx)
+                colattr['local_input_id'] += str(nwise_idx)
             else:
                 if not colattr['local_input_id']:
                     colattr['local_input_id'] = '1'
@@ -2170,9 +2168,6 @@ class DependencyCacheTable(
                 gen = self._chunk_compute_dirty_rows(
                     dirty_parent_ids, dirty_preproc_args, config_rowid, config
                 )
-                """
-                colnames, dirty_params_iter, nChunkInput = next(gen)
-                """
                 for colnames, dirty_params_iter, nChunkInput in gen:
                     self.db._add(
                         self.tablename,
@@ -2707,7 +2702,7 @@ class DependencyCacheTable(
             unpack_columns = self.default_to_unpack
         if colnames is None:
             requested_colnames = self.data_colnames
-        elif isinstance(colnames, six.string_types):
+        elif isinstance(colnames, str):
             # Unpack columns if only a single column is requested.
             requested_colnames = (colnames,)
             unpack_columns = True

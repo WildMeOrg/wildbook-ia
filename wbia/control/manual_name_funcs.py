@@ -10,9 +10,7 @@ sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modf
 import logging
 import uuid
 import functools
-import six  # NOQA
 
-# from six.moves import range
 from wbia import constants as const
 from wbia.other import ibsfuncs
 import numpy as np
@@ -329,7 +327,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         >>> aids_list = ibs.get_name_aids(nid_list)
         >>> # Run Assertion Test
         >>> groupid2_items = ut.group_items(aids_list, nid_list)
-        >>> grouped_items = list(six.itervalues(groupid2_items))
+        >>> grouped_items = list(groupid2_items.values())
         >>> passed_iter = map(ut.allsame, grouped_items)
         >>> passed_list = list(passed_iter)
         >>> assert all(passed_list), 'problem in get_name_aids'

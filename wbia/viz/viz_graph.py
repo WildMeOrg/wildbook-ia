@@ -10,7 +10,6 @@ WindowsDepends:
     graphviz-2.38.msi
 """
 import logging
-import six
 import utool as ut
 import vtool as vt
 from wbia import dtool
@@ -447,7 +446,7 @@ class AnnotGraphInteraction(AbstractInteraction):
             gen_ = (slot_(x) for x in itertools.count(0))
 
             def gennext_():
-                return six.next(gen_)
+                return next(gen_)
 
             return gennext_
 

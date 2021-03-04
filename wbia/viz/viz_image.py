@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from six.moves import zip
 import utool as ut
 import wbia.plottool as pt
 from wbia.plottool import plot_helpers as ph

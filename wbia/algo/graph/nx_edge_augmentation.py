@@ -240,11 +240,7 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
             )
         # Do eager evaulation so we can catch any exceptions
         # Before executing partial code.
-        try:
-            for edge in list(aug_edges):
-                yield edge
-        except RuntimeError:
-            return
+        yield from list(aug_edges)
     except nx.NetworkXUnfeasible:
         if partial:
             # Return all available edges
@@ -256,11 +252,7 @@ def k_edge_augmentation(G, k, avail=None, weight=None, partial=False):
                 aug_edges = partial_k_edge_augmentation(
                     G, k=k, avail=avail, weight=weight
                 )
-            try:
-                for edge in aug_edges:
-                    yield edge
-            except RuntimeError:
-                return
+            yield from aug_edges
         else:
             raise
 
@@ -320,8 +312,7 @@ def partial_k_edge_augmentation(G, k, avail, weight=None):
             C.remove_edges_from(sub_avail.keys())
             # Find a subset of these edges that makes the compoment
             # k-edge-connected and ignore the rest
-            for edge in k_edge_augmentation(C, k=k, avail=sub_avail):
-                yield edge
+            yield from k_edge_augmentation(C, k=k, avail=sub_avail)
 
     # Generate all edges between CCs that could not be k-edge-connected
     for cc1, cc2 in it.combinations(k_edge_subgraphs, 2):
@@ -735,8 +726,7 @@ def weighted_bridge_augmentation(G, avail, weight=None):
         connectors = list(one_edge_augmentation(H, avail=avail, weight=weight))
         H.add_edges_from(connectors)
 
-        for edge in connectors:
-            yield edge
+        yield from connectors
     else:
         connectors = []
         H = G
@@ -835,8 +825,7 @@ def weighted_bridge_augmentation(G, avail, weight=None):
             edge = data['generator']
             bridge_connectors.add(edge)
 
-    for edge in bridge_connectors:
-        yield edge
+    yield from bridge_connectors
 
 
 def _minimum_rooted_branching(D, root):
@@ -1089,5 +1078,4 @@ def greedy_k_edge_augmentation(G, k, avail=None, weight=None, seed=None):
             aug_edges.append((u, v))
 
     # Generate results
-    for edge in aug_edges:
-        yield edge
+    yield from aug_edges

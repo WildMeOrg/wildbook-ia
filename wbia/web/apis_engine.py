@@ -4,7 +4,6 @@
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 import logging
-import six
 import utool as ut
 import uuid  # NOQA
 from wbia.control import controller_inject
@@ -43,7 +42,7 @@ def ensure_simple_server(port=5832):
 
 
 def ensure_uuid_list(list_):
-    if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
+    if list_ is not None and len(list_) > 0 and isinstance(list_[0], str):
         list_ = list(map(uuid.UUID, list_))
     return list_
 
@@ -57,7 +56,7 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
     annot_dict = {}
     zipped = zip(annot_uuid_list, name_list)
     for index, (annot_uuid, name) in enumerate(zipped):
-        if not isinstance(annot_uuid, (uuid.UUID, six.string_types)):
+        if not isinstance(annot_uuid, (uuid.UUID, str)):
             raise ValueError(
                 'Received UUID %r that is not a UUID or string at index %s'
                 % (annot_uuid, index)
@@ -476,7 +475,7 @@ def start_identify_annots_query(
         ...     result_response = web_ibs.read_engine_results(jobid)
         ...     print('result_response = %s' % (ut.repr3(result_response),))
         ...     inference_result = result_response['json_result']
-        ...     if isinstance(inference_result, six.string_types):
+        ...     if isinstance(inference_result, str):
         ...        print(inference_result)
         ...     cm_dict = inference_result['cm_dict']
         ...     quuid = quuid_list[0]

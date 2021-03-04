@@ -9,7 +9,6 @@ import pandas as pd
 from sklearn.utils.validation import check_array
 
 # from sklearn.utils import check_random_state
-from six.moves import zip
 
 # from sklearn.model_selection._split import (_BaseKFold, KFold)
 from sklearn.model_selection._split import _BaseKFold
@@ -583,9 +582,7 @@ def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
         >>> pred3 = predict_from_probs(probs, threshes.values, force=True,
         >>>                            target_names=probs.columns)
     """
-    import six
-
-    if isinstance(method, six.string_types) and method == 'argmax':
+    if isinstance(method, str) and method == 'argmax':
         if isinstance(probs, pd.DataFrame):
             pred_enc = pd.Series(probs.values.argmax(axis=1), index=probs.index)
         else:

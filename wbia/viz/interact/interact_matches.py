@@ -14,7 +14,6 @@ import logging
 import utool as ut
 import numpy as np
 import wbia.plottool as pt
-import six
 from wbia.plottool import interact_helpers as ih
 from wbia import viz
 from wbia.algo.hots import scoring
@@ -56,7 +55,6 @@ def testdata_match_interact(**kwargs):
 
 
 # TODO inherit from AbstractInteraction
-@six.add_metaclass(ut.ReloadingMetaclass)
 class MatchInteraction(interact_matches.MatchInteraction2):
     """
     Plots a chip result and sets up callbacks for interaction.
@@ -67,6 +65,8 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     CommandLine:
         python -m wbia.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
     """
+
+    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(
         self,

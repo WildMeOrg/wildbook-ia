@@ -5,7 +5,6 @@ import numpy as np
 import utool as ut
 from vtool._pyflann_backend import pyflann as pyflann
 from os.path import basename, exists  # NOQA
-from six.moves import range
 from wbia.algo.hots import neighbor_index_cache
 
 # import mem_top
@@ -178,7 +177,6 @@ def augment_nnindexer_experiment():
     except KeyboardInterrupt:
         logger.info('\n[train] Caught CRTL+C')
         resolution = ''
-        from six.moves import input
 
         while not (resolution.isdigit()):
             logger.info('\n[train] What do you want to do?')

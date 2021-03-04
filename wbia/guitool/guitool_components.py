@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
-from six.moves import map, range  # NOQA
 from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__.QtCore import Qt
@@ -61,7 +59,7 @@ def rectifyQtEnum(type_, value, default=ut.NoParam):
         if default is ut.NoParam:
             raise ValueError('Cannot rectify None value for {}'.format(type_))
         value = default
-    if isinstance(value, six.string_types):
+    if isinstance(value, str):
         if type_ == 'QSizePolicy':
             valid_values = {
                 'Fixed',
@@ -116,7 +114,7 @@ def rectifySizePolicy(policy=None, default='Expanding'):
     # }
     # if policy is None:
     #     policy = default
-    # if isinstance(policy, six.string_types):
+    # if isinstance(policy, str):
     #     policy = policy_dict[policy]
     return policy
 
@@ -446,7 +444,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> subhook = substep_hooks_0_25[0]
         >>> progiter = ut.ProgIter(list(range(4)), prog_hook=subhook)
         >>> iter_ = iter(progiter)
-        >>> six.next(iter_)
+        >>> next(iter_)
         >>> hook(2, 2)
         >>> subhook2 = substep_hooks_0_25[1]
         >>> subsubhooks = subhook2.subdivide(num=2)
@@ -538,7 +536,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         hook.child_hook_gen = iter(subhooks)
 
     def next_subhook(hook):
-        return six.next(hook.child_hook_gen)
+        return next(hook.child_hook_gen)
 
     def subdivide(hook, num=None, spacing=None):
         """
@@ -598,9 +596,9 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
             >>> progiter = ut.ProgIter(list(range(3)), lbl='foo', prog_hook=subhook2)
             >>> iter_ = iter(progiter); print('subhook2 = %r' % (subhook2,))
             >>> # Iter
-            >>> print(six.next(iter_)); print('subhook2 = %r' % (subhook2,))
-            >>> print(six.next(iter_)); print('subhook2 = %r' % (subhook2,))
-            >>> print(six.next(iter_)); print('subhook2 = %r' % (subhook2,))
+            >>> print(next(iter_)); print('subhook2 = %r' % (subhook2,))
+            >>> print(next(iter_)); print('subhook2 = %r' % (subhook2,))
+            >>> print(next(iter_)); print('subhook2 = %r' % (subhook2,))
         """
         import numpy as np
 
@@ -948,7 +946,7 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}, min_wi
     label = QtWidgets.QLabel(text, parent=parent)
     # label.setAlignment(ALIGN_DICT[align])
     align = rectifyQtEnum('Alignment', align)
-    # if isinstance(align, six.string_types):
+    # if isinstance(align, str):
     #     align = ALIGN_DICT[align]
     label.setAlignment(align)
     adjust_font(label, **fontkw)
@@ -1045,7 +1043,7 @@ def newTextEdit(
     if text is not None:
         outputEdit.setText(text)
     align = rectifyQtEnum('Alignment', align)
-    # if isinstance(align, six.string_types):
+    # if isinstance(align, str):
     #     align = ALIGN_DICT[align]
     outputEdit.setAlignment(align)
     if label is None:
@@ -1107,7 +1105,7 @@ def newLineEdit(
         widget.setText(text)
     widget.setEnabled(enabled)
     align = rectifyQtEnum('Alignment', align)
-    # if isinstance(align, six.string_types):
+    # if isinstance(align, str):
     #     align = ALIGN_DICT[align]
     widget.setAlignment(align)
     widget.setReadOnly(readOnly)
@@ -2323,14 +2321,14 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
     style_list = []
     fmtdict = {}
     if bgcolor is not None:
-        if isinstance(bgcolor, six.string_types):
+        if isinstance(bgcolor, str):
             import wbia.plottool as pt
 
             bgcolor = getattr(pt, bgcolor.upper())[0:3] * 255
         style_list.append('background-color: rgb({bgcolor})')
         fmtdict['bgcolor'] = ','.join(map(str, bgcolor))
     if fgcolor is not None:
-        if isinstance(fgcolor, six.string_types):
+        if isinstance(fgcolor, str):
             import wbia.plottool as pt
 
             fgcolor = getattr(pt, fgcolor.upper())[0:3] * 255
@@ -2514,8 +2512,8 @@ class Spoiler(WIDGET_BASE):
         # By having the minimum and maximum height simultaniously
         self.toggleAnimation = QtCore.QParallelAnimationGroup()
         self.spoiler_animations = [
-            QtCore.QPropertyAnimation(self, six.b('minimumHeight')),
-            QtCore.QPropertyAnimation(self, six.b('maximumHeight')),
+            QtCore.QPropertyAnimation(self, 'minimumHeight'),
+            QtCore.QPropertyAnimation(self, 'maximumHeight'),
         ]
         self.content_animations = [
             # QtCore.QPropertyAnimation(self.contentWidget, 'maximumHeight')
@@ -2598,7 +2596,7 @@ class Spoiler(WIDGET_BASE):
 
             self.contentWidget = contentWidgetNew
             self.content_animations = [
-                QtCore.QPropertyAnimation(self.contentWidget, six.b('maximumHeight'))
+                QtCore.QPropertyAnimation(self.contentWidget, 'maximumHeight')
             ]
             for animation in self.content_animations:
                 self.toggleAnimation.addAnimation(animation)

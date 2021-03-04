@@ -42,7 +42,6 @@ TODO:
     been computed?
 """
 import logging
-from six.moves import zip, range, map
 import numpy as np
 import vtool as vt
 from wbia.algo.hots import hstypes

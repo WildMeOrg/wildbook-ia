@@ -3,7 +3,6 @@
 import logging
 from wbia.guitool.__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
-from six.moves import zip, range
 import utool
 import utool as ut
 

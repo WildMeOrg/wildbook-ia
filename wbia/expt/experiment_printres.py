@@ -6,9 +6,7 @@ TODO: save a testres variable so reloading and regenration becomes easier.
 """
 import logging
 import numpy as np
-import six
 import utool as ut
-from six.moves import map, range
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -108,7 +106,7 @@ def print_latexsum(ibs, testres, verbose=True):
 
 @profile
 def print_results(ibs, testres, **kwargs):
-    """
+    r"""
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
@@ -188,7 +186,7 @@ def print_results(ibs, testres, **kwargs):
         best_rankscore_summary = []
         # to_intersect_list = []
         # print each configs scores less than X=thresh
-        for X, cfgx2_nLessX in six.iteritems(nLessX_dict):
+        for X, cfgx2_nLessX in nLessX_dict.items():
             max_nLessX = cfgx2_nLessX.max()
             bestX_cfgx_list = np.where(cfgx2_nLessX == max_nLessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestX_cfgx_list)

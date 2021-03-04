@@ -7,7 +7,6 @@ Autogen:
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
 """
 import logging
-import six
 import uuid
 import numpy as np
 from wbia import constants as const
@@ -417,7 +416,7 @@ def add_annots(
         canonical_list = [False] * len(gid_list)
 
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [six.text_type(verts) for verts in vert_list]
+    vertstr_list = [str(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
 
@@ -3171,7 +3170,7 @@ def set_annot_names(ibs, aid_list, name_list, **kwargs):
     """
     # ibs.get_nids_from_text
     assert len(aid_list) == len(name_list)
-    assert not isinstance(name_list, six.string_types)
+    assert not isinstance(name_list, str)
     # name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
     assert not any(
         [name == '' for name in name_list]
@@ -3365,7 +3364,7 @@ def _update_annot_rotate_fix_bbox(bbox):
 def update_annot_rotate_90(ibs, aid_list, direction):
     from wbia.constants import PI, TAU
 
-    if isinstance(direction, six.string_types):
+    if isinstance(direction, str):
         direction = direction.lower()
 
     if direction in ['left', 'l', -1]:
@@ -3430,7 +3429,7 @@ def set_annot_verts(
                 if isinstance(vert_list, np.ndarray):
                     verts_list[index] = vert_list.tolist()
             num_verts_list = list(map(len, verts_list))
-            verts_as_strings = list(map(six.text_type, verts_list))
+            verts_as_strings = list(map(str, verts_list))
             id_iter1 = ((aid,) for aid in aid_list)
             # also need to set the internal number of vertices
             val_iter1 = (
@@ -3670,7 +3669,7 @@ def set_annot_quality_texts(ibs, aid_list, quality_text_list):
     """
     if not ut.isiterable(aid_list):
         aid_list = [aid_list]
-    if isinstance(quality_text_list, six.string_types):
+    if isinstance(quality_text_list, str):
         quality_text_list = [quality_text_list]
     quality_list = ut.dict_take(const.QUALITY_TEXT_TO_INT, quality_text_list)
     ibs.set_annot_qualities(aid_list, quality_list)
@@ -3690,7 +3689,7 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
     """
     if not ut.isiterable(aid_list):
         aid_list = [aid_list]
-    if isinstance(yaw_text_list, six.string_types):
+    if isinstance(yaw_text_list, str):
         yaw_text_list = [yaw_text_list]
     ibs.set_annot_viewpoint_code(aid_list, yaw_text_list)
 

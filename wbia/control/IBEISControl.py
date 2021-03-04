@@ -34,13 +34,11 @@ Note:
       resides in the injected modules.
 """
 import logging
-import six
 from wbia import dtool
 import atexit
 import weakref
 import utool as ut
 import ubelt as ub
-from six.moves import zip
 from os.path import join, split
 from wbia.init import sysres
 from wbia import constants as const
@@ -311,7 +309,6 @@ def __cleanup():
 # -----------------
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class IBEISController(BASE_CLASS):
     """
     IBEISController docstring
@@ -326,6 +323,8 @@ class IBEISController(BASE_CLASS):
         annot - an annotation i.e. region of interest for a chip
         theta - angle of rotation for a chip
     """
+
+    __metaclass__ = ut.ReloadingMetaclass
 
     # -------------------------------
     # --- CONSTRUCTOR / PRIVATES ---
@@ -526,7 +525,7 @@ class IBEISController(BASE_CLASS):
         total_size_str = '\nlen(table_cache) = %r' % (len(self.table_cache))
         table_size_str_list = [
             ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
-            for key, val in six.iteritems(self.table_cache)
+            for key, val in self.table_cache.items()
         ]
         cachestats_str = total_size_str + ut.indentjoin(table_size_str_list, '\n  * ')
         return cachestats_str
@@ -1215,7 +1214,7 @@ class IBEISController(BASE_CLASS):
         Example:
             >>> # ENABLE_DOCTEST
             >>> import wbia
-            >>> from six.moves import cPickle as pickle
+            >>> import pickle
             >>> ibs = wbia.opendb('testdb1')
             >>> ibs_dump = pickle.dumps(ibs)
             >>> ibs2 = pickle.loads(ibs_dump)

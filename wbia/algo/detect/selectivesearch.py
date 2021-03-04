@@ -5,7 +5,6 @@ Interface to Selective Search object proposals.
 import logging
 import utool as ut
 import vtool as vt
-from six.moves import zip
 import tempfile
 import subprocess
 import shlex

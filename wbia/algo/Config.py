@@ -4,15 +4,12 @@ DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
 import logging
 import utool as ut
-import six
 import copy
 
 # from wbia import dtool
 from os.path import join
 from os.path import splitext
-from six.moves import zip, map, range, filter  # NOQA
 from wbia import constants as const
-from utool._internal.meta_util_six import get_funcname
 
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 logger = logging.getLogger('wbia')
@@ -70,8 +67,10 @@ def make_config_metaclass():
 
     Example:
         from wbia.algo.Config import *  # NOQA
-        @six.add_metaclass(ConfigMetaclass)
         class FooConfig(ConfigBase):
+
+            __metaclass__ = ConfigMetaclass
+
             def __init__(cfg):
                 super(FooConfig, cfg).__init__(name='FooConfig')
                 cfg.initialize_params()
@@ -113,12 +112,10 @@ def make_config_metaclass():
                 item_list = parse_config_items(cfg)
                 assert item_list is not None
                 if ignore_keys is None:
-                    itemstr_list = [
-                        key + '=' + six.text_type(val) for key, val in item_list
-                    ]
+                    itemstr_list = [key + '=' + str(val) for key, val in item_list]
                 else:
                     itemstr_list = [
-                        key + '=' + six.text_type(val)
+                        key + '=' + str(val)
                         for key, val in item_list
                         if key not in ignore_keys
                     ]
@@ -151,7 +148,7 @@ def make_config_metaclass():
     @_register
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        class_str = six.text_type(cfg.__class__)
+        class_str = str(cfg.__class__)
         full_class_str = class_str.replace("<class '", '').replace("'>", '')
         config_name = splitext(full_class_str)[1][1:].replace('Config', '')
         return config_name
@@ -188,11 +185,11 @@ def make_config_metaclass():
             #  'must have defined get_cfgstr_list.  name=%r' % (name,))
             # Inject registered function
             for func in methods_list:
-                if get_funcname(func) not in dct:
-                    funcname = get_funcname(func)
+                if ut.get_funcname(func) not in dct:
+                    funcname = ut.get_funcname(func)
                     dct[funcname] = func
                 else:
-                    funcname = get_funcname(func)
+                    funcname = ut.get_funcname(func)
                     dct['meta_' + funcname] = func
                 # ut.inject_func_as_method(metaself, func)
             return type.__new__(cls, name, bases, dct)
@@ -203,13 +200,14 @@ def make_config_metaclass():
 ConfigMetaclass = make_config_metaclass()
 
 
-@six.add_metaclass(ConfigMetaclass)
 class GenericConfig(ConfigBase):
+
+    __metaclass__ = ConfigMetaclass
+
     def __init__(cfg, *args, **kwargs):
         super(GenericConfig, cfg).__init__(*args, **kwargs)
 
 
-@six.add_metaclass(ConfigMetaclass)
 class NNConfig(ConfigBase):
     r"""
     CommandLine:
@@ -224,6 +222,8 @@ class NNConfig(ConfigBase):
         >>> print(result)
         _NN(single,K=4,Kn=1,padk=False,cks800)
     """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
@@ -271,11 +271,12 @@ class NNConfig(ConfigBase):
         return param_info_list
 
 
-@six.add_metaclass(ConfigMetaclass)
 class SpatialVerifyConfig(ConfigBase):
     """
     Spatial verification
     """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(sv_cfg, **kwargs):
         super(SpatialVerifyConfig, sv_cfg).__init__(name='sv_cfg')
@@ -304,7 +305,7 @@ class SpatialVerifyConfig(ConfigBase):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
             return ['_SV(OFF)']
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
-        thresh_str = ut.remove_chars(six.text_type(thresh_tup), ' ()').replace(',', ';')
+        thresh_str = ut.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
         sv_cfgstr = [
             '_SV(',
             thresh_str,
@@ -328,11 +329,12 @@ class SpatialVerifyConfig(ConfigBase):
         return sv_cfgstr
 
 
-@six.add_metaclass(ConfigMetaclass)
 class AggregateConfig(ConfigBase):
     """
     Old Agg Cfg
     """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
@@ -364,7 +366,6 @@ class AggregateConfig(ConfigBase):
         return agg_cfgstr
 
 
-@six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
     r"""
     this flann is only for neareset neighbors in vsone/many
@@ -375,6 +376,8 @@ class FlannConfig(ConfigBase):
         http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf
         http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html
     """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(flann_cfg, **kwargs):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
@@ -433,7 +436,6 @@ class FlannConfig(ConfigBase):
         return flann_cfgstrs
 
 
-@six.add_metaclass(ConfigMetaclass)
 class NNWeightConfig(ConfigBase):
     r"""
     CommandLine:
@@ -455,6 +457,8 @@ class NNWeightConfig(ConfigBase):
         _NNWeight(ratio_thresh=0.625,fg,last,nosqrd_dist)
         _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)
     """
+
+    __metaclass__ = ConfigMetaclass
 
     @profile
     def __init__(nnweight_cfg, **kwargs):
@@ -503,10 +507,8 @@ class NNWeightConfig(ConfigBase):
         return param_info_list
 
 
-@six.add_metaclass(ConfigMetaclass)
 class FeatureWeightConfig(ConfigBase):
     """
-
     CommandLine:
         python -m wbia.algo.Config --exec-FeatureWeightConfig
 
@@ -521,8 +523,9 @@ class FeatureWeightConfig(ConfigBase):
         _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
         _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
-
     """
+
+    __metaclass__ = ConfigMetaclass
 
     @profile
     def __init__(featweight_cfg, **kwargs):
@@ -541,7 +544,6 @@ class FeatureWeightConfig(ConfigBase):
         )
 
 
-@six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
     """
     LNBNN ranking query configuration parameters
@@ -554,6 +556,8 @@ class QueryConfig(ConfigBase):
         >>> cfgstr = ibs.cfg.query_cfg.get_cfgstr()
         >>> print(cfgstr)
     """
+
+    __metaclass__ = ConfigMetaclass
 
     # TODO: make this a dtool Config
     _todo_subconfig_list = [
@@ -578,10 +582,11 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany']
         query_cfg.pipeline_root = 'vsmany'
-        # <Hack Paramaters>
+        # <HACK>
         # query_cfg.with_metadata = False
         query_cfg.query_rotation_heuristic = False
         # query_cfg.query_rotation_heuristic = True
+        # </HACK>
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         # Depends on feature config
@@ -595,13 +600,13 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = ['_' + query_cfg.pipeline_root]
-        # if six.text_type(query_cfg.pipeline_root) == 'smk':
+        # if str(query_cfg.pipeline_root) == 'smk':
         #    # SMK Parameters
         #    if kwargs.get('use_smk', True):
         #        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
         #    if kwargs.get('use_sv', True):
         #        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        if six.text_type(query_cfg.pipeline_root) == 'vsmany':
+        if str(query_cfg.pipeline_root) == 'vsmany':
             # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
@@ -614,9 +619,7 @@ class QueryConfig(ConfigBase):
             if kwargs.get('use_flann', True):
                 cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
         else:
-            raise AssertionError(
-                'bad pipeline root: ' + six.text_type(query_cfg.pipeline_root)
-            )
+            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
             # HACK: featweight_cfg used to include chip and feat
@@ -732,7 +735,6 @@ class QueryConfig(ConfigBase):
         return copy_
 
 
-@six.add_metaclass(ConfigMetaclass)
 class FeatureConfig(ConfigBase):
     """
     Feature configuration object.
@@ -753,6 +755,8 @@ class FeatureConfig(ConfigBase):
         _Feat(hesaff+sift)
     """
 
+    __metaclass__ = ConfigMetaclass
+
     def __init__(feat_cfg, **kwargs):
         # Features depend on chips
         # import pyhesaff
@@ -761,8 +765,7 @@ class FeatureConfig(ConfigBase):
         feat_cfg.initialize_params()
         # feat_cfg.feat_type = 'hesaff+sift'
         # feat_cfg.bgmethod = None
-        # feat_cfg._param_list = list(six.iteritems(
-        #    pyhesaff.get_hesaff_default_params()))
+        # feat_cfg._param_list = list(pyhesaff.get_hesaff_default_params().items())
         # for type_, name, default, doc in feat_cfg._iterparams():
         #    setattr(feat_cfg, name, default)
         # feat_cfg.use_adaptive_scale = False  # 9001 # 80
@@ -785,9 +788,10 @@ class FeatureConfig(ConfigBase):
         return hesaff_param_dict
 
 
-@six.add_metaclass(ConfigMetaclass)
 class ChipConfig(ConfigBase):
     """ ChipConfig """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
@@ -811,7 +815,6 @@ class ChipConfig(ConfigBase):
         return core_annots.ChipConfig._param_info_list
 
 
-@six.add_metaclass(ConfigMetaclass)
 class DetectionConfig(ConfigBase):
     """
     CommandLine:
@@ -825,6 +828,8 @@ class DetectionConfig(ConfigBase):
         >>> print(result)
         _DETECT(cnn,____,sz=800)
     """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
@@ -849,7 +854,6 @@ class DetectionConfig(ConfigBase):
         return cfgstrs
 
 
-@six.add_metaclass(ConfigMetaclass)
 class OccurrenceConfig(ConfigBase):
     """OccurrenceConfig
 
@@ -862,6 +866,8 @@ class OccurrenceConfig(ConfigBase):
         >>> occur_cfg = OccurrenceConfig()
         >>> print(occur_cfg.get_cfgstr())
     """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(occur_cfg, **kwargs):
         super(OccurrenceConfig, occur_cfg).__init__(name='occur_cfg')
@@ -888,9 +894,10 @@ class OccurrenceConfig(ConfigBase):
         return param_info_list
 
 
-@six.add_metaclass(ConfigMetaclass)
 class DisplayConfig(ConfigBase):
     """ DisplayConfig """
+
+    __metaclass__ = ConfigMetaclass
 
     def __init__(display_cfg, **kwargs):
         super(DisplayConfig, display_cfg).__init__(name='display_cfg')
@@ -906,8 +913,10 @@ class DisplayConfig(ConfigBase):
         return ['unimplemented']
 
 
-@six.add_metaclass(ConfigMetaclass)
 class OtherConfig(ConfigBase):
+
+    __metaclass__ = ConfigMetaclass
+
     def __init__(other_cfg, **kwargs):
         super(OtherConfig, other_cfg).__init__(name='other_cfg')
         # other_cfg.thumb_size      = 128
@@ -1012,7 +1021,7 @@ def load_named_config(
         >>> keys2 = ut.take_column(ibs.cfg.parse_items(), 0)
         >>> symdiff = set(keys1) ^ set(keys2)
         >>> # verify results
-        >>> result = six.text_type(cfg)
+        >>> result = str(cfg)
         >>> print(result)
     """
     if cfgname is None:

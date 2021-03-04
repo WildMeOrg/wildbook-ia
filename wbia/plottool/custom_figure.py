@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from os.path import exists, splitext, join, split
-import six
 import utool as ut
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -112,7 +111,7 @@ def _convert_pnum_int_to_tup(int_pnum):
 
 
 def _pnum_to_subspec(pnum):
-    if isinstance(pnum, six.string_types):
+    if isinstance(pnum, str):
         pnum = list(pnum)
     nrow, ncols, plotnum = pnum
     # if kwargs.get('use_gridspec', True):
