@@ -4064,10 +4064,9 @@ def review_identification(
                 review_cfg[
                     'max_num'
                 ] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
-                try:
-                    values = query_object.pop()
-                except StopIteration as e:
-                    return appf.template(None, 'simple', title=str(e).capitalize())
+                values = query_object.pop()
+                if values is None:
+                    return appf.template(None, 'simple', title='Nothing more to review!')
                 (review_aid1_list, review_aid2_list), review_confidence = values
                 review_aid1_list = [review_aid1_list]
                 review_aid2_list = [review_aid2_list]

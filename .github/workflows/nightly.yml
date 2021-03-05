@@ -27,7 +27,7 @@ jobs:
       matrix:
         images:
           - wildbook-ia
-          - wbia-base wbia-dependencies wbia-provision wbia
+          # - wbia-base wbia-dependencies wbia-provision wbia
 
     steps:
       - uses: actions/checkout@v2
@@ -37,6 +37,11 @@ jobs:
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: 3.7
 
       # Build images
       - name: Build images

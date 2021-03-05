@@ -1007,8 +1007,10 @@ def _init_config(ibs):
     config_fpath = ut.unixjoin(ibs.get_dbdir(), 'general_config.cPkl')
     try:
         general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
-    except IOError as ex:
-        logger.error('*** failed to load general config', exc_info=ex)
+    except (FileNotFoundError, IOError):
+        logger.warning(
+            'failed to load general config %r, creating empty config' % (config_fpath,)
+        )
         general_config = {}
         ut.save_cPkl(config_fpath, general_config, verbose=ut.VERBOSE)
     current_species = general_config.get('current_species', None)
