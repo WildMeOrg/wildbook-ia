@@ -296,13 +296,13 @@ class InfrLoops(object):
             #     candgen = thread_gen()
 
             include_filter_set = None
-            if PRINCETON_KAIA_EDGE_LIST is not None:
+            if False and PRINCETON_KAIA_EDGE_LIST is not None:
                 # logger.info('[mixin_loops] FILTERING EDGES FOR KAIA')
                 # Sanity check, make sure that one of the edges is in the tier 1 dataset
                 include_filter_set = set(PRINCETON_KAIA_EDGE_LIST)
 
             for new_edges in candgen:
-                if infr.ibs is not None:
+                if False and infr.ibs is not None:
                     ibs = infr.ibs
                     qual_edges = ibs.unflat_map(ibs.get_annot_quality_int, new_edges)
                     valid_edges = []

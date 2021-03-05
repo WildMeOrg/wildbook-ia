@@ -47,7 +47,7 @@ class Priority(object):
             tiebreaker = edge
         infr.assert_edge(edge)
 
-        if mixin_loops.PRINCETON_KAIA_EDGE_LIST is not None:
+        if False and mixin_loops.PRINCETON_KAIA_EDGE_LIST is not None:
             # logger.info('[Priority._push] FILTERING EDGES FOR KAIA')
             # Sanity check, make sure that one of the edges is in the tier 1 dataset
             include_filter_set = set(mixin_loops.PRINCETON_KAIA_EDGE_LIST)
