@@ -180,9 +180,9 @@ def start_tornado(
             utool_logfile_handler = None
 
         if utool_logfile_handler is not None:
-            for handler in utool_logfile_handler.handlers:
-                if isinstance(handler, ut.CustomStreamHandler):
-                    utool_logfile_handler.removeHandler(handler)
+            # for handler in utool_logfile_handler.handlers:
+            #     if isinstance(handler, ut.CustomStreamHandler):
+            #         utool_logfile_handler.removeHandler(handler)
 
             logger_list = []
             try:
