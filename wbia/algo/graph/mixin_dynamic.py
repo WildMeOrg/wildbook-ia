@@ -777,6 +777,7 @@ class Consistency(object):
                 yield cc
 
 
+@ut.reloadable_class
 class _RedundancyComputers(object):  # NOQA
     """
     methods for computing redundancy
@@ -784,8 +785,6 @@ class _RedundancyComputers(object):  # NOQA
     These are used to compute redundancy bookkeeping structures.
     Thus, they should not use them in their calculations.
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     # def pos_redundancy(infr, cc):
     #     """ Returns how positive redundant a cc is """
@@ -1000,9 +999,8 @@ class _RedundancyComputers(object):  # NOQA
                     yield nid1, nid2
 
 
+@ut.reloadable_class
 class Redundancy(_RedundancyComputers):
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     """ methods for dynamic redundancy book-keeping """
 
@@ -1283,10 +1281,8 @@ class Redundancy(_RedundancyComputers):
         return prev_neg_nids
 
 
+@ut.reloadable_class
 class NonDynamicUpdate(object):
-
-    __metaclass__ = ut.ReloadingMetaclass
-
     @profile
     def apply_nondynamic_update(infr, graph=None):
         r"""

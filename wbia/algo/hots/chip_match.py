@@ -2227,6 +2227,7 @@ class _ChipMatchDebugger(object):
             pass
 
 
+@ut.reloadable_class
 class ChipMatch(
     _ChipMatchVisualization,
     AnnotMatch,
@@ -2239,8 +2240,6 @@ class ChipMatch(
     behaves as as the ChipMatchOldTup named tuple until we
     completely replace the old structure
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     # Standard Contstructor
     def __init__(cm, *args, **kwargs):

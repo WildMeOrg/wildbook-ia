@@ -199,6 +199,7 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 
 
+@ut.reloadable_class
 class NeighborIndex(object):
     r"""
     wrapper class around flann
@@ -209,8 +210,6 @@ class NeighborIndex(object):
         >>> from wbia.algo.hots.neighbor_index import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     ext = '.flann'
     prefix1 = 'flann'

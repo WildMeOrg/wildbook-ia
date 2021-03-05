@@ -11,6 +11,7 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+@ut.reloadable_class
 class OrigAnnotInference(object):
     """
     Make name inferences about a series of AnnotMatches
@@ -86,8 +87,6 @@ class OrigAnnotInference(object):
         >>> ut.show_if_requested()
         >>> ut.show_if_requested()
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(self, qreq_, cm_list, user_feedback=None):
         self.qreq_ = qreq_

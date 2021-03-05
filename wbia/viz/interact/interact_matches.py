@@ -55,6 +55,7 @@ def testdata_match_interact(**kwargs):
 
 
 # TODO inherit from AbstractInteraction
+@ut.reloadable_class
 class MatchInteraction(interact_matches.MatchInteraction2):
     """
     Plots a chip result and sets up callbacks for interaction.
@@ -65,8 +66,6 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     CommandLine:
         python -m wbia.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(
         self,

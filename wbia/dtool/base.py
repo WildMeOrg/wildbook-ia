@@ -552,7 +552,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.base import *  # NOQA
             >>> from wbia.dtool.example_depcache import DummyKptsConfig
-            >>> import pickle pickle
+            >>> import pickle
             >>> cfg = DummyKptsConfig()
             >>> ser = pickle.dumps(cfg)
             >>> cfg2 = pickle.loads(ser)

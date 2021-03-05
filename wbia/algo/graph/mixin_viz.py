@@ -12,10 +12,9 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+@ut.reloadable_class
 class GraphVisualization(object):
     """ contains plotting related code """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def _get_truth_colors(infr):
         import wbia.plottool as pt

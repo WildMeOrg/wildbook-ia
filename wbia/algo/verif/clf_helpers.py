@@ -1464,7 +1464,7 @@ class MultiClassLabels(ut.NiceRepr):
     @classmethod
     def from_indicators(MultiClassLabels, indicator, index=None, task_name=None):
         labels = MultiClassLabels()
-        n_samples = len(next(indicator.values()))
+        n_samples = len(next(iter(indicator.values())))
         # if index is None:
         #     index = pd.Series(np.arange(n_samples), name='index')
         indicator_df = pd.DataFrame(indicator, index=index)

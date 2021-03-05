@@ -12,12 +12,11 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+@ut.reloadable_class
 class IBEISIO(object):
     """
     Direct interface into wbia tables and delta statistics
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def add_annots(infr, aid_list):
         pass
@@ -1020,12 +1019,11 @@ class IBEISIO(object):
         logger.info('____')
 
 
+@ut.reloadable_class
 class IBEISGroundtruth(object):
     """
     Methods for generating training labels for classifiers
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     @profile
     def wbia_guess_if_comparable(infr, aid_pairs):

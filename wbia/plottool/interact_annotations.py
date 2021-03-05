@@ -379,6 +379,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         return vt.bbox_from_verts(poly.xy)[2:4]
 
 
+@ut.reloadable_class
 class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     """
     An interactive polygon editor.
@@ -391,8 +392,6 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         verts_list (list) : list of lists of (float, float)
             List of (x, y) coordinates used as vertices of the polygon.
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     # --- Initialization and Figure Widgets
     def __init__(

@@ -8,10 +8,8 @@ print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
 logger = logging.getLogger('wbia')
 
 
+@ut.reloadable_class
 class ResultMetadata(object):
-
-    __metaclass__ = ut.ReloadingMetaclass
-
     def __init__(metadata, fpath, autoconnect=False):
         """
         metadata_fpath = join(figdir, 'result_metadata.shelf')

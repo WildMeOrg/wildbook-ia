@@ -4,6 +4,7 @@ import utool as ut
 import itertools as it
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
+import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
 logger = logging.getLogger('wbia')
@@ -271,6 +272,7 @@ except ImportError:
 
 
 # @ut.reloadable_class
+@six.add_metaclass(_AnnotPropInjector)
 class Annots(BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -306,8 +308,6 @@ class Annots(BASE):
         >>> a._ibs = ibs
         >>> assert len(a._get_num_feats()) > 0
     """
-
-    __metaclass__ = _AnnotPropInjector
 
     # def __init__(self, aids, ibs, config=None, caching=False):
     #    super(Annots, self).__init__(aids, ibs, config, caching)
@@ -464,10 +464,9 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 
 
 @ut.reloadable_class
+@six.add_metaclass(_AnnotGroupPropInjector)
 class AnnotGroups(ut.NiceRepr):
     """ Effciently handle operations on multiple groups of annotations """
-
-    __metaclass__ = _AnnotGroupPropInjector
 
     def __init__(self, annots_list, ibs):
         self._ibs = ibs
@@ -567,6 +566,7 @@ class _AnnotMatchPropInjector(BASE_TYPE):
         )
 
 
+@six.add_metaclass(_AnnotMatchPropInjector)
 class AnnotMatches(BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -589,8 +589,6 @@ class AnnotMatches(BASE):
         >>> table = ibs.db.get_table_as_pandas('annotmatch')
         >>> assert len(table) == len(matches)
     """
-
-    __metaclass__ = _AnnotMatchPropInjector
 
     @property
     def edges(self):

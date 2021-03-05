@@ -370,10 +370,8 @@ class Convenience(object):
         return tag_hist
 
 
+@ut.reloadable_class
 class DummyEdges(object):
-
-    __metaclass__ = ut.ReloadingMetaclass
-
     def ensure_mst(infr, label='name_label', meta_decision=SAME):
         """
         Ensures that all names are names are connected.

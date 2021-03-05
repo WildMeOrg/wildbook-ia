@@ -15,12 +15,11 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
+@ut.reloadable_class
 class AnnotInfrMatching(object):
     """
     Methods for running matching algorithms
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     @profile
     def exec_matching(

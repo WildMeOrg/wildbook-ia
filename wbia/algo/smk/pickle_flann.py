@@ -22,7 +22,8 @@ class Win32CompatTempFile(object):
         >>> from wbia.algo.smk.pickle_flann import *  # NOQA
         >>> verbose = True
         >>> temp = Win32CompatTempFile(verbose=verbose)
-        >>> data = str('10010')
+        >>> data = '10010'
+        >>> data = data.encode()
         >>> print('data = %r' % (data,))
         >>> data1 = temp.read()
         >>> print('data1 = %r' % (data1,))

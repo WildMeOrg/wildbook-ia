@@ -309,6 +309,7 @@ def __cleanup():
 # -----------------
 
 
+@ut.reloadable_class
 class IBEISController(BASE_CLASS):
     """
     IBEISController docstring
@@ -323,8 +324,6 @@ class IBEISController(BASE_CLASS):
         annot - an annotation i.e. region of interest for a chip
         theta - angle of rotation for a chip
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     # -------------------------------
     # --- CONSTRUCTOR / PRIVATES ---

@@ -1025,6 +1025,7 @@ class AltConstructors(object):
             # )
 
 
+@ut.reloadable_class
 class AnnotInference(
     ut.NiceRepr,
     # Old internal stuffs
@@ -1149,8 +1150,6 @@ class AnnotInference(
         >>> uninitialized = set(infr.__dict__.keys()) - set(static_attrs)
 
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def __getstate__(self):
         state = self.__dict__.copy()

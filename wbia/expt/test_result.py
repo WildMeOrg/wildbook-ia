@@ -245,6 +245,7 @@ def combine_testres_list(ibs, testres_list):
     return testres
 
 
+@ut.reloadable_class
 class TestResult(ut.NiceRepr):
     """
     CommandLine:
@@ -264,8 +265,6 @@ class TestResult(ut.NiceRepr):
         >>> prompt = ut.InteractivePrompt(actions)
         >>> prompt.loop()
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(testres, cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_):
         assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: %r != %r' % (

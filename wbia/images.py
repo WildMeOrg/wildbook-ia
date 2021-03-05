@@ -3,6 +3,7 @@ import logging
 import utool as ut
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
+import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[images]')
 logger = logging.getLogger('wbia')
@@ -119,6 +120,7 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
 
 
 # @ut.reloadable_class
+@six.add_metaclass(ImageIBEISPropertyInjector)
 class Images(IMAGE_BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -138,8 +140,6 @@ class Images(IMAGE_BASE):
         >>> print(g)
         <Images(num=13)>
     """
-
-    __metaclass__ = ImageIBEISPropertyInjector
 
     # def __init__(self, gids, ibs, config=None):
     #    super(Images, self).__init__(gids, ibs, config)
@@ -247,6 +247,7 @@ class ImageSetAttrInjector(BASE_TYPE):
 
 
 # @ut.reloadable_class
+@six.add_metaclass(ImageSetAttrInjector)
 class ImageSets(IMAGESET_BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -266,8 +267,6 @@ class ImageSets(IMAGESET_BASE):
         <ImageSets(num=13)>
 
     """
-
-    __metaclass__ = ImageSetAttrInjector
 
     def __init__(self, gsids, ibs, config=None):
         super(ImageSets, self).__init__(gsids, ibs, config)

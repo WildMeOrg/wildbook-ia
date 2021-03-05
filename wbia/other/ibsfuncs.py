@@ -21,6 +21,7 @@ from os.path import split, join, exists
 import numpy as np
 import vtool as vt
 import utool as ut
+from utool._internal.meta_util_six import get_funcname, set_funcname
 import ubelt as ub
 from functools import reduce
 import itertools as it
@@ -2110,7 +2111,7 @@ def _make_unflat_getter_func(flat_getter):
         func = ut.get_method_func(flat_getter)
     else:
         func = flat_getter
-    funcname = ut.get_funcname(func)
+    funcname = get_funcname(func)
     assert funcname.startswith('get_'), 'only works on getters, not: ' + funcname
 
     # Create new function
@@ -2123,7 +2124,7 @@ def _make_unflat_getter_func(flat_getter):
         unflat_vals = ut.unflatten2(flat_vals, reverse_list)
         return unflat_vals
 
-    ut.set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
+    set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
     return unflat_getter
 
 

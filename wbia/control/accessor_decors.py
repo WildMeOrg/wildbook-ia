@@ -2,6 +2,7 @@
 import logging
 import utool as ut
 import builtins
+from utool._internal.meta_util_six import get_funcname
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -391,12 +392,12 @@ def adder(func):
     def wrp_adder(*args, **kwargs):
         if DEBUG_ADDERS or VERB_CONTROL:
             logger.info('+------')
-            logger.info('[ADD]: ' + ut.get_funcname(func))
+            logger.info('[ADD]: ' + get_funcname(func))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             logger.info('\n' + funccall_str + '\n')
             logger.info('L------')
         if VERB_CONTROL:
-            logger.info('[ADD]: ' + ut.get_funcname(func))
+            logger.info('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
 
@@ -413,7 +414,7 @@ def deleter(func):
     @ut.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
         if VERB_CONTROL:
-            logger.info('[DELETE]: ' + ut.get_funcname(func))
+            logger.info('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
 
@@ -430,13 +431,13 @@ def setter(func):
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or VERB_CONTROL:
             logger.info('+------')
-            logger.info('[SET]: ' + ut.get_funcname(func))
+            logger.info('[SET]: ' + get_funcname(func))
             logger.info('[SET]: called by: ' + ut.get_caller_name(range(1, 7)))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             logger.info('\n' + funccall_str + '\n')
             logger.info('L------')
             # builtins.print('\n' + funccall_str + '\n')
-        # logger.info('set: funcname=%r, args=%r, kwargs=%r' % (ut.get_funcname(func), args, kwargs))
+        # logger.info('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func(*args, **kwargs)
 
     wrp_setter = ut.preserve_sig(wrp_setter, func)
@@ -461,7 +462,7 @@ def getter(func):
         #    logger.info('[IN GETTER] kwargs=%r' % (kwargs,))
         if DEBUG_GETTERS or VERB_CONTROL:
             logger.info('+------')
-            logger.info('[GET]: ' + ut.get_funcname(func))
+            logger.info('[GET]: ' + get_funcname(func))
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             logger.info('\n' + funccall_str + '\n')
             logger.info('L------')

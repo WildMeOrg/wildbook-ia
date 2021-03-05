@@ -184,12 +184,11 @@ def sanitize_sql(db, tablename_, columns=None):
         return tablename, columns
 
 
+@ut.reloadable_class
 class SQLDatabaseController(object):
     """
     Interface to an SQL database
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     class Metadata(Mapping):
         """Metadata is an attribute of the ``SQLDatabaseController`` that
@@ -3416,6 +3415,7 @@ class SQLDatabaseController(object):
         return table
 
 
+@ut.reloadable_class
 class SQLTable(ut.NiceRepr):
     """
     convinience object for dealing with a specific table
@@ -3423,8 +3423,6 @@ class SQLTable(ut.NiceRepr):
     table = db
     table = SQLTable(db, 'annotmatch')
     """
-
-    __metaclass__ = ut.ReloadingMetaclass
 
     def __init__(table, db, name):
         table.db = db
