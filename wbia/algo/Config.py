@@ -4,15 +4,14 @@ DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
 import logging
 import utool as ut
-import six
 import copy
 
 # from wbia import dtool
 from os.path import join
 from os.path import splitext
-from six.moves import zip, map, range, filter  # NOQA
 from wbia import constants as const
 from utool._internal.meta_util_six import get_funcname
+import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 logger = logging.getLogger('wbia')
@@ -72,6 +71,7 @@ def make_config_metaclass():
         from wbia.algo.Config import *  # NOQA
         @six.add_metaclass(ConfigMetaclass)
         class FooConfig(ConfigBase):
+
             def __init__(cfg):
                 super(FooConfig, cfg).__init__(name='FooConfig')
                 cfg.initialize_params()
@@ -113,12 +113,10 @@ def make_config_metaclass():
                 item_list = parse_config_items(cfg)
                 assert item_list is not None
                 if ignore_keys is None:
-                    itemstr_list = [
-                        key + '=' + six.text_type(val) for key, val in item_list
-                    ]
+                    itemstr_list = [key + '=' + str(val) for key, val in item_list]
                 else:
                     itemstr_list = [
-                        key + '=' + six.text_type(val)
+                        key + '=' + str(val)
                         for key, val in item_list
                         if key not in ignore_keys
                     ]
@@ -151,7 +149,7 @@ def make_config_metaclass():
     @_register
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        class_str = six.text_type(cfg.__class__)
+        class_str = str(cfg.__class__)
         full_class_str = class_str.replace("<class '", '').replace("'>", '')
         config_name = splitext(full_class_str)[1][1:].replace('Config', '')
         return config_name
@@ -304,7 +302,7 @@ class SpatialVerifyConfig(ConfigBase):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
             return ['_SV(OFF)']
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
-        thresh_str = ut.remove_chars(six.text_type(thresh_tup), ' ()').replace(',', ';')
+        thresh_str = ut.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
         sv_cfgstr = [
             '_SV(',
             thresh_str,
@@ -506,7 +504,6 @@ class NNWeightConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class FeatureWeightConfig(ConfigBase):
     """
-
     CommandLine:
         python -m wbia.algo.Config --exec-FeatureWeightConfig
 
@@ -521,7 +518,6 @@ class FeatureWeightConfig(ConfigBase):
         _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
         _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
-
     """
 
     @profile
@@ -578,10 +574,11 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany']
         query_cfg.pipeline_root = 'vsmany'
-        # <Hack Paramaters>
+        # <HACK>
         # query_cfg.with_metadata = False
         query_cfg.query_rotation_heuristic = False
         # query_cfg.query_rotation_heuristic = True
+        # </HACK>
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         # Depends on feature config
@@ -595,13 +592,13 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = ['_' + query_cfg.pipeline_root]
-        # if six.text_type(query_cfg.pipeline_root) == 'smk':
+        # if str(query_cfg.pipeline_root) == 'smk':
         #    # SMK Parameters
         #    if kwargs.get('use_smk', True):
         #        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
         #    if kwargs.get('use_sv', True):
         #        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        if six.text_type(query_cfg.pipeline_root) == 'vsmany':
+        if str(query_cfg.pipeline_root) == 'vsmany':
             # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
@@ -614,9 +611,7 @@ class QueryConfig(ConfigBase):
             if kwargs.get('use_flann', True):
                 cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
         else:
-            raise AssertionError(
-                'bad pipeline root: ' + six.text_type(query_cfg.pipeline_root)
-            )
+            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
             # HACK: featweight_cfg used to include chip and feat
@@ -761,8 +756,7 @@ class FeatureConfig(ConfigBase):
         feat_cfg.initialize_params()
         # feat_cfg.feat_type = 'hesaff+sift'
         # feat_cfg.bgmethod = None
-        # feat_cfg._param_list = list(six.iteritems(
-        #    pyhesaff.get_hesaff_default_params()))
+        # feat_cfg._param_list = list(pyhesaff.get_hesaff_default_params().items())
         # for type_, name, default, doc in feat_cfg._iterparams():
         #    setattr(feat_cfg, name, default)
         # feat_cfg.use_adaptive_scale = False  # 9001 # 80
@@ -1012,7 +1006,7 @@ def load_named_config(
         >>> keys2 = ut.take_column(ibs.cfg.parse_items(), 0)
         >>> symdiff = set(keys1) ^ set(keys2)
         >>> # verify results
-        >>> result = six.text_type(cfg)
+        >>> result = str(cfg)
         >>> print(result)
     """
     if cfgname is None:

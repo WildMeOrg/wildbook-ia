@@ -17,7 +17,6 @@ from wbia.web import appfuncs as appf
 from wbia import constants as const
 import traceback
 import requests
-import six
 from datetime import datetime
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -1223,7 +1222,6 @@ def query_chips_graph_match_thumb(
     from PIL import Image  # NOQA
     import vtool as vt
     from io import BytesIO
-    from six.moves import cStringIO as StringIO
     from flask import send_file
 
     ibs = current_app.ibs
@@ -1282,10 +1280,7 @@ def query_chips_graph_match_thumb(
 
     # Encode image
     image_pil = Image.fromarray(image)
-    if six.PY2:
-        img_io = StringIO()
-    else:
-        img_io = BytesIO()
+    img_io = BytesIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -1442,7 +1437,7 @@ def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
     # We could be redirecting to a newer graph_client
     graph_uuid_chain = [graph_uuid]
-    while isinstance(graph_client, six.string_types):
+    while isinstance(graph_client, str):
         graph_uuid_chain.append(graph_client)
         graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_client, None)
     if graph_client is None:

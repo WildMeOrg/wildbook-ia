@@ -7,7 +7,6 @@ CommandLine:
 
 """
 import sys
-import six  # NOQA
 import traceback
 from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
 from wbia.guitool.__PYQT__ import QtWidgets
@@ -148,7 +147,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
         # print('[spin] setValue = %r' % (value,))
         if value is None:
             value = self.NONE_VALUE
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = self.valueFromText(value)
             # if value.lower().startswith('n'):
             #    value = self.NONE_VALUE
@@ -231,7 +230,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         if leafNode.is_combo:
             # print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
             # painter.save()
-            curent_value = six.text_type(index.model().data(index))
+            curent_value = str(index.model().data(index))
             style = QtWidgets.QApplication.style()
             opt = QtWidgets.QStyleOptionComboBox()
 
@@ -267,7 +266,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             style.drawControl(element, opt, painter)
             # self.drawDisplay(painter, opt, opt.rect, str(curent_value))
             option.rect.setLeft(option.rect.left() + 3)
-            curent_value = six.text_type(index.model().data(index))
+            curent_value = str(index.model().data(index))
             painter.drawText(option.rect, Qt.AlignLeft, str(curent_value))
             painter.restore()
         else:
@@ -834,7 +833,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
     def set_value(self, new_val):
         assert self.is_leaf(), 'can only set leaf values'
         # hack
-        if isinstance(new_val, six.string_types) and new_val.lower() == 'none':
+        if isinstance(new_val, str) and new_val.lower() == 'none':
             new_val = None
         # Update internals
         self.value = new_val
@@ -1005,7 +1004,7 @@ class EditConfigWidget(QtWidgets.QWidget):
 
     def init_mvc(self):
         import operator
-        from six.moves import reduce
+        from functools import reduce
 
         edit_triggers = reduce(
             operator.__or__,

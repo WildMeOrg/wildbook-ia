@@ -4,7 +4,6 @@ import numpy as np
 import utool as ut
 import vtool.keypoint as ktool
 import wbia.plottool.draw_func2 as df2
-from six.moves import zip, map
 from wbia.plottool import plot_helpers as ph
 from wbia.other import ibsfuncs
 from wbia.control.accessor_decors import getter, getter_vector_output

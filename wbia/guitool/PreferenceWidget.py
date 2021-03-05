@@ -3,7 +3,6 @@
 old code ported from utool
 """
 import sys
-import six
 import traceback
 from utool.Preferences import Pref, PrefNode, PrefChoice
 from wbia.guitool.__PYQT__ import _fromUtf8, _translate, QVariantHack
@@ -77,7 +76,7 @@ def _qt_set_leaf_data(self, qvar):
         elif self._intern.get_type() in util_type.VALID_FLOAT_TYPES:
             # new_val = float(qvar.toDouble()[0])
             new_val = float(qvar)
-        elif isinstance(self._intern.value, six.string_types):
+        elif isinstance(self._intern.value, str):
             # new_val = str(qvar.toString())
             new_val = str(qvar)
         elif isinstance(self._intern.value, PrefChoice):
@@ -104,7 +103,7 @@ def _qt_set_leaf_data(self, qvar):
                     self._intern.get_type(),
                 )
         # Check for a set of None
-        if isinstance(new_val, six.string_types):
+        if isinstance(new_val, str):
             if new_val.lower() == 'none':
                 new_val = None
             elif new_val.lower() == 'true':

@@ -3,7 +3,6 @@ import logging
 from vtool._pyflann_backend import pyflann as pyflann
 import utool as ut
 import uuid
-import six
 from os.path import exists, join
 import lockfile
 
@@ -23,7 +22,8 @@ class Win32CompatTempFile(object):
         >>> from wbia.algo.smk.pickle_flann import *  # NOQA
         >>> verbose = True
         >>> temp = Win32CompatTempFile(verbose=verbose)
-        >>> data = six.b(str('10010'))
+        >>> data = '10010'
+        >>> data = data.encode()
         >>> print('data = %r' % (data,))
         >>> data1 = temp.read()
         >>> print('data1 = %r' % (data1,))
@@ -73,7 +73,7 @@ class Win32CompatTempFile(object):
         with lockfile.LockFile(join(temp.dpath, 'tempfile.lock')):
             flag = True
             while flag or exists(temp.fpath):
-                temp.fname = six.text_type(uuid.uuid4()) + '.temp'
+                temp.fname = str(uuid.uuid4()) + '.temp'
                 temp.fpath = join(temp.dpath, temp.fname)
                 flag = False
             ut.touch(temp.fpath, verbose=temp.verbose)

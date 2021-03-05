@@ -4,7 +4,6 @@ Small GUI for asking the user to enter the clock time shown, and moving along a 
 """
 import logging
 from functools import partial
-from six.moves import range
 from time import mktime
 from datetime import date, datetime
 import utool as ut

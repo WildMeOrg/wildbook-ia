@@ -4,7 +4,6 @@ import logging
 import requests
 import utool as ut
 import numpy as np
-from six.moves import zip
 import wbia.constants as const
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 

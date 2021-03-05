@@ -59,7 +59,6 @@ References:
     https://arxiv.org/pdf/1407.2170.pdf
 """
 import logging
-from six.moves import zip
 import utool as ut
 import vtool as vt
 import numpy as np

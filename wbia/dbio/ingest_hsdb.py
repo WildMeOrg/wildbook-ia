@@ -8,7 +8,6 @@ import logging
 from os.path import join, exists
 from wbia import constants as const
 from wbia.init import sysres
-from six.moves import zip, map
 import utool as ut
 import re
 import csv

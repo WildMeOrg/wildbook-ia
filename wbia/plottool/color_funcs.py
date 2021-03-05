@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from six.moves import range, zip, map  # NOQA
 from wbia.plottool import custom_constants  # NOQA
-import six
 from matplotlib import colors as mcolors
 import colorsys
 import numpy as np  # NOQA
@@ -31,14 +29,14 @@ def _test_base255(channels):
 
 def is_base01(channels):
     """ check if a color is in base 01 """
-    if isinstance(channels, six.string_types):
+    if isinstance(channels, str):
         return False
     return all(_test_base01(channels).values())
 
 
 def is_base255(channels):
     """ check if a color is in base 01 """
-    if isinstance(channels, six.string_types):
+    if isinstance(channels, str):
         return False
     return all(_test_base255(channels).values())
 
@@ -105,7 +103,7 @@ def ensure_base01(color):
     if is_base01(color):
         color01 = color
     else:
-        if isinstance(color, six.string_types) and color in mcolors.BASE_COLORS:
+        if isinstance(color, str) and color in mcolors.BASE_COLORS:
             # base colors are 01 based
             color01 = mcolors.BASE_COLORS[color]
             color01 = [float(c) for c in color01]
@@ -172,7 +170,7 @@ def ensure_base255(color):
         >>> ensure_base255([1., 1., 0., 0.])  # FIXME
         >>> ensure_base255([.7, .2, 0., 0.])
     """
-    if isinstance(color, six.string_types):
+    if isinstance(color, str):
         if color in mcolors.BASE_COLORS:
             # base colors are 01 based
             color01 = mcolors.BASE_COLORS[color]

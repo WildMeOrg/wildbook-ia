@@ -11,7 +11,6 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 import logging
-from six.moves import zip
 from wbia import constants as const
 import utool as ut
 from wbia.control import controller_inject

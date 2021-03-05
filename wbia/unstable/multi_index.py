@@ -6,8 +6,6 @@ module which uses multiple flann indexes as a way of working around adding
 points to a single flann structure which seems to cause crashes.
 """
 import logging
-import six
-from six.moves import zip, map, range
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -217,7 +215,7 @@ def sort_along_rows(qfx2_xxx, qfx2_sortx):
     return np.vstack([row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)])
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class MultiNeighborIndex(object):
     """
     TODO: rename to DistributedNeighborIndex

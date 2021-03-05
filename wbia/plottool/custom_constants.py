@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from six.moves import map
 import numpy as np
 import matplotlib as mpl
 import utool as ut

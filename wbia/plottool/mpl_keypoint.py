@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from six.moves import zip
 from wbia.plottool import mpl_sift
 import numpy as np
 import matplotlib as mpl

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator
@@ -290,8 +289,7 @@ def get_imageset_num_names_with_exemplar(ibs, imgsetid_list):
     ]
     # num_names_list = [len(groups) for groups in groups_list]
     num_exemplared_names_list = [
-        sum([any(exflags) for exflags in six.itervalues(groups)])
-        for groups in groups_list
+        sum([any(exflags) for exflags in groups.values()]) for groups in groups_list
     ]
     return num_exemplared_names_list
 

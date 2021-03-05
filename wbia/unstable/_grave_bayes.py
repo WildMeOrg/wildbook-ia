@@ -151,7 +151,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         temp_basis = [i for i in range(model.num_names)]
 
         def relabel_names(names, temp_basis=temp_basis):
-            names = list(map(six.text_type, names))
+            names = list(map(str, names))
             mapping = {}
             for n in names:
                 if n not in mapping:

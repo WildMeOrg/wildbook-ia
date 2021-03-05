@@ -19,7 +19,6 @@ except ImportError:
     pass
 from wbia.plottool import abstract_interaction
 import math
-from six.moves import range, zip, input  # NOQA
 
 ut.noinject('impaint')
 

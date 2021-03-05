@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from six.moves import map
 from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 from wbia.guitool.__PYQT__.QtCore import Qt

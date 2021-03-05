@@ -29,7 +29,6 @@ CommandLine:
     python -m wbia.plottool.interact_annotations --test-test_interact_annots --show
 """
 import logging
-import six
 import re
 import numpy as np
 
@@ -40,7 +39,6 @@ except ImportError:
 import utool as ut
 import itertools as it
 import matplotlib as mpl
-from six.moves import zip, range
 from . import draw_func2 as df2
 from wbia.plottool import abstract_interaction
 
@@ -381,7 +379,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         return vt.bbox_from_verts(poly.xy)[2:4]
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     """
     An interactive polygon editor.
@@ -548,19 +546,21 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     def disconnect_mpl_callbacks(self, canvas):
         """ disconnects all connected matplotlib callbacks """
-        for name, callbackid in six.iteritems(self.mpl_callback_ids):
+        for name, callbackid in self.mpl_callback_ids.items():
             canvas.mpl_disconnect(callbackid)
         self.mpl_callback_ids = {}
 
     def connect_mpl_callbacks(self, canvas):
-        """disconnects matplotlib callbacks specified in the
-        self.mpl_callback_ids dict"""
+        """
+        disconnects matplotlib callbacks specified in the
+        self.mpl_callback_ids dict
+        """
         # http://matplotlib.org/1.3.1/api/backend_bases_api.html
         # Create callback ids
         self.disconnect_mpl_callbacks(canvas)
         self.mpl_callback_ids = {
             name: canvas.mpl_connect(name, func)
-            for name, func in six.iteritems(self.callback_funcs)
+            for name, func in self.callback_funcs.items()
         }
         self.fig.canvas = canvas
 
@@ -594,7 +594,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         prev_callback,
     ):
         self.disconnect_mpl_callbacks(self.fig.canvas)
-        for poly in six.itervalues(self.polys):
+        for poly in self.polys.values():
             poly.remove()
         self.polys = {}
         self.reinitialize_variables()
@@ -610,9 +610,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.update_UI()
 
     def _update_poly_colors(self):
-        for poly in six.itervalues(self.uneditable_polys):
+        for poly in self.uneditable_polys.values():
             poly.update_color()
-        for ind, poly in six.iteritems(self.editable_polys):
+        for ind, poly in self.editable_polys.items():
             assert poly.num == ind
             selected = poly is self._selected_poly
             editing_parts = poly is self.parent_poly
@@ -620,10 +620,10 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.draw()
 
     def _update_poly_lines(self):
-        for poly in six.itervalues(self.uneditable_polys):
+        for poly in self.uneditable_polys.values():
             # self.last_vert_ind = len(poly.xy) - 1
             poly.update_lines()
-        for poly in six.itervalues(self.editable_polys):
+        for poly in self.editable_polys.values():
             self.last_vert_ind = len(poly.xy) - 1
             poly.update_lines()
 
@@ -635,9 +635,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.fig.canvas.blit(self.ax.bbox)
 
     def draw_artists(self):
-        for poly in six.itervalues(self.uneditable_polys):
+        for poly in self.uneditable_polys.values():
             poly.draw_self(self.ax, editable=False)
-        for poly in six.itervalues(self.editable_polys):
+        for poly in self.editable_polys.values():
             poly.draw_self(self.ax, self.show_species_tags)
 
     # --- Data Matainence / Other
@@ -707,7 +707,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     ):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
-        num = six.next(self._autoinc_polynum)
+        num = next(self._autoinc_polynum)
         poly = AnnotPoly(
             ax=self.ax,
             num=num,
@@ -756,7 +756,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.polys = {poly.num: poly for poly in poly_list}
         if len(self.polys) != 0:
             # Select poly with largest area
-            wh_list = np.array([poly.size for poly in six.itervalues(self.polys)])
+            wh_list = np.array([poly.size for poly in self.polys.values()])
             poly_index = list(self.polys.keys())[wh_list.prod(axis=1).argmax()]
             self._selected_poly = self.polys[poly_index]
             self._update_poly_colors()
@@ -764,10 +764,10 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         else:
             self._selected_poly = None
         # Add polygons to the axis
-        for poly in six.itervalues(self.polys):
+        for poly in self.polys.values():
             poly.add_to_axis(self.ax)
         # Give polygons mpl change callbacks
-        # for poly in six.itervalues(self.polys):
+        # for poly in self.polys.values():
         #    poly.add_callback(self.poly_changed)
 
     # --- Actions
@@ -862,7 +862,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             annottup_list = []
             indices_list = []
             # theta_list = []
-            for poly in six.itervalues(self.polys):
+            for poly in self.polys.values():
                 assert poly is not None
                 index = poly.num
                 bbox = tuple(map(int, vt.bbox_from_verts(poly.basecoords)))
@@ -914,7 +914,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self.fig.clf()
             self.ax = ax = self.fig.subplot(111)
             mask_list = [
-                poly.get_poly_mask(self.img.shape) for poly in six.itervalues(self.polys)
+                poly.get_poly_mask(self.img.shape) for poly in self.polys.values()
             ]
             if len(mask_list) == 0:
                 logger.info('[interact_annot] No polygons to make mask out of')
@@ -1034,7 +1034,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             else:
                 # Determine if we are clicking the rotation line
                 mouse_xy = (event.xdata, event.ydata)
-                for poly in six.itervalues(self.editable_polys):
+                for poly in self.editable_polys.values():
                     if poly.is_near_handle(mouse_xy, self.max_dist):
                         self._current_rotate_poly = poly
                         break
@@ -1346,9 +1346,7 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
 
     if polys is not None and len(polys) > 0:
         # Use the largest polygon size as the default verts
-        wh_list = np.array(
-            [vt.bbox_from_verts(poly.xy)[2:4] for poly in six.itervalues(polys)]
-        )
+        wh_list = np.array([vt.bbox_from_verts(poly.xy)[2:4] for poly in polys.values()])
         w_, h_ = wh_list.max(axis=0) // 2
     else:
         # If no poly exists use 1/4 of the image size

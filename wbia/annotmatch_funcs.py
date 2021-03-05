@@ -3,7 +3,6 @@ import logging
 import utool as ut
 import ubelt as ub  # NOQA
 import numpy as np
-from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
 from wbia.control import controller_inject
 

@@ -9,7 +9,6 @@ import utool as ut
 import vtool as vt
 from os.path import join
 from operator import xor
-import six
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import old_chip_match
 from wbia.algo.hots import scoring
@@ -25,8 +24,6 @@ class NeedRecomputeError(Exception):
 
 
 DEBUG_CHIPMATCH = False
-
-# import six
 
 MAX_FNAME_LEN = 80 if ut.WIN32 else 200
 TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
@@ -2230,7 +2227,7 @@ class _ChipMatchDebugger(object):
             pass
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class ChipMatch(
     _ChipMatchVisualization,
     AnnotMatch,
@@ -2245,7 +2242,6 @@ class ChipMatch(
     """
 
     # Standard Contstructor
-
     def __init__(cm, *args, **kwargs):
         """
         qaid and daid_list are not optional. fm_list and fsv_list are strongly
@@ -3016,9 +3012,7 @@ def get_chipmatch_fname(
         cfgstr = qreq_.get_cfgstr(with_input=True)
     # logger.info('cfgstr = %r' % (cfgstr,))
     fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}'
-    text_type = six.text_type
-    # text_type = str
-    qauuid_str = text_type(qauuid)[0:8] if TRUNCATE_UUIDS else text_type(qauuid)
+    qauuid_str = str(qauuid)[0:8] if TRUNCATE_UUIDS else str(qauuid)
     fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, qauuid=qauuid_str, ext='.cPkl')
     fname = ut.long_fname_format(
         fname_fmt, fmt_dict, ['cfgstr'], max_len=MAX_FNAME_LEN, hack27=True

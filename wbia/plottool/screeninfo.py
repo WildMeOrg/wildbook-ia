@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-from six.moves import range
 import sys
 import utool as ut
 import numpy as np
@@ -320,7 +318,7 @@ def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
     try:
         (startx, starty, availw, availh) = monitor_geometries[monitor_num]
     except KeyError:
-        (startx, starty, availw, availh) = six.itervalues(monitor_geometries).next()
+        (startx, starty, availw, availh) = next(monitor_geometries.values())
     available_geom = (
         startx,
         starty,

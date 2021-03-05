@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-import six
 import itertools as it
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
+import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
 logger = logging.getLogger('wbia')
@@ -483,10 +483,7 @@ class AnnotGroups(ut.NiceRepr):
         num = len(self.annots_list)
         mean = np.mean(len_list)
         std = np.std(len_list)
-        if six.PY3:
-            nice = '(n=%r, μ=%.1f, σ=%.1f)' % (num, mean, std)
-        else:
-            nice = '(n=%r, m=%.1f, s=%.1f)' % (num, mean, std)
+        nice = '(n=%r, μ=%.1f, σ=%.1f)' % (num, mean, std)
         return nice
 
     def __iter__(self):

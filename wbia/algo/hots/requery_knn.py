@@ -4,7 +4,6 @@ import numpy as np
 import utool as ut
 import vtool as vt
 import itertools as it
-from six.moves import range, zip, map  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

@@ -78,8 +78,7 @@ class nx_UnionFind(object):
             self.weights[x] = 1
 
     def to_sets(self):
-        for block in it.groups(self.parents).values():
-            yield block
+        yield from it.groups(self.parents).values()
 
     def union(self, *objects):
         """Find the sets containing the objects and merge them all."""
@@ -225,12 +224,10 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
             >>> print(result)
             ccs = [{1, 2, 3}, {4, 5}, {6, 7}]
         """
-        for cc in self._ccs.values():
-            yield cc
+        yield from self._ccs.values()
 
     def component_labels(self):
-        for label in self._ccs.keys():
-            yield label
+        yield from self._ccs.keys()
 
     # -----
 

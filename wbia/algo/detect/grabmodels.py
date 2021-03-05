@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-import six
 from os.path import exists, join, realpath
 
 (print, rrr, profile) = ut.inject2(__name__, '[grabmodels]')
@@ -65,7 +64,7 @@ def iter_algo_modeldirs(modeldir='default', ensurebase=False):
     modeldir = _expand_modeldir(modeldir)
     if ensurebase:
         ut.ensuredir(modeldir)
-    for algo, algosubdir in six.iteritems(MODEL_ALGO_SUBDIRS):
+    for algo, algosubdir in MODEL_ALGO_SUBDIRS.items():
         yield algo, join(modeldir, algosubdir)
 
 

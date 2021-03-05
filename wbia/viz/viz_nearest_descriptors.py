@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-from six.moves import range
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool.viz_featrow import draw_feat_row
 from wbia.viz import viz_helpers as vh
 import wbia.plottool as pt  # NOQA
-import six  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -21,7 +19,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         qreq_ = ibs.new_query_request([qaid], daid_list)
     qreq_.load_indexer()  # TODO: ensure lazy
 
-    # if isinstance(qfx, six.string_types):
+    # if isinstance(qfx, str):
     special = qfx == 'special'
     if special:
         qfx2_vecs = ibs.get_annot_vecs(qaid)

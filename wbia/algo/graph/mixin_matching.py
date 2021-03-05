@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 import numpy as np
 import utool as ut
 import pandas as pd
@@ -16,7 +15,7 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class AnnotInfrMatching(object):
     """
     Methods for running matching algorithms
@@ -694,7 +693,6 @@ class _RedundancyAugmentation(object):
         for pcc in prog:
             if not infr.is_pos_redundant(pcc, k=k, relax=True, assume_connected=True):
                 for edge in infr.find_pos_augment_edges(pcc, k=k):
-                    print()
                     yield nxu.e_(*edge)
 
     @profile

@@ -5,7 +5,6 @@ Known Interactions that use AbstractInteraction:
     pt.MultiImageInteraction
     wbia.NameInteraction
 """
-import six
 import re
 import utool as ut
 import matplotlib as mpl
@@ -380,7 +379,7 @@ class AbstractInteraction(object):
         else:
             color, hovercolor = '.88', '.88'
             # color, hovercolor = u'.45', u'.45'
-        # if isinstance(text, six.text_type):
+        # if isinstance(text, str):
         new_but = mpl.widgets.Button(new_ax, text, color=color, hovercolor=hovercolor)
         # elif isinstance(text, (list, tuple)):
         #    labels = [False] * len(text)
@@ -410,7 +409,7 @@ class AbstractInteraction(object):
             child_axes = ph.get_plotdat(ax, 'child_axes', [])
             child_axes.append(new_ax)
             ph.set_plotdat(ax, 'child_axes', child_axes)
-        for key, val in six.iteritems(kwargs):
+        for key, val in kwargs.items():
             ph.set_plotdat(new_ax, key, val)
         # Keep buttons from losing scrop
         tup = (new_but, new_ax)

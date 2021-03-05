@@ -7,7 +7,6 @@ from os.path import exists, join
 from wbia.algo.detect import grabmodels
 import utool as ut
 import vtool as vt
-from six.moves import zip, map
 import cv2
 import random
 

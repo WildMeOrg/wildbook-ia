@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six  # NOQA
 import utool as ut
 import numpy as np
 from wbia.unstable.bayes import make_name_model, temp_model, draw_tree_model

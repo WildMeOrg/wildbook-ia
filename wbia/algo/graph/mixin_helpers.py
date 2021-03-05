@@ -11,7 +11,6 @@ from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph import nx_utils as nxu
-import six
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -371,7 +370,7 @@ class Convenience(object):
         return tag_hist
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class DummyEdges(object):
     def ensure_mst(infr, label='name_label', meta_decision=SAME):
         """

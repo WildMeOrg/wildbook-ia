@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import uuid
-import six  # NOQA
-from six.moves import range
 from wbia import constants as const
 from wbia.control.accessor_decors import (
     adder,
@@ -32,7 +30,8 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 def get_glr_confidence(ibs, glrid_list):
     """
     Returns:
-        list_ (list):  confidence in an image relationship"""
+        list_ (list):  confidence in an image relationship
+    """
     glr_confidence_list = ibs.db.get(
         const.GL_RELATION_TABLE, ('glr_confidence',), glrid_list
     )
@@ -155,7 +154,8 @@ def get_lblimage_notes(ibs, lblimage_rowid_list):
 def get_lblimage_values(ibs, lblimage_rowid_list, _lbltype=None):
     """
     Returns:
-        list_ (list): text lblimages"""
+        list_ (list): text lblimages
+    """
     # TODO: Remove keyword argument
     # ibsfuncs.assert_lblimage_rowids_are_type(ibs, lblimage_rowid_list,  ibs.lbltype_ids[_lbltype])
     lblimage_value_list = ibs.db.get(
@@ -190,8 +190,10 @@ def get_lblimage_gids(ibs, lblimage_rowid_list):
 def add_image_relationship_one(
     ibs, gid_list, lblimage_rowid_list, glr_confidence_list=None
 ):
-    """Adds a relationship between images and lblimages
-    (imageations and labels of imageations)"""
+    """
+    Adds a relationship between images and lblimages
+    (imageations and labels of imageations)
+    """
     if glr_confidence_list is None:
         glr_confidence_list = [0.0] * len(gid_list)
     colnames = (

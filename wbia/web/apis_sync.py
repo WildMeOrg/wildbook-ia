@@ -12,7 +12,6 @@ import numpy as np  # NOQA
 import utool as ut
 import uuid
 import requests
-import six
 import json
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -535,10 +534,7 @@ def detect_remote_sync_images(ibs, gid_list=None, only_sync_missing_images=True)
         % (confirm_str,)
     )
 
-    if six.PY2:
-        input_func = raw_input  # NOQA
-    else:
-        input_func = input
+    input_func = input
     response_str = input_func('Confirmation string [Empty to abort]: ')
     response_str = response_str.lower()
     assert confirm_str == response_str, 'Confirmation string mismatch, aborting...'

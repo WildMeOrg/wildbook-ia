@@ -3,8 +3,6 @@
 helpers for controller manual_annot_funcs
 """
 import logging
-from six.moves import zip, range, filter, map  # NOQA
-import six
 import utool as ut
 import uuid
 from vtool import geometry
@@ -120,7 +118,7 @@ def generate_annot_properties(
     if yaw_list is None:
         yaw_list = [-1.0] * len(image_uuid_list)
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [six.text_type(verts) for verts in vert_list]
+    vertstr_list = [str(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
     # Define arguments to insert

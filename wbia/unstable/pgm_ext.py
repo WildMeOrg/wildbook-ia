@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-import six  # NOQA
 import utool as ut
 import numpy as np
-from six.moves import zip, map
 from wbia.unstable import pgm_viz
 
 try:
@@ -180,7 +178,7 @@ class ApproximateFactor(object):
             | v1_2 | v3_2 |             0.1000 |
             +------+------+--------------------+
         """
-        if isinstance(variables, six.string_types):
+        if isinstance(variables, str):
             raise TypeError('variables: Expected type list or array-like, got type str')
 
         phi = self if inplace else self.copy()
@@ -491,7 +489,7 @@ class TemplateCPD(object):
         def _getid(obj):
             if isinstance(obj, int):
                 return str(obj)
-            elif isinstance(obj, six.string_types):
+            elif isinstance(obj, str):
                 return obj
             else:
                 return obj._template_id

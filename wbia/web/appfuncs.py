@@ -14,7 +14,6 @@ import utool as ut
 import pynmea2
 import simplejson as json
 import numpy as np
-import six
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -131,20 +130,13 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEI
         imgBGR = _resize(imgBGR, t_height=target_height)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
-    if six.PY2:
-        from six.moves import cStringIO as StringIO
+    import io
 
-        string_buf = StringIO()
-        pil_img.save(string_buf, format='jpeg')
-        data = string_buf.getvalue().encode('base64').replace('\n', '')
-    else:
-        import io
-
-        byte_buf = io.BytesIO()
-        pil_img.save(byte_buf, format='jpeg')
-        byte_buf.seek(0)
-        img_bytes = base64.b64encode(byte_buf.read())
-        data = img_bytes.decode('ascii')
+    byte_buf = io.BytesIO()
+    pil_img.save(byte_buf, format='jpeg')
+    byte_buf.seek(0)
+    img_bytes = base64.b64encode(byte_buf.read())
+    data = img_bytes.decode('ascii')
     return 'data:image/jpeg;base64,' + data
 
 
@@ -153,10 +145,7 @@ def check_valid_function_name(string):
 
 
 def encode_refer_url(decoded):
-    if six.PY2:
-        decoded = str(decoded)
-    else:
-        decoded = decoded.encode()
+    decoded = decoded.encode()
     encoded = base64.urlsafe_b64encode(decoded)
     encoded = encoded.decode('utf-8')
     return encoded
@@ -165,10 +154,9 @@ def encode_refer_url(decoded):
 def decode_refer_url(encoded):
     if len(encoded) == 0:
         return encoded
-    if six.PY3:
-        if encoded.startswith("b'"):
-            encoded = encoded[2:]
-            encoded = encoded[:-1]
+    if encoded.startswith("b'"):
+        encoded = encoded[2:]
+        encoded = encoded[:-1]
     encoded = str(encoded)
     decoded = base64.urlsafe_b64decode(encoded)
     decoded = decoded.decode('utf-8')

@@ -294,8 +294,10 @@ def assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
             ibs, pair_parts, pair_bodies, assigner_scores, cutoff_score
         )
     else:
-        print("Assigner called for aids %s, which have no valid part-body annot pairs. Returning all aids unassigned."
-              % aid_list)
+        print(
+            'Assigner called for aids %s, which have no valid part-body annot pairs. Returning all aids unassigned.'
+            % aid_list
+        )
         good_pairs = []
         unassigned_aids = aid_list
 

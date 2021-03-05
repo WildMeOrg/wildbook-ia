@@ -1341,10 +1341,6 @@ def execute_commands(tpl_rman, wbia_rman):
         print('failures = %s' % (ut.repr3(failures),))
 
     if False:
-        try:
-            from six.moves import input
-        except ImportError:
-            input = raw_input  # NOQA
         # General global git command
         gg_cmd = GET_ARGVAL('--gg', None)  # global command
         if gg_cmd is not None:

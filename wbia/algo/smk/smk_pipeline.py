@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Oxford Experiment:
     wbia TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford
 
@@ -17,7 +17,6 @@ Zebra Experiment:
 """
 import logging
 from wbia import dtool
-import six
 import utool as ut
 import numpy as np
 from wbia.algo.smk import match_chips5 as mc5
@@ -25,7 +24,7 @@ from wbia.algo.smk import vocab_indexer
 from wbia.algo.smk import inverted_index
 from wbia.algo.smk import smk_funcs
 from wbia import core_annots
-from wbia.algo import Config as old_config
+from wbia.algo import Config as old_config  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -574,7 +573,7 @@ def testdata_smk(*args, **kwargs):
     xvalkw = dict(n_splits=4, shuffle=False)
 
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    train_idx, test_idx = six.next(skf.split(aid_list, nid_list))
+    train_idx, test_idx = next(skf.split(aid_list, nid_list))
     daids = ut.take(aid_list, train_idx)
     qaids = ut.take(aid_list, test_idx)
 

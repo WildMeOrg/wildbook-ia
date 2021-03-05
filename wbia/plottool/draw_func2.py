@@ -9,8 +9,6 @@
 # More useful for graphs draw_<funcname> same as plot for now. More useful for
 # images
 import logging
-from six.moves import range, zip, map
-import six
 import itertools as it
 import utool as ut  # NOQA
 import matplotlib as mpl
@@ -336,7 +334,7 @@ def overlay_icon(
     import vtool as vt
 
     ax = gca()
-    if isinstance(icon, six.string_types):
+    if isinstance(icon, str):
         # hack because icon is probably a url
         icon_url = icon
         icon = vt.imread(ut.grab_file_url(icon_url))
@@ -558,10 +556,6 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         >>> import wbia.plottool as pt
         >>> import matplotlib.gridspec as gridspec
         >>> import matplotlib.pyplot as plt
-        >>> import six
-        >>> if six.PY2:
-        >>>     import pytest
-        >>>     pytest.skip()
         >>> pt.qtensure()
         >>> fig = plt.figure()
         >>> gs = gridspec.GridSpec(17, 17)
@@ -925,7 +919,7 @@ def show_if_requested(N=1):
         default_caption = '\n% ---\n' + basename(fpath).replace('_', ' ') + '\n% ---\n'
         default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
         caption_list = ut.get_argval('--caption', type_=str, default=default_caption)
-        if isinstance(caption_list, six.string_types):
+        if isinstance(caption_list, str):
             caption_str = caption_list
         else:
             caption_str = ' '.join(caption_list)
@@ -1278,7 +1272,7 @@ def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
     pnum_gen = pnum_generator(
         nRows=nRows, nCols=nCols, base=base, nSubplots=nSubplots, start=start
     )
-    pnum_next = functools.partial(six.next, pnum_gen)
+    pnum_next = functools.partial(next, pnum_gen)
     return pnum_next
 
 
@@ -1342,7 +1336,7 @@ def make_fnum_nextgen(base=1):
     import functools
 
     fnum_gen = fnum_generator(base=base)
-    fnum_next = functools.partial(six.next, fnum_gen)
+    fnum_next = functools.partial(next, fnum_gen)
     return fnum_next
 
 
@@ -2653,7 +2647,7 @@ def scores_to_color(
         score_list = apply_logscale(score_list)
         # if loglogscale
         # score_list = np.log2(np.log2(score_list + 2) + 1)
-    # if isinstance(cmap_, six.string_types):
+    # if isinstance(cmap_, str):
     cmap = plt.get_cmap(cmap_)
     # else:
     #    cmap = cmap_
@@ -2815,7 +2809,7 @@ def reverse_colormap(cmap):
     else:
         reverse = []
         k = []
-        for key, channel in six.iteritems(cmap._segmentdata):
+        for key, channel in cmap._segmentdata.items():
             data = []
             for t in channel:
                 data.append((1 - t[0], t[1], t[2]))
@@ -3480,7 +3474,7 @@ def draw_kpts2(
         pts_color = color_list
     # else:
     # pts_color = [pts_color for _ in range(len(kpts))]
-    if isinstance(ell_color, six.string_types) and ell_color == 'distinct':
+    if isinstance(ell_color, str) and ell_color == 'distinct':
         ell_color = distinct_colors(len(kpts))  # , randomize=True)
         # logger.info(len(kpts))
 
@@ -3686,7 +3680,7 @@ def imshow(
     if not redraw_image:
         return fig, ax
 
-    if isinstance(img, six.string_types):
+    if isinstance(img, str):
         # Allow for path to image to be specified
         img_fpath = img
         ut.assertpath(img_fpath)
@@ -3755,7 +3749,7 @@ def imshow(
                 imgGRAY = img
             if cmap is None:
                 cmap = plt.get_cmap('gray')
-            if isinstance(cmap, six.string_types):
+            if isinstance(cmap, str):
                 cmap = plt.get_cmap(cmap)
 
             if not plt_imshow_kwargs.get('norm'):
@@ -4926,13 +4920,10 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
     import scipy.special  # NOQA
 
     labels = [
-        func if isinstance(func, six.string_types) else ut.get_callable_name(func)
-        for func in funcs
+        func if isinstance(func, str) else ut.get_callable_name(func) for func in funcs
     ]
     try:
-        funcs_ = [
-            eval(func) if isinstance(func, six.string_types) else func for func in funcs
-        ]
+        funcs_ = [eval(func) if isinstance(func, str) else func for func in funcs]
         ydatas = [func(xdata) for func in funcs_]
     except NameError:
         locals_ = locals()
@@ -4940,8 +4931,7 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
             exec(setup, locals_, locals_)
         locals_.update(**np.__dict__)
         funcs_ = [
-            eval(func, locals_) if isinstance(func, six.string_types) else func
-            for func in funcs
+            eval(func, locals_) if isinstance(func, str) else func for func in funcs
         ]
         ydatas = [func(xdata) for func in funcs_]
     except Exception:

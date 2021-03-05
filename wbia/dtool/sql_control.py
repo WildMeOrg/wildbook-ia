@@ -16,7 +16,6 @@ from collections.abc import Mapping, MutableMapping
 from contextlib import contextmanager
 from os.path import join, exists
 
-import six
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
@@ -185,7 +184,7 @@ def sanitize_sql(db, tablename_, columns=None):
         return tablename, columns
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class SQLDatabaseController(object):
     """
     Interface to an SQL database
@@ -2315,7 +2314,7 @@ class SQLDatabaseController(object):
             elif column[3] == 1:
                 col_type += ' NOT NULL'
             if column[4] is not None:
-                default_value = six.text_type(column[4])
+                default_value = str(column[4])
                 # HACK: add parens if the value contains parens in the future
                 # all default values should contain parens
                 LEOPARD_HACK = True
@@ -2391,7 +2390,7 @@ class SQLDatabaseController(object):
         tab2 = ' ' * 8
         line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
         # column_list = db.get_columns(tablename)
-        # colnamerepr_list = [ut.repr2(six.text_type(column[1]))
+        # colnamerepr_list = [ut.repr2(str(column[1]))
         #                     for column in column_list]
         autogen_dict = self.get_table_autogen_dict(tablename)
         coldef_list = autogen_dict['coldef_list']
@@ -2658,7 +2657,7 @@ class SQLDatabaseController(object):
     def get_column_names(self, tablename):
         """ Conveinience: Returns the sql tablename columns """
         column_list = self.get_columns(tablename)
-        column_names = ut.lmap(six.text_type, ut.take_column(column_list, 1))
+        column_names = ut.lmap(str, ut.take_column(column_list, 1))
         return column_names
 
     def get_column(self, tablename, name):
@@ -2885,7 +2884,7 @@ class SQLDatabaseController(object):
         extern_primarycolnames_list = []
         dependsmap = self.metadata[tablename].dependsmap
         if dependsmap is not None:
-            for colname, dependtup in six.iteritems(dependsmap):
+            for colname, dependtup in dependsmap.items():
                 assert len(dependtup) == 3, 'must be 3 for now'
                 (
                     extern_tablename,
@@ -3416,7 +3415,7 @@ class SQLDatabaseController(object):
         return table
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class SQLTable(ut.NiceRepr):
     """
     convinience object for dealing with a specific table

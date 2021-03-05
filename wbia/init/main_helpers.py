@@ -8,7 +8,6 @@ TODO: standardize function signatures
 """
 import logging
 import utool as ut
-import six
 
 # from wbia.init import old_main_helpers
 (print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
@@ -81,9 +80,9 @@ def testdata_expts(
     if p is not None:
         default_test_cfg_name_list = p
 
-    if isinstance(default_acfgstr_name_list, six.string_types):
+    if isinstance(default_acfgstr_name_list, str):
         default_acfgstr_name_list = [default_acfgstr_name_list]
-    if isinstance(default_test_cfg_name_list, six.string_types):
+    if isinstance(default_test_cfg_name_list, str):
         default_test_cfg_name_list = [default_test_cfg_name_list]
 
     # from wbia.expt import experiment_helpers
@@ -349,7 +348,7 @@ def testdata_expanded_aids(
     if a is None:
         _specified2 = False
         a = ['default']
-    if isinstance(a, six.string_types):
+    if isinstance(a, str):
         a = [a]
     aidcfg_name_list, _specified = ut.get_argval(
         ('--aidcfg', '--acfg', '-a'), type_=list, default=a, return_specified=True

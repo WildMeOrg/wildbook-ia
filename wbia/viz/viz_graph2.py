@@ -2368,7 +2368,6 @@ def make_edge_api(infr, review_cfg={}):
 
     self = EdgeAPIHelper(infr)
     partial_headers = self.make_partial_edge_headers()
-    # from six import next
     # data = next(infr.graph.edges(data=True))[-1]
 
     # if not DEVELOPER_MODE:

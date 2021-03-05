@@ -2,7 +2,6 @@
 import logging
 import utool as ut
 import numpy as np
-import six
 import networkx as nx  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__, '[depc_input_helpers]')
@@ -611,7 +610,7 @@ class TableInput(ut.NiceRepr):
             >>> assert 'indexer' not in str(inputs2), (
             >>>     '(2) unexpected indexer in %s' % (inputs2,))
         """
-        if isinstance(index, six.string_types):
+        if isinstance(index, str):
             index_list = ut.where([rmi.tablename == index for rmi in inputs.rmi_list])
             if len(index_list) == 0:
                 index = 0

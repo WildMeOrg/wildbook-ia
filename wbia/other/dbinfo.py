@@ -8,7 +8,6 @@ import logging
 from wbia import constants as const
 import collections
 import functools
-import six
 import numpy as np
 import utool as ut
 import matplotlib.pyplot as plt
@@ -572,9 +571,7 @@ def get_dbinfo(
             [(key, len(sextext2_aids.get(key, []))) for key in sex_keys]
         )
         # Filter 0's
-        sextext2_nAnnots = {
-            key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0
-        }
+        sextext2_nAnnots = {key: val for key, val in sextext2_nAnnots.items() if val != 0}
         return sextext2_nAnnots
 
     def get_annot_qual_stats(ibs, aid_list):
@@ -616,18 +613,18 @@ def get_dbinfo(
 
     contributor_tag_to_qualstats = {
         key: get_annot_qual_stats(ibs, aids)
-        for key, aids in six.iteritems(contributor_tag_to_aids)
+        for key, aids in contributor_tag_to_aids.items()
     }
     contributor_tag_to_viewstats = {
         key: get_annot_viewpoint_stats(ibs, aids)
-        for key, aids in six.iteritems(contributor_tag_to_aids)
+        for key, aids in contributor_tag_to_aids.items()
     }
 
     contributor_tag_to_nImages = {
-        key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)
+        key: len(val) for key, val in contributor_tag_to_gids.items()
     }
     contributor_tag_to_nAnnots = {
-        key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)
+        key: len(val) for key, val in contributor_tag_to_aids.items()
     }
 
     if verbose:
@@ -815,7 +812,7 @@ def get_dbinfo(
 
     review_identity_to_decision_stats = {
         key: get_review_decision_stats(ibs, aids)
-        for key, aids in six.iteritems(review_identity_to_rids)
+        for key, aids in review_identity_to_rids.items()
     }
 
     review_aids_list = ibs.get_review_aid_tuple(valid_rids)
@@ -1765,7 +1762,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
     tabular_body_list = []
 
     convert_to = 'KB'
-    for key, val in six.iteritems(bytes_map):
+    for key, val in bytes_map.items():
         key2 = key.replace('bytes', convert_to)
         if isinstance(val, list):
             val2 = [bytes_ / byte_units[convert_to] for bytes_ in val]

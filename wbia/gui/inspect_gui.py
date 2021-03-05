@@ -20,7 +20,6 @@ from wbia.plottool import fig_presenter
 import wbia.guitool as gt
 from wbia.algo.graph.nx_utils import connected_component_subgraphs
 
-# import six
 import utool as ut
 from wbia.gui import id_review_api
 from wbia.gui import guiexcept
@@ -320,7 +319,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         # HACK IN COL SIZE
         qres_wgt.resize_headers(api=qres_wgt.review_api)
         # horizontal_header = qres_wgt.view.horizontalHeader()
-        # for col, width in six.iteritems(qres_wgt.review_api.col_width_dict):
+        # for col, width in qres_wgt.review_api.col_width_dict.items():
         #    #horizontal_header.defaultSectionSize()
         #    try:
         #        index = qres_wgt.review_api.col_name_list.index(col)

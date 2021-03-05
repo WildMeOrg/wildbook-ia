@@ -8,8 +8,6 @@ sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --
 import logging
 import uuid
 import functools
-import six  # NOQA
-from six.moves import range, zip, map  # NOQA
 
 # import numpy as np
 # import vtool as vt

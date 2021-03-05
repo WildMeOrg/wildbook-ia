@@ -6,7 +6,6 @@ import operator as op
 import utool as ut
 import numpy as np
 import copy
-import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 logger = logging.getLogger('wbia.dtool')
@@ -56,7 +55,6 @@ class StackedConfig(ut.DictLike, ut.HashComparable):
             raise KeyError(ex)
 
 
-# @six.add_metaclass(ut.HashComparableMetaclass)
 @functools.total_ordering
 class Config(ut.NiceRepr, ut.DictLike):
     r"""
@@ -142,7 +140,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         # self_keys.append(cfg.get_varnames())
         _aliases = cfg._make_key_alias_checker()
         self_keys = set(cfg.keys())
-        for key, val in six.iteritems(kwargs):
+        for key, val in kwargs.items():
             # update only existing keys or namespace prefixed keys
             for k in _aliases(key):
                 if k in self_keys:
@@ -554,7 +552,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.base import *  # NOQA
             >>> from wbia.dtool.example_depcache import DummyKptsConfig
-            >>> from six.moves import cPickle as pickle
+            >>> import pickle
             >>> cfg = DummyKptsConfig()
             >>> ser = pickle.dumps(cfg)
             >>> cfg2 = pickle.loads(ser)
@@ -565,7 +563,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.base import *  # NOQA
             >>> from wbia.dtool.example_depcache import DummyVsManyConfig
-            >>> from six.moves import cPickle as pickle
+            >>> import pickle
             >>> cfg = DummyVsManyConfig()
             >>> state = cfg.__getstate__()
             >>> cfg2 = DummyVsManyConfig()

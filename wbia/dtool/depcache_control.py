@@ -6,8 +6,6 @@ import logging
 
 import utool as ut
 import numpy as np
-import six
-from six.moves import zip
 from wbia.dtool import sql_control
 from wbia.dtool import depcache_table
 from wbia.dtool import base
@@ -164,8 +162,8 @@ class DependencyCache:
         logger.debug('[depc]  * preproc_func=%r' % (preproc_func,))
         # ----------
         # Sanitize inputs
-        if isinstance(tablename, six.string_types):
-            tablename = six.text_type(tablename)
+        if isinstance(tablename, str):
+            tablename = str(tablename)
         if parents is None:
             parents = [self.root]
         if colnames is None:
@@ -176,7 +174,7 @@ class DependencyCache:
         if default_to_unpack is None:
             if ut.isiterable(colnames):
                 default_to_unpack = False
-                colnames = ut.lmap(six.text_type, colnames)
+                colnames = ut.lmap(str, colnames)
             else:
                 colnames = [colnames]
                 coltypes = [coltypes]
@@ -1111,7 +1109,7 @@ class DependencyCache:
                     if parent_data['isnwise']:
                         args = (parent_data['nwise_idx'],)
                         edge_type_parts.append('nwise_%s' % args)
-                        # local_input_id += six.text_type(parent_data['nwise_idx'])
+                        # local_input_id += str(parent_data['nwise_idx'])
                         # edge_type_parts.append('nwise_%s_%s_%s' % (
                         #     parentkey, tablekey, parent_data['nwise_idx'],))
                     edge_type_id = '_'.join(edge_type_parts)

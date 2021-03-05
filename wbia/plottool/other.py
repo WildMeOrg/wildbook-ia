@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # I'm not quite sure how to organize these functions yet
-from six.moves import zip
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt

@@ -17,7 +17,6 @@ import itertools as it
 import numpy as np
 import vtool as vt
 from wbia import dtool as dt
-import six  # NOQA
 import hashlib
 import copy
 import pandas as pd
@@ -31,7 +30,6 @@ from wbia.algo.verif import deploy
 from wbia.algo.verif import pairfeat, verifier
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from os.path import basename
-from six.moves import zip
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

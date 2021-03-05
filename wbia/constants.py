@@ -5,12 +5,12 @@ string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
 import logging
-import six
 import numpy as np
 import math
 import utool as ut
 from collections import OrderedDict
 from os.path import join
+import six
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -714,6 +714,7 @@ class META_DECISION(object):  # NOQA
 
 @six.add_metaclass(_ConstHelper)
 class CONFIDENCE(object):
+
     UNKNOWN = None
     GUESSING = 1
     NOT_SURE = 2
@@ -748,6 +749,7 @@ class CONFIDENCE(object):
 
 @six.add_metaclass(_ConstHelper)
 class QUAL(object):
+
     EXCELLENT = 5
     GOOD = 4
     OK = 3

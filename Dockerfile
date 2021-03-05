@@ -77,8 +77,9 @@ RUN set -x \
        pgloader \
        #: dev debug dependency
        #: python3-dev required to build 'annoy'
-       python3-dev \
-       python3-gdbm \
+       python3.7 \
+       python3.7-dev \
+       python3.7-gdbm \
        python3-pip \
        python3-setuptools \
        python3-venv \
@@ -114,18 +115,18 @@ COPY . /tmp/code
 
 RUN set -x \
     && cd /tmp/code \
-    && python3 -m pip install --upgrade pip \
-    && python3 -m pip install --verbose --no-deps . \
+    && python3.7 -m pip install --upgrade pip \
+    && python3.7 -m pip install --verbose --no-deps . \
     # Install pytorch early because it's a large package
-    && python3 -m pip install torch \
-    && python3 -m pip install -r /tmp/code/requirements/runtime.txt \
-    && python3 -m pip install -r /tmp/code/requirements/postgres.txt \
+    && python3.7 -m pip install torch \
+    && python3.7 -m pip install -r /tmp/code/requirements/runtime.txt \
+    && python3.7 -m pip install -r /tmp/code/requirements/postgres.txt \
     # TODO (4-Jun-12020) plugins will come in time...
     # && python3 -m pip install -r /tmp/code/requirements.txt -r /tmp/code/requirements/plugins.txt
     && rm -rf /tmp/code
 
 # Visual install verification of the OpenCV2 Python buildings
-RUN python3 -c "import cv2; print(cv2.getBuildInformation())"
+RUN python3.7 -c "import cv2; print(cv2.getBuildInformation())"
 
 # Ports for the frontend web server
 EXPOSE 5000
@@ -134,11 +135,11 @@ EXPOSE 5000
 WORKDIR /data
 
 # Set the "workdir"
-RUN python3 -m wbia --set-workdir /data --preload-exit
+RUN python3.7 -m wbia --set-workdir /data --preload-exit
 
 COPY .dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
 
 ENV WBIA_DB_DIR="/data/db"
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["python3", "-m", "wbia.dev", "--dbdir", "$WBIA_DB_DIR", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]
+CMD ["python3.7", "-m", "wbia.dev", "--dbdir", "$WBIA_DB_DIR", "--logdir", "/data/logs/", "--web", "--port", "5000", "--web-deterministic-ports", "--containerized", "--cpudark", "--production"]

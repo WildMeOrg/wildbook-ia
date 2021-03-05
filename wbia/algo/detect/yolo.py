@@ -5,7 +5,6 @@ Interface to pydarknet yolo object detection.
 import logging
 import utool as ut
 import vtool as vt
-from six.moves import zip
 
 (print, rrr, profile) = ut.inject2(__name__, '[yolo]')
 logger = logging.getLogger('wbia')

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
 import utool as ut
-import six
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
+import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[images]')
 logger = logging.getLogger('wbia')
@@ -158,7 +158,7 @@ class Images(IMAGE_BASE):
 
     def remove_from_imageset(self, imageset_text):
         ibs = self._ibs
-        if isinstance(imageset_text, six.string_types):
+        if isinstance(imageset_text, str):
             gsid = ibs.get_imageset_imgsetids_from_text(imageset_text)
             gsids = [gsid] * len(self)
         else:
@@ -167,7 +167,7 @@ class Images(IMAGE_BASE):
 
     def append_to_imageset(self, imageset_text):
         ibs = self._ibs
-        if isinstance(imageset_text, six.string_types):
+        if isinstance(imageset_text, str):
             gsid = ibs.get_imageset_imgsetids_from_text(imageset_text)
             gsids = [gsid] * len(self)
         else:

@@ -5,7 +5,6 @@ import utool as ut
 # import logging
 import itertools as it
 import copy
-import six
 import collections
 from wbia import constants as const
 from wbia.algo.graph import nx_dynamic_graph
@@ -418,10 +417,8 @@ class Feedback(object):
         return vals[-1]
 
     def all_feedback_items(infr):
-        for edge, vals in six.iteritems(infr.external_feedback):
-            yield edge, vals
-        for edge, vals in six.iteritems(infr.internal_feedback):
-            yield edge, vals
+        yield from infr.external_feedback.items()
+        yield from infr.internal_feedback.items()
 
     def all_feedback(infr):
         all_feedback = ut.ddict(list)
@@ -559,7 +556,7 @@ class NameRelabel(object):
         unknown_labels = ut.compress(unique_newlabels, still_unknown)
 
         new_flags = [n is None for n in new_names]
-        #     isinstance(n, six.string_types) and n.startswith('_extra_name')
+        #     isinstance(n, str) and n.startswith('_extra_name')
         #     for n in new_names
         # ]
         label_to_name = ut.dzip(unique_newlabels, new_names)
@@ -1028,7 +1025,7 @@ class AltConstructors(object):
             # )
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class AnnotInference(
     ut.NiceRepr,
     # Old internal stuffs
@@ -1174,7 +1171,7 @@ class AnnotInference(
         # wbia controller and initial nodes
         # TODO: aids can be abstracted as a property that simply looks at the
         # nodes in infr.graph.
-        if isinstance(ibs, six.string_types):
+        if isinstance(ibs, str):
             import wbia
 
             ibs = wbia.opendb(ibs)
@@ -1389,7 +1386,7 @@ class AnnotInference(
         infr.print('__init__ autoinit', level=1)
         if autoinit:
             infr.initialize_graph()
-            if isinstance(autoinit, six.string_types):
+            if isinstance(autoinit, str):
                 infr.reset_feedback(autoinit)
         infr.print('__init__ done', level=1)
 

@@ -4,7 +4,6 @@ import numpy as np
 import warnings
 import utool as ut
 import vtool as vt  # NOQA
-import six
 import networkx as nx
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
@@ -13,7 +12,7 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class GraphVisualization(object):
     """ contains plotting related code """
 

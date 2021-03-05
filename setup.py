@@ -246,7 +246,7 @@ KWARGS = OrderedDict(
     },
     packages=find_packages(),
     package_dir={'wbia': 'wbia'},
-    python_requires='>=3.6, <4',
+    python_requires='>=3.7, <4',
     include_package_data=True,
     # List of classifiers available at:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -266,9 +266,9 @@ KWARGS = OrderedDict(
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Utilities',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
     ],
     project_urls={  # Optional

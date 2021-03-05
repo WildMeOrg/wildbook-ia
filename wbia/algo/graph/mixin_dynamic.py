@@ -16,7 +16,6 @@ TODO:
 
 """
 import logging
-import six
 import numpy as np
 import utool as ut
 import itertools as it
@@ -753,8 +752,7 @@ class Consistency(object):
         else:
             unique_labels = {pos_graph.node_label(node) for node in graph.nodes()}
             ccs = (pos_graph.connected_to(node) for node in unique_labels)
-        for cc in ccs:
-            yield cc
+        yield from ccs
 
     def inconsistent_components(infr, graph=None):
         """
@@ -779,8 +777,8 @@ class Consistency(object):
                 yield cc
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _RedundancyComputers(object):
+@ut.reloadable_class
+class _RedundancyComputers(object):  # NOQA
     """
     methods for computing redundancy
 
@@ -981,22 +979,29 @@ class _RedundancyComputers(object):
     def find_pos_redun_nids(infr):
         """ recomputes infr.pos_redun_nids """
         for cc in infr.find_pos_redundant_pccs():
-            node = next(iter(cc))
+            try:
+                node = next(iter(cc))
+            except StopIteration:
+                return
             nid = infr.pos_graph.node_label(node)
             yield nid
 
     def find_neg_redun_nids(infr):
         """ recomputes edges in infr.neg_redun_metagraph """
         for cc in infr.consistent_components():
-            node = next(iter(cc))
+            try:
+                node = next(iter(cc))
+            except StopIteration:
+                return
             nid1 = infr.pos_graph.node_label(node)
             for nid2 in infr.find_neg_redun_nids_to(cc):
                 if nid1 < nid2:
                     yield nid1, nid2
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class Redundancy(_RedundancyComputers):
+
     """ methods for dynamic redundancy book-keeping """
 
     # def pos_redun_edge_flag(infr, edge):
@@ -1276,7 +1281,7 @@ class Redundancy(_RedundancyComputers):
         return prev_neg_nids
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class NonDynamicUpdate(object):
     @profile
     def apply_nondynamic_update(infr, graph=None):

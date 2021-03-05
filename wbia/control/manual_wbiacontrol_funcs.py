@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
 import vtool as vt

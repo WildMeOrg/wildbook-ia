@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 from wbia.guitool.__PYQT__ import QtCore, QtGui
 from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-import six
 import utool
 import sys
 import logging
-from six.moves import range
 from wbia.guitool.guitool_decorators import slot_
 from wbia.guitool import guitool_main
 import utool as ut
@@ -221,7 +219,7 @@ def get_view_selection_as_str(view):
 
     def astext(data):
         """ Helper which casts model data to a string """
-        if not isinstance(data, six.string_types):
+        if not isinstance(data, str):
             text = repr(data)
         else:
             text = str(data)

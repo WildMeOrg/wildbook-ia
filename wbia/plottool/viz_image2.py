@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from six.moves import zip, map
 import utool
 from . import draw_func2 as df2
 from wbia.plottool import custom_constants

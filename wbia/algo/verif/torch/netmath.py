@@ -3,7 +3,6 @@ import logging
 import utool as ut
 import numpy as np
 import vtool as vt
-import six
 import torch
 
 # from torch.autograd import Variable  # NOQA
@@ -118,7 +117,7 @@ class NetMathParams(object):
         Args:
             key_or_scheduler (str or func): scheduler name or the func itself
         """
-        if isinstance(key_or_scheduler, six.string_types):
+        if isinstance(key_or_scheduler, str):
             key = key_or_scheduler
             scheduler = getattr(cls, key)
         else:

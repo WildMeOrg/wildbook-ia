@@ -5,7 +5,6 @@ import pandas as pd
 import utool as ut
 import numpy as np
 import vtool as vt  # NOQA
-import six
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
@@ -13,7 +12,7 @@ print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class IBEISIO(object):
     """
     Direct interface into wbia tables and delta statistics
@@ -875,7 +874,7 @@ class IBEISIO(object):
         """
         import wbia
         import pandas as pd
-        from six.moves import reduce
+        from functools import reduce
         import operator as op
 
         # Ensure input is in the expected format
@@ -1020,7 +1019,7 @@ class IBEISIO(object):
         logger.info('____')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class IBEISGroundtruth(object):
     """
     Methods for generating training labels for classifiers

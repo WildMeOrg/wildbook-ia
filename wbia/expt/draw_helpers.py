@@ -3,7 +3,6 @@ import logging
 from os.path import join, dirname, split, basename, splitext
 import re
 import utool as ut
-from six.moves import map, range
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

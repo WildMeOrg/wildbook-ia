@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 import numpy as np
 import utool as ut
 import ubelt as ub
@@ -80,31 +79,25 @@ class InfrLoops(object):
         infr.init_refresh()
 
         infr.phase = 0
+        infr.print('Entering Phase 0', 1, color='red')
         # Phase 0.1: Ensure the user sees something immediately
         if infr.params['algo.quickstart']:
             infr.loop_phase = 'quickstart_init'
             # quick startup. Yield a bunch of random edges
             num = infr.params['manual.n_peek']
-            user_request = []
             for edge in ut.random_combinations(infr.aids, 2, num=num):
-                user_request += [infr._make_review_tuple(edge, None)]
-                yield user_request
+                yield infr._make_review_tuple(edge, None)
 
         if infr.params['algo.hardcase']:
             infr.loop_phase = 'hardcase_init'
             # Check previously labeled edges that where the groundtruth and the
             # verifier disagree.
-            for _ in infr.hardcase_review_gen():
-                yield _
+            yield from infr.hardcase_review_gen()
 
         if infr.params['inference.enabled']:
             infr.loop_phase = 'incon_recover_init'
             # First, fix any inconsistencies
-            try:
-                for _ in infr.incon_recovery_gen():
-                    yield _
-            except (StopIteration, RuntimeError):
-                pass
+            yield from infr.incon_recovery_gen()
 
         # Phase 0.2: Ensure positive redundancy (this is generally quick)
         # so the user starts seeing real work after one random review is made
@@ -112,24 +105,17 @@ class InfrLoops(object):
         if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
             infr.loop_phase = 'pos_redun_init'
             # Fix positive redundancy of anything within the loop
-            try:
-                for _ in infr.pos_redun_gen():
-                    yield _
-            except (StopIteration, RuntimeError):
-                pass
+            yield from infr.pos_redun_gen()
 
         infr.phase = 1
+        infr.print('Entering Phase 1', 1, color='red')
         if infr.params['ranking.enabled']:
             for count in it.count(0):
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
                 infr.loop_phase = 'ranking_{}'.format(count)
-                try:
-                    for _ in infr.ranked_list_gen(use_refresh):
-                        yield _
-                except (StopIteration, RuntimeError):
-                    pass
+                yield from infr.ranked_list_gen(use_refresh)
 
                 terminate = infr.refresh.num_meaningful == 0
                 if terminate:
@@ -137,14 +123,11 @@ class InfrLoops(object):
 
                 # Phase 2: Ensure positive redundancy.
                 infr.phase = 2
+                infr.print('Entering Phase 2', 1, color='red')
                 infr.loop_phase = 'posredun_{}'.format(count)
                 if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
                     # Fix positive redundancy of anything within the loop
-                    try:
-                        for _ in infr.pos_redun_gen():
-                            yield _
-                    except (StopIteration, RuntimeError):
-                        pass
+                    yield from infr.pos_redun_gen()
 
                 logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
                 logger.info(
@@ -162,26 +145,22 @@ class InfrLoops(object):
                     break
 
         infr.phase = 3
+        infr.print('Entering Phase 3', 1, color='red')
         # Phase 0.3: Ensure positive redundancy (this is generally quick)
         if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
             # Phase 3: Try to automatically acheive negative redundancy without
             # asking the user to do anything but resolve inconsistency.
-            infr.print('Entering phase 3', 1, color='red')
             infr.loop_phase = 'negredun'
-            try:
-                for _ in infr.neg_redun_gen():
-                    yield _
-            except (StopIteration, RuntimeError):
-                pass
+            yield from infr.neg_redun_gen()
 
         infr.phase = 4
-        infr.print('Terminate', 1, color='red')
+        infr.print('Phase 4 - Terminate', 1, color='red')
         infr.print('Exiting main loop')
 
         if infr.params['inference.enabled']:
             infr.assert_consistency_invariant()
 
-        return 'finished'
+        return
 
     def hardcase_review_gen(infr):
         """
@@ -237,8 +216,7 @@ class InfrLoops(object):
         # work around add_candidate_edges
         infr.prioritize(metric='hardness', edges=edges, scores=hardness)
         infr.set_edge_attrs('hardness', ut.dzip(edges, hardness))
-        for _ in infr._inner_priority_gen(use_refresh=False):
-            yield _
+        yield from infr._inner_priority_gen(use_refresh=False)
 
     def ranked_list_gen(infr, use_refresh=True):
         """
@@ -254,8 +232,7 @@ class InfrLoops(object):
             return
         if use_refresh:
             infr.refresh.clear()
-        for _ in infr._inner_priority_gen(use_refresh):
-            yield _
+        yield from infr._inner_priority_gen(use_refresh)
 
     def incon_recovery_gen(infr):
         """
@@ -276,8 +253,7 @@ class InfrLoops(object):
         infr.print('--- INCON RECOVER LOOP ---', color='white')
         infr.queue.clear()
         infr.add_candidate_edges(maybe_error_edges)
-        for _ in infr._inner_priority_gen(use_refresh=False):
-            yield _
+        yield from infr._inner_priority_gen(use_refresh=False)
 
     def pos_redun_gen(infr):
         """
@@ -302,21 +278,14 @@ class InfrLoops(object):
         def thread_gen():
             # This is probably not safe
             new_edges = infr.find_pos_redun_candidate_edges()
-            for new_edges in buffered_add_candidate_edges(infr, 50, new_edges):
-                yield new_edges
+            yield from buffered_add_candidate_edges(infr, 50, new_edges)
 
         def serial_gen():
             # use this if threading does bad things
-            if True:
-                new_edges = list(infr.find_pos_redun_candidate_edges())
-                if len(new_edges) > 0:
-                    infr.add_candidate_edges(new_edges)
-                    yield new_edges
-            else:
-                for new_edges in ub.chunks(infr.find_pos_redun_candidate_edges(), 100):
-                    if len(new_edges) > 0:
-                        infr.add_candidate_edges(new_edges)
-                        yield new_edges
+            new_edges = list(infr.find_pos_redun_candidate_edges())
+            if len(new_edges) > 0:
+                infr.add_candidate_edges(new_edges)
+                yield new_edges
 
         def filtered_gen():
             # Buffer one-vs-one scores in the background and present an edge to
@@ -363,9 +332,7 @@ class InfrLoops(object):
 
             for new_edges in filtered_gen():
                 found_any = True
-                gen = infr._inner_priority_gen(use_refresh=False)
-                for value in gen:
-                    yield value
+                yield from infr._inner_priority_gen(use_refresh=False)
 
             # logger.info('found_any = {!r}'.format(found_any))
             if not found_any:
@@ -395,9 +362,7 @@ class InfrLoops(object):
             infr.print('another neg redun chunk')
             # Add chunks in a little at a time for faster response time
             infr.add_candidate_edges(new_edges)
-            gen = infr._inner_priority_gen(use_refresh=False, only_auto=only_auto)
-            for value in gen:
-                yield value
+            yield from infr._inner_priority_gen(use_refresh=False, only_auto=only_auto)
 
     def _inner_priority_gen(infr, use_refresh=False, only_auto=False):
         """
@@ -474,8 +439,7 @@ class InfrLoops(object):
                         infr.add_feedback(edge, priority=priority, **feedback)
                     else:
                         # Yield to the user if we need to pause
-                        user_request = infr.emit_manual_review(edge, priority)
-                        yield user_request
+                        yield infr.emit_manual_review(edge, priority)
 
         if infr.metrics_list:
             infr._print_previous_loop_statistics(count)
@@ -500,7 +464,10 @@ class InfrLoops(object):
         raise RuntimeError()
         infr.start_id_review(max_loops=max_loops, use_refresh=use_refresh)
         # To automatically run through the loop just exhaust the generator
-        result = next(infr._gen)
+        try:
+            result = next(infr._gen)
+        except StopIteration:
+            pass
         assert result is None, 'need user interaction. cannot auto loop'
         infr._gen = None
 
@@ -608,13 +575,10 @@ class InfrReviewers(object):
         # The first is the most important
         user_request = []
         user_request += [infr._make_review_tuple(edge, priority)]
-        try:
-            for edge_, priority in infr.peek_many(infr.params['manual.n_peek']):
-                if edge == edge_:
-                    continue
-                user_request += [infr._make_review_tuple(edge_, priority)]
-        except TypeError:
-            pass
+        for edge_, priority in infr.peek_many(infr.params['manual.n_peek']):
+            if edge == edge_:
+                continue
+            user_request += [infr._make_review_tuple(edge_, priority)]
 
         # If registered, send the request via a callback.
         request_review = infr.callbacks.get('request_review', None)
@@ -650,30 +614,14 @@ class InfrReviewers(object):
         infr.print('continue_review', 10)
         if infr._gen is None:
             return None
-
-        hungry, finished, attempt = True, False, 0
-        while hungry:
-            user_request = None
-            try:
-                attempt += 1
-                with infr._gen_lock:
-                    user_request = next(infr._gen)
-                hungry = False
-            except (StopIteration, RuntimeError):
-                pass
-            if (
-                isinstance(user_request, str) and user_request in ['finished']
-            ) or attempt >= 100:
-                hungry = False
-                finished = True
-
-        if finished:
+        try:
+            user_request = next(infr._gen)
+        except StopIteration:
             review_finished = infr.callbacks.get('review_finished', None)
             if review_finished is not None:
                 review_finished()
             infr._gen = None
             user_request = None
-
         return user_request
 
     def qt_edge_reviewer(infr, edge=None):
@@ -726,7 +674,7 @@ if False:
 
     _sentinel = object()
 
-    class _background_consumer(Thread):
+    class _background_consumer(Thread):  # NOQA
         """
         Will fill the queue with content of the source in a separate thread.
 
@@ -775,7 +723,7 @@ if False:
             # Signal the consumer we are done.
             self._queue.put(_sentinel)
 
-    class buffered_add_candidate_edges(object):
+    class buffered_add_candidate_edges(object):  # NOQA
         """
         Buffers content of an iterator polling the contents of the given
         iterator in a separate thread.
@@ -788,10 +736,8 @@ if False:
         """
 
         def __init__(self, infr, size, source):
-            if six.PY2:
-                from Queue import Queue
-            else:
-                from queue import Queue
+            from queue import Queue
+
             self._queue = Queue(size)
 
             self._poller = _background_consumer(infr, self._queue, source)
@@ -804,7 +750,7 @@ if False:
         def __next__(self):
             item = self._queue.get(True)
             if item is _sentinel:
-                raise StopIteration()
+                return
             return item
 
         next = __next__

@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 # TODO: find unused functions and kill them
 import logging
-import six
 import copy
 import operator
 import utool as ut
 import vtool as vt
 import numpy as np
 import itertools as it
-from functools import partial
-from six import next
-from six.moves import zip, range, map, reduce
+from functools import partial, reduce
 from wbia.expt import cfghelpers
 from wbia.expt import experiment_helpers
 
@@ -248,7 +245,7 @@ def combine_testres_list(ibs, testres_list):
     return testres
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class TestResult(ut.NiceRepr):
     """
     CommandLine:
@@ -1024,7 +1021,7 @@ class TestResult(ut.NiceRepr):
                     op_prefixes = {
                         'sum': (np.sum, 'Σ-', ''),
                         'mean': (np.mean, 'µ-', ''),
-                        'set': (lambda x: '&'.join(set(map(six.text_type, x))), '', 's'),
+                        'set': (lambda x: '&'.join(set(map(str, x))), '', 's'),
                     }
                     known_modes = {
                         'dsize': 'mean',
@@ -1043,7 +1040,7 @@ class TestResult(ut.NiceRepr):
                         else:
                             op, pref, suff = op_prefixes[mode]
                             c = op(vals)
-                            if isinstance(c, six.string_types):
+                            if isinstance(c, str):
                                 new_acfg[pref + key + suff] = c
                             else:
                                 new_acfg[pref + key + suff] = ut.repr2(c, precision=2)
@@ -1579,12 +1576,12 @@ class TestResult(ut.NiceRepr):
         if verbose:
             logger.info('[testres] case_sample2')
 
-        if isinstance(filt_cfg, six.string_types):
+        if isinstance(filt_cfg, str):
             filt_cfg = [filt_cfg]
         if isinstance(filt_cfg, list):
             _combos = cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False)
             filt_cfg = ut.flatten(_combos)[0]
-        if isinstance(filt_cfg, six.string_types):
+        if isinstance(filt_cfg, str):
             _combos = cfghelpers.parse_cfgstr_list2([filt_cfg], strict=False)
             filt_cfg = ut.flatten(_combos)[0]
         if filt_cfg is None:
@@ -1893,7 +1890,7 @@ class TestResult(ut.NiceRepr):
                 )
 
         if index is not None:
-            if isinstance(index, six.string_types):
+            if isinstance(index, str):
                 index = ut.smart_cast(index, slice)
             _qx_list = ut.take(qx_list, index)
             _cfgx_list = ut.take(cfgx_list, index)

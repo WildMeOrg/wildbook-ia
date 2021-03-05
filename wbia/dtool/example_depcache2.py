@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import utool as ut
-from six.moves import zip
 
 from wbia.dtool.depcache_control import DependencyCache
 from wbia.dtool.example_depcache import DummyController

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
 import utool as ut
 from wbia.plottool import interact_helpers as ih
 import wbia.plottool as pt
@@ -405,7 +404,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             '[interact_query_decision] self.name_decision_callback = %r'
             % (self.name_decision_callback,)
         )
-        if isinstance(chosen_aids, six.string_types):
+        if isinstance(chosen_aids, str):
             # hack for string non-match commands
             chosen_names = chosen_aids
         else:

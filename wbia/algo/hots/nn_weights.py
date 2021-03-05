@@ -6,7 +6,6 @@ import vtool as vt
 import functools
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import _pipeline_helpers as plh
-from six.moves import zip, range, map  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -632,7 +631,6 @@ def all_normalized_weights_test():
         >>> all_normalized_weights_test()
     """
     from wbia.algo.hots import nn_weights
-    import six
 
     # ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()
 
@@ -662,7 +660,7 @@ def all_normalized_weights_test():
         assert np.all(weights1 == weights2)
         logger.info(nn_weight + ' passed')
 
-    for nn_weight in six.iterkeys(nn_weights.NN_WEIGHT_FUNC_DICT):
+    for nn_weight in nn_weights.NN_WEIGHT_FUNC_DICT.keys():
         normweight_key = nn_weight + '_fn'
         if normweight_key not in nn_weights.__dict__:
             continue

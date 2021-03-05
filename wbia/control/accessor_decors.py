@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-import six
 import utool as ut
-from six.moves import builtins
+import builtins
 from utool._internal.meta_util_six import get_funcname
 
 print, rrr, profile = ut.inject2(__name__)
@@ -313,7 +312,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                       signature. If this does not exist you should use None.
                       (default=None)
     """
-    colnames = [colnames] if isinstance(colnames, six.string_types) else colnames
+    colnames = [colnames] if isinstance(colnames, str) else colnames
 
     def closure_cache_invalidator(writer_func):
         """
@@ -326,7 +325,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
         def wrp_cache_invalidator(self, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
-            colnames_ = list(six.iterkeys(colscache_)) if colnames is None else colnames
+            colnames_ = list(colscache_.keys()) if colnames is None else colnames
             if DEBUG_API_CACHE:
                 indenter = ut.Indenter('[%s]' % (tblname,))
                 indenter.start()
@@ -346,7 +345,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                 for colname in colnames_:
                     kwargs_cache_ = colscache_[colname]
                     # We dont know the rowsids so clear everything
-                    for cache_ in six.itervalues(kwargs_cache_):
+                    for cache_ in kwargs_cache_.values():
                         cache_.clear()
             else:
                 rowid_list = args[rowidx]
@@ -354,7 +353,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                     kwargs_cache_ = colscache_[colname]
                     # We know the rowids to delete
                     # iterate over all getter kwargs values
-                    for cache_ in six.itervalues(kwargs_cache_):
+                    for cache_ in kwargs_cache_.values():
                         ut.delete_dict_keys(cache_, rowid_list)
 
             # Preform set/delete action

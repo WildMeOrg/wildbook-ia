@@ -33,7 +33,6 @@ Needed Tables:
 
 """
 import logging
-from six.moves import zip
 from wbia import dtool
 import utool as ut
 import numpy as np

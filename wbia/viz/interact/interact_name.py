@@ -15,7 +15,6 @@ CommandLine:
 import logging
 import numpy as np
 import utool as ut
-from six.moves import zip
 from wbia.plottool import interact_helpers as ih
 import functools
 import wbia.plottool as pt

@@ -78,7 +78,6 @@ import numpy as np  # NOQA
 
 from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS  # NOQA
 import utool as ut  # NOQA
-from utool.util_six import get_funcname  # NOQA
 import utool  # NOQA
 
 # from wbia.algo.hots import smk
@@ -405,7 +404,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
-            funcname = get_funcname(func)
+            funcname = ut.get_funcname(func)
             # with utool.Indenter('[dev.' + funcname + ']'):
             with utool.Timer(funcname):
                 # print('[dev] qid_list=%r' % (qaid_list,))

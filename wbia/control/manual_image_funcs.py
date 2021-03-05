@@ -27,7 +27,6 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from wbia.web import routes_ajax
-import six
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -537,21 +536,13 @@ def localize_images(ibs, gid_list_=None):
 
     """
     # from os.path import isabs
-    import six
     import requests
 
-    if six.PY2:
-        import urllib
-        import urlparse
+    import urllib
 
-        urlsplit = urlparse.urlsplit
-        urlquote = urllib.quote
-    else:
-        import urllib
-
-        urlsplit = urllib.parse.urlsplit
-        urlquote = urllib.parse.quote
-        urlunquote = urllib.parse.unquote
+    urlsplit = urllib.parse.urlsplit
+    urlquote = urllib.parse.quote
+    urlunquote = urllib.parse.unquote
 
     if gid_list_ is None:
         logger.info('WARNING: you are localizing all gids')
@@ -596,7 +587,6 @@ def localize_images(ibs, gid_list_=None):
                 uri_ = uri_._replace(path=uri_path)
                 uri_ = uri_.geturl()
                 try:
-                    # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
                     assert (
                         response.status_code == 200
@@ -606,7 +596,6 @@ def localize_images(ibs, gid_list_=None):
                     uri_ = uri_.strip('%s://' % (scheme,))
                     uri_path = urlquote(uri_.encode('utf8'))
                     uri_ = '%s://%s' % (scheme, uri_path)
-                    # six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
                     assert (
                         response.status_code == 200
@@ -1093,7 +1082,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
             bbox_list_.append(bbox_)
         ibs.set_annot_bboxes(aid_list, bbox_list_)
 
-    if isinstance(direction, six.string_types):
+    if isinstance(direction, str):
         direction = direction.lower()
 
     if direction in ['left', 'l', -1]:
@@ -1618,7 +1607,7 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
     """
     import hashlib
 
-    assert isinstance(algo, six.string_types)
+    assert isinstance(algo, str)
     algo = algo.lower()
     assert algo in ['md5', 'sha1', 'sha256', 'sha512']
 

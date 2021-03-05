@@ -13,10 +13,10 @@ from wbia.guitool import api_button_delegate
 from wbia.guitool import api_thumb_delegate
 from wbia.guitool import guitool_main
 from wbia.guitool import guitool_misc
-from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
 import operator
+from functools import reduce
 
 # Valid API Models
 from wbia.guitool.stripe_proxy_model import StripeProxyModel

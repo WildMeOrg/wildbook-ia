@@ -3,7 +3,6 @@ import logging
 from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
 import re
-import six
 import numpy as np
 import utool as ut
 import matplotlib as mpl
@@ -285,7 +284,7 @@ class DBInputs(object):
                     raise ValueError('Cannot find a way to draw ' + expt_name)
                 fpath = draw_func(*args)
                 if ut.get_argflag('--diskshow'):
-                    if isinstance(fpath, six.text_type):
+                    if isinstance(fpath, str):
                         ut.startfile(fpath)
                     elif fpath is not None:
                         fpath_list = fpath

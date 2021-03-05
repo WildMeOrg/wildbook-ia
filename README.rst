@@ -22,7 +22,7 @@ description, LNBNN identification using approximate nearest neighbors.
 Requirements
 ------------
 
-* Python 3.5+
+* Python 3.7+
 * OpenCV 3.4.10
 * Python dependencies listed in requirements.txt
 

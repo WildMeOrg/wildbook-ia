@@ -211,6 +211,7 @@ def new_wbia_query_request(
         else:
             unique_species_ = unique_species
         # </HACK>
+
         if query_cfg is None:
             cfg = ibs.cfg.query_cfg
         else:
@@ -218,7 +219,7 @@ def new_wbia_query_request(
 
         qparams = query_params.QueryParams(cfg, cfgdict)
         data_config2_ = qparams
-        #
+
         # <HACK>
         # MAKE A SECOND CONFIG FOR QUERIES AND DATABASE VECTORS ONLY
         # allow query and database annotations to have different feature configs
@@ -229,6 +230,7 @@ def new_wbia_query_request(
         else:
             query_config2_ = qparams
         # </HACK>
+
         _indexer_request_params = dict(use_memcache=use_memcache)
         qreq_ = QueryRequest.new_query_request(
             qaid_list,
@@ -582,7 +584,7 @@ class QueryRequest(ut.NiceRepr):
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.query_request import *  # NOQA
             >>> import wbia
-            >>> from six.moves import cPickle as pickle
+            >>> import pickle
             >>> qreq_ = wbia.testdata_qreq_()
             >>> qreq_dump = pickle.dumps(qreq_)
             >>> qreq2_ = pickle.loads(qreq_dump)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from six.moves import map
 from datetime import date
 import cv2
 

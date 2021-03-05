@@ -23,8 +23,6 @@ Ignore:
 
 """
 import logging
-from six.moves import zip
-import six
 
 try:
     from wbia import dtool as dt
@@ -34,7 +32,7 @@ import numpy as np
 import utool as ut
 
 # from wbia.plottool import colorfuncs
-from six.moves import reduce
+from functools import reduce
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -52,7 +50,7 @@ def dump_nx_ondisk(graph, fpath):
 
 def ensure_nonhex_color(orig_color):
     # TODO: move to ensure color
-    if isinstance(orig_color, six.string_types) and orig_color.startswith('#'):
+    if isinstance(orig_color, str) and orig_color.startswith('#'):
         hex_color = orig_color
         import matplotlib.colors as colors
 
@@ -229,9 +227,7 @@ def netx_draw_images_at_positions(
 
     # Ensure all images have been read
     img_list_ = [
-        vt.convert_colorspace(vt.imread(img), 'RGB')
-        if isinstance(img, six.string_types)
-        else img
+        vt.convert_colorspace(vt.imread(img), 'RGB') if isinstance(img, str) else img
         for img in img_list
     ]
     size_list_ = [
@@ -720,7 +716,7 @@ def apply_graph_layout_attrs(graph, layout_info):
 
     def noneish(v):
         isNone = v is None
-        isNoneStr = isinstance(v, six.string_types) and v.lower() == 'none'
+        isNoneStr = isinstance(v, str) and v.lower() == 'none'
         return isNone or isNoneStr
 
     for key, vals in layout_info['node'].items():
@@ -1808,11 +1804,11 @@ def draw_network2(
             headlabel = layout_info['edge'].get('headlabel', {}).get(edge, None)
             label = layout_info['edge'].get('label', {}).get(edge, None)
             # hack
-            if isinstance(taillabel, six.string_types) and taillabel == 'None':
+            if isinstance(taillabel, str) and taillabel == 'None':
                 taillabel = None
-            if isinstance(headlabel, six.string_types) and headlabel == 'None':
+            if isinstance(headlabel, str) and headlabel == 'None':
                 headlabel = None
-            if isinstance(label, six.string_types) and label == 'None':
+            if isinstance(label, str) and label == 'None':
                 label = None
             # ha = 'left'
             # ha = 'right'

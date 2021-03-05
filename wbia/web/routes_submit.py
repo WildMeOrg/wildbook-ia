@@ -11,7 +11,6 @@ from wbia.web.routes import THROW_TEST_AOI_REVIEWING
 import utool as ut
 import numpy as np
 import uuid
-import six
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -917,7 +916,7 @@ def submit_viewpoint3(**kwargs):
         else:
             # Get metadata
             viewpoint_str = kwargs.get('viewpoint-text-code', '')
-            if not isinstance(viewpoint_str, six.string_types) or len(viewpoint_str) == 0:
+            if not isinstance(viewpoint_str, str) or len(viewpoint_str) == 0:
                 viewpoint_str = None
 
             if viewpoint_str is None:

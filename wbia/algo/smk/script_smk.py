@@ -170,7 +170,6 @@ import numpy as np
 from wbia.algo.smk import inverted_index
 from wbia.algo.smk import smk_funcs
 from wbia.algo.smk import smk_pipeline
-from six.moves import zip, map
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

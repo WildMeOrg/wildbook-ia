@@ -9,7 +9,6 @@ import functools
 import copy
 import utool as ut
 import numpy as np
-import six
 from wbia.control import controller_inject
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -542,12 +541,13 @@ def expand_acfgs_consistently(
             qsize = len(expanded_aids[0])
             dsize = len(expanded_aids[1])
 
-            # <hack for float that should not interfere with other hacks
+            # <HACK>
+            # for float that should not interfere with other hacks
             if qcfg['sample_size'] != qsize:
                 qcfg['_orig_sample_size'] = qcfg['sample_size']
             if dcfg['sample_size'] != dsize:
                 dcfg['_orig_sample_size'] = dcfg['sample_size']
-            # /-->
+            # </HACK>
 
             if min_qsize is None:
                 qcfg['sample_size'] = qsize
@@ -986,7 +986,7 @@ def annot_crossval(
     #     try:
     #         g = list(freq.keys())[ut.argmax(list(freq.values()))]
     #         if freq[g] == 0:
-    #             raise StopIteration()
+    #            return
     #         group_idxs = group_to_idxs[g]
     #         group_to_idxs[g] = []
     #         freq[g] = 0
@@ -1374,7 +1374,7 @@ def filter_annots_independent(
 
             if isinstance(max_dt, (int, float)):
                 max_unixtime = max_dt
-            elif isinstance(max_dt, six.string_types):
+            elif isinstance(max_dt, str):
                 if max_dt == 'now':
                     max_dt = datetime.datetime.utcnow()
                 else:
@@ -1388,7 +1388,7 @@ def filter_annots_independent(
         # avail_aids = sorted(avail_aids)
 
     cfg_species = aidcfg.get('species')
-    if isinstance(cfg_species, six.string_types) and cfg_species.lower() == 'none':
+    if isinstance(cfg_species, str) and cfg_species.lower() == 'none':
         cfg_species = None
 
     metadata = ut.LazyDict(species=lambda: expand_species(ibs, cfg_species, None))
@@ -1461,7 +1461,7 @@ def filter_annots_independent(
             view = ibsfuncs.get_primary_species_viewpoint(metadata['species'], 1)
         else:
             view = aidcfg['view']
-        if isinstance(view, six.string_types) and view.lower() == 'none':
+        if isinstance(view, str) and view.lower() == 'none':
             view = None
         OLD = False
         if OLD:
@@ -2200,7 +2200,7 @@ def subindex_annots(
 
 @profile
 def ensure_flatiterable(input_):
-    if isinstance(input_, six.string_types):
+    if isinstance(input_, str):
         input_ = ut.fuzzy_int(input_)
     if isinstance(input_, int) or not ut.isiterable(input_):
         return [input_]

@@ -136,7 +136,7 @@ class QueryParams(collections.Mapping):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.query_params import *  # NOQA
-            >>> from six.moves import cPickle as pickle
+            >>> import pickle
             >>> cfgdict = {'pipeline_root': 'vsmany', 'sv_on': False, 'fg_on': True}
             >>> qparams = QueryParams(cfgdict=cfgdict)
             >>> qparams_dump = pickle.dumps(qparams)

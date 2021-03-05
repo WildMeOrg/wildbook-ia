@@ -10,7 +10,6 @@ from os.path import join
 import utool as ut
 import numpy as np
 import uuid
-from six.moves import zip
 
 from wbia.dtool import depcache_control
 from wbia import dtool

@@ -3,7 +3,6 @@ import logging
 import utool as ut
 import numpy as np
 import vtool as vt
-from six.moves import zip, map, range
 from scipy.spatial import distance
 import scipy.cluster.hierarchy
 import sklearn.cluster
