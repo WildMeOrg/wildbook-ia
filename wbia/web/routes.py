@@ -4683,7 +4683,20 @@ def review_identification_graph_refer(
             canonical_flag = canonical_dict.get(aid, False)
             canonical_flag_list.append(canonical_flag)
 
-        blacklist = [307, 332, 1091, 4988, 5277, 9174, 10456, 11968, 12217, 13975]
+        blacklist = [
+            307,
+            332,
+            1091,
+            2853,
+            4988,
+            5277,
+            9174,
+            10456,
+            11968,
+            12217,
+            12893,
+            13975,
+        ]
 
         aid_list_ = []
         zipped = list(
