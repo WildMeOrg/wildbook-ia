@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
+FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -12,8 +12,8 @@ USER root
 RUN set -ex \
  && apt update \
  && apt upgrade -y \
- && apt dist-upgrade -y \
- && apt install -y \
+ # && apt dist-upgrade -y \
+ && apt install -y --no-install-recommends \
         # Install build requirements
         ca-certificates \
         build-essential \
@@ -56,7 +56,7 @@ RUN set -ex \
  && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
  && sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
  && apt update \
- && apt install -y \
+ && apt install -y --no-install-recommends \
         pgloader \
  && apt clean \
  && apt autoclean \

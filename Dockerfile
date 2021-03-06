@@ -2,7 +2,7 @@
 # cnmem build stage
 #
 
-FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 AS cnmem-build
+FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04 AS cnmem-build
 # Install system dependencies
 RUN set -x \
     && apt-get update \
