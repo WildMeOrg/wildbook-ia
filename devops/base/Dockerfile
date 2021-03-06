@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -11,7 +11,7 @@ USER root
 # Install package updates and dependencies
 RUN set -ex \
  && apt update \
- && apt upgrade -y \
+ # && apt upgrade -y \
  # && apt dist-upgrade -y \
  && apt install -y --no-install-recommends \
         # Install build requirements
