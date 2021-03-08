@@ -104,12 +104,13 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     ibs_dst.ensure_contributor_rowids()
     ibs_src.fix_invalid_annotmatches()
     ibs_dst.fix_invalid_annotmatches()
+
     # Hack move of the external data
     if rowid_subsets is not None and const.IMAGE_TABLE in rowid_subsets:
-        gid_list = rowid_subsets[const.IMAGE_TABLE]
+        src_gid_list = rowid_subsets[const.IMAGE_TABLE]
     else:
-        gid_list = ibs_src.get_valid_gids()
-    imgpath_list = ibs_src.get_image_paths(gid_list)
+        src_gid_list = ibs_src.get_valid_gids()
+    imgpath_list = ibs_src.get_image_paths(src_gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
     if localize_images:
         ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
@@ -134,6 +135,60 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     ibs_dst.db.merge_databases_new(
         ibs_src.db, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets
     )
+
+    # Add ImageSets
+    blacklist_set = set(
+        [
+            'Reviewed Images',
+            'Exemplars',
+            '*Exemplars',
+            'All Images',
+            '*All Images',
+            '*Undetected Images',
+            '*Ungrouped Images',
+        ]
+    )
+
+    imageset_dict = {}
+    src_guuids = ibs_src.get_image_uuids(src_gid_list)
+    src_texts_list = ibs_src.get_image_imagesettext(src_gid_list)
+
+    for src_guuid, src_text_list in zip(src_guuids, src_texts_list):
+        current_set = imageset_dict.get(src_guuid, set([]))
+        src_text_set = set(src_text_list) - blacklist_set
+        src_text_set_ = set([])
+        for src_text in src_text_set:
+            src_text_ = '%s / %s' % (
+                ibs_src.dbname,
+                src_text,
+            )
+            src_text_set_.add(src_text_)
+        src_text_set = src_text_set_ | current_set
+        imageset_dict[src_guuid] = src_text_set
+
+    # Set all imagesets for merged databases
+    dst_guuids = list(imageset_dict.keys())
+    dst_gid_list = ibs_dst.get_image_gids_from_uuid(dst_guuids)
+    assert None not in dst_gid_list
+    dst_text_set_list = [list(imageset_dict[dst_guuid]) for dst_guuid in dst_guuids]
+    length_list = map(len, dst_text_set_list)
+    zipped = zip(dst_gid_list, length_list)
+    dst_gid_list = ut.flatten([[dst_gid] * length for dst_gid, length in zipped])
+    dst_text_list = ut.flatten(dst_text_set_list)
+    assert len(dst_gid_list) == len(dst_text_list)
+    ibs_dst.set_image_imagesettext(dst_gid_list, dst_text_list)
+
+    # Add imageset for Import
+    src_image_uuids = ibs_src.get_image_uuids(src_gid_list)
+    dst_gid_list = ibs_dst.get_image_gids_from_uuid(src_image_uuids)
+    assert None not in dst_gid_list
+    timestamp = ut.timestamp(format_='printable').split()[1]
+    imageset_text = 'Import from %s on %s' % (
+        ibs_src.dbname,
+        timestamp,
+    )
+    ibs_dst.set_image_imagesettext(dst_gid_list, [imageset_text] * len(dst_gid_list))
+
     logger.info(
         'FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname())
     )
