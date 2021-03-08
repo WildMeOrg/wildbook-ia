@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         # For speed, we choose one version and that should be the lowest common denominator
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8]
 
     steps:
       # Checkout and env setup
@@ -50,7 +50,7 @@ jobs:
       matrix:
         os: [ubuntu-latest] # Disable "macos-latest" for now
         # For speed, we choose one version and that should be the lowest common denominator
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8]
         postgres-uri: ['', 'postgresql://postgres:wbia@localhost:5432/postgres']
 
     services:
