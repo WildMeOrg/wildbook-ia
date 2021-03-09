@@ -912,7 +912,7 @@ class JobInterface(object):
         """
         Creates a ZMQ object in this thread. This talks to background processes.
         """
-        name = 'client_%s' % (jobiface.id_,)
+        name = 'client.%s' % (jobiface.id_,)
 
         if jobiface.verbose:
             print('Initializing JobInterface')
@@ -1268,7 +1268,7 @@ class JobInterface(object):
 
 
 def collect_queue_loop(port_dict):
-    name = 'collect_queue'
+    name = 'collect.queue'
     update_proctitle(name)
 
     interface_pull = port_dict['collect_pull']
@@ -1313,7 +1313,7 @@ def engine_queue_loop(port_dict, engine_lanes):
     # NAME: engine_queue
     print = partial(ut.colorprint, color='red')
 
-    name = 'engine_queue'
+    name = 'engine.queue'
     update_proctitle(name)
 
     interface_engine_pull = port_dict['engine_queue_pull']
@@ -1578,7 +1578,7 @@ def engine_lane_loop(port_dict, dbdir, containerized, engine_lanes, num_engines,
     # CALLED_FROM: engine_queue
     print = partial(ut.colorprint, color='red')
 
-    name = 'engine_lane_%s' % (lane,)
+    name = 'lane.%s' % (lane,)
     update_proctitle(name)
 
     def _check_engine_available(engine_procs, jobid):
@@ -1654,7 +1654,7 @@ def engine_lane_loop(port_dict, dbdir, containerized, engine_lanes, num_engines,
         # bind the client dealer to the queue router
         engine_receive_socket = ctx.socket(zmq.ROUTER)  # CHECK2 - REP
         engine_receive_socket.setsockopt_string(zmq.IDENTITY, '%s.ROUTER' % (name,))
-        engine_receive_socket.connect(interface_engine_pull)
+        engine_receive_socket.bind(interface_engine_pull)
         if VERBOSE_JOBS:
             print('bind %s = %r' % (name, interface_engine_pull))
 
@@ -1664,13 +1664,13 @@ def engine_lane_loop(port_dict, dbdir, containerized, engine_lanes, num_engines,
             engine_send_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
             engine_send_socket.setsockopt_string(
                 zmq.IDENTITY,
-                '%s_%s.DEALER'
+                '%s.%s.DEALER'
                 % (
                     name,
                     index,
                 ),
             )
-            engine_send_socket.bind(interface_engine_push_dict[index])
+            engine_send_socket.connect(interface_engine_push_dict[index])
             if VERBOSE_JOBS:
                 print(
                     'bind %s %s = %r' % (name, index, interface_engine_push_dict[index])
@@ -1701,21 +1701,16 @@ def engine_lane_loop(port_dict, dbdir, containerized, engine_lanes, num_engines,
                         engine_receive_socket, print=print
                     )
                     jobid = engine_request.get('jobid', None)
+                    lane_ = engine_request['lane']
+
+                    assert lane_ == lane
 
                     print('Received jobid = %s' % (jobid,))
 
-                    engine_index = None
+                    engine_index, jobid_ = None, None
                     while engine_index is None:
                         engine_index, jobid_ = _check_engine_available(
                             engine_procs, jobid
-                        )
-
-                        print(
-                            '%s %s'
-                            % (
-                                engine_index,
-                                jobid_,
-                            )
                         )
 
                         if jobid_ is not None:
@@ -1737,21 +1732,29 @@ def engine_lane_loop(port_dict, dbdir, containerized, engine_lanes, num_engines,
                     assert engine_jobid == jobid
                     assert engine_proc is not None
                     assert engine_proc.is_alive()
-                    time.sleep(20)
+                    time.sleep(10)
 
                     engine_send_socket = engine_send_socket_dict[engine_index]
                     interface_engine_push = interface_engine_push_dict[engine_index]
 
-                    print(
-                        'Sending via engine_send_socket    = %r' % (engine_send_socket,)
-                    )
-                    print(
-                        'Sending via interface_engine_push = %r'
-                        % (interface_engine_push,)
-                    )
-                    print('Sending via idents = %r' % (idents,))
+                    if VERBOSE_JOBS:
+                        print(
+                            'Sending via engine_send_socket    = %r'
+                            % (engine_send_socket,)
+                        )
+                        print(
+                            'Sending via interface_engine_push = %r'
+                            % (interface_engine_push,)
+                        )
+                        print('Sending via idents = %r' % (idents,))
+                        print('Sending via engine_index = %r' % (engine_index,))
+                        print('\tjobid = %r' % (jobid,))
+                        print('\tjobid_ = %r' % (jobid_,))
+                        print('\tlane = %r' % (lane,))
 
                     send_multipart_json(engine_send_socket, idents, engine_request)
+
+                    print('Sent! jobid = %r' % (jobid,))
 
                     if jobid is not None:
                         reply_notify = {
@@ -1803,7 +1806,7 @@ def engine_worker(id_, port_dict, dbdir, containerized, lane_, jobid_):
     # CALLED_FROM: engine_queue
     print = partial(ut.colorprint, color='brightgreen')
 
-    name = 'engine_worker_%s_%s' % (
+    name = 'worker.%s.%s' % (
         lane_,
         id_,
     )
@@ -1811,7 +1814,7 @@ def engine_worker(id_, port_dict, dbdir, containerized, lane_, jobid_):
 
     # base_print = print  # NOQA
     with ut.Indenter('[%s] ' % (name,)):
-        interface_engine_push = port_dict[
+        interface_engine_pull = port_dict[
             'engine_worker_%s_%s_push'
             % (
                 lane_,
@@ -1822,12 +1825,13 @@ def engine_worker(id_, port_dict, dbdir, containerized, lane_, jobid_):
 
         if VERBOSE_JOBS:
             print('Initializing %s engine %s' % (lane_, id_))
+            print('lane_ = %r' % (lane_,))
+            print('jobid_ = %r' % (jobid_,))
             print(
                 'connect engine_worker_%s_%s_push = %r'
-                % (lane_, id_, interface_engine_push)
+                % (lane_, id_, interface_engine_pull)
             )
 
-        print('0')
         collect_recieve_socket = ctx.socket(zmq.DEALER)
         print('1')
         collect_recieve_socket.setsockopt_string(
@@ -1837,11 +1841,13 @@ def engine_worker(id_, port_dict, dbdir, containerized, lane_, jobid_):
         collect_recieve_socket.connect(interface_collect_pull)
 
         print('3')
-        engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
+        engine_receive_socket = ctx.socket(zmq.ROUTER)  # CHECK2 - REP
         print('4')
-        engine_send_sock.setsockopt_string(zmq.IDENTITY, '%s.ROUTER' % (name,))
+        engine_receive_socket.setsockopt_string(zmq.IDENTITY, '%s.ROUTER' % (name,))
         print('5')
-        engine_send_sock.connect(interface_engine_push)
+        engine_receive_socket.connect(interface_engine_pull)
+        if VERBOSE_JOBS:
+            print('connect %s = %r' % (name, interface_engine_pull))
 
         print('6')
         # Notify engine worker ready
@@ -1853,35 +1859,45 @@ def engine_worker(id_, port_dict, dbdir, containerized, lane_, jobid_):
         }
         print('7')
         collect_recieve_socket.send_json(reply_notify)
+
+        poller = zmq.Poller()
+        poller.register(engine_receive_socket, zmq.POLLIN)
+
         print('8')
 
-        idents, engine_request = rcv_multipart_json(engine_send_sock, print=print)
-        print('9')
+        while True:
+            evts = dict(poller.poll())
+            print('evts = %r' % (evts))
+            if engine_receive_socket in evts:
 
-        engine_send_sock.disconnect(interface_engine_push)
-        print('10')
-        engine_send_sock.close()
-        print('11')
+                idents, engine_request = rcv_multipart_json(
+                    engine_receive_socket, print=print
+                )
+                print('9')
 
-        # Received request, open connection to WBIA
-        import wbia
+                poller.unregister(engine_receive_socket)
+                engine_receive_socket.disconnect(engine_receive_socket)
+                print('10')
+                engine_receive_socket.close()
+                print('11')
 
-        ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, daily_backup=False)
+                # Received request, open connection to WBIA
+                import wbia
 
-        # try:
-        #     import tensorflow as tf  # NOQA
-        #     from keras import backend as K  # NOQA
+                ibs = wbia.opendb(
+                    dbdir=dbdir, use_cache=False, web=False, daily_backup=False
+                )
 
-        #     config = tf.ConfigProto()
-        #     config.gpu_options.allow_growth = True
-        #     sess = tf.Session(config=config)
-        #     K.set_session(sess)
-        # except (ImportError, RuntimeError):
-        #     pass
+                # try:
+                #     import tensorflow as tf  # NOQA
+                #     from keras import backend as K  # NOQA
 
-        if VERBOSE_JOBS:
-            print('connect collect_pull = %r' % (interface_collect_pull,))
-            print('engine is initialized')
+                #     config = tf.ConfigProto()
+                #     config.gpu_options.allow_growth = True
+                #     sess = tf.Session(config=config)
+                #     K.set_session(sess)
+                # except (ImportError, RuntimeError):
+                #     pass
 
         try:
             while True:
@@ -1947,63 +1963,39 @@ def engine_worker(id_, port_dict, dbdir, containerized, lane_, jobid_):
                         % (jobid,)
                     )
 
-            engine_result = on_engine_request(ibs, jobid, action, args, kwargs)
-            exec_status = engine_result['exec_status']
+                    # CALLS: collector_store
+                    collect_recieve_socket.send_json(collect_request)
 
-            # Notify start working
-            reply_notify = {
-                # 'idents': idents,
-                'jobid': jobid,
-                'status': 'publishing',
-                'action': 'notification',
-            }
-            collect_recieve_socket.send_json(reply_notify)
+                    # Notify start working
+                    reply_notify = {
+                        # 'idents': idents,
+                        'jobid': jobid,
+                        'status': exec_status,
+                        'action': 'notification',
+                    }
+                    collect_recieve_socket.send_json(reply_notify)
 
-            # Store results in the collector
-            collect_request = {
-                # 'idents': idents,
-                'action': 'store',
-                'jobid': jobid,
-                'engine_result': engine_result,
-                'callback_url': callback_url,
-                'callback_method': callback_method,
-            }
-            # if VERBOSE_JOBS:
-            print('...done working. pushing result to collector for jobid %s' % (jobid,))
+                    # We no longer need the engine result, and can clear it's memory
+                    engine_request = None
+                    engine_result = None
+                    collect_request = None
+                except KeyboardInterrupt:
+                    print('Caught ctrl+c in engine loop. Gracefully exiting')
+                except Exception as ex:
+                    exec_status = 'died'
+                    reply_notify = {
+                        # 'idents': idents,
+                        'jobid': jobid,
+                        'status': exec_status,
+                        'action': 'notification',
+                    }
+                    collect_recieve_socket.send_json(reply_notify)
 
-            # CALLS: collector_store
-            collect_recieve_socket.send_json(collect_request)
-
-            # Notify start working
-            reply_notify = {
-                # 'idents': idents,
-                'jobid': jobid,
-                'status': exec_status,
-                'action': 'notification',
-            }
-            collect_recieve_socket.send_json(reply_notify)
-
-            # We no longer need the engine result, and can clear it's memory
-            engine_request = None
-            engine_result = None
-            collect_request = None
-        except KeyboardInterrupt:
-            print('Caught ctrl+c in engine loop. Gracefully exiting')
-        except Exception as ex:
-            exec_status = 'died'
-            reply_notify = {
-                # 'idents': idents,
-                'jobid': jobid,
-                'status': exec_status,
-                'action': 'notification',
-            }
-            collect_recieve_socket.send_json(reply_notify)
-
-            result = ut.formatex(ex, keys=['jobid'], tb=True)
-            result = ut.strip_ansi(result)
-            print_ = partial(ut.colorprint, color='brightred')
-            with ut.Indenter('[job engine worker error] '):
-                print_(result)
+                    result = ut.formatex(ex, keys=['jobid'], tb=True)
+                    result = ut.strip_ansi(result)
+                    print_ = partial(ut.colorprint, color='brightred')
+                    with ut.Indenter('[job engine worker error] '):
+                        print_(result)
 
         collect_recieve_socket.disconnect(interface_collect_pull)
         collect_recieve_socket.close()
@@ -2114,7 +2106,7 @@ def collector_loop(port_dict, dbdir, containerized):
 
     ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, daily_backup=False)
 
-    name = 'collector_loop'
+    name = 'collector'
     update_proctitle(name, dbname=ibs.dbname)
 
     with ut.Indenter('[%s] ' % (name,)):
