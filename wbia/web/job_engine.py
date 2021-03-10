@@ -83,7 +83,13 @@ ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
-NUM_ENGINES = 1 if ut.get_argflag('--serial-job-lanes') else 2
+NUM_DEFAULT_ENGINES = ut.get_argval('--engine-lane-workers', int, 2)
+NUM_SLOW_ENGINES = ut.get_argval('--engine-slow-lane-workers', int, NUM_DEFAULT_ENGINES)
+NUM_FAST_ENGINES = ut.get_argval('--engine-fast-lane-workers', int, NUM_DEFAULT_ENGINES)
+NUM_ENGINES = {
+    'slow': NUM_SLOW_ENGINES,
+    'fast': NUM_FAST_ENGINES,
+}
 # VERBOSE_JOBS = (
 #     ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 # )
@@ -473,7 +479,7 @@ class JobBackend(object):
         self.engine_lanes = [lane.lower() for lane in self.engine_lanes]
         assert 'slow' in self.engine_lanes
 
-        self.num_engines = {lane: NUM_ENGINES for lane in self.engine_lanes}
+        self.num_engines = {lane: NUM_ENGINES[lane] for lane in self.engine_lanes}
         self.engine_procs = None
         self.collect_queue_proc = None
         self.collect_proc = None
