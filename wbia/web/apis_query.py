@@ -1472,7 +1472,7 @@ def ensure_review_image_v2(
 def query_graph_v2_callback(graph_client, callback_type):
     from wbia.web.graph_server import ut_to_json_encode
 
-    assert callback_type in ['review', 'finished']
+    assert callback_type in ['review', 'finished', 'error']
     callback_tuple = graph_client.callbacks.get(callback_type, None)
     if callback_tuple is not None:
         callback_url, callback_method = callback_tuple
@@ -2089,13 +2089,16 @@ def query_graph_v2_latest_logs(future):
 def query_graph_v2_on_request_review(future):
     if not future.cancelled():
         graph_client = future.graph_client
-        data_list = future.result()
-        if data_list is not None:
-            graph_client.update(data_list)
-            callback_type = 'review'
-        else:
-            graph_client.update(None)
-            callback_type = 'finished'
+        try:
+            data_list = future.result()
+            if data_list is not None:
+                graph_client.update(data_list)
+                callback_type = 'review'
+            else:
+                graph_client.update(None)
+                callback_type = 'finished'
+        except ValueError:
+            callback_type = 'error'
         query_graph_v2_callback(graph_client, callback_type)
 
 
