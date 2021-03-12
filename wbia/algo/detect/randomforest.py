@@ -128,7 +128,7 @@ def train_gid_list(
                 train_neg_cpath_list.append(img_path)
     else:
         train_neg_cpath_list = ut.ls(negatives_cache, '*.JPEG')
-        # direct = Directory(negatives_cache, include_extensions=['JPEG'])
+        # direct = Directory(negatives_cache, include_file_extensions=['JPEG'])
         # train_neg_cpath_list = direct.files()
 
     # Train trees
@@ -378,7 +378,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
     # Load tree paths
     if ut.checkpath(trees_path, verbose=verbose):
         fpath_list = ut.ls(trees_path, '*.txt')
-        # direct = Directory(trees_path, include_extensions=['txt'])
+        # direct = Directory(trees_path, include_file_extensions=['txt'])
         # files = direct.files()
     else:
         # If the models do not exist, return None
