@@ -622,18 +622,19 @@ class InfrReviewers(object):
             infr.write_wbia_staging_feedback()
 
     def continue_review(infr):
-        infr.print('continue_review', 10)
-        if infr._gen is None:
-            return None
-        try:
-            user_request = next(infr._gen)
-        except StopIteration:
-            review_finished = infr.callbacks.get('review_finished', None)
-            if review_finished is not None:
-                review_finished()
-            infr._gen = None
-            user_request = None
-        return user_request
+        with infr._gen_lock:
+            infr.print('continue_review', 10)
+            if infr._gen is None:
+                return None
+            try:
+                user_request = next(infr._gen)
+            except StopIteration:
+                review_finished = infr.callbacks.get('review_finished', None)
+                if review_finished is not None:
+                    review_finished()
+                infr._gen = None
+                user_request = None
+            return user_request
 
     def qt_edge_reviewer(infr, edge=None):
         import wbia.guitool as gt
