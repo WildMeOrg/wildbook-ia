@@ -857,7 +857,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         result_list = table.get_row_data(rowids)
         if postprocess and hasattr(request, 'postprocess_execute'):
             logger.info('Converting results')
-            result_list = request.postprocess_execute(parent_rowids, result_list)
+            result_list = request.postprocess_execute(table, parent_rowids, result_list)
             pass
         return result_list
 
@@ -978,8 +978,9 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
 
         if postprocess and hasattr(request, 'postprocess_execute'):
             logger.info('Converting results')
-            result_list = request.postprocess_execute(parent_rowids, result_list)
-            pass
+            result_list = request.postprocess_execute(
+                table, parent_rowids, rowids, result_list
+            )
         return result_list
 
     def get_input_hashid(request):

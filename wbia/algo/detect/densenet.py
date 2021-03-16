@@ -63,6 +63,7 @@ ARCHIVE_URL_DICT = {
     'manta_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.manta_ray_giant.v2.zip',
     'seaturtle_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.seaturtle.v4.zip',
     'nassau_grouper_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v1.zip',
+    'nassau_grouper_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v2.zip',
     'spotted_dolphin_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.dolphin_spotted.v1.zip',
     'spotted_skunk_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v1.zip',
     'monk_seal_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.mediterranean_monk_seal.v0.zip',
