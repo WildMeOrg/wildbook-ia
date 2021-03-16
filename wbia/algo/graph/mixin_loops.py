@@ -65,104 +65,96 @@ class InfrLoops(object):
             >>>     except StopIteration:
             >>>         break
         """
-        try:
-            infr.print('Starting main loop', 1)
-            infr.print('infr.params = {}'.format(ut.repr3(infr.params)))
+        infr.print('Starting main loop', 1)
+        infr.print('infr.params = {}'.format(ut.repr3(infr.params)))
+        if max_loops is None:
+            max_loops = infr.params['algo.max_outer_loops']
             if max_loops is None:
-                max_loops = infr.params['algo.max_outer_loops']
-                if max_loops is None:
-                    max_loops = np.inf
+                max_loops = np.inf
 
-            if infr.test_mode:
-                logger.info('------------------ {} -------------------'.format(infr.name))
+        if infr.test_mode:
+            logger.info('------------------ {} -------------------'.format(infr.name))
 
-            # Initialize a refresh criteria
-            infr.init_refresh()
+        # Initialize a refresh criteria
+        infr.init_refresh()
 
-            infr.phase = 0
-            infr.print('Entering Phase 0', 1, color='red')
-            # Phase 0.1: Ensure the user sees something immediately
-            if infr.params['algo.quickstart']:
-                infr.loop_phase = 'quickstart_init'
-                # quick startup. Yield a bunch of random edges
-                num = infr.params['manual.n_peek']
-                for edge in ut.random_combinations(infr.aids, 2, num=num):
-                    yield infr._make_review_tuple(edge, None)
+        infr.phase = 0
+        infr.print('Entering Phase 0', 1, color='red')
+        # Phase 0.1: Ensure the user sees something immediately
+        if infr.params['algo.quickstart']:
+            infr.loop_phase = 'quickstart_init'
+            # quick startup. Yield a bunch of random edges
+            num = infr.params['manual.n_peek']
+            for edge in ut.random_combinations(infr.aids, 2, num=num):
+                yield infr._make_review_tuple(edge, None)
 
-            if infr.params['algo.hardcase']:
-                infr.loop_phase = 'hardcase_init'
-                # Check previously labeled edges that where the groundtruth and the
-                # verifier disagree.
-                yield from infr.hardcase_review_gen()
+        if infr.params['algo.hardcase']:
+            infr.loop_phase = 'hardcase_init'
+            # Check previously labeled edges that where the groundtruth and the
+            # verifier disagree.
+            yield from infr.hardcase_review_gen()
 
-            if infr.params['inference.enabled']:
-                infr.loop_phase = 'incon_recover_init'
-                # First, fix any inconsistencies
-                yield from infr.incon_recovery_gen()
+        if infr.params['inference.enabled']:
+            infr.loop_phase = 'incon_recover_init'
+            # First, fix any inconsistencies
+            yield from infr.incon_recovery_gen()
 
-            # Phase 0.2: Ensure positive redundancy (this is generally quick)
-            # so the user starts seeing real work after one random review is made
-            # unless the graph is already positive redundant.
-            if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
-                infr.loop_phase = 'pos_redun_init'
-                # Fix positive redundancy of anything within the loop
-                yield from infr.pos_redun_gen()
-        except StopIteration:
-            pass
+        # Phase 0.2: Ensure positive redundancy (this is generally quick)
+        # so the user starts seeing real work after one random review is made
+        # unless the graph is already positive redundant.
+        if infr.params['redun.enabled'] and infr.params['redun.enforce_pos']:
+            infr.loop_phase = 'pos_redun_init'
+            # Fix positive redundancy of anything within the loop
+            yield from infr.pos_redun_gen()
 
         infr.phase = 1
         infr.print('Entering Phase 1', 1, color='red')
         if infr.params['ranking.enabled']:
             for count in it.count(0):
-                try:
-                    infr.print('Outer loop iter %d ' % (count,))
+                infr.print('Outer loop iter %d ' % (count,))
 
-                    # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                # Phase 1: Try to merge PCCs by searching for LNBNN candidates
+                try:
                     infr.loop_phase = 'ranking_{}'.format(count)
                     yield from infr.ranked_list_gen(use_refresh)
-
-                    terminate = infr.refresh.num_meaningful == 0
-                    if terminate:
-                        infr.print('Triggered break criteria', 1, color='red')
-
-                    # Phase 2: Ensure positive redundancy.
-                    infr.phase = 2
-                    infr.print('Entering Phase 2', 1, color='red')
-                    infr.loop_phase = 'posredun_{}'.format(count)
-                    if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
-                        # Fix positive redundancy of anything within the loop
-                        yield from infr.pos_redun_gen()
-
-                    logger.info(
-                        'prob_any_remain = %r' % (infr.refresh.prob_any_remain(),)
-                    )
-                    logger.info(
-                        'infr.refresh.num_meaningful = {!r}'.format(
-                            infr.refresh.num_meaningful
-                        )
-                    )
-
-                    if (count + 1) >= max_loops:
-                        infr.print('early stop', 1, color='red')
-                        break
-
-                    if terminate:
-                        infr.print('break triggered')
-                        break
-                except StopIteration:
+                except AssertionError:
                     pass
 
-        try:
-            infr.phase = 3
-            infr.print('Entering Phase 3', 1, color='red')
-            # Phase 0.3: Ensure positive redundancy (this is generally quick)
-            if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
-                # Phase 3: Try to automatically acheive negative redundancy without
-                # asking the user to do anything but resolve inconsistency.
-                infr.loop_phase = 'negredun'
-                yield from infr.neg_redun_gen()
-        except StopIteration:
-            pass
+                terminate = infr.refresh.num_meaningful == 0
+                if terminate:
+                    infr.print('Triggered break criteria', 1, color='red')
+
+                # Phase 2: Ensure positive redundancy.
+                infr.phase = 2
+                infr.print('Entering Phase 2', 1, color='red')
+                infr.loop_phase = 'posredun_{}'.format(count)
+                if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_pos'])):
+                    # Fix positive redundancy of anything within the loop
+                    yield from infr.pos_redun_gen()
+
+                logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
+                logger.info(
+                    'infr.refresh.num_meaningful = {!r}'.format(
+                        infr.refresh.num_meaningful
+                    )
+                )
+
+                if (count + 1) >= max_loops:
+                    infr.print('early stop', 1, color='red')
+                    break
+
+                if terminate:
+                    infr.print('break triggered')
+                    break
+
+        infr.phase = 3
+        infr.print('Entering Phase 3', 1, color='red')
+        # Phase 0.3: Ensure positive redundancy (this is generally quick)
+        if all(ut.take(infr.params, ['redun.enabled', 'redun.enforce_neg'])):
+            # Phase 3: Try to automatically acheive negative redundancy without
+            # asking the user to do anything but resolve inconsistency.
+            infr.loop_phase = 'negredun'
+            yield from infr.neg_redun_gen()
 
         infr.phase = 4
         infr.print('Phase 4 - Terminate', 1, color='red')
