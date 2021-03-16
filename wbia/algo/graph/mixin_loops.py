@@ -413,9 +413,17 @@ class InfrLoops(object):
                 break
 
             # Try to automatically do the next review.
-            edge, priority = infr.peek()
-            infr.print('next_review. edge={}'.format(edge), 100)
+            try:
+                edge, priority = infr.peek()
+            except TypeError:
+                infr.print(
+                    'Nothing to peek',
+                    1,
+                    color='yellow',
+                )
+                break
 
+            infr.print('next_review. edge={}'.format(edge), 100)
             inconsistent = infr.is_recovering(edge)
 
             feedback = None
