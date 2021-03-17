@@ -1544,21 +1544,16 @@ def query_chips_graph_v2(
         >>> # Reset context
         >>> query_chips_graph_v2.__globals__['current_app'] = old
     """
-    from wbia.web.graph_server import GraphClient
 
     backend = backend.lower()
     if backend in ['graph_algorithm', 'graph', 'ga']:
-        from wbia.web.graph_server import GraphAlgorithmActor
-
-        backend_cls = GraphAlgorithmActor
+        from wbia.web.graph_server import GraphAlgorithmClient as GraphClient
     elif backend in ['lca', 'clusters']:
-        from wbia_lca._plugin import LCAActor
-
-        backend_cls = LCAActor
+        from wbia_lca._plugin import LCAClient as GraphClient
     else:
         raise NotImplementedError('Requested backend %r not supported' % (backend,))
 
-    logger.info('[apis_query] Creating GraphClient')
+    logger.info('[apis_query] Creating GraphAlgorithmClient')
 
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
@@ -1589,7 +1584,9 @@ def query_chips_graph_v2(
             'finished': (finished_callback_url, finished_callback_method),
         }
         graph_client = GraphClient(
-            graph_uuid, callbacks=callback_dict, autoinit=True, backend_cls=backend_cls
+            graph_uuid=graph_uuid,
+            callbacks=callback_dict,
+            autoinit=True,
         )
 
         if creation_imageset_rowid_list is not None:
@@ -2106,12 +2103,8 @@ def query_graph_v2_on_request_review(future):
         graph_client = future.graph_client
         try:
             data_list = future.result()
-            if data_list is not None:
-                graph_client.update(data_list)
-                callback_type = 'review'
-            else:
-                graph_client.update(None)
-                callback_type = 'finished'
+            finished = graph_client.update(data_list)
+            callback_type = 'finished' if finished else 'review'
         except ValueError:
             callback_type = 'error'
         query_graph_v2_callback(graph_client, callback_type)

@@ -163,7 +163,7 @@ class InfrLoops(object):
         if infr.params['inference.enabled']:
             infr.assert_consistency_invariant()
 
-        return
+        return 'finished:main'
 
     def hardcase_review_gen(infr):
         """
@@ -625,7 +625,7 @@ class InfrReviewers(object):
         with infr._gen_lock:
             infr.print('continue_review', 10)
             if infr._gen is None:
-                return None
+                return 'finished:stopped'
             try:
                 user_request = next(infr._gen)
             except StopIteration:
@@ -633,7 +633,7 @@ class InfrReviewers(object):
                 if review_finished is not None:
                     review_finished()
                 infr._gen = None
-                user_request = None
+                user_request = 'finished:stopiteration'
             return user_request
 
     def qt_edge_reviewer(infr, edge=None):
