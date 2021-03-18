@@ -414,6 +414,7 @@ def start_identify_annots_query(
     database_annot_uuid_list=None,
     # database_annot_name_uuid_list=None,
     database_annot_name_list=None,
+    database_imgsetid=None,
     matching_state_list=[],
     query_config_dict={},
     echo_query_params=True,
@@ -512,6 +513,16 @@ def start_identify_annots_query(
 
     dname_list = database_annot_name_list
     qname_list = query_annot_name_list
+
+    if database_imgsetid is not None:
+        all_imgsetids = set(ibs.get_valid_imgsetids())
+        if database_imgsetid not in all_imgsetids:
+            database_imgsetid = None
+
+    if database_imgsetid is not None:
+        assert database_annot_uuid_list is None
+        daid_list = ibs.get_imageset_aids(database_imgsetid)
+        database_annot_uuid_list = ibs.get_annot_uuids(daid_list)
 
     # Check inputs
     assert (

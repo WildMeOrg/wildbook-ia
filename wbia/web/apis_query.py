@@ -637,56 +637,68 @@ def review_query_chips_best(ibs, aid, database_imgsetid=None, **kwargs):
     scores = result['name_score_list']
     names = result['unique_name_list']
 
-    best_index = np.argmax(scores)
-    best_name = names[best_index]
-    best_nid = ibs.get_name_rowids_from_text(best_name)
-    best_sex = ibs.get_name_sex_text(best_nid)
-    best_age_list = ibs.get_name_age_months_est_min(best_nid)
-    best_age_list = [
-        int(best_age)
-        for best_age in best_age_list
-        if best_age is not None and isinstance(best_age, int)
-    ]
-    best_age = min(best_age_list)
-
-    if best_age in [0, 3, 6]:
-        best_age_str = 'Newborn'
-    elif best_age in [12]:
-        best_age_str = 'Yearling'
-    elif best_age in [24]:
-        best_age_str = '2-Year-Old'
-    elif best_age in [36]:
-        best_age_str = 'Adult'
+    if len(scores) == 0:
+        response = {
+            'name': None,
+            'sex': None,
+            'age': None,
+            'extern': {
+                'reference': None,
+                'qannot_uuid': None,
+                'dannot_uuid': None,
+            },
+        }
     else:
-        best_age_str = 'Unknown'
+        best_index = np.argmax(scores)
+        best_name = names[best_index]
+        best_nid = ibs.get_name_rowids_from_text(best_name)
+        best_sex = ibs.get_name_sex_text(best_nid)
+        best_age_list = ibs.get_name_age_months_est_min(best_nid)
+        best_age_list = [
+            int(best_age)
+            for best_age in best_age_list
+            if best_age is not None and isinstance(best_age, int)
+        ]
+        best_age = min(best_age_list)
 
-    # ut.embed()
-    dannot_score_list = result['annot_score_list']
-    dannot_uuid_list = result['dannot_uuid_list']
-    dannot_flag_list = result['dannot_extern_list']
-    daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
-    zipped = zip(dannot_score_list, daid_list, dannot_uuid_list, dannot_flag_list)
-    zipped = sorted(list(zipped), reverse=True)
+        if best_age in [0, 3, 6]:
+            best_age_str = 'Newborn'
+        elif best_age in [12]:
+            best_age_str = 'Yearling'
+        elif best_age in [24]:
+            best_age_str = '2-Year-Old'
+        elif best_age in [36]:
+            best_age_str = 'Adult'
+        else:
+            best_age_str = 'Unknown'
 
-    aid_set = set(ibs.get_name_aids(best_nid))
-    dannot_uuid = None
-    for item in zipped:
-        score, daid, dannot_uuid_local, flag = item
-        if flag and daid in aid_set:
-            dannot_uuid = dannot_uuid_local
-            break
-    assert dannot_uuid is not None
+        # ut.embed()
+        dannot_score_list = result['annot_score_list']
+        dannot_uuid_list = result['dannot_uuid_list']
+        dannot_flag_list = result['dannot_extern_list']
+        daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
+        zipped = zip(dannot_score_list, daid_list, dannot_uuid_list, dannot_flag_list)
+        zipped = sorted(list(zipped), reverse=True)
 
-    response = {
-        'name': best_name,
-        'sex': best_sex.title(),
-        'age': best_age_str,
-        'extern': {
-            'reference': result['dannot_extern_reference'],
-            'qannot_uuid': str(result['qannot_uuid']),
-            'dannot_uuid': str(dannot_uuid),
-        },
-    }
+        aid_set = set(ibs.get_name_aids(best_nid))
+        dannot_uuid = None
+        for item in zipped:
+            score, daid, dannot_uuid_local, flag = item
+            if flag and daid in aid_set:
+                dannot_uuid = dannot_uuid_local
+                break
+        assert dannot_uuid is not None
+
+        response = {
+            'name': best_name,
+            'sex': best_sex.title(),
+            'age': best_age_str,
+            'extern': {
+                'reference': result['dannot_extern_reference'],
+                'qannot_uuid': str(result['qannot_uuid']),
+                'dannot_uuid': str(dannot_uuid),
+            },
+        }
 
     return response
 
