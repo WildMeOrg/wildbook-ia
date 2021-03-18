@@ -4534,6 +4534,28 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
     return new_aid_list
 
 
+def gradient_magnitude(image_filepath):
+    import numpy as np
+    import cv2
+
+    try:
+        image = cv2.imread(image_filepath)
+        image = image.astype(np.float32)
+
+        sobelx = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+        sobely = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+        magnitude = np.sqrt(sobelx ** 2.0 + sobely ** 2.0)
+    except Exception:
+        magnitude = [-1.0]
+
+    result = {
+        'sum': np.sum(magnitude),
+        'mean': np.mean(magnitude),
+        'max': np.max(magnitude),
+    }
+    return result
+
+
 @register_route('/review/identification/graph/refer/', methods=['GET'])
 def review_identification_graph_refer(
     imgsetid, species=None, tier=1, year=2019, option=None, **kwargs
@@ -4683,46 +4705,72 @@ def review_identification_graph_refer(
             canonical_flag = canonical_dict.get(aid, False)
             canonical_flag_list.append(canonical_flag)
 
-        blacklist = [
-            307,
-            332,
-            1091,
-            2853,
-            3446,
-            4040,
-            4988,
-            5277,
-            9174,
-            10456,
-            11968,
-            12217,
-            12893,
-            13119,
-            13926,
-            13975,
-            14463,
-            14465,
-        ]
+        # junk_aids = []
+        # junk_qual = const.QUALITY_TEXT_TO_INT[const.QUAL_JUNK]
+        # ibs.set_annot_qualities(junk_aids, [junk_qual] * len(junk_aids))
 
-        aid_list_ = []
+        failed = {
+            'species[zebra_grevys]': 0,
+            'species->viewpoint[right*]': 0,
+            'species->viewpoint->quality[CA<=junk]': 0,
+            'species->viewpoint->quality[NCA<=poor]': 0,
+            'species->viewpoint->quality->aspect[3.0]': 0,
+            'species->viewpoint->quality->aspect->gradient[3.0]': 0,
+        }
+        svq_aid_list_ = []
         zipped = list(
             zip(aid_list, species_list, viewpoint_list, quality_list, canonical_flag_list)
         )
         for aid, species_, viewpoint_, quality_, canonical_ in zipped:
-            if aid in blacklist:
-                continue
             assert None not in [species_, viewpoint_, quality_]
             species_ = species_.lower()
             viewpoint_ = viewpoint_.lower()
             quality_ = int(quality_)
             if species_ != 'zebra_grevys':
+                failed['species[zebra_grevys]'] += 1
                 continue
             if 'right' not in viewpoint_:
+                failed['species->viewpoint[right*]'] += 1
                 continue
-            if not canonical_:
-                if quality_ <= 2:
-                    continue
-            aid_list_.append(aid)
+            quality_thresh_ = 0 if canonical_ else 2
+            if quality_ <= quality_thresh_:
+                failed_tag = 'CA<=junk' if canonical_ else 'NCA<=poor'
+                failed_str = 'species->viewpoint->quality[%s]' % (failed_tag,)
+                failed[failed_str] += 1
+                continue
+            svq_aid_list_.append(aid)
+
+        bbox_list = ibs.get_annot_bboxes(svq_aid_list_)
+        aspect_list = [min(h, w) / max(h, w) for xtl, ytl, w, h in bbox_list]
+        aspect_thresh = np.mean(aspect_list) - 3.0 * np.std(aspect_list)
+        globals().update(locals())
+        aspect_flag_list = [aspect >= aspect_thresh for aspect in aspect_list]
+        failed['species->viewpoint->quality->aspect[3.0]'] = len(aspect_flag_list) - sum(
+            aspect_flag_list
+        )
+        aspect_aid_list_ = ut.compress(svq_aid_list_, aspect_flag_list)
+
+        chips_paths_ = ibs.get_annot_chip_fpath(aspect_aid_list_)
+        arg_iter = list(zip(chips_paths_))
+        gradient_dict_list = ut.util_parallel.generate2(
+            gradient_magnitude, arg_iter, ordered=True
+        )
+        gradient_dict_list = list(gradient_dict_list)
+        gradient_mean_list = ut.take_column(gradient_dict_list, 'mean')
+        gradient_thresh = np.mean(gradient_mean_list) - 3.0 * np.std(gradient_mean_list)
+        globals().update(locals())
+        gradient_flag_list = [
+            gradient_mean >= gradient_thresh for gradient_mean in gradient_mean_list
+        ]
+        failed['species->viewpoint->quality->aspect->gradient[3.0]'] = len(
+            gradient_flag_list
+        ) - sum(gradient_flag_list)
+        gradient_aid_list_ = ut.compress(aspect_aid_list_, gradient_flag_list)
+
+        aid_list_ = list(set(gradient_aid_list_))
+        assert len(aid_list_) + sum(failed.values()) == len(aid_list)
+        logger.info('Using %d aids' % (len(aid_list_),))
+        logger.info('Failed %s' % (ut.repr3(failed),))
 
         aid_set_ = set(aid_list_)
         review_rowid_list = ibs._get_all_review_rowids()
@@ -4734,6 +4782,7 @@ def review_identification_graph_refer(
             review_flags.append(review_flag)
 
         delete_reviews = ut.compress(review_rowid_list, review_flags)
+        logger.info('Deleting %d reviews' % (len(delete_reviews),))
         ibs.delete_review(delete_reviews)
 
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
@@ -4760,43 +4809,6 @@ def review_identification_graph_refer(
         imageset_text = ibs.get_imageset_text(imgsetid).lower()
         annot_uuid_list = ibs.get_annot_uuids(aid_list_)
         return review_identification_graph(
-            annot_uuid_list=annot_uuid_list,
-            hogwild_species=species,
-            creation_imageset_rowid_list=[imgsetid],
-        )
-    elif option in ['census']:
-        # https://cthulhu.dyn.wildme.io:5004/turk/identification/graph/refer/?option=census&imgsetid=15&species=zebra_grevys
-
-        imgsetid_ = ibs.get_imageset_imgsetids_from_text('*All Images')
-
-        assert imgsetid == imgsetid_
-        assert species in ['zebra_grevys']
-
-        gid_list = ibs.get_imageset_gids(imgsetid)
-        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-
-        species_list = ibs.get_annot_species_texts(aid_list)
-        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-        quality_list = ibs.get_annot_qualities(aid_list)
-
-        aid_list_ = []
-        zipped = list(zip(aid_list, species_list, viewpoint_list, quality_list))
-        for aid, species_, viewpoint_, quality_ in zipped:
-            assert None not in [species_, viewpoint_, quality_]
-            species_ = species_.lower()
-            viewpoint_ = viewpoint_.lower()
-            quality_ = int(quality_)
-            if species_ != 'zebra_grevys':
-                continue
-            if 'right' not in viewpoint_:
-                continue
-            if quality_ < 3:
-                continue
-            aid_list_.append(aid)
-
-        imageset_text = ibs.get_imageset_text(imgsetid).lower()
-        annot_uuid_list = ibs.get_annot_uuids(aid_list_)
-        return turk_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],

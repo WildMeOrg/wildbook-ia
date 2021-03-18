@@ -29,26 +29,6 @@ register_route = controller_inject.get_wbia_flask_route(__name__)
 @register_api('/api/embed/', methods=['GET'])
 def web_embed(*args, **kwargs):
     ibs = current_app.ibs  # NOQA
-
-    if False:
-        from wbia.algo.graph.state import POSTV
-
-        payload = {
-            'action': 'update_task_thresh',
-            'task': 'match_state',
-            'decision': POSTV,
-            'value': 0.95,
-        }
-
-        for graph_uuid in current_app.GRAPH_CLIENT_DICT:
-            graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
-            if graph_client is None:
-                continue
-            if len(graph_client.futures) > 0:
-                continue
-            future = graph_client.post(payload)  # NOQA
-            # future.result()  # Guarantee that this has happened before calling refresh
-
     ut.embed()
 
 

@@ -1553,7 +1553,7 @@ def query_chips_graph_v2(
     else:
         raise NotImplementedError('Requested backend %r not supported' % (backend,))
 
-    logger.info('[apis_query] Creating GraphAlgorithmClient')
+    logger.info('[apis_query] Creating GraphClient')
 
     if annot_uuid_list is None:
         annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids())
@@ -1583,15 +1583,6 @@ def query_chips_graph_v2(
             'review': (review_callback_url, review_callback_method),
             'finished': (finished_callback_url, finished_callback_method),
         }
-        graph_client = GraphClient(
-            graph_uuid=graph_uuid,
-            callbacks=callback_dict,
-            autoinit=True,
-        )
-
-        if creation_imageset_rowid_list is not None:
-            graph_client.imagesets = creation_imageset_rowid_list
-        graph_client.aids = aid_list
 
         config = {
             'manual.n_peek': GRAPH_CLIENT_PEEK,
@@ -1601,8 +1592,18 @@ def query_chips_graph_v2(
             'algo.quickstart': False,
         }
         config.update(query_config_dict)
-        logger.info('[apis_query] graph_client.config = {}'.format(ut.repr3(config)))
-        graph_client.config = config
+        logger.info(
+            '[apis_query] graph_client.actor_config = {}'.format(ut.repr3(config))
+        )
+
+        graph_client = GraphClient(
+            aids=aid_list,
+            actor_config=config,
+            imagesets=creation_imageset_rowid_list,
+            graph_uuid=graph_uuid,
+            callbacks=callback_dict,
+            autoinit=True,
+        )
 
         # Ensure no race-conditions
         current_app.GRAPH_CLIENT_DICT[graph_uuid] = graph_client
@@ -1612,30 +1613,26 @@ def query_chips_graph_v2(
             'action': 'start',
             'dbdir': ibs.dbdir,
             'aids': graph_client.aids,
-            'config': graph_client.config,
+            'config': graph_client.actor_config,
         }
         future = graph_client.post(payload)
         future.result()  # Guarantee that this has happened before calling refresh
 
-        f2 = graph_client.post({'action': 'latest_logs'})
-        f2.graph_client = graph_client
-        f2.add_done_callback(query_graph_v2_latest_logs)
+        future = graph_client.post({'action': 'logs'})
+        future.graph_client = graph_client
+        future.add_done_callback(query_graph_v2_latest_logs)
 
-        # Start (create the Graph Inference object)
-        payload = {
-            'action': 'get_feat_extractor',
-        }
-        future = graph_client.post(payload)
-        graph_client.extr = future.result()
+        # Refresh metadata (place to store information provided by the actor)
+        graph_client.refresh_metadata()
 
         # Start main loop
         future = graph_client.post({'action': 'resume'})
         future.graph_client = graph_client
         future.add_done_callback(query_graph_v2_on_request_review)
 
-        f2 = graph_client.post({'action': 'latest_logs'})
-        f2.graph_client = graph_client
-        f2.add_done_callback(query_graph_v2_latest_logs)
+        future = graph_client.post({'action': 'logs'})
+        future.graph_client = graph_client
+        future.add_done_callback(query_graph_v2_latest_logs)
 
     return graph_uuid
 
@@ -1707,10 +1704,9 @@ def review_graph_match_config_v2(
     logger.info('Sampled edge %r with priority %0.02f' % args)
     logger.info('Data: ' + ut.repr4(data_dict))
 
+    extr_ = graph_client.metadata.get('extr', None)
     feat_extract_config = {
-        'match_config': (
-            {} if graph_client.extr is None else graph_client.extr.match_config
-        )
+        'match_config': {} if extr_ is None else extr_.match_config,
     }
     extr = pairfeat.PairwiseFeatureExtractor(ibs, config=feat_extract_config)
 
@@ -1885,7 +1881,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         ibs.set_annot_metadata([aid], [metadata_dict])
 
         payload = {
-            'action': 'remove_annots',
+            'action': 'remove_aids',
             'aids': [aid],
         }
     elif decision in ['excludeleft', 'excluderight']:
@@ -1897,12 +1893,12 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
         ibs.set_annot_metadata([aid], [metadata_dict])
 
         payload = {
-            'action': 'remove_annots',
+            'action': 'remove_aids',
             'aids': [aid],
         }
     else:
         payload = {
-            'action': 'add_feedback',
+            'action': 'feedback',
             'edge': edge,
             'evidence_decision': decision,
             # TODO: meta_decision should come from the html resp.  When generating
@@ -1930,9 +1926,9 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
     future.graph_client = graph_client
     future.add_done_callback(query_graph_v2_on_request_review)
 
-    f2 = graph_client.post({'action': 'latest_logs'})
-    f2.graph_client = graph_client
-    f2.add_done_callback(query_graph_v2_latest_logs)
+    future = graph_client.post({'action': 'logs'})
+    future.graph_client = graph_client
+    future.add_done_callback(query_graph_v2_latest_logs)
     return (
         annot_uuid_1,
         annot_uuid_2,
@@ -1948,8 +1944,8 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
 
     # Create the AnnotInference
     infr = wbia.AnnotInference(ibs=ibs, aids=graph_client.aids, autoinit=True)
-    for key in graph_client.config:
-        infr.params[key] = graph_client.config[key]
+    for key in graph_client.actor_config:
+        infr.params[key] = graph_client.actor_config[key]
     infr.reset_feedback('staging', apply=True)
 
     infr.relabel_using_reviews(rectify=True)
@@ -2030,7 +2026,7 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client.graph_uuid = graph_uuid_
 
     payload = {
-        'action': 'add_annots',
+        'action': 'add_aids',
         'dbdir': ibs.dbdir,
         'aids': aid_list,
     }
@@ -2059,7 +2055,7 @@ def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
     graph_client.graph_uuid = graph_uuid_
 
     payload = {
-        'action': 'remove_annots',
+        'action': 'remove_aids',
         'dbdir': ibs.dbdir,
         'aids': aid_list,
     }

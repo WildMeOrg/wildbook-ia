@@ -131,7 +131,7 @@ def testdata_start_payload(aids='all'):
 
 def _testdata_feedback_payload(edge, decision):
     payload = {
-        'action': 'add_feedback',
+        'action': 'feedback',
         'edge': edge,
         'evidence_decision': decision,
         'meta_decision': 'null',
@@ -161,10 +161,13 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     def handle(actor, message):
         if not isinstance(message, dict):
             raise ValueError('Commands must be passed in a message dict')
+
         message = message.copy()
         action = message.pop('action', None)
+
         if action is None:
             raise ValueError('Payload must have an action item')
+
         if action == 'wait':
             num = message.get('num', 0)
             time.sleep(num)
@@ -173,10 +176,6 @@ class GraphActor(GRAPH_ACTOR_CLASS):
             return actor
         elif action == 'error':
             raise Exception('FOOBAR')
-        elif action == 'latest_logs':
-            return actor.get_logs_latest()
-        elif action == 'logs':
-            return actor.get_logs()
         else:
             func = getattr(actor, action, None)
             if func is None:
@@ -206,135 +205,69 @@ class GraphActor(GRAPH_ACTOR_CLASS):
     def resume(actor):
         raise NotImplementedError()
 
-    def add_feedback(actor, **feedback):
+    def feedback(actor, **feedback):
         raise NotImplementedError()
 
-    def add_annots(actor, aids, **kwargs):
+    def add_aids(actor, aids, **kwargs):
         raise NotImplementedError()
 
-    def remove_annots(actor, aids, **kwargs):
+    def remove_aids(actor, aids, **kwargs):
         raise NotImplementedError()
 
-    def get_logs(actor):
+    def logs(actor):
         raise NotImplementedError()
 
-    def get_logs_latest(actor):
+    def status(actor):
         raise NotImplementedError()
 
-    def get_status(actor):
-        raise NotImplementedError()
-
-    # ##### HotSpotter ######
-
-    def get_feat_extractor(actor):
+    def metadata(actor):
         raise NotImplementedError()
 
 
 @ut.reloadable_class
 class GraphClient(object):
-    """
-    CommandLine:
-        python -m wbia.web.graph_server GraphClient
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from wbia.web.graph_server import *
-        >>> import wbia
-        >>> client = GraphClient(autoinit=True)
-        >>> # Start the GraphAlgorithmActor in another proc
-        >>> payload = testdata_start_payload()
-        >>> client.post(payload).result()
-        >>> f1 = client.post({'action': 'resume'})
-        >>> f1.add_done_callback(_test_foo)
-        >>> user_request = f1.result()
-        >>> # Wait for a response and  the GraphAlgorithmActor in another proc
-        >>> edge, priority, edge_data = user_request[0]
-        >>> user_resp_payload = _testdata_feedback_payload(edge, 'match')
-        >>> f2 = client.post(user_resp_payload)
-        >>> f2.result()
-        >>> # Debug by getting the actor over a mp.Pipe
-        >>> f3 = client.post({'action': 'debug'})
-        >>> actor = f3.result()
-        >>> actor.infr.dump_logs()
-        >>> #print(client.post({'action': 'logs'}).result())
-
-    # Ignore:
-    #     >>> from wbia.web.graph_server import *
-    #     >>> import wbia
-    #     >>> client = GraphClient(autoinit=True)
-    #     >>> # Start the GraphAlgorithmActor in another proc
-    #     >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
-    #     >>> #
-    #     >>> f1 = client.post({'action': 'resume'})
-    #     >>> user_request = f1.result()
-    #     >>> # The infr algorithm needs a review
-    #     >>> edge, priority, edge_data = user_request[0]
-    #     >>> #
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'wait', 'num': float(30)})
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
-    #     >>> client.post({'action': 'resume'})
-    """
 
     actor_cls = GraphActor
 
     def __init__(
         client,
+        aids,
+        actor_config={},
+        imagesets=None,
         graph_uuid=None,
         callbacks={},
         autoinit=False,
     ):
+        client.aids = aids
+        client.imagesets = imagesets
+        client.actor_config = actor_config
+        client.metadata = {}
+
         client.graph_uuid = graph_uuid
         client.callbacks = callbacks
         client.executor = None
 
         client.review_dict = {}
+        client.previous_review_vip = None
         client.review_vip = None
         client.futures = []
-
-        # Hack around the double review problem
-        client.prev_vip = None
 
         # Save status of the client (the status of the futures)
         client.status = 'Initialized'
         client.actor_status = None
         client.exception = None
 
-        client.aids = None
-        client.imagesets = None
-        client.config = None
-        client.extr = None
-
         if autoinit:
             client.initialize()
 
     def initialize(client):
-        logger.info('GraphClient using back-end GraphActor = %r' % (client.actor_cls,))
+        logger.info(
+            'GraphClient %r using backend GraphActor = %r'
+            % (
+                client,
+                client.actor_cls,
+            )
+        )
         client.executor = client.actor_cls.executor()
 
     def __del__(client):
@@ -357,7 +290,7 @@ class GraphClient(object):
 
         # Update graph_client actor status for all external calls
         payload_ = {
-            'action': 'get_status',
+            'action': 'status',
         }
         future_ = client.executor.post(payload_)
         client.futures.append((payload_['action'], future_))
@@ -372,19 +305,27 @@ class GraphClient(object):
             exception = None
             if future.done():
                 try:
-                    if action == 'get_status':
+                    if action == 'status':
                         latest_actor_status = future.result()
                     exception = future.exception()
                 except concurrent.futures.CancelledError:
                     pass
+
                 if exception is not None:
-                    new_futures.append((action, future))
+                    exception_str = str(exception)
+                    # Skip any errors that arise from database integrity errors
+                    logger.warning('Found exception future: %s' % (exception_str,))
+                    logger.warning('\taction: %r' % (action,))
+                    logger.warning('\tfuture: %r' % (future,))
+
+                    if 'sqlite3.IntegrityError' in exception_str:
+                        pass
+                    else:
+                        new_futures.append((action, future))
             else:
                 if future.running():
                     new_futures.append((action, future))
-                elif action == 'resume':
-                    future.cancel()
-                elif action == 'latest_logs':
+                elif action in ['resume', 'logs']:
                     future.cancel()
                 else:
                     new_futures.append((action, future))
@@ -418,7 +359,14 @@ class GraphClient(object):
             client.status = '%s (%d in Futures Queue)' % (status, num_futures)
         return client.status, client.exception
 
-    def add_annots(client):
+    def refresh_metadata(client):
+        payload = {
+            'action': 'metadata',
+        }
+        future = client.post(payload)
+        client.metadata = future.result()
+
+    def add_aids(client):
         raise NotImplementedError('not done yet')
 
     def update(client, data_list):
@@ -458,8 +406,7 @@ class GraphClient(object):
                     aid2,
                 )
                 if client.review_vip is None:
-                    # Hack around the double review problem
-                    if edge != client.prev_vip:
+                    if edge != client.previous_review_vip:
                         client.review_vip = edge
                 client.review_dict[edge] = (
                     priority,
@@ -497,7 +444,7 @@ class GraphClient(object):
                 if not found:
                     logger.info('SHOWING VIP TO USER!!!')
                     edge = client.review_vip
-                    client.prev_vip = edge
+                    client.previous_review_vip = edge
                     client.review_vip = None
                 else:
                     logger.info(
@@ -614,15 +561,15 @@ class GraphAlgorithmActor(GraphActor):
         user_request = actor.infr.resume()
         return user_request
 
-    def add_feedback(actor, **feedback):
+    def feedback(actor, **feedback):
         response = actor.infr.accept(feedback)
         return response
 
-    def add_annots(actor, aids, **kwargs):
-        actor.infr.add_annots(aids)
+    def add_aids(actor, aids, **kwargs):
+        actor.infr.add_aids(aids)
         return 'added'
 
-    def remove_annots(actor, aids, **kwargs):
+    def remove_aids(actor, aids, **kwargs):
         logger.info('Removing aids=%r from AnnotInference' % (aids,))
         response = actor.infr.remove_aids(aids)
         logger.info('\t got response = %r' % (response,))
@@ -631,13 +578,10 @@ class GraphAlgorithmActor(GraphActor):
         logger.info('\t ...applied')
         return 'removed'
 
-    def get_logs(actor):
-        return actor.infr.logs
+    def logs(actor):
+        return actor.infr.latest_logs(colored=True)
 
-    def get_logs_latest(actor):
-        actor.infr.latest_logs(colored=True)
-
-    def get_status(actor):
+    def status(actor):
         infr_status = {}
         try:
             infr_status['phase'] = actor.infr.phase
@@ -674,21 +618,85 @@ class GraphAlgorithmActor(GraphActor):
 
         return infr_status
 
-    def update_task_thresh(actor, task, decision, value, **kwargs):
-        logger.info(
-            'Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value)
-        )
-        actor.infr.task_thresh[task][decision] = value
-        logger.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh,))
-        return 'updated'
-
-    def get_feat_extractor(actor):
+    def metadata(actor):
         if actor.infr.verifiers is None:
             actor.infr.verifiers = {}
-        match_state_verifier = actor.infr.verifiers.get('match_state', None)
-        if match_state_verifier is not None:
-            return match_state_verifier.extr
+        verifier = actor.infr.verifiers.get('match_state', None)
+        extr = None if verifier is None else verifier.extr
+        metadata = {
+            'extr': extr,
+        }
+        return metadata
 
 
 class GraphAlgorithmClient(GraphClient):
+    """
+    CommandLine:
+        python -m wbia.web.graph_server GraphAlgorithmClient
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from wbia.web.graph_server import *
+        >>> import wbia
+        >>> client = GraphAlgorithmClient(autoinit=True)
+        >>> # Start the GraphAlgorithmActor in another proc
+        >>> payload = testdata_start_payload()
+        >>> client.post(payload).result()
+        >>> future = client.post({'action': 'resume'})
+        >>> future.add_done_callback(_test_foo)
+        >>> user_request = future.result()
+        >>> # Wait for a response and  the GraphAlgorithmActor in another proc
+        >>> edge, priority, edge_data = user_request[0]
+        >>> user_resp_payload = _testdata_feedback_payload(edge, 'match')
+        >>> future = client.post(user_resp_payload)
+        >>> future.result()
+        >>> # Debug by getting the actor over a mp.Pipe
+        >>> future = client.post({'action': 'debug'})
+        >>> actor = future.result()
+        >>> actor.infr.dump_logs()
+        >>> #print(client.post({'action': 'logs'}).result())
+
+    # Ignore:
+    #     >>> from wbia.web.graph_server import *
+    #     >>> import wbia
+    #     >>> client = GraphAlgorithmClient(autoinit=True)
+    #     >>> # Start the GraphAlgorithmActor in another proc
+    #     >>> client.post(testdata_start_payload(list(range(1, 10)))).result()
+    #     >>> #
+    #     >>> future = client.post({'action': 'resume'})
+    #     >>> user_request = future.result()
+    #     >>> # The infr algorithm needs a review
+    #     >>> edge, priority, edge_data = user_request[0]
+    #     >>> #
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'wait', 'num': float(30)})
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    #     >>> client.post(_testdata_feedback_payload(edge, 'match'))
+    #     >>> client.post({'action': 'resume'})
+    """
+
     actor_cls = GraphAlgorithmActor
