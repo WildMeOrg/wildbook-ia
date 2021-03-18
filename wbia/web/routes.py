@@ -1668,9 +1668,9 @@ def view_graphs(sync=False, **kwargs):
         graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid),)
         graph_uuid_str = graph_uuid_str.replace(': ', ':')
         graph_status, graph_exception = graph_client.refresh_status()
-        infr_status = graph_client.infr_status
-        if infr_status is None:
-            infr_status = {}
+        actor_status = graph_client.actor_status
+        if actor_status is None:
+            actor_status = {}
         if graph_exception is not None:
             import traceback
 
@@ -1683,18 +1683,18 @@ def view_graphs(sync=False, **kwargs):
             edge_list = list(graph_client.review_dict.keys())
             num_edges = len(edge_list)
         phase = 'Phase %s (%s)' % (
-            infr_status.get('phase', None),
-            infr_status.get('loop_phase', None),
+            actor_status.get('phase', None),
+            actor_status.get('loop_phase', None),
         )
         state = 0
-        if infr_status.get('is_inconsistent', False):
+        if actor_status.get('is_inconsistent', False):
             state = -1
-        elif infr_status.get('is_converged', False):
+        elif actor_status.get('is_converged', False):
             state = 1
         reviews = '%s (%s - %s)' % (
             num_edges,
-            infr_status.get('num_meaningful', None),
-            infr_status.get('num_pccs', None),
+            actor_status.get('num_meaningful', None),
+            actor_status.get('num_pccs', None),
         )
         graph = (
             graph_uuid,
@@ -5048,9 +5048,9 @@ def review_identification_graph(
                     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(
                         graph_uuid_
                     )
-                    infr_status = graph_client.infr_status
-                    if infr_status is not None:
-                        cc_status = infr_status.get('cc_status', {})
+                    actor_status = graph_client.actor_status
+                    if actor_status is not None:
+                        cc_status = actor_status.get('cc_status', {})
                         progress += cc_status.get('num_names_max', 0)
                 progress = int(progress)
 
@@ -5209,9 +5209,9 @@ def review_identification_graph(
 
         if progress is None:
             graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-            infr_status = graph_client.infr_status
-            if infr_status is not None:
-                cc_status = infr_status.get('cc_status', {})
+            actor_status = graph_client.actor_status
+            if actor_status is not None:
+                cc_status = actor_status.get('cc_status', {})
                 progress = cc_status.get('num_names_max', 0)
 
         alert = priority is not None and priority > 10.0

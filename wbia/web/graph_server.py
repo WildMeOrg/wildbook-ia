@@ -582,41 +582,41 @@ class GraphAlgorithmActor(GraphActor):
         return actor.infr.latest_logs(colored=True)
 
     def status(actor):
-        infr_status = {}
+        actor_status = {}
         try:
-            infr_status['phase'] = actor.infr.phase
+            actor_status['phase'] = actor.infr.phase
         except Exception:
             pass
         try:
-            infr_status['loop_phase'] = actor.infr.loop_phase
+            actor_status['loop_phase'] = actor.infr.loop_phase
         except Exception:
             pass
         try:
-            infr_status['is_inconsistent'] = len(actor.infr.nid_to_errors) > 0
+            actor_status['is_inconsistent'] = len(actor.infr.nid_to_errors) > 0
         except Exception:
             pass
         try:
-            infr_status['is_converged'] = actor.infr.phase == 4
+            actor_status['is_converged'] = actor.infr.phase == 4
         except Exception:
             pass
         try:
-            infr_status['num_meaningful'] = actor.infr.refresh.num_meaningful
+            actor_status['num_meaningful'] = actor.infr.refresh.num_meaningful
         except Exception:
             pass
         try:
-            infr_status['num_pccs'] = len(actor.infr.queue)
+            actor_status['num_pccs'] = len(actor.infr.queue)
         except Exception:
             pass
         try:
-            infr_status['num_inconsistent_ccs'] = len(actor.infr.nid_to_errors)
+            actor_status['num_inconsistent_ccs'] = len(actor.infr.nid_to_errors)
         except Exception:
             pass
         try:
-            infr_status['cc_status'] = actor.infr.connected_component_status()
+            actor_status['cc_status'] = actor.infr.connected_component_status()
         except Exception:
             pass
 
-        return infr_status
+        return actor_status
 
     def metadata(actor):
         if actor.infr.verifiers is None:
