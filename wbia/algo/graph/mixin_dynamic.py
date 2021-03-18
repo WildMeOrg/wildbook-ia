@@ -654,6 +654,93 @@ class Recovery(object):
             is_clean = True
         return (was_clean, is_clean)
 
+    def _reset_inconsistency_reviews(infr):
+        for nid in infr.nid_to_errors:
+            print('Cleaning up NID %s' % (nid,))
+            cc = infr.pos_graph.component(nid)
+            pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False).copy()
+            pos_edges = list(pos_subgraph.edges())
+            neg_edges = list(nxu.edges_inside(infr.neg_graph, cc))
+
+            pos_edges = sorted(
+                set([(n1, n2) if n1 < n2 else (n2, n1) for n1, n2 in pos_edges])
+            )
+            neg_edges = sorted(
+                set([(n1, n2) if n1 < n2 else (n2, n1) for n1, n2 in neg_edges])
+            )
+
+            edges = pos_edges + neg_edges
+            edges = sorted(set(edges))
+            aid_list_1, aid_list_2 = ut.take_column(edges, 0), ut.take_column(edges, 1)
+            reviews_list = infr.ibs.get_review_rowids_from_aid_tuple(
+                aid_list_1, aid_list_2
+            )
+            zipped = list(zip(edges, reviews_list))
+
+            keep_reviews = []
+            delete_reviews = []
+            skipped_edges = []
+            for edge, reviews in zipped:
+                assert reviews is not None
+                if len(reviews) == 0:
+                    skipped_edges.append(edge)
+                assert None not in reviews
+                reviews = sorted(reviews)
+                decisions = infr.ibs.get_review_decision_str(reviews)
+                # if len(set(decisions)) > 1:
+                #     print(edge, ut.dict_hist(decisions))
+                decision_dict = {}
+                for review, decision in zip(reviews, decisions):
+                    if decision not in decision_dict:
+                        decision_dict[decision] = []
+                    decision_dict[decision].append(review)
+                for key in decision_dict:
+                    reviews_ = decision_dict[key]
+                    assert len(reviews_) > 0
+                    keep_reviews += reviews_[-1:]
+                    delete_reviews += reviews_[:-1]
+            keep_reviews = sorted(list(set(keep_reviews)))
+            delete_reviews = sorted(list(set(delete_reviews)))
+            skipped_edges = sorted(list(set(skipped_edges)))
+
+            assert len(keep_reviews) + len(delete_reviews) == len(
+                ut.flatten(reviews_list)
+            )
+            assert len(set(keep_reviews) & set(delete_reviews)) == 0
+
+            decisions = infr.ibs.get_review_decision_str(keep_reviews)
+
+            flags = [decision in ['Positive', 'Unreviewed'] for decision in decisions]
+            keep_reviews_ = ut.compress(keep_reviews, flags)
+            keep_edges_ = sorted(set(infr.ibs.get_review_aid_tuple(keep_reviews_)))
+            assert len(set(pos_edges) - set(keep_edges_) - set(skipped_edges)) == 0
+
+            flags = [decision in ['Negative'] for decision in decisions]
+            keep_reviews_ = ut.compress(keep_reviews, flags)
+            keep_edges_ = sorted(set(infr.ibs.get_review_aid_tuple(keep_reviews_)))
+            assert len(set(neg_edges) - set(keep_edges_)) == 0
+
+            user_confidence = const.CONFIDENCE.UNKNOWN
+            globals().update(locals())
+            current_user_confidences = infr.ibs.get_review_user_confidence(keep_reviews)
+            flag_list = [
+                current_user_confidence != user_confidence
+                for current_user_confidence in current_user_confidences
+            ]
+            keep_reviews_ = ut.compress(keep_reviews, flag_list)
+
+            print('\tDeleting %d redundant reviews' % (len(delete_reviews),))
+            print(
+                '\tSetting %d reviews to unspecified confidence' % (len(keep_reviews_),)
+            )
+
+            infr.ibs.delete_review(delete_reviews)
+            infr.ibs._set_review_user_confidence(
+                keep_reviews_, [user_confidence] * len(keep_reviews_)
+            )
+
+            return nid
+
     def _mincut_edge_weights(infr, edges_):
         conf_gen = infr.gen_edge_values('confidence', edges_, default='unspecified')
         conf_gen = ['unspecified' if c is None else c for c in conf_gen]
@@ -1013,7 +1100,6 @@ class Redundancy(_RedundancyComputers):
     #     """ Quickly check if edge is flagged as neg redundant """
     #     nid1, nid2 = infr.pos_graph.node_labels(*edge)
     #     return infr.neg_redun_metagraph.has_edge(nid1, nid2)
-
     def is_flagged_as_redun(infr, edge):
         """
         Tests redundancy against bookkeeping structure against cache

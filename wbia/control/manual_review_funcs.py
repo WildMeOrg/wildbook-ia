@@ -103,6 +103,13 @@ def _set_review_uuids(ibs, review_rowid_list, review_uuid_list):
 
 
 @register_ibs_method
+def _set_review_user_confidence(ibs, review_rowid_list, user_confidence_list):
+    id_iter = ((review_rowid,) for review_rowid in review_rowid_list)
+    val_iter = ((user_confidence,) for user_confidence in user_confidence_list)
+    ibs.staging.set(const.REVIEW_TABLE, (REVIEW_USER_CONFIDENCE,), val_iter, id_iter)
+
+
+@register_ibs_method
 def get_review_rowid_from_superkey(
     ibs, aid_1_list, aid_2_list, count_list, eager=False, nInput=None
 ):

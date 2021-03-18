@@ -114,11 +114,8 @@ class InfrLoops(object):
                 infr.print('Outer loop iter %d ' % (count,))
 
                 # Phase 1: Try to merge PCCs by searching for LNBNN candidates
-                try:
-                    infr.loop_phase = 'ranking_{}'.format(count)
-                    yield from infr.ranked_list_gen(use_refresh)
-                except AssertionError:
-                    pass
+                infr.loop_phase = 'ranking_{}'.format(count)
+                yield from infr.ranked_list_gen(use_refresh)
 
                 terminate = infr.refresh.num_meaningful == 0
                 if terminate:
@@ -330,6 +327,15 @@ class InfrLoops(object):
         for count in it.count(0):
             infr.print('check pos-redun iter {}'.format(count))
             infr.queue.clear()
+
+            if count > 0 and count % 5 == 0:
+                nid = infr._reset_inconsistency_reviews()
+                infr.print(
+                    'Failed to fix inconsistency, reset reviews for NID = %r' % (nid,)
+                )
+                infr.reset_feedback('staging', apply=True)
+                infr.ensure_mst()
+                infr.apply_nondynamic_update()
 
             found_any = False
 
