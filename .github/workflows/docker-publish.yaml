@@ -16,7 +16,7 @@ jobs:
       matrix:
         images:
           - wildbook-ia
-          - wbia-base wbia-dependencies wbia-provision wbia
+            # - wbia-base wbia-dependencies wbia-provision wbia
 
     steps:
       - uses: actions/checkout@v2
