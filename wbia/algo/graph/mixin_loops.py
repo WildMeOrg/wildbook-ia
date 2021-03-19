@@ -328,14 +328,14 @@ class InfrLoops(object):
             infr.print('check pos-redun iter {}'.format(count))
             infr.queue.clear()
 
-            if count > 0 and count % 5 == 0:
-                nid = infr._reset_inconsistency_reviews()
-                infr.print(
-                    'Failed to fix inconsistency, reset reviews for NID = %r' % (nid,)
-                )
-                infr.reset_feedback('staging', apply=True)
-                infr.ensure_mst()
-                infr.apply_nondynamic_update()
+            # if count > 0 and count % 5 == 0:
+            #     nid = infr._reset_inconsistency_reviews()
+            #     infr.print(
+            #         'Failed to fix inconsistency, reset reviews for NID = %r' % (nid,)
+            #     )
+            #     infr.reset_feedback('staging', apply=True)
+            #     infr.ensure_mst()
+            #     infr.apply_nondynamic_update()
 
             found_any = False
 
