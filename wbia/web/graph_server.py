@@ -638,7 +638,7 @@ class GraphAlgorithmClient(GraphClient):
         >>> # ENABLE_DOCTEST
         >>> from wbia.web.graph_server import *
         >>> import wbia
-        >>> client = GraphAlgorithmClient(autoinit=True)
+        >>> client = GraphAlgorithmClient(aids='all', autoinit=True)
         >>> # Start the GraphAlgorithmActor in another proc
         >>> payload = testdata_start_payload()
         >>> client.post(payload).result()

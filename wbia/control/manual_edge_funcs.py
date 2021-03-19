@@ -165,8 +165,9 @@ def add_edge_weight(
         >>> aid_1_list = [1, 2, 3, 2]
         >>> aid_2_list = [2, 3, 4, 3]
         >>> value_list = [1, 0, 1, 2]
+        >>> identity_list = ['web:user'] * len(aid_1_list)
         >>> new_rowids = ibs.add_edge_weight(aid_1_list, aid_2_list,
-        >>>                             value_list)
+        >>>                             value_list, identity_list)
         >>> assert new_rowids == [1, 2, 3, 4]
         >>> table = ibs.staging.get_table_as_pandas('weights')
         >>> print(table)
