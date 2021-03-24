@@ -2100,10 +2100,11 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
 def query_graph_v2_latest_logs(future):
     if not future.cancelled():
         logs = future.result()
-        logger.info('--- <LOG DUMP> ---')
-        for msg, color in logs:
-            ut.cprint('[web.infr] ' + msg, color)
-        logger.info('--- <\\LOG DUMP> ---')
+        if logs is not None:
+            logger.info('--- <LOG DUMP> ---')
+            for msg, color in logs:
+                ut.cprint('[web.infr] ' + msg, color)
+            logger.info('--- <\\LOG DUMP> ---')
 
 
 def query_graph_v2_on_request_review(future):

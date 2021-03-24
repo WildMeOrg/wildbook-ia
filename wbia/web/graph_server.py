@@ -184,7 +184,6 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                 try:
                     return func(**message)
                 except Exception as ex:
-                    import sys
                     import traceback
 
                     traceback.print_exc()
@@ -196,8 +195,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                     else:
                         logger.info(ex)
                         logger.info(trace)
-
-                    raise sys.exc_info()[0](trace)
+                    raise
 
     def start(actor, dbdir, aids='all', config={}, **kwargs):
         raise NotImplementedError()
@@ -268,7 +266,7 @@ class GraphClient(object):
                 client.actor_cls,
             )
         )
-        client.executor = client.actor_cls.executor()
+        client.executor = client.actor_cls.executor(max_workers=1)
 
     def __del__(client):
         client.shutdown()
@@ -298,7 +296,9 @@ class GraphClient(object):
         return future
 
     def cleanup(client):
+        logger.info('GraphClient.cleanup')
         # remove done items from our list
+        logger.info('Current Futures: %r' % (client.futures,))
         latest_actor_status = None
         new_futures = []
         for action, future in client.futures:
@@ -330,6 +330,7 @@ class GraphClient(object):
                 else:
                     new_futures.append((action, future))
         client.futures = new_futures
+        logger.info('New Futures: %r' % (client.futures,))
         return latest_actor_status
 
     def refresh_status(client):
@@ -377,6 +378,7 @@ class GraphClient(object):
             client.review_dict = {}
         elif isinstance(data_list, str):
             logger.info('GRAPH CLIENT GOT FINISHED UPDATE')
+            client.review_dict = None
             client.refresh_status()
             assert client.status == 'Finished'
             assert 'finished' in data_list
@@ -384,7 +386,6 @@ class GraphClient(object):
                 client.status,
                 data_list,
             )
-            client.review_dict = None
             return True
         else:
             data_list = list(data_list)

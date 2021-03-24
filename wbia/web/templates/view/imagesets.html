@@ -65,7 +65,7 @@
               <td>{{ start }}</td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid }}">Review</a></td>
               <td><a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">Review</a></td>
-              <td><a href="{{ url_for('review_cameratrap') }}?imgsetid={{ imgsetid }}">Cameratrap</a> | <a href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}">Detections</a> | <a href="{{ url_for('review_annotation') }}?imgsetid={{ imgsetid }}">Annotations</a> | <a href="{{ url_for('review_demographics') }}?imgsetid={{ imgsetid }}">Demographics</a> | <a href="{{ url_for('review_identification_graph_refer') }}?imgsetid={{ imgsetid }}">Graph</a></td>
+              <td><a href="{{ url_for('review_cameratrap') }}?imgsetid={{ imgsetid }}">Cameratrap</a> | <a href="{{ url_for('review_detection') }}?imgsetid={{ imgsetid }}">Detections</a> | <a href="{{ url_for('review_annotation') }}?imgsetid={{ imgsetid }}">Annotations</a> | <a href="{{ url_for('review_demographics') }}?imgsetid={{ imgsetid }}">Demographics</a> | <a href="{{ url_for('review_identification_graph_refer') }}?imgsetid={{ imgsetid }}&backend=graph">GraphAlgorithm</a> | <a href="{{ url_for('review_identification_graph_refer') }}?imgsetid={{ imgsetid }}&backend=lca">LCA</a></td>
             </tr>
             {% endfor %}
           {% endif %}

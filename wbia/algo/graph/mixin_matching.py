@@ -751,7 +751,7 @@ class CandidateSearch(_RedundancyAugmentation):
     """ Search for candidate edges """
 
     @profile
-    def find_lnbnn_candidate_edges(infr):
+    def find_lnbnn_candidate_edges(infr, desired_states=[UNREV]):
         """
 
         Example:
@@ -786,7 +786,7 @@ class CandidateSearch(_RedundancyAugmentation):
         candidate_edges = {
             edge
             for edge, state in zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
-            if state == UNREV
+            if state in desired_states
         }
 
         infr.print(

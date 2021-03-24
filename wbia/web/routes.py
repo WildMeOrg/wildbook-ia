@@ -4859,6 +4859,7 @@ def review_identification_graph_refer(
             'threshold': 0.75,
             'enable_canonical': True,
         }
+        config.update(kwargs)
         return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
