@@ -325,10 +325,17 @@ class GraphClient(object):
             else:
                 if future.running():
                     new_futures.append((action, future))
-                elif action in ['resume', 'logs']:
+                elif action in ['status', 'resume', 'logs']:
                     future.cancel()
                 else:
                     new_futures.append((action, future))
+
+        payload_ = {
+            'action': 'status',
+        }
+        future_ = client.executor.post(payload_)
+        client.futures.append((payload_['action'], future_))
+
         client.futures = new_futures
         logger.info('New Futures: %r' % (client.futures,))
         return latest_actor_status

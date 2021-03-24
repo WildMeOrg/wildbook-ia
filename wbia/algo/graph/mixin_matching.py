@@ -751,7 +751,9 @@ class CandidateSearch(_RedundancyAugmentation):
     """ Search for candidate edges """
 
     @profile
-    def find_lnbnn_candidate_edges(infr, desired_states=[UNREV]):
+    def find_lnbnn_candidate_edges(
+        infr, desired_states=[UNREV], can_match_samename=False, can_match_sameimg=False
+    ):
         """
 
         Example:
@@ -774,8 +776,8 @@ class CandidateSearch(_RedundancyAugmentation):
                 'resize_dim': 'width',
                 'dim_size': 700,
                 'requery': True,
-                'can_match_samename': False,
-                'can_match_sameimg': False,
+                'can_match_samename': can_match_samename,
+                'can_match_sameimg': can_match_sameimg,
                 # 'sv_on': False,
             },
         )
