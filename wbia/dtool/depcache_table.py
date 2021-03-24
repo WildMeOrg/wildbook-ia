@@ -2933,7 +2933,8 @@ class DependencyCacheTable(
                 parent_ids, parent_args, config_rowid=cfgid, config=config
             )
             # Evaulate just to ensure storage
-            ut.evaluate_generator(dirty_params_iter)
+            for _ in dirty_params_iter:
+                pass
 
     def _recompute_and_store(self, tbl_rowids, config=None):
         """

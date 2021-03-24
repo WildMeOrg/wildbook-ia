@@ -860,7 +860,8 @@ def rf_probchips(ibs, aids, species, inputchip_fpaths, pad, smooth_thresh, smoot
         ibs, inputchip_fpaths, species, **rfconfig
     )
     # Evalutate genrator until completion
-    ut.evaluate_generator(probchip_generator)
+    for _ in probchip_generator:
+        pass
     # Read output of RF detector and crop the extra margin off of the new
     # probchips
     for fpath in temp_output_fpaths:
