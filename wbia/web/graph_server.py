@@ -330,12 +330,6 @@ class GraphClient(object):
                 else:
                     new_futures.append((action, future))
 
-        payload_ = {
-            'action': 'status',
-        }
-        future_ = client.executor.post(payload_)
-        new_futures.append((payload_['action'], future_))
-
         client.futures = new_futures
         logger.info('New Futures: %r' % (client.futures,))
         return latest_actor_status

@@ -792,8 +792,8 @@ class CandidateSearch(_RedundancyAugmentation):
         }
 
         infr.print(
-            'ranking alg found {}/{} unreviewed edges'.format(
-                len(candidate_edges), len(lnbnn_results)
+            'ranking alg found {}/{} {} edges'.format(
+                len(candidate_edges), len(lnbnn_results), desired_states
             ),
             1,
         )

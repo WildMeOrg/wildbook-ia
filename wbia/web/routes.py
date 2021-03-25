@@ -5262,7 +5262,9 @@ def review_identification_graph(
 
         review_rowid_list = ibs._get_all_review_rowids()
         identity_list = ibs.get_review_identity(review_rowid_list)
-        num_auto = identity_list.count('algo:auto_clf')
+        num_auto = sum(
+            [1 if identity.startswith('algo:') else 0 for identity in identity_list]
+        )
         num_manual = len(review_rowid_list) - num_auto
         match_data['Reviews'] = {
             'Auto': num_auto,
