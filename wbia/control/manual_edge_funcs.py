@@ -776,3 +776,52 @@ def set_edge_weight_metadata(ibs, weight_rowid_list, metadata_dict_list):
         metadata_str_list.append(metadata_str)
     val_list = ((metadata_str,) for metadata_str in metadata_str_list)
     ibs.staging.set(const.WEIGHT_TABLE, ('weight_metadata_json',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/edge/weight/metadata/', methods=['PUT'])
+def check_edge_weights(ibs, edges=None, max_auto=np.inf, max_human=np.inf):
+
+    if edges is None:
+        weight_rowid_list = ibs._get_all_edge_weight_rowids()
+    else:
+        weight_rowid_list = ibs.get_edge_weight_rowids_from_edges(edges)
+
+    weight_rowid_list = sorted(weight_rowid_list, reverse=True)
+    weight_edge_list = ibs.get_edge_weight_aid_tuple(weight_rowid_list)
+    weight_identity_list = ibs.get_edge_weight_identity(weight_rowid_list)
+
+    weight_edge_dict = {}
+    delete_weight_rowid_list = []
+    zipped = list(zip(weight_rowid_list, weight_edge_list, weight_identity_list))
+
+    for weight_rowid, weight_edge, weight_identity in zipped:
+        aid1, aid2 = weight_edge
+        assert aid1 < aid2
+        if weight_edge not in weight_edge_dict:
+            weight_edge_dict[weight_edge] = {
+                'auto': [],
+                'human': [],
+            }
+        if weight_identity.startswith('algo:'):
+            tag_ = 'auto'
+            max_ = max_auto
+        elif weight_identity.startswith('user:'):
+            tag_ = 'human'
+            max_ = max_human
+        else:
+            raise ValueError()
+
+        num_ = len(weight_edge_dict[weight_edge][tag_])
+        if num_ < max_:
+            weight_edge_dict[weight_edge][tag_].append(weight_rowid)
+        else:
+            delete_weight_rowid_list.append(weight_rowid)
+
+    args = (
+        len(delete_weight_rowid_list),
+        len(weight_rowid_list),
+    )
+    logger.info('Deleting %d / %d weights' % args)
+    ibs.delete_edge_weight(delete_weight_rowid_list)
