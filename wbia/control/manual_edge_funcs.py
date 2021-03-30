@@ -360,7 +360,7 @@ def get_edge_weight_rowids_from_aid_tuple(
 
 
 @register_ibs_method
-def get_edge_weight_rowids_between(ibs, aids1, aids2=None, method=None):
+def get_edge_weight_rowids_between(ibs, aids1, aids2=None, method=1):
     """
     Find staging rowids between sets of aids
 
@@ -378,6 +378,7 @@ def get_edge_weight_rowids_between(ibs, aids1, aids2=None, method=None):
     """
     if aids2 is None:
         aids2 = aids1
+
     if method is None:
         if len(aids1) * len(aids2) > 5000:
             method = 1
@@ -413,6 +414,7 @@ def get_edge_weight_rowids_between(ibs, aids1, aids2=None, method=None):
             rowids = ut.flatten(rowids)
     else:
         raise ValueError('no method=%r' % (method,))
+
     return rowids
 
 
@@ -781,12 +783,15 @@ def set_edge_weight_metadata(ibs, weight_rowid_list, metadata_dict_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/edge/weight/metadata/', methods=['PUT'])
-def check_edge_weights(ibs, edges=None, max_auto=np.inf, max_human=np.inf):
+def check_edge_weights(
+    ibs, weight_rowid_list=None, edges=None, max_auto=np.inf, max_human=np.inf
+):
 
-    if edges is None:
-        weight_rowid_list = ibs._get_all_edge_weight_rowids()
-    else:
-        weight_rowid_list = ibs.get_edge_weight_rowids_from_edges(edges)
+    if weight_rowid_list is None:
+        if edges is None:
+            weight_rowid_list = ibs._get_all_edge_weight_rowids()
+        else:
+            weight_rowid_list = ibs.get_edge_weight_rowids_from_edges(edges)
 
     weight_rowid_list = sorted(weight_rowid_list, reverse=True)
     weight_edge_list = ibs.get_edge_weight_aid_tuple(weight_rowid_list)

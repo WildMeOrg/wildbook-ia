@@ -325,7 +325,7 @@ class GraphClient(object):
             else:
                 if future.running():
                     new_futures.append((action, future))
-                elif action in ['status', 'resume', 'logs']:
+                elif action in ['resume', 'logs']:
                     future.cancel()
                 else:
                     new_futures.append((action, future))
@@ -463,6 +463,9 @@ class GraphClient(object):
         logger.info('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict
 
+    def sync(self, ibs):
+        raise NotImplementedError()
+
 
 class GraphAlgorithmActor(GraphActor):
     """
@@ -521,8 +524,9 @@ class GraphAlgorithmActor(GraphActor):
     def __init__(actor, *args, **kwargs):
         super(GraphAlgorithmActor, actor).__init__(*args, **kwargs)
         actor.infr = None
+        actor.graph_uuid = None
 
-    def start(actor, dbdir, aids='all', config={}, **kwargs):
+    def start(actor, dbdir, aids='all', config={}, graph_uuid=None, **kwargs):
         import wbia
 
         assert dbdir is not None, 'must specify dbdir'
@@ -532,6 +536,8 @@ class GraphAlgorithmActor(GraphActor):
         # Create the AnnotInference
         logger.info('starting via actor with ibs = %r' % (ibs,))
         actor.infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        actor.graph_uuid = graph_uuid
+
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
         # Configure query_annot_infr
@@ -702,3 +708,68 @@ class GraphAlgorithmClient(GraphClient):
     """
 
     actor_cls = GraphAlgorithmActor
+
+    def sync(self, ibs):
+        import wbia
+
+        # Create the AnnotInference
+        infr = wbia.AnnotInference(ibs=ibs, aids=self.aids, autoinit=True)
+        for key in self.actor_config:
+            infr.params[key] = self.actor_config[key]
+        infr.reset_feedback('staging', apply=True)
+
+        infr.relabel_using_reviews(rectify=True)
+        edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
+        name_delta_df = infr.get_wbia_name_delta()
+
+        ############################################################################
+
+        col_list = list(edge_delta_df.columns)
+        match_aid_edge_list = list(edge_delta_df.index)
+        match_aid1_list = ut.take_column(match_aid_edge_list, 0)
+        match_aid2_list = ut.take_column(match_aid_edge_list, 1)
+        match_annot_uuid1_list = ibs.get_annot_uuids(match_aid1_list)
+        match_annot_uuid2_list = ibs.get_annot_uuids(match_aid2_list)
+        match_annot_uuid_edge_list = list(
+            zip(match_annot_uuid1_list, match_annot_uuid2_list)
+        )
+
+        zipped = list(zip(*(list(edge_delta_df[col]) for col in col_list)))
+
+        match_list = []
+        for match_annot_uuid_edge, zipped_ in list(
+            zip(match_annot_uuid_edge_list, zipped)
+        ):
+            match_dict = {
+                'edge': match_annot_uuid_edge,
+            }
+            for index, col in enumerate(col_list):
+                match_dict[col] = zipped_[index]
+            match_list.append(match_dict)
+
+        ############################################################################
+
+        col_list = list(name_delta_df.columns)
+        name_aid_list = list(name_delta_df.index)
+        name_annot_uuid_list = ibs.get_annot_uuids(name_aid_list)
+        old_name_list = list(name_delta_df['old_name'])
+        new_name_list = list(name_delta_df['new_name'])
+        zipped = list(zip(name_annot_uuid_list, old_name_list, new_name_list))
+        name_dict = {
+            str(name_annot_uuid): {'old': old_name, 'new': new_name}
+            for name_annot_uuid, old_name, new_name in zipped
+        }
+
+        ############################################################################
+
+        ret_dict = {
+            'match_list': match_list,
+            'name_dict': name_dict,
+        }
+
+        infr.write_wbia_staging_feedback()
+        infr.write_wbia_annotmatch_feedback(edge_delta_df)
+        infr.write_wbia_name_assignment(name_delta_df)
+        edge_delta_df.reset_index()
+
+        return ret_dict
