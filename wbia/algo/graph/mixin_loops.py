@@ -339,9 +339,13 @@ class InfrLoops(object):
 
             found_any = False
 
-            for new_edges in filtered_gen():
-                found_any = True
-                yield from infr._inner_priority_gen(use_refresh=False)
+            try:
+                for new_edges in filtered_gen():
+                    found_any = True
+                    yield from infr._inner_priority_gen(use_refresh=False)
+            except StopIteration:
+                logger.info('StopIteration, found_any = {!r}'.format(found_any))
+                break
 
             # logger.info('found_any = {!r}'.format(found_any))
             if not found_any:
