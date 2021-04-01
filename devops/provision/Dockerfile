@@ -47,8 +47,7 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-lca.git
+ && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
 
 RUN set -ex \
  && cd /wbia \
@@ -75,6 +74,13 @@ RUN set -ex \
  && cd /wbia \
  && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-kaggle7.git \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git fetch origin \
+ && git checkout develop
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-lca.git \
+ && cd /wbia/wbia-plugin-lca/wbia_lca \
  && git fetch origin \
  && git checkout develop
 
