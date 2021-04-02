@@ -343,8 +343,10 @@ class InfrLoops(object):
                 for new_edges in filtered_gen():
                     found_any = True
                     yield from infr._inner_priority_gen(use_refresh=False)
-            except StopIteration:
-                logger.info('StopIteration, found_any = {!r}'.format(found_any))
+            except (RuntimeError, StopIteration):
+                logger.info(
+                    'StopIteration in pos_redun_gen, found_any = {!r}'.format(found_any)
+                )
                 break
 
             # logger.info('found_any = {!r}'.format(found_any))
