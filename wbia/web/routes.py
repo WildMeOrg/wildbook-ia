@@ -4558,7 +4558,13 @@ def gradient_magnitude(image_filepath):
 
 @register_route('/review/identification/graph/refer/', methods=['GET'])
 def review_identification_graph_refer(
-    imgsetid, species=None, tier=1, year=2019, option=None, **kwargs
+    imgsetid,
+    species=None,
+    tier=1,
+    year=2019,
+    option=None,
+    backend='graph_algorithm',
+    **kwargs,
 ):
     ibs = current_app.ibs
 
@@ -4792,6 +4798,7 @@ def review_identification_graph_refer(
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
             census=True,
+            backend=backend,
         )
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
@@ -4932,6 +4939,7 @@ def review_identification_graph(
     creation_imageset_rowid_list=None,
     kaia=False,
     census=False,
+    backend='graph_algorithm',
     **kwargs,
 ):
     """
@@ -5128,6 +5136,7 @@ def review_identification_graph(
                 annot_uuid_list=annot_uuid_list,
                 query_config_dict=query_config_dict,
                 creation_imageset_rowid_list=creation_imageset_rowid_list,
+                backend=backend,
                 **kwargs,
             )
 
