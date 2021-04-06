@@ -47,7 +47,8 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
+ && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git \
+ && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
 
 RUN set -ex \
  && cd /wbia \
@@ -137,6 +138,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-pie \
+ && /bin/bash run_developer_setup.sh'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-pie-v2 \
  && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
