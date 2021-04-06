@@ -443,6 +443,7 @@ def review_graph_match_html(
         'kaggle7',
         'kaggleseven',
         'pie',
+        'pietwo',
     ):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
@@ -575,6 +576,8 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {'pipeline_root': 'KaggleSeven'}
     elif 'use_pie' in request.args:
         query_config_dict = {'pipeline_root': 'Pie'}
+    elif 'use_pie_v2' in request.args:
+        query_config_dict = {'pipeline_root': 'PieTwo'}
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)

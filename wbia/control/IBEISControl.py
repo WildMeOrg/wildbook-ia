@@ -160,7 +160,7 @@ if ut.get_argflag('--pie'):
 
 if ut.get_argflag('--pie-v2'):
     AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-pie', '--nopie'), 'wbia_pie_v2._plugin'),
+        (('--no-pie-v2', '--nopiev2'), 'wbia_pie_v2._plugin'),
     ]
 
 
