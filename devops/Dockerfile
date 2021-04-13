@@ -4,7 +4,7 @@ ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
 FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.build
 
-# Grab latest code and remove all Git histories from code repositories
+# Grab latest code
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
@@ -23,9 +23,12 @@ RUN set -ex \
  && cd /wbia/wbia-plugin-orientation/ \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wildbook-ia/ \
- && git checkout develop \
- && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
- && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
+ && git checkout develop
+
+# # Remove all Git histories from code repositories
+# RUN set -ex \
+#  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
+#  && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
 
 ##########################################################################################
 
