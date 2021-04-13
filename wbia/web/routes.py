@@ -4589,6 +4589,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
             kaia=True,
         )
     elif ibs.dbname == 'NG_Feasability' or option in ['nassau']:
@@ -4632,6 +4633,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     elif ibs.dbname == 'SSKUNK_Master' or option in ['skunk']:
         species = 'skunk_spotted'
@@ -4672,6 +4674,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     elif option in ['census']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('*All Images')
@@ -4797,8 +4800,8 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
-            census=True,
             backend=backend,
+            census=True,
         )
     elif option in ['rosemary']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('RosemaryLoopsData')
@@ -4819,6 +4822,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     elif ibs.dbname == 'WD_Master' or option in ['wilddog']:
         imgsetid = 1
@@ -4853,6 +4857,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
@@ -4871,6 +4876,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
             **config,
         )
 
