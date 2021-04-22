@@ -76,6 +76,8 @@ ARCHIVE_URL_DICT = {
     'rightwhale_v5': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v5.zip',
     'snow_leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snow_leopard.v0.zip',
     'grey_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_grey.v0.zip',
+    'beluga_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v0.zip',
+    'seals_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v0.zip',
 }
 
 

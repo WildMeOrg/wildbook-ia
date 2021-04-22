@@ -440,6 +440,15 @@ SPECIES_WITH_DETECTORS = (
     'whale_humpback+fin_dorsal_front',
     'whale_pilot+fin_dorsal',
     'whale_beluga',
+    'beluga_whale',
+    'mediterranean_monk_seal',
+    'grey_seal',
+    'grey_seal_unknown',
+    'grey_seal_male',
+    'grey_seal_femaleyoung',
+    'grey_seal_pup',
+    'harbour_seal',
+    'hawaiian_monk_seal',
     # Latin (Flukebook)
     'chelonioidea',
     'chelonioidea+head',
@@ -483,6 +492,10 @@ SPECIES_WITH_DETECTORS = (
     'panthera_onca',
     'acinonyx_jubatus',
     'lycaon_pictus',
+    'monachus_monachus',
+    'phoca_vitulina',
+    'halichoerus_grypus',
+    'monachus_schauinslandi',
 )
 
 

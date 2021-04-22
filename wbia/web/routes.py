@@ -2025,7 +2025,7 @@ def view_names(**kwargs):
         nid_list = [
             None if nid_ == 'None' or nid_ == '' else int(nid_) for nid_ in nid_list
         ]
-    if len(aid) > 0:
+    elif len(aid) > 0:
         aid_list = aid.strip().split(',')
         aid_list = [
             None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list

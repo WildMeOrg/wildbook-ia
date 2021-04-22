@@ -211,6 +211,8 @@ def start_tornado(
                 logger_.setLevel(logging.INFO)
                 logger_.addHandler(utool_logfile_handler)
 
+        logging.basicConfig(level=logging.INFO)
+
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()
 

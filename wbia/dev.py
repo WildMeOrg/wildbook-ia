@@ -72,6 +72,7 @@ import logging  # NOQA
 
 root_logger = logging.getLogger()  # NOQA
 root_logger.setLevel(logging.INFO)  # NOQA
+logging.basicConfig(level=logging.INFO)  # NOQA
 
 import sys  # NOQA
 import numpy as np  # NOQA

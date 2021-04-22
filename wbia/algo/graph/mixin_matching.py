@@ -203,7 +203,7 @@ class AnnotInfrMatching(object):
         infr.graph.add_edges_from(edges)
         infr.apply_match_scores()
 
-    def _cm_breaking(infr, cm_list=None, review_cfg={}):
+    def _cm_breaking(infr, cm_list=None, review_cfg={}, scoring='annot'):
         """
         >>> from wbia.algo.graph.core import *  # NOQA
         >>> review_cfg = {}
@@ -218,6 +218,9 @@ class AnnotInfrMatching(object):
 
         if ranks_bot is None:
             ranks_bot = 0
+
+        scoring = scoring.lower()
+        assert scoring in ['annot', 'name']
 
         for count, cm in enumerate(cm_list):
             score_list = cm.annot_score_list
