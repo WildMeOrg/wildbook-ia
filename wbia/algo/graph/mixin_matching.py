@@ -755,7 +755,15 @@ class CandidateSearch(_RedundancyAugmentation):
 
     @profile
     def find_lnbnn_candidate_edges(
-        infr, desired_states=[UNREV], can_match_samename=False, can_match_sameimg=False
+        infr,
+        desired_states=[UNREV],
+        can_match_samename=False,
+        can_match_sameimg=False,
+        K=3,
+        Knorm=3,
+        prescore_method='csum',
+        score_method='csum',
+        sv_on=True,
     ):
         """
 
@@ -781,7 +789,11 @@ class CandidateSearch(_RedundancyAugmentation):
                 'requery': True,
                 'can_match_samename': can_match_samename,
                 'can_match_sameimg': can_match_sameimg,
-                # 'sv_on': False,
+                'K': K,
+                'Knorm': Knorm,
+                'sv_on': sv_on,
+                'prescore_method': prescore_method,
+                'score_method': score_method,
             },
         )
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
