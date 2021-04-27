@@ -933,6 +933,20 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     return metadata_rowid_list
 
 
+@register_api('/api/version/', methods=['GET'])
+def get_version(ibs):
+    r"""
+    Returns the version of wbia
+
+    RESTful
+        Method: GET
+        URL:    /api/version/
+    """
+    from wbia._version import __version__
+
+    return {'version': __version__}
+
+
 @register_api('/api/core/version/', methods=['GET'])
 def get_database_version_alias(ibs, db=None):
     r"""
