@@ -40,7 +40,7 @@ simply run:
 
 .. code:: bash
 
-    pip install wbia
+    pip install wildbook-ia
 
 to install the software. Then the command to run the GUI is:
 
