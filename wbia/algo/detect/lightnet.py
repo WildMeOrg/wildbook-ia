@@ -69,6 +69,7 @@ CONFIG_URL_DICT = {
     'wilddog_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.wild_dog.v0.py',
     'leopard_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard.v0.py',
     'cheetah_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.cheetah.v1.py',
+    'cheetah_v2': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.cheetah.v2.py',
     'hyaena_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.hyaena.v0.py',
     'kitsci_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.kitsci.v0.py',
     'monk_seal_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.mediterranean_monk_seal.v0.py',
