@@ -84,7 +84,8 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
     # Load image
     assert gpath is not None, 'image path should not be None'
-    image = vt.imread(gpath, orient='auto')
+    orient = ibs.get_image_orientation(rowid)
+    image = vt.imread(gpath, orient=orient)
     image = appf.resize_via_web_parameters(image)
     image = image[:, :, ::-1]
 

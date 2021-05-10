@@ -294,7 +294,7 @@ def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
 @register_ibs_method
 @accessor_decors.deleter
 # @register_api('/api/chip/', methods=['DELETE'])
-def delete_annot_chips(ibs, aid_list, config2_=None):
+def delete_annot_chips(ibs, aid_list, config2_=None, fallback=True):
     r"""
     Clears annotation data (does not remove the annotation)
 
@@ -309,6 +309,11 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
     # ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
     ibs.depc_annot.delete_property('chips', aid_list, config=config2_)
+
+    # Fallback
+    if fallback:
+        ibs.depc_annot.delete_property_all('chips', aid_list)
+
     return
 
 

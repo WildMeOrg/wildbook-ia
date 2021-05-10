@@ -59,7 +59,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
     if len(gid_list) > 0:
         args = (len(gid_list),)
         logger.info('Found %d images with non-standard orientations' % args)
-        aids_list = ibs.get_image_aids(gid_list, is_staged=None, __check_staged__=False)
+        aids_list = ibs.get_image_aids(gid_list, is_staged=None)
         size_list = ibs.get_image_sizes(gid_list)
         invalid_gid_list = []
         zipped = zip(gid_list, orient_list, aids_list, size_list)
@@ -97,9 +97,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
             )
             logger.info('Found %d / %d images with invalid annotations = %r' % args)
             orient_list = ibs.get_image_orientation(invalid_gid_list)
-            aids_list = ibs.get_image_aids(
-                invalid_gid_list, is_staged=None, __check_staged__=False
-            )
+            aids_list = ibs.get_image_aids(invalid_gid_list, is_staged=None)
             size_list = ibs.get_image_sizes(invalid_gid_list)
             zipped = zip(invalid_gid_list, orient_list, aids_list, size_list)
             for invalid_gid, orient, aid_list, (w, h) in zipped:

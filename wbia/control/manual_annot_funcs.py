@@ -850,16 +850,16 @@ def filter_annotation_set(
         aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     # filter by is_staged
-    if is_staged is True:
+    if is_staged is True or is_staged is None:
         # corresponding unoptimized hack for is_staged
         flag_list = ibs.get_annot_staged_flags(aid_list)
         aid_list = ut.compress(aid_list, flag_list)
-    elif is_staged is False:
+    elif is_staged is False or is_staged is None:
         flag_list = ibs.get_annot_staged_flags(aid_list)
         aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     # filter by is_canonical
-    if is_canonical is True:
+    if is_canonical is True or is_staged is None:
         flag_list = ibs.get_annot_canonical(aid_list)
         aid_list = ut.compress(aid_list, flag_list)
     elif is_canonical is False:
