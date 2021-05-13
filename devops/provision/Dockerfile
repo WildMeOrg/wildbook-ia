@@ -209,7 +209,7 @@ RUN set -ex \
         tensorboard-plugin-wit \
         keras \
  && /virtualenv/env3/bin/pip install \
-        'tensorflow-gpu==1.15.4' \
+        'tensorflow-gpu==1.15.5' \
         'keras==2.2.5' \
         'h5py<3.0.0' \
         'jedi==0.17.2' \
