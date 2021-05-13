@@ -407,6 +407,7 @@ def get_cnn_labeler_training_images_pytorch(
     min_examples=10,
     category_mapping=None,
     viewpoint_mapping=None,
+    flip_mapping=None,
     purge=True,
     strict=True,
     skip_rate=0.0,
@@ -436,6 +437,7 @@ def get_cnn_labeler_training_images_pytorch(
 
     logger.info('category mapping = %s' % (ut.repr3(category_mapping),))
     logger.info('viewpoint mapping = %s' % (ut.repr3(viewpoint_mapping),))
+    logger.info('flip mapping = %s' % (ut.repr3(flip_mapping),))
 
     # train_gid_set = ibs.get_valid_gids()
     if train_gid_set is None:
@@ -470,14 +472,24 @@ def get_cnn_labeler_training_images_pytorch(
     category_set = set(category_list)
 
     # Filter the tup_list based on the requested categories
-    tup_list = list(zip(aid_list, species_list, yaw_list))
-    old_len = len(tup_list)
-    tup_list = [
-        (aid, species, viewpoint_mapping.get(species, {}).get(yaw, yaw))
-        for aid, species, yaw in tup_list
-        if species in category_set
-    ]
+    data_list = list(zip(aid_list, species_list, yaw_list))
+    old_len = len(data_list)
+
+    tup_list = []
+    for aid, species, yaw in data_list:
+        if species in category_set:
+            viewpoint = viewpoint_mapping.get(species, {}).get(yaw, yaw)
+
+            flipped = random.uniform(0.0, 1.0) >= 0.5
+            flip_viewpoint = flip_mapping.get(viewpoint, None)
+            if flip_viewpoint is not None:
+                if flipped:
+                    viewpoint = flip_viewpoint
+
+            tup = (aid, species, viewpoint, flipped)
+            tup_list.append(tup)
     new_len = len(tup_list)
+
     logger.info('Filtered annotations: keep %d / original %d' % (new_len, old_len))
 
     # Skip any annotations that are of the wanted category and don't have a specified viewpoint
@@ -485,7 +497,7 @@ def get_cnn_labeler_training_images_pytorch(
     seen_dict = {}
     yaw_dict = {}
     for tup in tup_list:
-        aid, species, yaw = tup
+        aid, species, yaw, flipped = tup
         # Keep track of the number of overall instances
         if species not in seen_dict:
             seen_dict[species] = 0
@@ -546,8 +558,9 @@ def get_cnn_labeler_training_images_pytorch(
     skipped_seen = 0
     aid_list_ = []
     category_list_ = []
+    flipped_list_ = []
     for tup in tup_list:
-        aid, species, yaw = tup
+        aid, species, yaw, flipped = tup
         if species in valid_yaw_set:
             # If the species is valid, but this specific annotation has no yaw, skip it
             if yaw is None:
@@ -561,8 +574,10 @@ def get_cnn_labeler_training_images_pytorch(
             continue
         aid_list_.append(aid)
         category_list_.append(category)
-    logger.info('Skipped Yaw:  skipped %d / total %d' % (skipped_yaw, len(tup_list)))
-    logger.info('Skipped Seen: skipped %d / total %d' % (skipped_seen, len(tup_list)))
+        flipped_list_.append(flipped)
+    logger.info('Yaw:  skipped %d / total %d' % (skipped_yaw, len(tup_list)))
+    logger.info('Seen: skipped %d / total %d' % (skipped_seen, len(tup_list)))
+    logger.info('Flipped: %d / total %d' % (sum(flipped_list_), len(flipped_list_)))
 
     for category in sorted(set(category_list_)):
         logger.info('Making folder for %r' % (category,))
@@ -578,7 +593,9 @@ def get_cnn_labeler_training_images_pytorch(
 
     # Get training data
     label_list = []
-    for aid, chip, category in zip(aid_list_, chip_list_, category_list_):
+    for aid, chip, category, flipped in zip(
+        aid_list_, chip_list_, category_list_, flipped_list_
+    ):
 
         args = (aid,)
         logger.info('Processing AID: %r' % args)
@@ -599,6 +616,10 @@ def get_cnn_labeler_training_images_pytorch(
         )
         patch_filename = '%s_annot_aid_%s.png' % values
         patch_filepath = join(raw_path, patch_filename)
+
+        if flipped:
+            chip = cv2.flip(chip, 1)
+
         cv2.imwrite(patch_filepath, chip)
 
         # Compute label
