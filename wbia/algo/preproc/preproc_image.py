@@ -151,11 +151,16 @@ def parse_imageinfo(gpath):
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
     pil_img.close()
 
-    # Sanitize weird behavior and standardize EXIF orientation to 1
-    img = cv2.imread(gpath)  # OpenCV >= 3.1 supports EXIF tags, which will load correctly
-    assert img is not None
-    cv2.imwrite(gpath, img)
-    orient = 1
+    try:
+        # Sanitize weird behavior and standardize EXIF orientation to 1
+        img = cv2.imread(
+            gpath_
+        )  # OpenCV >= 3.1 supports EXIF tags, which will load correctly
+        assert img is not None
+        cv2.imwrite(gpath_, img)
+        orient = 1
+    except AssertionError:
+        return None
 
     # Parse out the data
     height, width = img.shape[:2]  # Read width, height
