@@ -776,7 +776,6 @@ def labeler_train(
     species_mapping=None,
     viewpoint_mapping=None,
     ensembles=3,
-    flip_lr=0.0,
     **kwargs,
 ):
     from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch

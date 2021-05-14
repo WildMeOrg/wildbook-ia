@@ -660,20 +660,43 @@ def check_image_uuid_consistency(ibs, gid_list=None):
 
 @register_ibs_method
 def check_image_loadable(ibs, gid_list=None):
+    from vtool.exif import (
+        ORIENTATION_DICT_INVERSE,
+        ORIENTATION_000,
+        ORIENTATION_UNDEFINED,
+    )
+
+    undefined = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
+    normal = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+
     logger.info('checking image loadable')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
 
     gpath_list = ibs.get_image_paths(gid_list)
-    orient_list = ibs.get_image_orientation(gid_list)
+    existing_orient_list = ibs.get_image_orientation(gid_list)
 
-    arg_iter = list(zip(gpath_list, orient_list))
+    arg_iter = list(zip(gpath_list, existing_orient_list))
     flag_list = ut.util_parallel.generate2(
         check_image_loadable_worker, arg_iter, futures_threaded=True
     )
     flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
     exif_list = ut.take_column(flag_list, 1)
+    new_orient_list = ut.take_column(flag_list, 2)
+
+    update_gid_list = []
+    update_orient_list = []
+    zipped = list(zip(gid_list, existing_orient_list, new_orient_list))
+    for gid, existing_orient, new_orient in zipped:
+        if existing_orient != new_orient:
+            if existing_orient == undefined and new_orient == normal:
+                # We are updating an undefined to a normal orient, no-op to prevent massive re-caching
+                continue
+            update_gid_list.append(gid)
+            update_orient_list.append(new_orient)
+    assert len(update_gid_list) == len(update_orient_list)
+    ibs._set_image_orientation(update_gid_list, update_orient_list)
 
     bad_loadable_list = ut.filterfalse_items(gid_list, loadable_list)
     bad_exif_list = ut.filterfalse_items(gid_list, exif_list)
@@ -681,12 +704,19 @@ def check_image_loadable(ibs, gid_list=None):
 
 
 def check_image_loadable_worker(gpath, orient):
-    loadable, exif = True, True
+    from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_000
+
+    normal = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+
+    loadable, exif, orient = True, True, orient
     try:
         img = cv2.imread(gpath)
         assert img is not None
-        # Sanitize weird behavior
+
+        # Sanitize weird behavior and standardize EXIF orientation to 1
         cv2.imwrite(gpath, img)
+        orient = normal
+
         img = Image.open(gpath, 'r')
         assert img is not None
         img.close()
@@ -701,7 +731,7 @@ def check_image_loadable_worker(gpath, orient):
         assert img is not None
     except Exception:
         exif = False
-    return loadable, exif
+    return loadable, exif, orient
 
 
 @register_ibs_method

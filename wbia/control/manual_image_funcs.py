@@ -1041,7 +1041,7 @@ def _set_image_sizes(ibs, gid_list, width_list, height_list):
 
 @register_ibs_method
 @accessor_decors.setter
-def _set_image_orientation(ibs, gid_list, orientation_list):
+def _set_image_orientation(ibs, gid_list, orientation_list, clean_derivatives=True):
     r"""
     RESTful:
         Method: PUT

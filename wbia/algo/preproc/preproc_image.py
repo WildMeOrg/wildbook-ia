@@ -55,6 +55,7 @@ def parse_imageinfo(gpath):
     from PIL import Image
     import tempfile
     import requests
+    import cv2
 
     import urllib
 
@@ -125,11 +126,6 @@ def parse_imageinfo(gpath):
             else:
                 temp_file, temp_filepath = None, None
                 gpath_ = gpath
-
-            # Open image with Exif support
-            pil_img = Image.open(gpath_, 'r')
-            # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
-            image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except (
             AssertionError,
             IOError,
@@ -149,12 +145,24 @@ def parse_imageinfo(gpath):
             #     warnstr = warnings.formatwarning
             #     logger.info(warnstr)
             logger.info('%d warnings issued by %r' % (len(w), gpath))
-    # Parse out the data
-    width, height = pil_img.size  # Read width, height
+
+    # Open image with EXIF support to get time, GPS, and the original orientation
+    pil_img = Image.open(gpath_, 'r')
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
     pil_img.close()
-    if orient in [6, 8]:
-        width, height = height, width
+
+    # Sanitize weird behavior and standardize EXIF orientation to 1
+    img = cv2.imread(gpath)  # OpenCV >= 3.1 supports EXIF tags, which will load correctly
+    assert img is not None
+    cv2.imwrite(gpath, img)
+    orient = 1
+
+    # Parse out the data
+    height, width = img.shape[:2]  # Read width, height
+
+    # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
+    image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
+
     # orig_gpath = gpath
     orig_gname = basename(gpath)
     ext = get_standard_ext(gpath)
