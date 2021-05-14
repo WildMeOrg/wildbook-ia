@@ -2109,9 +2109,13 @@ def get_annot_staged_flags(ibs, aid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    annot_staged_flag_list = ibs.db.get(
-        const.ANNOTATION_TABLE, (ANNOT_STAGED_FLAG,), aid_list
-    )
+    try:
+        annot_staged_flag_list = ibs.db.get(
+            const.ANNOTATION_TABLE, (ANNOT_STAGED_FLAG,), aid_list
+        )
+    except KeyError:
+        # Support for old databases and migration
+        annot_staged_flag_list = [False] * len(aid_list)
     return annot_staged_flag_list
 
 
