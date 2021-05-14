@@ -1052,17 +1052,18 @@ def _set_image_orientation(ibs, gid_list, orientation_list, clean_derivatives=Tr
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
 
-    # Delete image's thumbs
-    ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
-    ibs.delete_image_thumbs(gid_list)
+    if clean_derivatives:
+        # Delete image's thumbs
+        ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
+        ibs.delete_image_thumbs(gid_list)
 
-    # Delete annotation's thumbs
-    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-    ibs.delete_annot_chips(aid_list)
-    ibs.delete_annot_imgthumbs(aid_list)
-    gid_list = list(set(ibs.get_annot_gids(aid_list)))
-    config2_ = {'thumbsize': 221}
-    ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
+        # Delete annotation's thumbs
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        ibs.delete_annot_chips(aid_list)
+        ibs.delete_annot_imgthumbs(aid_list)
+        gid_list = list(set(ibs.get_annot_gids(aid_list)))
+        config2_ = {'thumbsize': 221}
+        ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
 
 
 @register_ibs_method
