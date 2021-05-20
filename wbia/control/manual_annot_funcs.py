@@ -850,16 +850,16 @@ def filter_annotation_set(
         aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     # filter by is_staged
-    if is_staged is True or is_staged is None:
+    if is_staged is True:
         # corresponding unoptimized hack for is_staged
         flag_list = ibs.get_annot_staged_flags(aid_list)
         aid_list = ut.compress(aid_list, flag_list)
-    elif is_staged is False or is_staged is None:
+    elif is_staged is False:
         flag_list = ibs.get_annot_staged_flags(aid_list)
         aid_list = ut.filterfalse_items(aid_list, flag_list)
 
     # filter by is_canonical
-    if is_canonical is True or is_staged is None:
+    if is_canonical is True:
         flag_list = ibs.get_annot_canonical(aid_list)
         aid_list = ut.compress(aid_list, flag_list)
     elif is_canonical is False:
@@ -4326,7 +4326,7 @@ def get_annot_canonical(ibs, aid_list):
             const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list
         )
     except KeyError:
-        flag_list = [None] * len(aid_list)
+        flag_list = [False] * len(aid_list)
     flag_list = [None if flag is None else bool(flag) for flag in flag_list]
     return flag_list
 
