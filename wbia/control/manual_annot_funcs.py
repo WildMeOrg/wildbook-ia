@@ -4321,7 +4321,12 @@ def get_annot_canonical(ibs, aid_list):
         >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
         >>> print(result)
     """
-    flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list)
+    try:
+        flag_list = ibs.db.get(
+            const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list
+        )
+    except KeyError:
+        flag_list = [None] * len(aid_list)
     flag_list = [None if flag is None else bool(flag) for flag in flag_list]
     return flag_list
 
