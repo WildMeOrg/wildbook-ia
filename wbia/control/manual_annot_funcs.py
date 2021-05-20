@@ -2117,7 +2117,7 @@ def get_annot_staged_flags(ibs, aid_list):
         # Support for old databases and migration
         annot_staged_flag_list = [False] * len(aid_list)
     annot_staged_flag_list = [
-        False if annot_staged_flag is None else annot_staged_flag
+        False if annot_staged_flag is None else bool(annot_staged_flag)
         for annot_staged_flag in annot_staged_flag_list
     ]
     return annot_staged_flag_list
