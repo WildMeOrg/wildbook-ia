@@ -38,9 +38,13 @@ import os
 import sys
 import pytz
 import tqdm
+from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED, ORIENTATION_000
 
 
 PST = pytz.timezone('US/Pacific')
+
+EXIF_UNDEFINED = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
+EXIF_NORMAL = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
 
 
 # Inject utool function
@@ -51,7 +55,6 @@ logger = logging.getLogger('wbia')
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
 )
-
 
 register_api = controller_inject.get_wbia_flask_api(__name__)
 
@@ -660,15 +663,6 @@ def check_image_uuid_consistency(ibs, gid_list=None):
 
 @register_ibs_method
 def check_image_loadable(ibs, gid_list=None):
-    from vtool.exif import (
-        ORIENTATION_DICT_INVERSE,
-        ORIENTATION_000,
-        ORIENTATION_UNDEFINED,
-    )
-
-    undefined = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
-    normal = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
-
     logger.info('checking image loadable')
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -683,19 +677,27 @@ def check_image_loadable(ibs, gid_list=None):
     flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
     exif_list = ut.take_column(flag_list, 1)
-    new_orient_list = ut.take_column(flag_list, 2)
+    rewritten_list = ut.take_column(flag_list, 2)
+    new_orient_list = ut.take_column(flag_list, 3)
 
     update_gid_list = []
     update_orient_list = []
     zipped = list(zip(gid_list, existing_orient_list, new_orient_list))
     for gid, existing_orient, new_orient in zipped:
         if existing_orient != new_orient:
-            if existing_orient == undefined and new_orient == normal:
+            if existing_orient == EXIF_UNDEFINED and new_orient == EXIF_NORMAL:
                 # We are updating an undefined to a normal orient, no-op to prevent massive re-caching
                 continue
             update_gid_list.append(gid)
             update_orient_list.append(new_orient)
     assert len(update_gid_list) == len(update_orient_list)
+    args = (
+        len(update_gid_list),
+        len(rewritten_list),
+    )
+    logger.info(
+        '[check_image_loadable] Updating %d orientations from %d rewritten images' % args
+    )
     ibs._set_image_orientation(update_gid_list, update_orient_list)
 
     bad_loadable_list = ut.filterfalse_items(gid_list, loadable_list)
@@ -704,18 +706,16 @@ def check_image_loadable(ibs, gid_list=None):
 
 
 def check_image_loadable_worker(gpath, orient):
-    from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_000
-
-    normal = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
-
-    loadable, exif, orient = True, True, orient
+    loadable, exif, rewritten, orient = True, True, False, orient
     try:
         img = cv2.imread(gpath)
         assert img is not None
 
-        # Sanitize weird behavior and standardize EXIF orientation to 1
-        cv2.imwrite(gpath, img)
-        orient = normal
+        if orient not in [EXIF_UNDEFINED, EXIF_NORMAL]:
+            # Sanitize weird behavior and standardize EXIF orientation to 1
+            cv2.imwrite(gpath, img)
+            orient = EXIF_NORMAL
+            rewritten = True
 
         img = Image.open(gpath, 'r')
         assert img is not None
@@ -731,7 +731,7 @@ def check_image_loadable_worker(gpath, orient):
         assert img is not None
     except Exception:
         exif = False
-    return loadable, exif, orient
+    return loadable, exif, rewritten, orient
 
 
 @register_ibs_method

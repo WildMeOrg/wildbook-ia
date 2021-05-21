@@ -293,7 +293,7 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
 @register_ibs_method
 @register_api('/api/image/uuid/', methods=['POST'])
 def compute_image_uuids(ibs, gpath_list, **kwargs):
-    params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+    params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
 
     uuid_colx = IMAGE_COLNAMES.index('image_uuid')
     uuid_list = [
@@ -511,6 +511,7 @@ def localize_images(ibs, gid_list_=None):
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> import wbia
+        >>> import os
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
         >>> gpath_list  = [ut.unixpath(ut.grab_test_imgpath('carl.jpg'))]
@@ -526,10 +527,10 @@ def localize_images(ibs, gid_list_=None):
         >>> result = rel_gpath3
         >>> print(result)
         >>> # Clean things up
+        >>> paths = ibs.get_image_paths(gid_list_)
         >>> ibs.delete_images(gid_list_)
-        ...
-        testdb1/_ibsdb/images/f498fa6f-6b24-b4fa-7932-2612144fedd5.jpg
-        ...
+        >>> for path in paths:
+        >>>     assert not os.path.exists(path)
 
     Ignore:
         ibs.vd()
@@ -1232,7 +1233,7 @@ def update_image_rotate_180(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_images(ibs, gid_list, force_orient=True, **kwargs):
+def get_images(ibs, gid_list, ignore_orient=False, **kwargs):
     r"""
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
@@ -1262,8 +1263,7 @@ def get_images(ibs, gid_list, force_orient=True, **kwargs):
         (715, 1047, 3)
     """
     orient_list = ibs.get_image_orientation(gid_list)
-    orient_list = [orient if force_orient else False for orient in orient_list]
-    print(orient_list)
+    orient_list = [False if ignore_orient else orient for orient in orient_list]
     gpath_list = ibs.get_image_paths(gid_list)
     zipped = zip(gpath_list, orient_list)
     image_list = [vt.imread(gpath, orient=orient) for gpath, orient in zipped]
@@ -1272,9 +1272,9 @@ def get_images(ibs, gid_list, force_orient=True, **kwargs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_image_imgdata(ibs, gid_list, force_orient=True, **kwargs):
+def get_image_imgdata(ibs, gid_list, ignore_orient=False, **kwargs):
     """ alias for get_images with standardized name """
-    return get_images(ibs, gid_list, force_orient=force_orient, **kwargs)
+    return get_images(ibs, gid_list, ignore_orient=ignore_orient, **kwargs)
 
 
 @register_ibs_method

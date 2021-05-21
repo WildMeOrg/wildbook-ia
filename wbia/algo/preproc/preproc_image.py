@@ -5,6 +5,12 @@ from os.path import splitext, basename, isabs
 import warnings
 import vtool.exif as vtexif
 import utool as ut
+from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED, ORIENTATION_000
+
+
+EXIF_UNDEFINED = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
+EXIF_NORMAL = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -146,26 +152,30 @@ def parse_imageinfo(gpath):
             #     logger.info(warnstr)
             logger.info('%d warnings issued by %r' % (len(w), gpath))
 
-    # Open image with EXIF support to get time, GPS, and the original orientation
-    pil_img = Image.open(gpath_, 'r')
-    time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
-    pil_img.close()
-
     try:
-        # Sanitize weird behavior and standardize EXIF orientation to 1
-        img = cv2.imread(
-            gpath_
-        )  # OpenCV >= 3.1 supports EXIF tags, which will load correctly
+        # Open image with EXIF support to get time, GPS, and the original orientation
+        pil_img = Image.open(gpath_, 'r')
+        time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
+        pil_img.close()
+
+        # OpenCV >= 3.1 supports EXIF tags, which will load correctly
+        img = cv2.imread(gpath_)
         assert img is not None
-        cv2.imwrite(gpath_, img)
-        orient = 1
-    except AssertionError:
+
+        if orient not in [EXIF_UNDEFINED, EXIF_NORMAL]:
+            try:
+                # Sanitize weird behavior and standardize EXIF orientation to 1
+                cv2.imwrite(gpath_, img)
+                orient = EXIF_NORMAL
+            except AssertionError:
+                return None
+    except (FileNotFoundError):
         return None
 
     # Parse out the data
     height, width = img.shape[:2]  # Read width, height
 
-    # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
+    # We cannot use pixel data as libjpeg is not deterministic (even for reads!)
     image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
 
     # orig_gpath = gpath
