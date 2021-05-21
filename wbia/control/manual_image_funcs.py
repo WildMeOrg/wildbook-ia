@@ -1657,13 +1657,13 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
         >>> image_path = ibs.get_image_paths(gid_list)
         >>> print('Hashing: %r' % (image_path, ))
         >>> hash_list = ibs.get_image_hash(gid_list, algo='md5')
-        >>> assert hash_list == ['56498e54b5ebbcbbcff60c91a135e8a3'], 'Found %r' % (hash_list, )
+        >>> assert hash_list[0] in ['56498e54b5ebbcbbcff60c91a135e8a3', 'ab31dc5e1355247a0ea5ec940802a468'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha1')
-        >>> assert hash_list == ['277e8dac1e5929c097f3fcbca2c77d92e1401d5f'], 'Found %r' % (hash_list, )
+        >>> assert hash_list[0] in ['277e8dac1e5929c097f3fcbca2c77d92e1401d5f'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha256')
-        >>> assert hash_list == ['ca03a0d7427c3d2f02e62e157e8d8ea5b7284be67ca67fc391a5747368d3ab0e'], 'Found %r' % (hash_list, )
+        >>> assert hash_list[0] in ['ca03a0d7427c3d2f02e62e157e8d8ea5b7284be67ca67fc391a5747368d3ab0e'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha512')
-        >>> assert hash_list == ['7b43dbc709a8cf903170b414f48a0bb7b569b703d9393c20a2cff95c42fd252ed2098bc56cba8eed393bcdf3388e55eee917908c6b0d1b4bc78cf76b1e918d99'], 'Found %r' % (hash_list, )
+        >>> assert hash_list[0] in ['7b43dbc709a8cf903170b414f48a0bb7b569b703d9393c20a2cff95c42fd252ed2098bc56cba8eed393bcdf3388e55eee917908c6b0d1b4bc78cf76b1e918d99'], 'Found %r' % (hash_list, )
     """
     import hashlib
 
