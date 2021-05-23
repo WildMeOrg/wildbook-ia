@@ -10,6 +10,9 @@ from wbia.dtool import sql_control
 from wbia.dtool import depcache_table
 from wbia.dtool import base
 from collections import defaultdict
+import time
+import random
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia.dtool')
@@ -743,7 +746,9 @@ class DependencyCache:
         nInput=None,
         read_extern=True,
         onthefly=False,
-        num_retries=1,
+        num_retries=3,
+        retry_delay_min=1,
+        retry_delay_max=3,
         hack_paths=False,
     ):
         r"""
@@ -826,6 +831,13 @@ class DependencyCache:
         if tablename == self.root_tablename:
             return self.root_getters[colnames](root_rowids)
             # pass
+
+        assert 0 <= retry_delay_min and retry_delay_min <= 60 * 60
+        retry_delay_min = int(retry_delay_min)
+        assert 0 <= retry_delay_max and retry_delay_max <= 60 * 60
+        retry_delay_max = int(retry_delay_max)
+        assert retry_delay_min < retry_delay_max
+
         logger.debug(' * tablename=%s' % (tablename))
         logger.debug(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
         logger.debug(' * colnames = %r' % (colnames,))
@@ -878,17 +890,20 @@ class DependencyCache:
 
         input_tuple = root_rowids
 
-        for trynum in range(num_retries + 1):
+        for trynum in range(1, num_retries + 1):
             try:
                 table = self[tablename]
                 # Vectorized get of properties
                 tbl_rowids = self.get_rowids(tablename, input_tuple, **rowid_kw)
                 logger.debug('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
                 prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
-            except depcache_table.ExternalStorageException:
-                logger.info('!!* Hit ExternalStorageException')
+            except Exception:
+                logger.warn('!!* Hit Exception in depc.get()')
                 if trynum == num_retries:
                     raise
+                retry_delay = random.uniform(retry_delay_min, retry_delay_max)
+                print('\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,))
+                time.sleep(retry_delay)
             else:
                 break
         logger.debug('* return prop_list=%s' % (ut.trunc_repr(prop_list),))

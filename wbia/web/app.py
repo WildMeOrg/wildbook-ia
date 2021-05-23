@@ -39,7 +39,7 @@ def tst_html_error():
         >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
         ...     resp = client.get('/api/image/imagesettext/?__format__=True')
         >>> print(resp)
-        <Response streamed [500 INTERNAL SERVER ERROR]>
+        <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>
 
     """
     pass
