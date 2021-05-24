@@ -1663,7 +1663,7 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha256')
         >>> assert hash_list[0] in ['ca03a0d7427c3d2f02e62e157e8d8ea5b7284be67ca67fc391a5747368d3ab0e', 'fd09d22ec18c32d9db2cd026a9511ab228aadf0e5f7271760413448ddd16d483'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha512')
-        >>> assert hash_list[0] in ['7b43dbc709a8cf903170b414f48a0bb7b569b703d9393c20a2cff95c42fd252ed2098bc56cba8eed393bcdf3388e55eee917908c6b0d1b4bc78cf76b1e918d99'], 'Found %r' % (hash_list, )
+        >>> assert hash_list[0] in ['7b43dbc709a8cf903170b414f48a0bb7b569b703d9393c20a2cff95c42fd252ed2098bc56cba8eed393bcdf3388e55eee917908c6b0d1b4bc78cf76b1e918d99', '81d1d8ee4c8640b9aad26e4cc03536ed30a43b69e166748ec940a8f00e4776be93f4ac6367a06d92b772a9a60dc104c6f999e7197c2584fdc4cffcac2da71506'], 'Found %r' % (hash_list, )
     """
     import hashlib
 
