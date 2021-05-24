@@ -9,22 +9,25 @@ RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
-    'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
+    'cd {} && cd .. && echo $(pwd) && git reset --hard origin/develop && git pull' \
  && cd /wbia/wbia-plugin-curvrank-v1/wbia_curvrank \
- && git stash && git pull && git stash pop || git reset --hard origin/develop \
- && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
- && git stash && git pull && git stash pop || git reset --hard origin/develop \
- && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
- && git stash && git pull && git stash pop || git reset --hard origin/develop \
- && cd /wbia/wbia-plugin-lca/wbia_lca \
- && git stash && git pull && git stash pop || git reset --hard origin/develop \
- && cd /wbia/wbia-plugin-orientation/ \
- && git stash && git pull && git stash pop || git reset --hard origin/develop \
- && cd /wbia/wildbook-ia/ \
- && git stash \
+ && git reset --hard origin/develop \
  && git pull \
- && git stash pop \
- && git checkout main
+ && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
+ && git reset --hard origin/develop \
+ && git pull \
+ && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git reset --hard origin/develop \
+ && git pull \
+ && cd /wbia/wbia-plugin-lca/wbia_lca \
+ && git reset --hard origin/develop \
+ && git pull \
+ && cd /wbia/wbia-plugin-orientation/ \
+ && git reset --hard origin/develop \
+ && git pull \
+ && cd /wbia/wildbook-ia/ \
+ && git reset --hard origin/main \
+ && git pull
 
 # # Remove all Git histories from code repositories
 # RUN set -ex \
