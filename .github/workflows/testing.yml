@@ -102,7 +102,7 @@ jobs:
     needs: test
     # Apparently if `always()` is at the start of the condition, github actions will run
     # this job regardless of the state(s) of the `needs` job(s).
-    if: ${{ always() && needs.test.result != 'success' && contains(github.ref, 'develop') }}
+    if: ${{ always() && needs.test.result != 'success' && contains(github.ref, 'main') }}
     steps:
       # Notify status in Slack
       - name: Slack Notification
@@ -111,6 +111,6 @@ jobs:
           SLACK_CHANNEL: ia-development
           SLACK_COLOR: '#FF0000'
           SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
-          SLACK_MESSAGE: '*develop* branch is FAILING TESTS :exclamation: :face_with_head_bandage:'
+          SLACK_MESSAGE: '*main* branch is FAILING TESTS :exclamation: :face_with_head_bandage:'
           SLACK_USERNAME: "WBIA"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

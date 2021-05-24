@@ -5,7 +5,7 @@ FROM ${WBIA_DEPENDENCIES_IMAGE} as org.wildme.wbia.provision
 # Wildbook IA version
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="develop"
+ARG VCS_REF="main"
 
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1

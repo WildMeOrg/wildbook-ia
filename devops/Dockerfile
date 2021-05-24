@@ -10,8 +10,6 @@ RUN set -ex \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
- && find /wbia/wildbook* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
-    'cd {} && cd .. && echo $(pwd) && (git stash && git pull && git stash pop || git reset --hard origin/develop)' \
  && cd /wbia/wbia-plugin-curvrank-v1/wbia_curvrank \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
@@ -23,7 +21,10 @@ RUN set -ex \
  && cd /wbia/wbia-plugin-orientation/ \
  && git stash && git pull && git stash pop || git reset --hard origin/develop \
  && cd /wbia/wildbook-ia/ \
- && git checkout develop
+ && git stash \
+ && git pull \
+ && git stash pop \
+ && git checkout main
 
 # # Remove all Git histories from code repositories
 # RUN set -ex \
@@ -40,7 +41,7 @@ ARG VERSION="3.3.0"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="develop"
+ARG VCS_REF="main"
 
 ARG BUILD_DATE="2020"
 

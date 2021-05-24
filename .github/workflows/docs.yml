@@ -6,10 +6,10 @@ on:
   pull_request:
     paths:
       - 'docs/**'
-  # Build when changes are pushed to master branch (release branch)
+  # Build when changes are pushed to main branch (release branch)
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -42,8 +42,8 @@ jobs:
           path: docs-html.zip
 
       - name: Deploy documentation
-        # only deploy if on 'master' branch
-        if: github.ref == 'refs/heads/master'
+        # only deploy if on 'main' branch
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
