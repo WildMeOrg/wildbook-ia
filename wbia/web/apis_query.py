@@ -443,6 +443,7 @@ def review_graph_match_html(
         'kaggle7',
         'kaggleseven',
         'pie',
+        'pietwo',
     ):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
@@ -575,6 +576,8 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {'pipeline_root': 'KaggleSeven'}
     elif 'use_pie' in request.args:
         query_config_dict = {'pipeline_root': 'Pie'}
+    elif 'use_pie_v2' in request.args:
+        query_config_dict = {'pipeline_root': 'PieTwo'}
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
@@ -1626,6 +1629,7 @@ def query_chips_graph_v2(
             'dbdir': ibs.dbdir,
             'aids': graph_client.aids,
             'config': graph_client.actor_config,
+            'graph_uuid': graph_uuid,
         }
         future = graph_client.post(payload)
         future.result()  # Guarantee that this has happened before calling refresh
@@ -1950,66 +1954,8 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['GET'])
 def sync_query_chips_graph_v2(ibs, graph_uuid):
-    import wbia
-
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
-
-    # Create the AnnotInference
-    infr = wbia.AnnotInference(ibs=ibs, aids=graph_client.aids, autoinit=True)
-    for key in graph_client.actor_config:
-        infr.params[key] = graph_client.actor_config[key]
-    infr.reset_feedback('staging', apply=True)
-
-    infr.relabel_using_reviews(rectify=True)
-    edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
-    name_delta_df = infr.get_wbia_name_delta()
-
-    ############################################################################
-
-    col_list = list(edge_delta_df.columns)
-    match_aid_edge_list = list(edge_delta_df.index)
-    match_aid1_list = ut.take_column(match_aid_edge_list, 0)
-    match_aid2_list = ut.take_column(match_aid_edge_list, 1)
-    match_annot_uuid1_list = ibs.get_annot_uuids(match_aid1_list)
-    match_annot_uuid2_list = ibs.get_annot_uuids(match_aid2_list)
-    match_annot_uuid_edge_list = list(zip(match_annot_uuid1_list, match_annot_uuid2_list))
-
-    zipped = list(zip(*(list(edge_delta_df[col]) for col in col_list)))
-
-    match_list = []
-    for match_annot_uuid_edge, zipped_ in list(zip(match_annot_uuid_edge_list, zipped)):
-        match_dict = {
-            'edge': match_annot_uuid_edge,
-        }
-        for index, col in enumerate(col_list):
-            match_dict[col] = zipped_[index]
-        match_list.append(match_dict)
-
-    ############################################################################
-
-    col_list = list(name_delta_df.columns)
-    name_aid_list = list(name_delta_df.index)
-    name_annot_uuid_list = ibs.get_annot_uuids(name_aid_list)
-    old_name_list = list(name_delta_df['old_name'])
-    new_name_list = list(name_delta_df['new_name'])
-    zipped = list(zip(name_annot_uuid_list, old_name_list, new_name_list))
-    name_dict = {
-        str(name_annot_uuid): {'old': old_name, 'new': new_name}
-        for name_annot_uuid, old_name, new_name in zipped
-    }
-
-    ############################################################################
-
-    ret_dict = {
-        'match_list': match_list,
-        'name_dict': name_dict,
-    }
-
-    infr.write_wbia_staging_feedback()
-    infr.write_wbia_annotmatch_feedback(edge_delta_df)
-    infr.write_wbia_name_assignment(name_delta_df)
-    edge_delta_df.reset_index()
-
+    ret_dict = graph_client.sync(ibs)
     return ret_dict
 
 
@@ -2100,10 +2046,11 @@ def delete_query_chips_graph_v2(ibs, graph_uuid):
 def query_graph_v2_latest_logs(future):
     if not future.cancelled():
         logs = future.result()
-        logger.info('--- <LOG DUMP> ---')
-        for msg, color in logs:
-            ut.cprint('[web.infr] ' + msg, color)
-        logger.info('--- <\\LOG DUMP> ---')
+        if logs is not None:
+            logger.info('--- <LOG DUMP> ---')
+            for msg, color in logs:
+                ut.cprint('[web.infr] ' + msg, color)
+            logger.info('--- <\\LOG DUMP> ---')
 
 
 def query_graph_v2_on_request_review(future):

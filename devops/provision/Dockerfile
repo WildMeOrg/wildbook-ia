@@ -48,7 +48,7 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-lca.git
+ && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
 
 RUN set -ex \
  && cd /wbia \
@@ -75,6 +75,13 @@ RUN set -ex \
  && cd /wbia \
  && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-kaggle7.git \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git fetch origin \
+ && git checkout develop
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-lca.git \
+ && cd /wbia/wbia-plugin-lca/wbia_lca \
  && git fetch origin \
  && git checkout develop
 
@@ -131,6 +138,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-pie \
+ && /bin/bash run_developer_setup.sh'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-pie-v2 \
  && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
@@ -198,7 +209,7 @@ RUN set -ex \
         tensorboard-plugin-wit \
         keras \
  && /virtualenv/env3/bin/pip install \
-        'tensorflow-gpu==1.15.4' \
+        'tensorflow-gpu==1.15.5' \
         'keras==2.2.5' \
         'h5py<3.0.0' \
         'jedi==0.17.2' \

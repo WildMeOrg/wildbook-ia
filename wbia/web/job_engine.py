@@ -137,6 +137,8 @@ def _get_engine_lock_paths(ibs):
 
 @register_ibs_method
 def retry_job(ibs, jobid):
+    from os.path import exists
+
     shelve_path = ibs.get_shelves_path()
     job_record_filename = '%s.pkl' % (jobid,)
     job_record_filepath = join(shelve_path, job_record_filename)
@@ -1028,6 +1030,7 @@ class JobInterface(object):
         callback_url=None,
         callback_method=None,
         lane='slow',
+        jobid=None,
         *args,
         **kwargs
     ):
@@ -1061,6 +1064,11 @@ class JobInterface(object):
             except RuntimeError:
                 pass
 
+            if jobid is not None:
+                assert isinstance(jobid, str)
+                jobid_ = uuid.UUID(jobid)
+                assert jobid_ is not None and isinstance(jobid_, uuid.UUID)
+
             engine_request = {
                 'action': action,
                 'args': args,
@@ -1068,7 +1076,7 @@ class JobInterface(object):
                 'callback_url': callback_url,
                 'callback_method': callback_method,
                 'request': request,
-                'restart_jobid': None,
+                'restart_jobid': jobid,
                 'restart_jobcounter': None,
                 'restart_received': None,
                 'lane': lane,
@@ -1080,7 +1088,11 @@ class JobInterface(object):
             jobiface.engine_recieve_socket.send_json(engine_request)
             reply_notify = jobiface.engine_recieve_socket.recv_json()
             print('reply_notify = %r' % (reply_notify,))
-            jobid = reply_notify['jobid']
+            jobid_ = reply_notify['jobid']
+
+            if jobid is not None:
+                assert jobid == jobid_
+            jobid = jobid_
 
             ibs = jobiface.ibs
             if ibs is not None:

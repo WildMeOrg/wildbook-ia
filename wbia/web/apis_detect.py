@@ -914,6 +914,7 @@ def commit_localization_results(
     note=None,
     labeler_algo='pipeline',
     labeler_model_tag=None,
+    viewpoint_model_tag=None,
     use_labeler_species=False,
     orienter_algo=None,
     orienter_model_tag=None,
@@ -968,6 +969,10 @@ def commit_localization_results(
         [aid for aid in aid_list_ if aid in global_aid_set] for aid_list_ in aids_list
     ]
     aid_list = ut.flatten(aids_list)
+
+    if viewpoint_model_tag is not None:
+        if labeler_model_tag is None:
+            labeler_model_tag = viewpoint_model_tag
 
     if labeler_model_tag is not None:
         labeler_config = {}

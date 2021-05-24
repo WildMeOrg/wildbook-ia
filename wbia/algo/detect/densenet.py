@@ -41,7 +41,6 @@ ARCHIVE_URL_DICT = {
     'manta_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.manta_ray_giant.v1.zip',
     'seaturtle_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.seaturtle.v3.zip',
     'hendrik_dorsal_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.hendrik_dorsal.v2.zip',
-    'nassau_grouper_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v0.zip',
     'spotted_dolphin_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.dolphin_spotted.v0.zip',
     'spotted_skunk_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v0.zip',
     'humpback_dorsal': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_humpback.dorsal.v0.zip',
@@ -54,6 +53,7 @@ ARCHIVE_URL_DICT = {
     'wilddog_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v3.zip',
     'leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.leopard.v0.zip',
     'cheetah_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v1.zip',
+    'cheetah_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v2.zip',
     'hyaena_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.hyaena.v0.zip',
     'seadragon_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v0.zip',
     'seadragon_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v1.zip',
@@ -62,8 +62,12 @@ ARCHIVE_URL_DICT = {
     'lynx_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.lynx.v4.zip',
     'manta_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.manta_ray_giant.v2.zip',
     'seaturtle_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.seaturtle.v4.zip',
+    'nassau_grouper_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v0.zip',
     'nassau_grouper_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v1.zip',
     'nassau_grouper_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v2.zip',
+    'nassau_grouper_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v3.zip',
+    'salanader_fire_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.salanader_fire.v0.zip',
+    'salanader_fire_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.salanader_fire.v1.zip',
     'spotted_dolphin_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.dolphin_spotted.v1.zip',
     'spotted_skunk_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v1.zip',
     'monk_seal_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.mediterranean_monk_seal.v0.zip',
@@ -74,6 +78,8 @@ ARCHIVE_URL_DICT = {
     'rightwhale_v5': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v5.zip',
     'snow_leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snow_leopard.v0.zip',
     'grey_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_grey.v0.zip',
+    'beluga_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v0.zip',
+    'seals_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v0.zip',
 }
 
 

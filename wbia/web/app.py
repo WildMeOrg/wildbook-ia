@@ -39,7 +39,7 @@ def tst_html_error():
         >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
         ...     resp = client.get('/api/image/imagesettext/?__format__=True')
         >>> print(resp)
-        <Response streamed [500 INTERNAL SERVER ERROR]>
+        <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>
 
     """
     pass
@@ -191,7 +191,7 @@ def start_tornado(
             except AttributeError:
                 pass
             logger_list += [
-                logging.getLogger(),
+                # logging.getLogger(),
                 logging.getLogger('concurrent'),
                 logging.getLogger('concurrent.futures'),
                 # logging.getLogger('flask_cors.core'),
@@ -208,8 +208,10 @@ def start_tornado(
                 logging.getLogger('wbia'),
             ]
             for logger_ in logger_list:
-                logger_.setLevel(logging.DEBUG)
+                logger_.setLevel(logging.INFO)
                 logger_.addHandler(utool_logfile_handler)
+
+        logging.basicConfig(level=logging.INFO)
 
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()

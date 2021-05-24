@@ -5,6 +5,12 @@ from os.path import splitext, basename, isabs
 import warnings
 import vtool.exif as vtexif
 import utool as ut
+from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED, ORIENTATION_000
+
+
+EXIF_UNDEFINED = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
+EXIF_NORMAL = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -55,6 +61,7 @@ def parse_imageinfo(gpath):
     from PIL import Image
     import tempfile
     import requests
+    import cv2
 
     import urllib
 
@@ -125,11 +132,6 @@ def parse_imageinfo(gpath):
             else:
                 temp_file, temp_filepath = None, None
                 gpath_ = gpath
-
-            # Open image with Exif support
-            pil_img = Image.open(gpath_, 'r')
-            # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
-            image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except (
             AssertionError,
             IOError,
@@ -149,12 +151,33 @@ def parse_imageinfo(gpath):
             #     warnstr = warnings.formatwarning
             #     logger.info(warnstr)
             logger.info('%d warnings issued by %r' % (len(w), gpath))
+
+    try:
+        # Open image with EXIF support to get time, GPS, and the original orientation
+        pil_img = Image.open(gpath_, 'r')
+        time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
+        pil_img.close()
+
+        # OpenCV >= 3.1 supports EXIF tags, which will load correctly
+        img = cv2.imread(gpath_)
+        assert img is not None
+
+        if orient not in [EXIF_UNDEFINED, EXIF_NORMAL]:
+            try:
+                # Sanitize weird behavior and standardize EXIF orientation to 1
+                cv2.imwrite(gpath_, img)
+                orient = EXIF_NORMAL
+            except AssertionError:
+                return None
+    except (FileNotFoundError):
+        return None
+
     # Parse out the data
-    width, height = pil_img.size  # Read width, height
-    time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
-    pil_img.close()
-    if orient in [6, 8]:
-        width, height = height, width
+    height, width = img.shape[:2]  # Read width, height
+
+    # We cannot use pixel data as libjpeg is not deterministic (even for reads!)
+    image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
+
     # orig_gpath = gpath
     orig_gname = basename(gpath)
     ext = get_standard_ext(gpath)

@@ -656,7 +656,7 @@ class Recovery(object):
 
     def _reset_inconsistency_reviews(infr):
         for nid in infr.nid_to_errors:
-            print('Cleaning up NID %s' % (nid,))
+            infr.print('Cleaning up NID %s' % (nid,), 3)
             cc = infr.pos_graph.component(nid)
             pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False).copy()
             pos_edges = list(pos_subgraph.edges())
@@ -729,9 +729,10 @@ class Recovery(object):
             ]
             keep_reviews_ = ut.compress(keep_reviews, flag_list)
 
-            print('\tDeleting %d redundant reviews' % (len(delete_reviews),))
-            print(
-                '\tSetting %d reviews to unspecified confidence' % (len(keep_reviews_),)
+            infr.print('\tDeleting %d redundant reviews' % (len(delete_reviews),), 3)
+            infr.print(
+                '\tSetting %d reviews to unspecified confidence' % (len(keep_reviews_),),
+                3,
             )
 
             infr.ibs.delete_review(delete_reviews)

@@ -2025,7 +2025,7 @@ def view_names(**kwargs):
         nid_list = [
             None if nid_ == 'None' or nid_ == '' else int(nid_) for nid_ in nid_list
         ]
-    if len(aid) > 0:
+    elif len(aid) > 0:
         aid_list = aid.strip().split(',')
         aid_list = [
             None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list
@@ -4558,7 +4558,13 @@ def gradient_magnitude(image_filepath):
 
 @register_route('/review/identification/graph/refer/', methods=['GET'])
 def review_identification_graph_refer(
-    imgsetid, species=None, tier=1, year=2019, option=None, **kwargs
+    imgsetid,
+    species=None,
+    tier=1,
+    year=2019,
+    option=None,
+    backend='graph_algorithm',
+    **kwargs,
 ):
     ibs = current_app.ibs
 
@@ -4583,6 +4589,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
             kaia=True,
         )
     elif ibs.dbname == 'NG_Feasability' or option in ['nassau']:
@@ -4626,6 +4633,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     elif ibs.dbname == 'SSKUNK_Master' or option in ['skunk']:
         species = 'skunk_spotted'
@@ -4666,6 +4674,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     elif option in ['census']:
         imgsetid_ = ibs.get_imageset_imgsetids_from_text('*All Images')
@@ -4791,6 +4800,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
             census=True,
         )
     elif option in ['rosemary']:
@@ -4812,6 +4822,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     elif ibs.dbname == 'WD_Master' or option in ['wilddog']:
         imgsetid = 1
@@ -4846,6 +4857,7 @@ def review_identification_graph_refer(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
         )
     else:
         aid_list = ibs.get_imageset_aids(imgsetid)
@@ -4859,10 +4871,12 @@ def review_identification_graph_refer(
             'threshold': 0.75,
             'enable_canonical': True,
         }
+        config.update(kwargs)
         return review_identification_graph(
             annot_uuid_list=annot_uuid_list,
             hogwild_species=species,
             creation_imageset_rowid_list=[imgsetid],
+            backend=backend,
             **config,
         )
 
@@ -4931,6 +4945,7 @@ def review_identification_graph(
     creation_imageset_rowid_list=None,
     kaia=False,
     census=False,
+    backend='graph_algorithm',
     **kwargs,
 ):
     """
@@ -5127,6 +5142,7 @@ def review_identification_graph(
                 annot_uuid_list=annot_uuid_list,
                 query_config_dict=query_config_dict,
                 creation_imageset_rowid_list=creation_imageset_rowid_list,
+                backend=backend,
                 **kwargs,
             )
 
@@ -5261,7 +5277,9 @@ def review_identification_graph(
 
         review_rowid_list = ibs._get_all_review_rowids()
         identity_list = ibs.get_review_identity(review_rowid_list)
-        num_auto = identity_list.count('algo:auto_clf')
+        num_auto = sum(
+            [1 if identity.startswith('algo:') else 0 for identity in identity_list]
+        )
         num_manual = len(review_rowid_list) - num_auto
         match_data['Reviews'] = {
             'Auto': num_auto,

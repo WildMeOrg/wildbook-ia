@@ -328,20 +328,26 @@ class InfrLoops(object):
             infr.print('check pos-redun iter {}'.format(count))
             infr.queue.clear()
 
-            if count > 0 and count % 5 == 0:
-                nid = infr._reset_inconsistency_reviews()
-                infr.print(
-                    'Failed to fix inconsistency, reset reviews for NID = %r' % (nid,)
-                )
-                infr.reset_feedback('staging', apply=True)
-                infr.ensure_mst()
-                infr.apply_nondynamic_update()
+            # if count > 0 and count % 5 == 0:
+            #     nid = infr._reset_inconsistency_reviews()
+            #     infr.print(
+            #         'Failed to fix inconsistency, reset reviews for NID = %r' % (nid,)
+            #     )
+            #     infr.reset_feedback('staging', apply=True)
+            #     infr.ensure_mst()
+            #     infr.apply_nondynamic_update()
 
             found_any = False
 
-            for new_edges in filtered_gen():
-                found_any = True
-                yield from infr._inner_priority_gen(use_refresh=False)
+            try:
+                for new_edges in filtered_gen():
+                    found_any = True
+                    yield from infr._inner_priority_gen(use_refresh=False)
+            except (RuntimeError, StopIteration):
+                logger.info(
+                    'StopIteration in pos_redun_gen, found_any = {!r}'.format(found_any)
+                )
+                break
 
             # logger.info('found_any = {!r}'.format(found_any))
             if not found_any:

@@ -203,7 +203,7 @@ class AnnotInfrMatching(object):
         infr.graph.add_edges_from(edges)
         infr.apply_match_scores()
 
-    def _cm_breaking(infr, cm_list=None, review_cfg={}):
+    def _cm_breaking(infr, cm_list=None, review_cfg={}, scoring='annot'):
         """
         >>> from wbia.algo.graph.core import *  # NOQA
         >>> review_cfg = {}
@@ -218,6 +218,9 @@ class AnnotInfrMatching(object):
 
         if ranks_bot is None:
             ranks_bot = 0
+
+        scoring = scoring.lower()
+        assert scoring in ['annot', 'name']
 
         for count, cm in enumerate(cm_list):
             score_list = cm.annot_score_list
@@ -751,7 +754,17 @@ class CandidateSearch(_RedundancyAugmentation):
     """ Search for candidate edges """
 
     @profile
-    def find_lnbnn_candidate_edges(infr):
+    def find_lnbnn_candidate_edges(
+        infr,
+        desired_states=[UNREV],
+        can_match_samename=False,
+        can_match_sameimg=False,
+        K=3,
+        Knorm=3,
+        prescore_method='csum',
+        score_method='csum',
+        sv_on=True,
+    ):
         """
 
         Example:
@@ -774,9 +787,13 @@ class CandidateSearch(_RedundancyAugmentation):
                 'resize_dim': 'width',
                 'dim_size': 700,
                 'requery': True,
-                'can_match_samename': False,
-                'can_match_sameimg': False,
-                # 'sv_on': False,
+                'can_match_samename': can_match_samename,
+                'can_match_sameimg': can_match_sameimg,
+                'K': K,
+                'Knorm': Knorm,
+                'sv_on': sv_on,
+                'prescore_method': prescore_method,
+                'score_method': score_method,
             },
         )
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
@@ -786,12 +803,12 @@ class CandidateSearch(_RedundancyAugmentation):
         candidate_edges = {
             edge
             for edge, state in zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
-            if state == UNREV
+            if state in desired_states
         }
 
         infr.print(
-            'ranking alg found {}/{} unreviewed edges'.format(
-                len(candidate_edges), len(lnbnn_results)
+            'ranking alg found {}/{} {} edges'.format(
+                len(candidate_edges), len(lnbnn_results), desired_states
             ),
             1,
         )

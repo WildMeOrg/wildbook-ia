@@ -293,7 +293,7 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
 @register_ibs_method
 @register_api('/api/image/uuid/', methods=['POST'])
 def compute_image_uuids(ibs, gpath_list, **kwargs):
-    params_list = _compute_image_uuids(ibs, gpath_list, **kwargs)
+    params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
 
     uuid_colx = IMAGE_COLNAMES.index('image_uuid')
     uuid_list = [
@@ -511,6 +511,7 @@ def localize_images(ibs, gid_list_=None):
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> import wbia
+        >>> import os
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
         >>> gpath_list  = [ut.unixpath(ut.grab_test_imgpath('carl.jpg'))]
@@ -526,10 +527,10 @@ def localize_images(ibs, gid_list_=None):
         >>> result = rel_gpath3
         >>> print(result)
         >>> # Clean things up
+        >>> paths = ibs.get_image_paths(gid_list_)
         >>> ibs.delete_images(gid_list_)
-        ...
-        testdb1/_ibsdb/images/f498fa6f-6b24-b4fa-7932-2612144fedd5.jpg
-        ...
+        >>> for path in paths:
+        >>>     assert not os.path.exists(path)
 
     Ignore:
         ibs.vd()
@@ -1041,8 +1042,7 @@ def _set_image_sizes(ibs, gid_list, width_list, height_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/orientation/', methods=['PUT'])
-def _set_image_orientation(ibs, gid_list, orientation_list):
+def _set_image_orientation(ibs, gid_list, orientation_list, clean_derivatives=True):
     r"""
     RESTful:
         Method: PUT
@@ -1052,8 +1052,68 @@ def _set_image_orientation(ibs, gid_list, orientation_list):
     val_list = ((orientation,) for orientation in orientation_list)
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
-    ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
-    ibs.delete_image_thumbs(gid_list)
+
+    if clean_derivatives:
+        # Delete image's thumbs
+        ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
+        ibs.delete_image_thumbs(gid_list)
+
+        # Delete annotation's thumbs
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        ibs.delete_annot_chips(aid_list)
+        ibs.delete_annot_imgthumbs(aid_list)
+        gid_list = list(set(ibs.get_annot_gids(aid_list)))
+        config2_ = {'thumbsize': 221}
+        ibs.delete_image_thumbs(gid_list, quiet=True, **config2_)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/orientation/', methods=['PUT'])
+def set_image_orientation(ibs, gid_list, orientation_list):
+    r"""
+    RESTful:
+        Method: PUT
+        URL:    /api/image/orientation/
+    """
+    from vtool.exif import (
+        ORIENTATION_DICT_INVERSE,
+        ORIENTATION_UNDEFINED,
+        ORIENTATION_000,
+    )
+
+    undefined = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
+    normal = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
+    existing_orientation_list = ibs.get_image_orientation(gid_list)
+    existing_orientation_list = [
+        normal if val == undefined else val for val in existing_orientation_list
+    ]
+
+    path_funcs = {
+        (1, 3): ibs.update_image_rotate_180,
+        (1, 6): ibs.update_image_rotate_right_90,
+        (1, 8): ibs.update_image_rotate_left_90,
+        (3, 1): ibs.update_image_rotate_180,
+        (3, 6): ibs.update_image_rotate_left_90,
+        (3, 8): ibs.update_image_rotate_right_90,
+        (6, 1): ibs.update_image_rotate_left_90,
+        (6, 3): ibs.update_image_rotate_right_90,
+        (6, 8): ibs.update_image_rotate_180,
+        (8, 1): ibs.update_image_rotate_right_90,
+        (8, 3): ibs.update_image_rotate_left_90,
+        (8, 6): ibs.update_image_rotate_180,
+    }
+    for gid, existing_orientation, orientation in zip(
+        gid_list, existing_orientation_list, orientation_list
+    ):
+        if orientation == undefined:
+            orientation = normal
+        if existing_orientation == orientation:
+            continue
+        path = (existing_orientation, orientation)
+        path_func = path_funcs.get(path, None)
+        assert path_func is not None, 'Could not find path %r' % (path,)
+        path_func([gid])
 
 
 def update_image_rotate_90(ibs, gid_list, direction):
@@ -1173,7 +1233,7 @@ def update_image_rotate_180(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_images(ibs, gid_list, force_orient=True, **kwargs):
+def get_images(ibs, gid_list, ignore_orient=False, **kwargs):
     r"""
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
@@ -1203,7 +1263,7 @@ def get_images(ibs, gid_list, force_orient=True, **kwargs):
         (715, 1047, 3)
     """
     orient_list = ibs.get_image_orientation(gid_list)
-    orient_list = [orient if force_orient else False for orient in orient_list]
+    orient_list = [False if ignore_orient else orient for orient in orient_list]
     gpath_list = ibs.get_image_paths(gid_list)
     zipped = zip(gpath_list, orient_list)
     image_list = [vt.imread(gpath, orient=orient) for gpath, orient in zipped]
@@ -1212,9 +1272,9 @@ def get_images(ibs, gid_list, force_orient=True, **kwargs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_image_imgdata(ibs, gid_list, force_orient=False, **kwargs):
+def get_image_imgdata(ibs, gid_list, ignore_orient=False, **kwargs):
     """ alias for get_images with standardized name """
-    return get_images(ibs, gid_list, force_orient=force_orient, **kwargs)
+    return get_images(ibs, gid_list, ignore_orient=ignore_orient, **kwargs)
 
 
 @register_ibs_method
@@ -1597,13 +1657,13 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
         >>> image_path = ibs.get_image_paths(gid_list)
         >>> print('Hashing: %r' % (image_path, ))
         >>> hash_list = ibs.get_image_hash(gid_list, algo='md5')
-        >>> assert hash_list == ['fb5da58f9f49676dbb513a775be6b942']
+        >>> assert hash_list[0] in ['56498e54b5ebbcbbcff60c91a135e8a3', 'ab31dc5e1355247a0ea5ec940802a468'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha1')
-        >>> assert hash_list == ['f716b40e17cb2d7850def23f7d720ca28b147b62'], hash_list
+        >>> assert hash_list[0] in ['277e8dac1e5929c097f3fcbca2c77d92e1401d5f', '66ec193a1619b3b6216d1784b4833b6194b13384'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha256')
-        >>> assert hash_list == ['24c6cb43f5301222a6a7f19ac1e0c578e16aa5c844561a8b2c16b2a478921f08'], hash_list
+        >>> assert hash_list[0] in ['ca03a0d7427c3d2f02e62e157e8d8ea5b7284be67ca67fc391a5747368d3ab0e', 'fd09d22ec18c32d9db2cd026a9511ab228aadf0e5f7271760413448ddd16d483'], 'Found %r' % (hash_list, )
         >>> hash_list = ibs.get_image_hash(gid_list, algo='sha512')
-        >>> assert hash_list == ['bbde99d7e376339905bac68a8375d00208f68344a9ca41dd02a22d6dc426dfe6bace43a41dfe49e474a5fe335f09001c0fdd3350d5b8978f5fc5cc615d3cbbed']
+        >>> assert hash_list[0] in ['7b43dbc709a8cf903170b414f48a0bb7b569b703d9393c20a2cff95c42fd252ed2098bc56cba8eed393bcdf3388e55eee917908c6b0d1b4bc78cf76b1e918d99', '81d1d8ee4c8640b9aad26e4cc03536ed30a43b69e166748ec940a8f00e4776be93f4ac6367a06d92b772a9a60dc104c6f999e7197c2584fdc4cffcac2da71506'], 'Found %r' % (hash_list, )
     """
     import hashlib
 
@@ -2216,7 +2276,7 @@ def get_image_imagesettext(ibs, gid_list):
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
 @register_api('/api/image/annot/rowid/', methods=['GET'])
-def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
+def get_image_aids(ibs, gid_list, is_staged=False):
     r"""
     Returns:
         list_ (list): a list of aids for each image by gid
@@ -2278,7 +2338,7 @@ def get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True):
             )
 
         # The index maxes the following query very efficient
-        if __check_staged__:
+        if is_staged is not None:
             params_iter = ((gid, is_staged) for gid in gid_list)
             where_colnames = (
                 IMAGE_ROWID,

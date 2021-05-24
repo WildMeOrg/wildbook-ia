@@ -196,6 +196,7 @@ def start_identify_annots(
     callback_url=None,
     callback_method=None,
     lane='slow',
+    jobid=None,
 ):
     r"""
     REST:
@@ -322,7 +323,7 @@ def start_identify_annots(
     )
     args = (qaid_list, daid_list, pipecfg)
     jobid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_simple_dict', callback_url, callback_method, lane, *args
+        'query_chips_simple_dict', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:
@@ -345,6 +346,7 @@ def start_identify_annots_query_complete(
     callback_url=None,
     callback_method=None,
     lane='slow',
+    jobid=None,
 ):
     r"""
     REST:
@@ -399,7 +401,7 @@ def start_identify_annots_query_complete(
         k,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_graph_complete', callback_url, callback_method, lane, *args
+        'query_chips_graph_complete', callback_url, callback_method, lane, jobid, *args
     )
     return jobid
 
@@ -422,6 +424,7 @@ def start_identify_annots_query(
     callback_url=None,
     callback_method=None,
     lane='slow',
+    jobid=None,
 ):
     r"""
     REST:
@@ -637,7 +640,7 @@ def start_identify_annots_query(
     )
     args = (qaid_list, daid_list, user_feedback, query_config_dict, echo_query_params)
     jobid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_graph', callback_url, callback_method, lane, *args
+        'query_chips_graph', callback_url, callback_method, lane, jobid, *args
     )
     return jobid
 
@@ -645,7 +648,13 @@ def start_identify_annots_query(
 @register_ibs_method
 @register_api('/api/engine/wic/cnn/', methods=['POST'])
 def start_wic_image(
-    ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+    ibs,
+    image_uuid_list,
+    callback_url=None,
+    callback_method=None,
+    lane='fast',
+    jobid=None,
+    **kwargs
 ):
     """
     REST:
@@ -669,7 +678,7 @@ def start_wic_image(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'wic_cnn_json', callback_url, callback_method, lane, *args
+        'wic_cnn_json', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:
@@ -682,7 +691,13 @@ def start_wic_image(
 @register_ibs_method
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
 def start_detect_image_yolo(
-    ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+    ibs,
+    image_uuid_list,
+    callback_url=None,
+    callback_method=None,
+    lane='fast',
+    jobid=None,
+    **kwargs
 ):
     """
     REST:
@@ -706,7 +721,7 @@ def start_detect_image_yolo(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'detect_cnn_yolo_json', callback_url, callback_method, lane, *args
+        'detect_cnn_yolo_json', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:
@@ -719,7 +734,13 @@ def start_detect_image_yolo(
 @register_ibs_method
 @register_api('/api/engine/labeler/cnn/', methods=['POST'])
 def start_labeler_cnn(
-    ibs, annot_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+    ibs,
+    annot_uuid_list,
+    callback_url=None,
+    callback_method=None,
+    lane='fast',
+    jobid=None,
+    **kwargs
 ):
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
@@ -735,7 +756,7 @@ def start_labeler_cnn(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'labeler_cnn', callback_url, callback_method, lane, *args
+        'labeler_cnn', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:
@@ -754,6 +775,7 @@ def start_review_query_chips_best(
     callback_url=None,
     callback_method=None,
     lane='slow',
+    jobid=None,
     **kwargs
 ):
     annot_uuid_list = [annot_uuid]
@@ -772,7 +794,7 @@ def start_review_query_chips_best(
         database_imgsetid,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'review_query_chips_best', callback_url, callback_method, lane, *args
+        'review_query_chips_best', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:
@@ -798,7 +820,13 @@ def start_detect_image_test_yolo(ibs):
 @register_ibs_method
 @register_api('/api/engine/detect/cnn/lightnet/', methods=['POST', 'GET'])
 def start_detect_image_lightnet(
-    ibs, image_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+    ibs,
+    image_uuid_list,
+    callback_url=None,
+    callback_method=None,
+    lane='fast',
+    jobid=None,
+    **kwargs
 ):
     """
     REST:
@@ -822,7 +850,7 @@ def start_detect_image_lightnet(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'detect_cnn_lightnet_json', callback_url, callback_method, lane, *args
+        'detect_cnn_lightnet_json', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:
@@ -848,7 +876,13 @@ def start_detect_image_test_lightnet(ibs):
 @register_ibs_method
 @register_api('/api/engine/classify/whaleshark/injury/', methods=['POST'])
 def start_predict_ws_injury_interim_svm(
-    ibs, annot_uuid_list, callback_url=None, callback_method=None, lane='fast', **kwargs
+    ibs,
+    annot_uuid_list,
+    callback_url=None,
+    callback_method=None,
+    lane='fast',
+    jobid=None,
+    **kwargs
 ):
     """
     REST:
@@ -889,7 +923,7 @@ def start_predict_ws_injury_interim_svm(
     annots = ibs.annots(uuids=annot_uuid_list)
     args = (annots.aids,)
     jobid = ibs.job_manager.jobiface.queue_job(
-        'predict_ws_injury_interim_svm', callback_url, callback_method, lane, *args
+        'predict_ws_injury_interim_svm', callback_url, callback_method, lane, jobid, *args
     )
 
     # if callback_url is not None:

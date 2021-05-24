@@ -2109,9 +2109,17 @@ def get_annot_staged_flags(ibs, aid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    annot_staged_flag_list = ibs.db.get(
-        const.ANNOTATION_TABLE, (ANNOT_STAGED_FLAG,), aid_list
-    )
+    try:
+        annot_staged_flag_list = ibs.db.get(
+            const.ANNOTATION_TABLE, (ANNOT_STAGED_FLAG,), aid_list
+        )
+    except KeyError:
+        # Support for old databases and migration
+        annot_staged_flag_list = [False] * len(aid_list)
+    annot_staged_flag_list = [
+        False if annot_staged_flag is None else bool(annot_staged_flag)
+        for annot_staged_flag in annot_staged_flag_list
+    ]
     return annot_staged_flag_list
 
 
@@ -4301,7 +4309,7 @@ def get_annot_interest(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot/canonical/', methods=['GET'])
-def get_annot_canonical(ibs, aid_list):
+def get_annot_canonical(ibs, aid_list, default_none_to_false=True):
     r"""
     RESTful:
         Method: GET
@@ -4317,8 +4325,14 @@ def get_annot_canonical(ibs, aid_list):
         >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
         >>> print(result)
     """
-    flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list)
-    flag_list = [None if flag is None else bool(flag) for flag in flag_list]
+    try:
+        flag_list = ibs.db.get(
+            const.ANNOTATION_TABLE, ('annot_toggle_canonical',), aid_list
+        )
+    except KeyError:
+        flag_list = [False] * len(aid_list)
+    if default_none_to_false:
+        flag_list = [False if flag is None else bool(flag) for flag in flag_list]
     return flag_list
 
 

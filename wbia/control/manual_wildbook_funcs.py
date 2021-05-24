@@ -602,7 +602,7 @@ def delete_wildbook_orphaned_image_uuids(ibs, auto_delete=True):
     if auto_delete and len(candidate_uuid_list) > 0:
         candidate_gid_list = ibs.get_image_gids_from_uuid(candidate_uuid_list)
         assert None not in candidate_gid_list
-        ibs.delete_images(candidate_gid_list)
+        ibs.delete_images(candidate_gid_list, trash_images=False)
 
     return candidate_uuid_list
 

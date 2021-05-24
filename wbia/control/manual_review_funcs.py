@@ -393,7 +393,7 @@ def get_review_rowids_from_aid_tuple(
 
 
 @register_ibs_method
-def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
+def get_review_rowids_between(ibs, aids1, aids2=None, method=1):
     """
     Find staging rowids between sets of aids
 

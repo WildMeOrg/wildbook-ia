@@ -287,7 +287,7 @@ class NeighborIndex(object):
         r"""
         # TODO: ensure that the memcache changes appropriately
         """
-        from wbia.algo.hots.neighbor_index import clear_memcache
+        from wbia.algo.hots.neighbor_index_cache import clear_memcache
 
         clear_memcache()
         if verbose:
