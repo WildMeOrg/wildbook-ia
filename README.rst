@@ -2,7 +2,7 @@
 WBIA - WildBook IA
 ==================
 
-|Build| |Pypi| |ReadTheDocs| |Downloads|
+|Build| |Pypi| |Documentation| |Downloads|
 
 .. image:: http://i.imgur.com/TNCiEBe.png
     :alt: "(Note: the rhino and wildebeest matches may be dubious. Other species do work well though")
@@ -201,7 +201,7 @@ If you use this code or its models in your research, please cite:
 Documentation
 -------------------------
 
-The WBIA API Documentation can be found here: https://wildbook-ia.readthedocs.io/en/latest/
+The WBIA API Documentation can be found here: https://wildmeorg.github.io/wildbook-ia/
 
 Code Style and Development Guidelines
 -------------------------------------
@@ -259,17 +259,17 @@ To run doctests with `+REQUIRES(--web-tests)` do:
 
     pytest --web-tests
 
-.. |Build| image:: https://img.shields.io/github/workflow/status/WildMeOrg/wildbook-ia/Build%20and%20upload%20to%20PyPI/master
-    :target: https://github.com/WildMeOrg/wildbook-ia/actions?query=branch%3Amaster+workflow%3A%22Build+and+upload+to+PyPI%22
-    :alt: Build and upload to PyPI (master)
+.. |Build| image:: https://img.shields.io/github/workflow/status/WildMeOrg/wildbook-ia/Build%20and%20upload%20to%20PyPI/main
+    :target: https://github.com/WildMeOrg/wildbook-ia/actions?query=branch%3Amain+workflow%3A%22Build+and+upload+to+PyPI%22
+    :alt: Build and upload to PyPI
 
 .. |Pypi| image:: https://img.shields.io/pypi/v/wildbook-ia.svg
    :target: https://pypi.python.org/pypi/wildbook-ia
    :alt: Latest PyPI version
 
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/wildbook-ia/badge/?version=latest
-    :target: http://wildbook-ia.readthedocs.io/en/latest/
-    :alt: Documentation on ReadTheDocs
+.. |Documentation| image:: https://img.shields.io/github/workflow/status/WildMeOrg/wildbook-ia/Build%20documentation?label=Documentation
+    :target: https://wildmeorg.github.io/wildbook-ia/
+    :alt: Documentation on GitHub Pages
 
 .. |Downloads| image:: https://img.shields.io/pypi/dm/wildbook-ia.svg
    :target: https://pypistats.org/packages/wildbook-ia
