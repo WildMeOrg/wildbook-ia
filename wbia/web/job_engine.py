@@ -2074,13 +2074,7 @@ def on_collect_request(
             assert callback_method in ['POST', 'GET', 'PUT'], message
 
             try:
-                data_dict = {
-                    'jobid': jobid,
-                }
-                status_ = collector_data.get(jobid, {}).get('status', None)
-                if status_ is not None:
-                    data_dict['status'] = status_
-
+                data_dict = {'jobid': jobid}
                 args = (
                     callback_url,
                     callback_method,
