@@ -332,7 +332,7 @@ def export_to_coco(
     use_existing_train_test=True,
     include_parts=False,
     gid_list=None,
-    include_reviews=True,
+    include_reviews=False,
     require_image_reviewed=False,
     require_named=False,
     output_images=True,

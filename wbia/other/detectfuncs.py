@@ -770,6 +770,7 @@ def localizer_assign(gt_list, pred, min_overlap):
 def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     pred_list = sorted(pred_list, key=lambda pred: pred['confidence'], reverse=True)
 
+    index_list = list(range(len(gt_list)))
     match_list = []
     for pred in pred_list:
         flag = False
@@ -783,8 +784,12 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
         elif match_index_ is not None:
             flag = None
 
+        match_index_external = (
+            None if match_index is None else index_list.pop(match_index)
+        )
+
         if flag is not None:
-            match_list += [(pred['confidence'], flag, match_index, best_overlap)]
+            match_list += [(pred['confidence'], flag, match_index_external, best_overlap)]
 
     return match_list
 

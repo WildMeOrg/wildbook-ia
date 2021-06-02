@@ -267,7 +267,7 @@ To run doctests with `+REQUIRES(--web-tests)` do:
    :target: https://pypi.python.org/pypi/wildbook-ia
    :alt: Latest PyPI version
 
-.. |Documentation| image:: https://img.shields.io/github/workflow/status/WildMeOrg/wildbook-ia/Build%20documentation?label=Documentation
+.. |Documentation| image:: https://img.shields.io/github/workflow/status/WildMeOrg/wildbook-ia/Build%20documentation?label=documentation
     :target: https://wildmeorg.github.io/wildbook-ia/
     :alt: Documentation on GitHub Pages
 
