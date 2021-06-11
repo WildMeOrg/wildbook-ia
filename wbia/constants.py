@@ -27,6 +27,9 @@ CONTAINER_NAME = ut.get_argval(
 ENGINE_SLOT = ut.get_argval('--engine-slot', type_=str, default='default')
 
 
+CODEX = ut.get_argval('--codex', type_=str, default='codex_houston_1')
+
+
 PI = math.pi
 TAU = 2.0 * PI
 
