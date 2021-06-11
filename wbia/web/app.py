@@ -30,21 +30,6 @@ except ImportError:
     PROMETHEUS = False
 
 
-def tst_html_error():
-    r"""
-    This test will show what our current errors look like
-
-    Example:
-        >>> import wbia
-        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
-        ...     resp = client.get('/api/image/imagesettext/?__format__=True')
-        >>> print(resp)
-        <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>
-
-    """
-    pass
-
-
 class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
     def _log(self, status_code, request):
         if status_code < 400:
