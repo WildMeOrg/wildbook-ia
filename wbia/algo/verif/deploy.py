@@ -43,6 +43,9 @@ class Deployer(object):
             'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.qysrjnzuiziikxzp.kaia.cPkl',  # Kaia GZ CAs
         },
+        'zebra_grevys+_canonical_': {
+            'match_state': 'vsone.zebra_grevys+_canonical_.match_state.RF.107.cusnlyxbberandka.cPkl',  # CA
+        },
         'zebra_mountain': {
             'match_state': 'vsone.zebra_mountain.match_state.RF.131.lciwhwikfycthvva.cPkl',
         },

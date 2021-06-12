@@ -1277,6 +1277,14 @@ class AnnotInference(
                 },
                 'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
+            'zebra_grevys+_canonical_': {
+                'match_state': {
+                    POSTV: 0.8062,
+                    NEGTV: 0.8538,
+                    INCMP: np.inf,
+                },
+                'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
+            },
             'zebra_mountain': {
                 'match_state': {
                     POSTV: 0.7767,
