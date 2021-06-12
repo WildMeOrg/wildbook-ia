@@ -485,7 +485,6 @@ class InfrLearning(object):
 
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
-        species = 'zebra_grevys'
         infr.print('Loading task_thresh for species: %r' % (species,))
         assert species in infr.task_thresh_dict
         infr.task_thresh = infr.task_thresh_dict[species]
