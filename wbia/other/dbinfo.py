@@ -873,6 +873,8 @@ def get_dbinfo(
     ca_removed_aids = []
     ca_added_aids = []
     for aid, species_, viewpoint_, quality_, interest_, canonical_ in zipped:
+        if species_ == 'zebra_grevys+_canonical_':
+            continue
         assert None not in [species_, viewpoint_, quality_]
         species_ = species_.lower()
         viewpoint_ = viewpoint_.lower()
