@@ -234,7 +234,7 @@ class Feedback(object):
         if decision == UNREV:
             # Unreviewing an edge deletes anything not yet committed
             if edge in infr.external_feedback:
-                raise ValueError('External edge reviews cannot be undone')
+                logger.warning('External edge reviews cannot be undone')
             if edge in infr.internal_feedback:
                 del infr.internal_feedback[edge]
 

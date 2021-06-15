@@ -25,6 +25,7 @@ class SimulationHelpers(object):
         enable_inference=True,
         classifiers=None,
         match_state_thresh=None,
+        pb_state_thresh=None,
         max_outer_loops=None,
         name=None,
     ):
@@ -54,7 +55,6 @@ class SimulationHelpers(object):
                 INCMP: 1.0,
             }
 
-        pb_state_thresh = None
         if pb_state_thresh is None:
             pb_state_thresh = {
                 'pb': 0.5,
@@ -228,10 +228,10 @@ class SimulationHelpers(object):
             'pred_decision': infr.test_state['pred_decision'],
             'true_decision': infr.test_state['true_decision'],
             'n_neg_redun': infr.neg_redun_metagraph.number_of_edges(),
-            'n_neg_redun1': (
-                infr.neg_metagraph.number_of_edges()
-                - infr.neg_metagraph.number_of_selfloops()
-            ),
+            # 'n_neg_redun1': (
+            #     infr.neg_metagraph.number_of_edges()
+            #     - infr.neg_metagraph.number_of_selfloops()
+            # ),
         }
 
         return metrics
