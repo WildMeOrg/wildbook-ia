@@ -859,6 +859,7 @@ class CandidateSearch(_RedundancyAugmentation):
 
         if any(need_flags):
             need_edges = ut.compress(edges, need_flags)
+            need_edges = list(set(need_edges))
             infr.print(
                 'There are {} edges without probabilities'.format(len(need_edges)), 1
             )
