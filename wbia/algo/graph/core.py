@@ -292,7 +292,58 @@ class Feedback(object):
                 infr.refresh.add(meaningful, user_id, decision)
 
         if infr.test_mode:
-            infr.metrics_list.append(infr.measure_metrics())
+            metrics = infr.measure_metrics()
+            infr.metrics_list.append(metrics)
+
+            try:
+                from wbia_lca._plugin import get_ggr_stats, LOG_DECISION_FILE
+
+                valid_aids = list(sorted(infr.aids))
+                components = list(infr.positive_components())
+                component_aids = ut.flatten(components)
+                assert len(set(component_aids) ^ set(valid_aids)) == 0
+
+                aid_to_nids = {}
+                for index, component in enumerate(components):
+                    for aid in component:
+                        assert aid not in aid_to_nids
+                        aid_to_nids[aid] = index
+
+                valid_nids = ut.take(aid_to_nids, valid_aids)
+
+                ggr_name_dates_stats = get_ggr_stats(
+                    infr.ibs,
+                    valid_aids,
+                    valid_nids,
+                )
+                with open(LOG_DECISION_FILE, 'a') as logfile:
+                    data = (
+                        len(infr.metrics_list),
+                        len(set(valid_nids)),
+                        ggr_name_dates_stats['GGR-16 D1 OR D2'],
+                        ggr_name_dates_stats['GGR-16 PL INDEX'],
+                        ggr_name_dates_stats['GGR-16 PL CI'],
+                        ggr_name_dates_stats['2016/01/30'],
+                        ggr_name_dates_stats['2016/01/31'],
+                        ggr_name_dates_stats['GGR-16 D1 AND D2'],
+                        ggr_name_dates_stats['GGR-16 COVERAGE'],
+                        ggr_name_dates_stats['GGR-18 D1 OR D2'],
+                        ggr_name_dates_stats['GGR-18 PL INDEX'],
+                        ggr_name_dates_stats['GGR-18 PL CI'],
+                        ggr_name_dates_stats['2018/01/27'],
+                        ggr_name_dates_stats['2018/01/28'],
+                        ggr_name_dates_stats['GGR-18 D1 AND D2'],
+                        ggr_name_dates_stats['GGR-18 COVERAGE'],
+                        ggr_name_dates_stats['GGR-16 AND GGR-18'],
+                        metrics['n_algo'],
+                        metrics['n_manual'],
+                        len(infr.queue),
+                    )
+                    line = ','.join(map(str, data))
+                    logger.info('Progress: %s' % (line,))
+                    logfile.write('%s\n' % (line,))
+            except Exception:
+                pass
 
         infr.verbose = prev_verbose
 
