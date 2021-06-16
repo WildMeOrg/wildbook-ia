@@ -40,11 +40,13 @@ class Deployer(object):
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.tranflbhimyzeeqi.cPkl',  # OLD PRE-TRAINED 0
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.dlncrbzlpwjyqrdx.cPkl',  # OLD PRE-TRAINED 1
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.kukigovqipdrjihg.ggr2.cPkl',  # GGR2 0
-            'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
             # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.qysrjnzuiziikxzp.kaia.cPkl',  # Kaia GZ CAs
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.djvqkmyzrjgaudok.ggr2.cPkl',  # GGR2 1
+            # 'match_state': 'vsone.zebra_grevys.match_state.RF.131.wwntfcphwligxjgy.cPkl',  # NAMED ANNOTS
+            'match_state': 'vsone.zebra_grevys.match_state.RF.131.qwmzlhlnnsgzropq.cPkl',  # CA
         },
         'zebra_grevys+_canonical_': {
-            'match_state': 'vsone.zebra_grevys+_canonical_.match_state.RF.107.cusnlyxbberandka.cPkl',  # CA
+            'match_state': 'vsone.zebra_grevys+_canonical_.match_state.RF.107.cusnlyxbberandka.cPkl',  # CA Region
         },
         'zebra_mountain': {
             'match_state': 'vsone.zebra_mountain.match_state.RF.131.lciwhwikfycthvva.cPkl',

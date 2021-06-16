@@ -1321,17 +1321,27 @@ class AnnotInference(
         # TODO: move to params
         infr.task_thresh_dict = {
             'zebra_grevys': {
+                # 'match_state': {
+                #     POSTV: 0.7732,  # GGR2 - 0.7732, Kaia CA - 0.7312
+                #     NEGTV: 0.8605,  # GGR2 - 0.8605, Kaia CA - 0.8892
+                #     INCMP: np.inf,
+                # },
+                # 'match_state': {
+                #     POSTV: 0.8062,  # NAMED ANNOTS
+                #     NEGTV: 0.8538,  # NAMED ANNOTS
+                #     INCMP: np.inf,
+                # },
                 'match_state': {
-                    POSTV: 0.7732,  # GGR2 - 0.7732, Kaia CA - 0.7312
-                    NEGTV: 0.8605,  # GGR2 - 0.8605, Kaia CA - 0.8892
+                    POSTV: 0.6291,  # CA
+                    NEGTV: 0.8695,  # CA
                     INCMP: np.inf,
                 },
                 'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
             },
             'zebra_grevys+_canonical_': {
                 'match_state': {
-                    POSTV: 0.5305,
-                    NEGTV: 0.8496,
+                    POSTV: 0.5305,  # CA Region
+                    NEGTV: 0.8496,  # CA Region
                     INCMP: np.inf,
                 },
                 'photobomb_state': {'pb': np.inf, 'nopb': np.inf},
