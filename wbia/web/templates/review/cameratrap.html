@@ -29,7 +29,7 @@
       <div style="text-align: center;">
         Image ID: {{ gid }}
       </div>
-      <img src="{{ image_src }}" style="height: auto; max-width: 100%; max-height: 500px; margin: 20px auto; margin-bottom: 0px; display: block;">
+      <img src="{{ image_src }}" style="height: auto; max-width: 100%; max-height: 80vh; margin: 20px auto; margin-bottom: 0px; display: block;">
       <br/>
       <form method="post" action="{{ url_for('submit_cameratrap') }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="cameratrap-gid" value="{{ gid }}" style="display: none;" readonly>
