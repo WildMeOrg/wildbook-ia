@@ -55,6 +55,7 @@ ARCHIVE_URL_DICT = {
     'cheetah_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v1.zip',
     'cheetah_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v2.zip',
     'hyaena_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.hyaena.v0.zip',
+    'wild_horse_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_horse.v0.zip',
     'seadragon_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v0.zip',
     'seadragon_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v1.zip',
     'seadragon_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v2.zip',
