@@ -940,9 +940,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
     def parent_rowids_T(request):
         return ut.list_transpose(request.parent_rowids)
 
-    def execute(
-        request, parent_rowids=None, use_cache=None, postprocess=True, prog_hook=None
-    ):
+    def execute(request, parent_rowids=None, use_cache=None, postprocess=True, **kwargs):
         """ HACKY REIMPLEMENTATION """
         ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
         table = request.depc[request.tablename]
