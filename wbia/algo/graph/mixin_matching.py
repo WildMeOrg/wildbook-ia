@@ -764,6 +764,7 @@ class CandidateSearch(_RedundancyAugmentation):
         prescore_method='csum',
         score_method='csum',
         sv_on=True,
+        cfgdict_=None,
     ):
         """
 
@@ -781,20 +782,26 @@ class CandidateSearch(_RedundancyAugmentation):
 
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
+        cfgdict = {
+            'resize_dim': 'width',
+            'dim_size': 700,
+            'requery': requery,
+            'can_match_samename': can_match_samename,
+            'can_match_sameimg': can_match_sameimg,
+            'K': K,
+            'Knorm': Knorm,
+            'sv_on': sv_on,
+            'prescore_method': prescore_method,
+            'score_method': score_method,
+        }
+        if cfgdict_ is not None:
+            cfgdict.update(cfgdict_)
+
+        print('[find_lnbnn_candidate_edges] Using cfgdict = %s' % (ut.repr3(cfgdict),))
+
         infr.exec_matching(
             name_method='edge',
-            cfgdict={
-                'resize_dim': 'width',
-                'dim_size': 700,
-                'requery': requery,
-                'can_match_samename': can_match_samename,
-                'can_match_sameimg': can_match_sameimg,
-                'K': K,
-                'Knorm': Knorm,
-                'sv_on': sv_on,
-                'prescore_method': prescore_method,
-                'score_method': score_method,
-            },
+            cfgdict=cfgdict,
         )
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
         ranks_top = infr.params['ranking.ntop']
