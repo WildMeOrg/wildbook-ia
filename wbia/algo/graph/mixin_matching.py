@@ -10,9 +10,82 @@ from os.path import join  # NOQA
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+from concurrent import futures
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
+
+
+def _cm_breaking_worker(cm_list, review_cfg={}, scoring='annot'):
+
+    ranks_top = review_cfg.get('ranks_top', None)
+    ranks_bot = review_cfg.get('ranks_bot', None)
+
+    # Construct K-broken graph
+    edges = []
+
+    if ranks_bot is None:
+        ranks_bot = 0
+
+    scoring = scoring.lower()
+    assert scoring in ['annot', 'name']
+
+    for count, cm in enumerate(cm_list):
+        score_list = cm.annot_score_list
+        rank_list = ut.argsort(score_list)[::-1]
+        sortx = ut.argsort(rank_list)
+
+        top_sortx = sortx[:ranks_top]
+        bot_sortx = sortx[len(sortx) - ranks_bot :]
+        short_sortx = ut.unique(top_sortx + bot_sortx)
+
+        daid_list = ut.take(cm.daid_list, short_sortx)
+        for daid in daid_list:
+            u, v = (cm.qaid, daid)
+            if v < u:
+                u, v = v, u
+            edges.append((u, v))
+    return edges
+
+
+def _make_rankings_worker(args):
+    import wbia  # NOQA
+    import tqdm  # NOQA
+
+    (
+        dbdir,
+        qaids_chunk,
+        daids,
+        cfgdict,
+        custom_nid_lookup,
+        verbose,
+        use_cache,
+        invalidate_supercache,
+    ) = args
+
+    ibs = wbia.opendb(dbdir=dbdir)
+
+    edges = set([])
+    for qaids in tqdm.tqdm(qaids_chunk):
+
+        qreq_ = ibs.new_query_request(
+            [qaids],
+            daids,
+            cfgdict=cfgdict,
+            custom_nid_lookup=custom_nid_lookup,
+            verbose=verbose,
+        )
+
+        cm_list = qreq_.execute(
+            prog_hook=None,
+            use_cache=use_cache,
+            invalidate_supercache=False,
+        )
+
+        new_edges = set(_cm_breaking_worker(cm_list, review_cfg={'ranks_top': 5}))
+        edges = edges | new_edges
+
+    return edges
 
 
 @ut.reloadable_class
@@ -103,30 +176,67 @@ class AnnotInfrMatching(object):
             raise KeyError('Unknown name_method={}'.format(name_method))
 
         if batch_size is not None:
-            ut.embed()
+            qaids_chunks = list(ut.ichunks(qaids, batch_size))
+            num_chunks = len(qaids_chunks)
 
-        qreq_ = ibs.new_query_request(
-            qaids,
-            daids,
-            cfgdict=cfgdict,
-            custom_nid_lookup=custom_nid_lookup,
-            verbose=infr.verbose >= 2,
-        )
+            arg_iter = list(
+                zip(
+                    [ibs.dbdir] * num_chunks,
+                    qaids_chunks,
+                    [daids] * num_chunks,
+                    [cfgdict] * num_chunks,
+                    [custom_nid_lookup] * num_chunks,
+                    [infr.verbose >= 2] * num_chunks,
+                    [use_cache] * num_chunks,
+                    [invalidate_supercache] * num_chunks,
+                )
+            )
 
-        # cacher = qreq_.get_big_cacher()
-        # if not cacher.exists():
-        #     pass
-        #     # import sys
-        #     # sys.exit(1)
+            nprocs = 8
+            logger.info('Creating %d processes' % (nprocs,))
+            executor = futures.ThreadPoolExecutor(nprocs)
+            logger.info('Submitting workers')
+            fs_chunk = []
+            for args in ut.ProgIter(arg_iter, lbl='submit matching threads'):
+                fs = executor.submit(_make_rankings_worker, args)
+                fs_chunk.append(fs)
 
-        cm_list = qreq_.execute(
-            prog_hook=prog_hook,
-            use_cache=use_cache,
-            invalidate_supercache=invalidate_supercache,
-        )
-        infr._set_vsmany_info(qreq_, cm_list)
+            results = []
+            try:
+                for fs in ut.ProgIter(fs_chunk, lbl='getting matching result'):
+                    result = fs.result()
+                    results.append(result)
+            except Exception:
+                raise
+            finally:
+                executor.shutdown(wait=True)
 
-        edges = set(infr._cm_breaking(cm_list, review_cfg={'ranks_top': 5}))
+            assert len(results) == num_chunks
+            edges = set(ut.flatten(results))
+        else:
+            qreq_ = ibs.new_query_request(
+                qaids,
+                daids,
+                cfgdict=cfgdict,
+                custom_nid_lookup=custom_nid_lookup,
+                verbose=infr.verbose >= 2,
+            )
+
+            # cacher = qreq_.get_big_cacher()
+            # if not cacher.exists():
+            #     pass
+            #     # import sys
+            #     # sys.exit(1)
+
+            cm_list = qreq_.execute(
+                prog_hook=prog_hook,
+                use_cache=use_cache,
+                invalidate_supercache=invalidate_supercache,
+            )
+            infr._set_vsmany_info(qreq_, cm_list)
+
+            edges = set(_cm_breaking_worker(cm_list, review_cfg={'ranks_top': 5}))
+
         return edges
         # return cm_list
 
@@ -216,34 +326,9 @@ class AnnotInfrMatching(object):
         """
         if cm_list is None:
             cm_list = infr.cm_list
-        ranks_top = review_cfg.get('ranks_top', None)
-        ranks_bot = review_cfg.get('ranks_bot', None)
-
-        # Construct K-broken graph
-        edges = []
-
-        if ranks_bot is None:
-            ranks_bot = 0
-
-        scoring = scoring.lower()
-        assert scoring in ['annot', 'name']
-
-        for count, cm in enumerate(cm_list):
-            score_list = cm.annot_score_list
-            rank_list = ut.argsort(score_list)[::-1]
-            sortx = ut.argsort(rank_list)
-
-            top_sortx = sortx[:ranks_top]
-            bot_sortx = sortx[len(sortx) - ranks_bot :]
-            short_sortx = ut.unique(top_sortx + bot_sortx)
-
-            daid_list = ut.take(cm.daid_list, short_sortx)
-            for daid in daid_list:
-                u, v = (cm.qaid, daid)
-                if v < u:
-                    u, v = v, u
-                edges.append((u, v))
-        return edges
+        return _cm_breaking_worker(
+            cm_list=cm_list, review_cfg=review_cfg, scoring=scoring
+        )
 
     def _cm_training_pairs(
         infr,
