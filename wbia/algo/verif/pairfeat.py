@@ -515,7 +515,11 @@ class PairwiseFeatureExtractor(object):
             #     logger.info('Load match cache size: {}'.format(
             #         ut.get_file_nBytes_str(fpath)))
 
-            data = cacher.tryload()
+            try:
+                data = cacher.tryload()
+            except TypeError:
+                data = None
+
             if data is None:
                 data = extr._make_pairwise_features(edges)
                 cacher.save(data)
