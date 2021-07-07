@@ -3315,6 +3315,7 @@ def review_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwa
         refresh = True
 
     current_species_rowids = ibs.get_annot_species_rowids(aid_list)
+    # current_species_rowids += ibs.add_species(['Same Animal', 'Different Animals'])
 
     species_count = [
         len(current_species_rowids) - current_species_rowids.count(species_rowid)
@@ -3397,6 +3398,24 @@ def review_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwa
         EMBEDDED_CSS=None,
         EMBEDDED_JAVASCRIPT=None,
         review=review,
+    )
+
+
+@register_route('/review/species/holding/', methods=['GET'])
+def review_species_holding(*args, **kwargs):
+    tup = appf.get_review_annot_args(appf.imageset_annot_processed)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+
+    callback_url = url_for('review_species')
+    return appf.template(
+        'review',
+        'species_holding',
+        imgsetid=imgsetid,
+        src_ag=src_ag,
+        dst_ag=dst_ag,
+        previous=previous,
+        callback_url=callback_url,
+        callback_method='POST',
     )
 
 

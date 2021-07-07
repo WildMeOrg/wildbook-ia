@@ -31,6 +31,7 @@ class AnnotInfrMatching(object):
         name_method='node',
         use_cache=True,
         invalidate_supercache=False,
+        batch_size=None,
     ):
         """
         Loads chip matches into the inference structure
@@ -44,6 +45,7 @@ class AnnotInfrMatching(object):
             name_method,
             use_cache=use_cache,
             invalidate_supercache=invalidate_supercache,
+            batch_size=batch_size,
         )
 
     def _set_vsmany_info(infr, qreq_, cm_list):
@@ -61,6 +63,7 @@ class AnnotInfrMatching(object):
         name_method='node',
         use_cache=None,
         invalidate_supercache=None,
+        batch_size=None,
     ):
         # from wbia.algo.graph import graph_iden
 
@@ -98,6 +101,9 @@ class AnnotInfrMatching(object):
             custom_nid_lookup = None
         else:
             raise KeyError('Unknown name_method={}'.format(name_method))
+
+        if batch_size is not None:
+            ut.embed()
 
         qreq_ = ibs.new_query_request(
             qaids,
@@ -765,6 +771,7 @@ class CandidateSearch(_RedundancyAugmentation):
         score_method='csum',
         sv_on=True,
         cfgdict_=None,
+        batch_size=None,
     ):
         """
 
@@ -802,6 +809,7 @@ class CandidateSearch(_RedundancyAugmentation):
         infr.exec_matching(
             name_method='edge',
             cfgdict=cfgdict,
+            batch_size=batch_size,
         )
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
         ranks_top = infr.params['ranking.ntop']

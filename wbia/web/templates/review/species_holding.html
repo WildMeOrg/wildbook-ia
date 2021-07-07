@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="row" style="padding: 200px;">
+    <div class="col-lg-2"></div>
+
+    <div class="col-lg-8">
+      {% if imgsetid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for ImageSet ID: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imgsettext }} ({{ imgsetid }})</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      <a class="btn btn-default pull-left" id="ia-review-previous" href="{{ url_for('review_species') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
+      <a class="btn btn-primary pull-right" id="ia-review-next" href="{{ url_for('review_species') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}">Next</a>
+
+      <br/>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+{% endblock %}
+{% block content_custom_javascript %}
+  <script type="text/javascript">
+    $(document).ready(function() {
+
+      $(window).keydown(function(event) {
+        key = event.which;
+        console.log(key);
+
+        if (key == 13) {
+          // Enter key pressed, submit form as accept
+          $('a#ia-review-next')[0].click();
+        } else if (key == 80) {
+          // P key pressed, follow previous link
+          $('a#ia-review-previous')[0].click();
+        }
+      });
+    });
+  </script>
+{% endblock %}

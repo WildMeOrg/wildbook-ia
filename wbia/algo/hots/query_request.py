@@ -190,7 +190,7 @@ def new_wbia_query_request(
         if verbose > 2:
             logger.info('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
-        assert custom_nid_lookup is None, 'unsupported'
+        # assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot
         )

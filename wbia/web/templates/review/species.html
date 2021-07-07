@@ -43,7 +43,7 @@
 
       <div class="ia-container">
         <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}" id="ia-species-form"onsubmit="return check_form();" >
-          <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 300px !important;">
+          <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; max-height: 70vh !important;">
           <div style="text-align: center; color: #aaa; margin-top: 5px">
             <span>Hard to tell?  <a href="{{ url_for('review_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for Image ID: {{ gid }}</a></span>
             <span id="ia-glyphicon-refresh" class="glyphicon glyphicon-refresh pull-right" style="font-size: 18px; color: #333" title="Refresh list of species based on frequency"></span>

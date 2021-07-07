@@ -1176,6 +1176,7 @@ def submit_species(**kwargs):
         logger.info('[web] (SKIP) user_id: %s' % (user_id,))
         return redirect(
             url_for(
+                # 'review_species_holding',
                 'review_species',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
@@ -1247,6 +1248,7 @@ def submit_species(**kwargs):
     else:
         return redirect(
             url_for(
+                # 'review_species_holding',
                 'review_species',
                 imgsetid=imgsetid,
                 src_ag=src_ag,
