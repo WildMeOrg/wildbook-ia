@@ -119,6 +119,8 @@ class Dict(JSONCodeableType):
 class Integer(TypeDecorator):
     impl = SAInteger
 
+    cache_ok = True
+
     def process_bind_param(self, value, dialect):
         if value is not None:
             return int(value)

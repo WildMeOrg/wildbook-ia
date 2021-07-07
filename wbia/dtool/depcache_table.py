@@ -35,6 +35,7 @@ from wbia.dtool.types import TYPE_TO_SQLTYPE
 
 import time
 import random
+import tqdm
 
 
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
@@ -1759,7 +1760,7 @@ class _TableComputeHelper(object):
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
             # prog_iter = list(prog_iter)
-            for dirty_chunk in prog_iter:
+            for dirty_chunk in tqdm.tqdm(prog_iter):
                 nChunkInput = len(dirty_chunk)
                 if nChunkInput == 0:
                     return
