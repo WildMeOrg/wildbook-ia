@@ -896,8 +896,6 @@ class CandidateSearch(_RedundancyAugmentation):
 
         print('[find_lnbnn_candidate_edges] Using cfgdict = %s' % (ut.repr3(cfgdict),))
 
-        ut.embed()
-
         ranks_top = infr.params['ranking.ntop']
         response = infr.exec_matching(
             name_method='edge',
