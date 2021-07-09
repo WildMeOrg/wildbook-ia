@@ -11,6 +11,8 @@ from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 from concurrent import futures
+import tqdm
+
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -29,17 +31,22 @@ def _cm_breaking_worker(cm_list, review_cfg={}, scoring='annot'):
 
     scoring = scoring.lower()
     assert scoring in ['annot', 'name']
+    assert ranks_bot == 0
 
     for count, cm in enumerate(cm_list):
         score_list = cm.annot_score_list
-        rank_list = ut.argsort(score_list)[::-1]
-        sortx = ut.argsort(rank_list)
 
-        top_sortx = sortx[:ranks_top]
-        bot_sortx = sortx[len(sortx) - ranks_bot :]
-        short_sortx = ut.unique(top_sortx + bot_sortx)
+        # rank_list = ut.argsort(score_list)[::-1]
+        # sortx = ut.argsort(rank_list)
 
-        daid_list = ut.take(cm.daid_list, short_sortx)
+        # top_sortx = sortx[:ranks_top]
+        # bot_sortx = sortx[len(sortx) - ranks_bot :]
+        # short_sortx = ut.unique(top_sortx + bot_sortx)
+        # daid_list = ut.take(cm.daid_list, short_sortx)
+
+        values = sorted(zip(score_list, cm.daid_list))[::-1]
+        keep = values[:ranks_top]
+        daid_list = ut.take_column(keep, 1)
         for daid in daid_list:
             u, v = (cm.qaid, daid)
             if v < u:
@@ -178,6 +185,7 @@ class AnnotInfrMatching(object):
             custom_nid_lookup = None
         else:
             raise KeyError('Unknown name_method={}'.format(name_method))
+        verbose = infr.verbose >= 2
 
         if batch_size is not None:
             if batch_size > 0:
@@ -191,7 +199,7 @@ class AnnotInfrMatching(object):
                         [daids] * num_chunks,
                         [cfgdict] * num_chunks,
                         [custom_nid_lookup] * num_chunks,
-                        [infr.verbose >= 2] * num_chunks,
+                        [verbose] * num_chunks,
                         [use_cache] * num_chunks,
                         [invalidate_supercache] * num_chunks,
                         [ranks_top] * num_chunks,
@@ -220,7 +228,34 @@ class AnnotInfrMatching(object):
                 assert len(results) == num_chunks
                 edges = set(ut.flatten(results))
             else:
-                ut.embed()
+                # <HACK FOR PIE V2>
+                from wbia_pie_v2._plugin import distance_to_score
+
+                globals().update(locals())
+
+                edges = []
+
+                for qaid in tqdm.tqdm(qaids):
+                    daids_ = list(set(daids) - set([qaid]))
+                    pie_annot_distances = ibs.pie_v2_predict_light_distance(
+                        qaid,
+                        daids_,
+                    )
+                    score_list = [
+                        distance_to_score(pie_annot_distance, norm=500.0)
+                        for pie_annot_distance in pie_annot_distances
+                    ]
+                    values = sorted(zip(score_list, daids_))[::-1]
+                    keep = values[:ranks_top]
+                    daid_list = ut.take_column(keep, 1)
+                    for daid in daid_list:
+                        u, v = (qaid, daid)
+                        if v < u:
+                            u, v = v, u
+                        edges.append((u, v))
+
+                edges = set(edges)
+                # </HACK>
         else:
             qreq_ = ibs.new_query_request(
                 qaids,
