@@ -896,6 +896,8 @@ class CandidateSearch(_RedundancyAugmentation):
 
         print('[find_lnbnn_candidate_edges] Using cfgdict = %s' % (ut.repr3(cfgdict),))
 
+        ut.embed()
+
         ranks_top = infr.params['ranking.ntop']
         response = infr.exec_matching(
             name_method='edge',
@@ -907,17 +909,15 @@ class CandidateSearch(_RedundancyAugmentation):
         if cfgdict_ is None:
             # infr.apply_match_edges(review_cfg={'ranks_top': 5})
             lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
-
-            candidate_edges = {
-                edge
-                for edge, state in zip(
-                    lnbnn_results, infr.edge_decision_from(lnbnn_results)
-                )
-                if state in desired_states
-            }
         else:
             assert response is not None
-            candidate_edges = list(set(response))
+            lnbnn_results = set(response)
+
+        candidate_edges = {
+            edge
+            for edge, state in zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
+            if state in desired_states
+        }
 
         infr.print(
             'ranking alg found {}/{} {} edges'.format(
