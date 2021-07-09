@@ -61,6 +61,7 @@ def _make_rankings_worker(args):
         verbose,
         use_cache,
         invalidate_supercache,
+        ranks_top,
     ) = args
 
     ibs = wbia.opendb(dbdir=dbdir)
@@ -82,7 +83,7 @@ def _make_rankings_worker(args):
             invalidate_supercache=False,
         )
 
-        new_edges = set(_cm_breaking_worker(cm_list, review_cfg={'ranks_top': 5}))
+        new_edges = set(_cm_breaking_worker(cm_list, review_cfg={'ranks_top': ranks_top}))
         edges = edges | new_edges
 
     return edges
@@ -105,12 +106,13 @@ class AnnotInfrMatching(object):
         use_cache=True,
         invalidate_supercache=False,
         batch_size=None,
+        ranks_top=5,
     ):
         """
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores wbia labeling
         """
-        infr._make_rankings(
+        return infr._make_rankings(
             qaids,
             daids,
             prog_hook,
@@ -119,6 +121,7 @@ class AnnotInfrMatching(object):
             use_cache=use_cache,
             invalidate_supercache=invalidate_supercache,
             batch_size=batch_size,
+            ranks_top=ranks_top,
         )
 
     def _set_vsmany_info(infr, qreq_, cm_list):
@@ -137,6 +140,7 @@ class AnnotInfrMatching(object):
         use_cache=None,
         invalidate_supercache=None,
         batch_size=None,
+        ranks_top=5,
     ):
         # from wbia.algo.graph import graph_iden
 
@@ -189,6 +193,7 @@ class AnnotInfrMatching(object):
                     [infr.verbose >= 2] * num_chunks,
                     [use_cache] * num_chunks,
                     [invalidate_supercache] * num_chunks,
+                    [ranks_top] * num_chunks,
                 )
             )
 
@@ -235,7 +240,7 @@ class AnnotInfrMatching(object):
             )
             infr._set_vsmany_info(qreq_, cm_list)
 
-            edges = set(_cm_breaking_worker(cm_list, review_cfg={'ranks_top': 5}))
+            edges = set(_cm_breaking_worker(cm_list, review_cfg={'ranks_top': ranks_top}))
 
         return edges
         # return cm_list
@@ -891,20 +896,28 @@ class CandidateSearch(_RedundancyAugmentation):
 
         print('[find_lnbnn_candidate_edges] Using cfgdict = %s' % (ut.repr3(cfgdict),))
 
-        infr.exec_matching(
+        ranks_top = infr.params['ranking.ntop']
+        response = infr.exec_matching(
             name_method='edge',
             cfgdict=cfgdict,
             batch_size=batch_size,
+            ranks_top=ranks_top,
         )
-        # infr.apply_match_edges(review_cfg={'ranks_top': 5})
-        ranks_top = infr.params['ranking.ntop']
-        lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
 
-        candidate_edges = {
-            edge
-            for edge, state in zip(lnbnn_results, infr.edge_decision_from(lnbnn_results))
-            if state in desired_states
-        }
+        if cfgdict_ is None:
+            # infr.apply_match_edges(review_cfg={'ranks_top': 5})
+            lnbnn_results = set(infr._cm_breaking(review_cfg={'ranks_top': ranks_top}))
+
+            candidate_edges = {
+                edge
+                for edge, state in zip(
+                    lnbnn_results, infr.edge_decision_from(lnbnn_results)
+                )
+                if state in desired_states
+            }
+        else:
+            assert response is not None
+            candidate_edges = list(set(response))
 
         infr.print(
             'ranking alg found {}/{} {} edges'.format(
