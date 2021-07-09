@@ -180,44 +180,47 @@ class AnnotInfrMatching(object):
             raise KeyError('Unknown name_method={}'.format(name_method))
 
         if batch_size is not None:
-            qaids_chunks = list(ut.ichunks(qaids, batch_size))
-            num_chunks = len(qaids_chunks)
+            if batch_size > 0:
+                qaids_chunks = list(ut.ichunks(qaids, batch_size))
+                num_chunks = len(qaids_chunks)
 
-            arg_iter = list(
-                zip(
-                    [ibs.dbdir] * num_chunks,
-                    qaids_chunks,
-                    [daids] * num_chunks,
-                    [cfgdict] * num_chunks,
-                    [custom_nid_lookup] * num_chunks,
-                    [infr.verbose >= 2] * num_chunks,
-                    [use_cache] * num_chunks,
-                    [invalidate_supercache] * num_chunks,
-                    [ranks_top] * num_chunks,
+                arg_iter = list(
+                    zip(
+                        [ibs.dbdir] * num_chunks,
+                        qaids_chunks,
+                        [daids] * num_chunks,
+                        [cfgdict] * num_chunks,
+                        [custom_nid_lookup] * num_chunks,
+                        [infr.verbose >= 2] * num_chunks,
+                        [use_cache] * num_chunks,
+                        [invalidate_supercache] * num_chunks,
+                        [ranks_top] * num_chunks,
+                    )
                 )
-            )
 
-            nprocs = 8
-            logger.info('Creating %d processes' % (nprocs,))
-            executor = futures.ThreadPoolExecutor(nprocs)
-            logger.info('Submitting workers')
-            fs_chunk = []
-            for args in ut.ProgIter(arg_iter, lbl='submit matching threads'):
-                fs = executor.submit(_make_rankings_worker, args)
-                fs_chunk.append(fs)
+                nprocs = 8
+                logger.info('Creating %d processes' % (nprocs,))
+                executor = futures.ThreadPoolExecutor(nprocs)
+                logger.info('Submitting workers')
+                fs_chunk = []
+                for args in ut.ProgIter(arg_iter, lbl='submit matching threads'):
+                    fs = executor.submit(_make_rankings_worker, args)
+                    fs_chunk.append(fs)
 
-            results = []
-            try:
-                for fs in ut.ProgIter(fs_chunk, lbl='getting matching result'):
-                    result = fs.result()
-                    results.append(result)
-            except Exception:
-                raise
-            finally:
-                executor.shutdown(wait=True)
+                results = []
+                try:
+                    for fs in ut.ProgIter(fs_chunk, lbl='getting matching result'):
+                        result = fs.result()
+                        results.append(result)
+                except Exception:
+                    raise
+                finally:
+                    executor.shutdown(wait=True)
 
-            assert len(results) == num_chunks
-            edges = set(ut.flatten(results))
+                assert len(results) == num_chunks
+                edges = set(ut.flatten(results))
+            else:
+                ut.embed()
         else:
             qreq_ = ibs.new_query_request(
                 qaids,
