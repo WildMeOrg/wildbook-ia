@@ -187,75 +187,76 @@ class AnnotInfrMatching(object):
             raise KeyError('Unknown name_method={}'.format(name_method))
         verbose = infr.verbose >= 2
 
-        if batch_size is not None:
-            if batch_size > 0:
-                qaids_chunks = list(ut.ichunks(qaids, batch_size))
-                num_chunks = len(qaids_chunks)
+        # <HACK FOR PIE V2>
+        if cfgdict.get('pipeline_root', None) in ['PieTwo']:
+            from wbia_pie_v2._plugin import distance_to_score
 
-                arg_iter = list(
-                    zip(
-                        [ibs.dbdir] * num_chunks,
-                        qaids_chunks,
-                        [daids] * num_chunks,
-                        [cfgdict] * num_chunks,
-                        [custom_nid_lookup] * num_chunks,
-                        [verbose] * num_chunks,
-                        [use_cache] * num_chunks,
-                        [invalidate_supercache] * num_chunks,
-                        [ranks_top] * num_chunks,
-                    )
+            globals().update(locals())
+
+            edges = []
+
+            for qaid in tqdm.tqdm(qaids):
+                daids_ = list(set(daids) - set([qaid]))
+                pie_annot_distances = ibs.pie_v2_predict_light_distance(
+                    qaid,
+                    daids_,
                 )
+                score_list = [
+                    distance_to_score(pie_annot_distance, norm=500.0)
+                    for pie_annot_distance in pie_annot_distances
+                ]
+                values = sorted(zip(score_list, daids_))[::-1]
+                keep = values[:ranks_top]
+                daid_list = ut.take_column(keep, 1)
+                for daid in daid_list:
+                    u, v = (qaid, daid)
+                    if v < u:
+                        u, v = v, u
+                    edges.append((u, v))
 
-                nprocs = 8
-                logger.info('Creating %d processes' % (nprocs,))
-                executor = futures.ThreadPoolExecutor(nprocs)
-                logger.info('Submitting workers')
-                fs_chunk = []
-                for args in ut.ProgIter(arg_iter, lbl='submit matching threads'):
-                    fs = executor.submit(_make_rankings_worker, args)
-                    fs_chunk.append(fs)
+            edges = set(edges)
+            return edges
+        # </HACK>
 
-                results = []
-                try:
-                    for fs in ut.ProgIter(fs_chunk, lbl='getting matching result'):
-                        result = fs.result()
-                        results.append(result)
-                except Exception:
-                    raise
-                finally:
-                    executor.shutdown(wait=True)
+        if batch_size is not None:
+            qaids_chunks = list(ut.ichunks(qaids, batch_size))
+            num_chunks = len(qaids_chunks)
 
-                assert len(results) == num_chunks
-                edges = set(ut.flatten(results))
-            else:
-                # <HACK FOR PIE V2>
-                from wbia_pie_v2._plugin import distance_to_score
+            arg_iter = list(
+                zip(
+                    [ibs.dbdir] * num_chunks,
+                    qaids_chunks,
+                    [daids] * num_chunks,
+                    [cfgdict] * num_chunks,
+                    [custom_nid_lookup] * num_chunks,
+                    [verbose] * num_chunks,
+                    [use_cache] * num_chunks,
+                    [invalidate_supercache] * num_chunks,
+                    [ranks_top] * num_chunks,
+                )
+            )
 
-                globals().update(locals())
+            nprocs = 8
+            logger.info('Creating %d processes' % (nprocs,))
+            executor = futures.ThreadPoolExecutor(nprocs)
+            logger.info('Submitting workers')
+            fs_chunk = []
+            for args in ut.ProgIter(arg_iter, lbl='submit matching threads'):
+                fs = executor.submit(_make_rankings_worker, args)
+                fs_chunk.append(fs)
 
-                edges = []
+            results = []
+            try:
+                for fs in ut.ProgIter(fs_chunk, lbl='getting matching result'):
+                    result = fs.result()
+                    results.append(result)
+            except Exception:
+                raise
+            finally:
+                executor.shutdown(wait=True)
 
-                for qaid in tqdm.tqdm(qaids):
-                    daids_ = list(set(daids) - set([qaid]))
-                    pie_annot_distances = ibs.pie_v2_predict_light_distance(
-                        qaid,
-                        daids_,
-                    )
-                    score_list = [
-                        distance_to_score(pie_annot_distance, norm=500.0)
-                        for pie_annot_distance in pie_annot_distances
-                    ]
-                    values = sorted(zip(score_list, daids_))[::-1]
-                    keep = values[:ranks_top]
-                    daid_list = ut.take_column(keep, 1)
-                    for daid in daid_list:
-                        u, v = (qaid, daid)
-                        if v < u:
-                            u, v = v, u
-                        edges.append((u, v))
-
-                edges = set(edges)
-                # </HACK>
+            assert len(results) == num_chunks
+            edges = set(ut.flatten(results))
         else:
             qreq_ = ibs.new_query_request(
                 qaids,
