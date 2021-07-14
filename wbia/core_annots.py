@@ -2322,9 +2322,31 @@ def compute_orients_annotations(depc, aid_list, config=None):
                 message = 'Orientation plug-in does not support species_tag = %r' % (
                     species_tag,
                 )
+                aid_list_ = sorted(species_dict[species])
+
+                if (
+                    species_tag not in _plugin.MODEL_URLS
+                    or species_tag not in _plugin.CONFIGS
+                ):
+                    print(message)
+                    bbox_list_ = ibs.get_annot_bboxes(aid_list_)
+                    theta_list_ = ibs.get_annot_bboxes(aid_list_)
+                    for aid_, (xtl_, ytl_, w_, h_), theta_ in zip(
+                        aid_list_, bbox_list_, theta_list_
+                    ):
+                        result = (
+                            xtl_,
+                            ytl_,
+                            w_,
+                            h_,
+                            theta_,
+                        )
+                        results_dict[aid_] = result
+
+                    continue
+
                 assert species_tag in _plugin.MODEL_URLS, message
                 assert species_tag in _plugin.CONFIGS, message
-                aid_list_ = sorted(species_dict[species])
                 print(
                     'Computing %d orientations for species = %r'
                     % (
@@ -2332,7 +2354,6 @@ def compute_orients_annotations(depc, aid_list, config=None):
                         species,
                     )
                 )
-
                 output_list, theta_list = _plugin.wbia_plugin_detect_oriented_box(
                     ibs, aid_list_, species_tag, plot_samples=False
                 )
@@ -2458,7 +2479,8 @@ def compute_orients_annotations(depc, aid_list, config=None):
 
             result_gen = []
             for aid in aid_list:
-                result = results_dict[aid]
+                result = results_dict.get(aid, None)
+                assert result is not None
                 result_gen.append(result)
 
         except Exception:
