@@ -2330,7 +2330,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
                 ):
                     print(message)
                     bbox_list_ = ibs.get_annot_bboxes(aid_list_)
-                    theta_list_ = ibs.get_annot_bboxes(aid_list_)
+                    theta_list_ = ibs.get_annot_thetas(aid_list_)
                     for aid_, (xtl_, ytl_, w_, h_), theta_ in zip(
                         aid_list_, bbox_list_, theta_list_
                     ):
