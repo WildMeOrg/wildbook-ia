@@ -594,7 +594,7 @@ def localize_images(ibs, gid_list_=None):
                     ), '200 code not received on download'
                 except Exception:
                     scheme = urlsplit(uri_, allow_fragments=False).scheme
-                    uri_ = uri_.strip('%s://' % (scheme,))
+                    uri_ = uri_[len('%s://' % (scheme,)) :]
                     uri_path = urlquote(uri_.encode('utf8'))
                     uri_ = '%s://%s' % (scheme, uri_path)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
