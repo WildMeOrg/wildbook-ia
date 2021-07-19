@@ -905,12 +905,12 @@ class CandidateSearch(_RedundancyAugmentation):
         """
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(--slow)
-            >>> # ENABLE_DOCTEST
             >>> from wbia.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> cand_edges = infr.find_lnbnn_candidate_edges()
-            >>> assert len(cand_edges) > 200
+            >>> assert len(cand_edges) > 200, len(cand_edges)
         """
         # Refresh the name labels
 
