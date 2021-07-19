@@ -2,6 +2,7 @@
 import pathlib
 import tempfile
 from unittest import mock
+from urllib.parse import quote
 import uuid
 
 
@@ -12,6 +13,17 @@ IMAGE_UUIDS = [
 IMAGE_URIS = [
     f'http://houston/api/v1/assets/src/{image_uuid}' for image_uuid in IMAGE_UUIDS
 ]
+IMAGE_URIS_UTF8 = [
+    f'http://housトン:5000/api/ヴィ1/assets/src/{image_uuid}' for image_uuid in IMAGE_UUIDS
+]
+QUOTED_URI_PATHS = [
+    f'http://housトン:5000/api/{quote("ヴィ")}1/assets/src/{image_uuid}'
+    for image_uuid in IMAGE_UUIDS
+]
+QUOTED_AGAIN_URIS = [
+    f'http://hous{quote("トン")}:5000/api/{quote("ヴィ")}1/assets/src/{image_uuid}'
+    for image_uuid in IMAGE_UUIDS
+]
 
 
 def test_add_images_uris():
@@ -19,7 +31,7 @@ def test_add_images_uris():
 
     ibs = mock.Mock()
     ibs.cfg.other_cfg.auto_localize = False
-    ibs.get_image_paths.return_value = IMAGE_URIS
+    ibs.get_image_paths.return_value = IMAGE_URIS_UTF8
     ibs._compute_image_uuids.side_effect = lambda *args, **kwargs: _compute_image_uuids(
         ibs, *args, **kwargs
     )
@@ -36,13 +48,13 @@ def test_add_images_uris():
         return response
 
     with mock.patch('requests.get', side_effect=_get) as get:
-        result_ids = add_images(ibs, IMAGE_URIS)
+        result_ids = add_images(ibs, IMAGE_URIS_UTF8)
 
     assert result_ids == [1, 2]
     assert get.call_args_list == [
-        mock.call(IMAGE_URIS[0], allow_redirects=True, stream=True),
-        mock.call(IMAGE_URIS[0], allow_redirects=True, stream=True),
-        mock.call(IMAGE_URIS[1], allow_redirects=True, stream=True),
+        mock.call(QUOTED_URI_PATHS[0], allow_redirects=True, stream=True),
+        mock.call(QUOTED_AGAIN_URIS[0], allow_redirects=True, stream=True),
+        mock.call(QUOTED_URI_PATHS[1], allow_redirects=True, stream=True),
     ]
     assert not ibs.localize_images.called
 
@@ -87,7 +99,7 @@ def test_localize_images(request):
     imgdir = pathlib.Path(td.name)
     request.addfinalizer(td.cleanup)
     ibs = mock.Mock(imgdir=str(imgdir))
-    ibs.get_image_uris.return_value = IMAGE_URIS
+    ibs.get_image_uris.return_value = IMAGE_URIS_UTF8
     ibs.get_image_uuids.return_value = IMAGE_UUIDS
     ibs.get_image_exts.return_value = ['.png', '.png']
 
@@ -107,9 +119,9 @@ def test_localize_images(request):
             localize_images(ibs, [1, 2])
 
     assert get.call_args_list == [
-        mock.call(IMAGE_URIS[0], stream=True, allow_redirects=True),
-        mock.call(IMAGE_URIS[0], stream=True, allow_redirects=True),
-        mock.call(IMAGE_URIS[1], stream=True, allow_redirects=True),
+        mock.call(QUOTED_URI_PATHS[0], stream=True, allow_redirects=True),
+        mock.call(QUOTED_AGAIN_URIS[0], stream=True, allow_redirects=True),
+        mock.call(QUOTED_URI_PATHS[1], stream=True, allow_redirects=True),
     ]
     assert not grab_s3_contents.called
     assert sorted(imgdir.glob('*')) == [

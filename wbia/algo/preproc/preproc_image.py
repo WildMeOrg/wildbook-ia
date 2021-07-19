@@ -115,10 +115,12 @@ def parse_imageinfo(gpath):
                             response.status_code == 200
                         ), '200 code not received on download'
                     except Exception:
-                        scheme = urlsplit(uri_, allow_fragments=False).scheme
-                        uri_ = uri_[len('%s://' % (scheme,)) :]
-                        uri_path = urlquote(uri_.encode('utf8'))
-                        uri_ = '%s://%s' % (scheme, uri_path)
+                        parts = urlsplit(uri_, allow_fragments=False)
+                        uri_ = uri_[len('%s://' % (parts.scheme,)) :]
+                        hostname = urlquote(parts.hostname.encode('utf8'))
+                        if parts.port:
+                            hostname = f'{hostname}:{parts.port}'
+                        uri_ = '%s://%s%s' % (parts.scheme, hostname, parts.path)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
                         assert (
                             response.status_code == 200
