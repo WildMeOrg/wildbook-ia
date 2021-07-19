@@ -117,7 +117,7 @@ def get_valid_gids(
     require_unixtime=False,
     require_gps=None,
     reviewed=None,
-    **kwargs
+    **kwargs,
 ):
     r"""
     Args:
@@ -317,7 +317,7 @@ def add_images(
     ensure_unique=False,
     ensure_loadable=True,
     ensure_exif=True,
-    **kwargs
+    **kwargs,
 ):
     r"""
     Adds a list of image paths to the database.
@@ -593,10 +593,12 @@ def localize_images(ibs, gid_list_=None):
                         response.status_code == 200
                     ), '200 code not received on download'
                 except Exception:
-                    scheme = urlsplit(uri_, allow_fragments=False).scheme
-                    uri_ = uri_.strip('%s://' % (scheme,))
-                    uri_path = urlquote(uri_.encode('utf8'))
-                    uri_ = '%s://%s' % (scheme, uri_path)
+                    parts = urlsplit(uri_, allow_fragments=False)
+                    uri_ = uri_[len('%s://' % (parts.scheme,)) :]
+                    hostname = urlquote(parts.hostname.encode('utf8'))
+                    if parts.port:
+                        hostname = f'{hostname}:{parts.port}'
+                    uri_ = '%s://%s%s' % (parts.scheme, hostname, parts.path)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
                     assert (
                         response.status_code == 200
