@@ -834,24 +834,39 @@ def start_detect_image_lightnet(
         URL:
 
     Args:
-        image_uuid_list (list) : list of image uuids to detect on.
+        image_uuid_list (list) : list of image uuids or urls to detect on.
         callback_url (url) : url that will be called when detection succeeds or fails
     """
-    # Check UUIDs
-    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+    if image_uuid_list and '://' not in image_uuid_list[0]:
+        # Check UUIDs
+        ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
-    # import wbia
-    # from wbia.web import apis_engine
-    # ibs.load_plugin_module(apis_engine)
-    image_uuid_list = ensure_uuid_list(image_uuid_list)
-    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (
-        gid_list,
-        kwargs,
-    )
-    jobid = ibs.job_manager.jobiface.queue_job(
-        'detect_cnn_lightnet_json', callback_url, callback_method, lane, jobid, *args
-    )
+        # import wbia
+        # from wbia.web import apis_engine
+        # ibs.load_plugin_module(apis_engine)
+        image_uuid_list = ensure_uuid_list(image_uuid_list)
+        gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+        args = (
+            gid_list,
+            kwargs,
+        )
+        jobid = ibs.job_manager.jobiface.queue_job(
+            'detect_cnn_lightnet_json', callback_url, callback_method, lane, jobid, *args
+        )
+    else:
+        # image_uuid_list contains urls
+        args = (
+            image_uuid_list,
+            kwargs,
+        )
+        jobid = ibs.job_manager.jobiface.queue_job(
+            'detect_cnn_lightnet_image_uris_json',
+            callback_url,
+            callback_method,
+            lane,
+            jobid,
+            *args
+        )
 
     # if callback_url is not None:
     #    #import requests
