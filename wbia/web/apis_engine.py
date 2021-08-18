@@ -824,6 +824,7 @@ def start_detect_image_lightnet(
     image_uuid_list,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='fast',
     jobid=None,
     **kwargs
@@ -851,7 +852,13 @@ def start_detect_image_lightnet(
             kwargs,
         )
         jobid = ibs.job_manager.jobiface.queue_job(
-            'detect_cnn_lightnet_json', callback_url, callback_method, lane, jobid, *args
+            'detect_cnn_lightnet_json',
+            callback_url,
+            callback_method,
+            callback_detailed,
+            lane,
+            jobid,
+            *args
         )
     else:
         # image_uuid_list contains urls
@@ -863,6 +870,7 @@ def start_detect_image_lightnet(
             'detect_cnn_lightnet_image_uris_json',
             callback_url,
             callback_method,
+            callback_detailed,
             lane,
             jobid,
             *args
