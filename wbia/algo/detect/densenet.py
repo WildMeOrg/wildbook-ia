@@ -20,12 +20,12 @@ logger = logging.getLogger('wbia')
 PARALLEL = not const.CONTAINERIZED
 INPUT_SIZE = 224
 
-
 ARCHIVE_URL_DICT = {
     'canonical_zebra_grevys_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v1.zip',
     'canonical_zebra_grevys_v2': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v2.zip',
     'canonical_zebra_grevys_v3': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v3.zip',
     'canonical_zebra_grevys_v4': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v4.zip',
+    'canonical_giraffe_reticulated_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.giraffe_reticulated.v1.zip',
     'ryan_densenet_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.ryan.densenet.v1.zip',
     'ryan_densenet_v2': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.ryan.densenet.v2.zip',
     'megan_argentina_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.argentina.densenet.v1.zip',
