@@ -6,6 +6,7 @@ import warnings
 import vtool.exif as vtexif
 import utool as ut
 from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED, ORIENTATION_000
+from wbia.utils import call_houston
 
 
 EXIF_UNDEFINED = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
@@ -73,7 +74,8 @@ def parse_imageinfo(gpath):
 
     url_protos = ['https://', 'http://']
     s3_proto = ['s3://']
-    valid_protos = s3_proto + url_protos
+    houston_proto = ['houston+']
+    valid_protos = s3_proto + url_protos + houston_proto
 
     def isproto(gpath, valid_protos):
         return any(gpath.startswith(proto) for proto in valid_protos)
@@ -127,6 +129,14 @@ def parse_imageinfo(gpath):
                         ), '200 code not received on download'
 
                     # Save
+                    with open(temp_filepath, 'wb') as temp_file_:
+                        for chunk in response.iter_content(1024):
+                            temp_file_.write(chunk)
+                elif isproto(gpath, houston_proto):
+                    response = call_houston(gpath)
+                    assert (
+                        response.status_code == 200
+                    ), f'200 code not received on download: {gpath}'
                     with open(temp_filepath, 'wb') as temp_file_:
                         for chunk in response.iter_content(1024):
                             temp_file_.write(chunk)

@@ -67,6 +67,7 @@ import flask
 from os.path import join, exists, abspath, splitext, basename
 from functools import partial
 from wbia.control import controller_inject
+from wbia.utils import call_houston
 import multiprocessing
 
 
@@ -1029,6 +1030,7 @@ class JobInterface(object):
         action,
         callback_url=None,
         callback_method=None,
+        callback_detailed=False,
         lane='slow',
         jobid=None,
         *args,
@@ -1075,6 +1077,7 @@ class JobInterface(object):
                 'kwargs': kwargs,
                 'callback_url': callback_url,
                 'callback_method': callback_method,
+                'callback_detailed': callback_detailed,
                 'request': request,
                 'restart_jobid': jobid,
                 'restart_jobcounter': None,
@@ -1114,6 +1117,7 @@ class JobInterface(object):
             kwargs = None
             callback_url = None
             callback_method = None
+            callback_detailed = None
             request = None
             engine_request = None
 
@@ -2048,6 +2052,7 @@ def on_collect_request(
         engine_result = collect_request.get('engine_result', None)
         callback_url = collect_request.get('callback_url', None)
         callback_method = collect_request.get('callback_method', None)
+        callback_detailed = collect_request.get('callback_detailed', False)
 
         # Get the engine result jobid
         jobid = engine_result.get('jobid', jobid)
@@ -2075,6 +2080,11 @@ def on_collect_request(
 
             try:
                 data_dict = {'jobid': jobid}
+                if callback_detailed:
+                    shelve_value = get_shelve_value(shelve_output_filepath, 'result')
+                    data_dict['status'] = shelve_value['exec_status']
+                    data_dict['json_result'] = ut.from_json(shelve_value['json_result'])
+                    shelve_value = None  # Release memory
                 args = (
                     callback_url,
                     callback_method,
@@ -2087,10 +2097,29 @@ def on_collect_request(
 
                 # Perform callback
                 if callback_method == 'POST':
+                    if callback_url.startswith('houston+'):
+                        # Remove houston+ from callback_url
+                        call_houston(
+                            callback_url[8:],
+                            method='POST',
+                            data=ut.to_json(data_dict),
+                            headers={'Content-Type': 'application/json'},
+                        )
                     response = requests.post(callback_url, data=data_dict)
                 elif callback_method == 'GET':
+                    if callback_url.startswith('houston+'):
+                        # Remove houston+ from callback_url
+                        call_houston(callback_url[8:], method='GET', params=data_dict)
                     response = requests.get(callback_url, params=data_dict)
                 elif callback_method == 'PUT':
+                    if callback_url.startswith('houston+'):
+                        # Remove houston+ from callback_url
+                        call_houston(
+                            callback_url[8:],
+                            method='PUT',
+                            data=ut.to_json(data_dict),
+                            headers={'Content-Type': 'application/json'},
+                        )
                     response = requests.put(callback_url, data=data_dict)
                 else:
                     raise RuntimeError()

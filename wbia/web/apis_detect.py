@@ -827,6 +827,12 @@ def detect_cnn_lightnet_json_wrapper(ibs, image_uuid_list, **kwargs):
 
 
 @register_ibs_method
+def detect_cnn_lightnet_image_uris_json(ibs, image_uris, config={}, **kwargs):
+    gid_list = ibs.add_images(image_uris, auto_localize=True)
+    return ibs.detect_cnn_lightnet_json(gid_list, config=config, **kwargs)
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 def detect_cnn_lightnet_json(ibs, gid_list, config={}, **kwargs):
     return detect_cnn_json(

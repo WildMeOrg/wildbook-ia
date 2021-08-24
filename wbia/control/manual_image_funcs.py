@@ -27,6 +27,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from wbia.web import routes_ajax
+from wbia.utils import call_houston
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -556,7 +557,8 @@ def localize_images(ibs, gid_list_=None):
 
     url_protos = ['https://', 'http://']
     s3_proto = ['s3://']
-    valid_protos = s3_proto + url_protos
+    houston_proto = ['houston+']
+    valid_protos = s3_proto + url_protos + houston_proto
 
     def isproto(uri, valid_protos):
         return any(uri.startswith(proto) for proto in valid_protos)
@@ -604,6 +606,14 @@ def localize_images(ibs, gid_list_=None):
                         response.status_code == 200
                     ), '200 code not received on download'
                 # Save
+                with open(loc_gpath, 'wb') as temp_file_:
+                    for chunk in response.iter_content(1024):
+                        temp_file_.write(chunk)
+            elif isproto(uri, houston_proto):
+                response = call_houston(uri)
+                assert (
+                    response.status_code == 200
+                ), f'200 code not received on download: {uri}'
                 with open(loc_gpath, 'wb') as temp_file_:
                     for chunk in response.iter_content(1024):
                         temp_file_.write(chunk)
