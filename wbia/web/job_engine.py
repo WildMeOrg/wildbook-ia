@@ -1890,7 +1890,7 @@ def on_collect_request(
     status = collect_request.get('status', None)
 
     reply = {
-        'status': 'ok',
+        'status': status,
         'jobid': jobid,
     }
 
