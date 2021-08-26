@@ -80,6 +80,7 @@ ARCHIVE_URL_DICT = {
     'snow_leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snow_leopard.v0.zip',
     'grey_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_grey.v0.zip',
     'beluga_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v0.zip',
+    'beluga_whale_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v1.zip',
     'seals_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v0.zip',
 }
 
