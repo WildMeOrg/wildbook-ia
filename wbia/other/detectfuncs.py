@@ -443,6 +443,9 @@ def general_parse_gt_annots(
 ):
     gid_list = ibs.get_annot_gids(aid_list)
 
+    species_mapping_ = species_mapping.copy()
+    species_mapping_.update(gt_species_mapping)
+
     species_set = set([])
     gt_list = []
     for gid, aid in zip(gid_list, aid_list):
@@ -479,9 +482,7 @@ def general_parse_gt_annots(
             'ybr': (bbox[1] + bbox[3]) / height,
             'width': bbox[2] / width,
             'height': bbox[3] / height,
-            'class': species_mapping.get(
-                gt_species_mapping.get(species, species), species
-            ),
+            'class': species_mapping_.get(species, species),
             'viewpoint': viewpoint,
             'interest': interest,
             'confidence': 1.0,
@@ -565,6 +566,9 @@ def localizer_parse_pred(
     ibs, test_gid_list=None, species_mapping={}, pred_species_mapping={}, **kwargs
 ):
     depc = ibs.depc_image
+
+    species_mapping_ = species_mapping.copy()
+    species_mapping_.update(pred_species_mapping)
 
     if 'feature2_algo' not in kwargs:
         kwargs['feature2_algo'] = 'resnet'
@@ -680,9 +684,7 @@ def localizer_parse_pred(
                 'height': bbox[3] / height,
                 'theta': theta,
                 'confidence': conf,
-                'class': species_mapping.get(
-                    pred_species_mapping.get(class_, class_), class_
-                ),
+                'class': species_mapping_.get(class_, class_),
                 'viewpoint': viewpoint,
                 'interest': None if interest is None else interest >= 0.84,
                 'feature': feature,
