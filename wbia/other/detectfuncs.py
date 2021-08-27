@@ -439,7 +439,7 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
 
 
 def general_parse_gt_annots(
-    ibs, aid_list, include_parts=True, species_mapping={}, **kwargs
+    ibs, aid_list, include_parts=True, species_mapping={}, gt_species_mapping={}, **kwargs
 ):
     gid_list = ibs.get_annot_gids(aid_list)
 
@@ -479,7 +479,9 @@ def general_parse_gt_annots(
             'ybr': (bbox[1] + bbox[3]) / height,
             'width': bbox[2] / width,
             'height': bbox[3] / height,
-            'class': species_mapping.get(species, species),
+            'class': species_mapping.get(
+                gt_species_mapping.get(species, species), species
+            ),
             'viewpoint': viewpoint,
             'interest': interest,
             'confidence': 1.0,
@@ -559,7 +561,9 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 ##########################################################################################
 
 
-def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
+def localizer_parse_pred(
+    ibs, test_gid_list=None, species_mapping={}, pred_species_mapping={}, **kwargs
+):
     depc = ibs.depc_image
 
     if 'feature2_algo' not in kwargs:
@@ -676,7 +680,9 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
                 'height': bbox[3] / height,
                 'theta': theta,
                 'confidence': conf,
-                'class': species_mapping.get(class_, class_),
+                'class': species_mapping.get(
+                    pred_species_mapping.get(class_, class_), class_
+                ),
                 'viewpoint': viewpoint,
                 'interest': None if interest is None else interest >= 0.84,
                 'feature': feature,
