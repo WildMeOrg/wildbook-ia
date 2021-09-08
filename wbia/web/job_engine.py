@@ -1356,6 +1356,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                     kwargs = engine_request['kwargs']
                     callback_url = engine_request['callback_url']
                     callback_method = engine_request['callback_method']
+                    callback_detailed = engine_request['callback_detailed']
                     request = engine_request['request']
                     restart_jobid = engine_request.get('restart_jobid', None)
                     restart_jobcounter = engine_request.get('restart_jobcounter', None)
@@ -1428,6 +1429,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                             'kwargs': kwargs,
                             'callback_url': callback_url,
                             'callback_method': callback_method,
+                            'callback_detailed': callback_detailed,
                             'request': request,
                             'times': {
                                 'received': received,
@@ -1589,6 +1591,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
                     kwargs = engine_request['kwargs']
                     callback_url = engine_request['callback_url']
                     callback_method = engine_request['callback_method']
+                    callback_detailed = engine_request['callback_detailed']
                     lane_ = engine_request['lane']
 
                     if VERBOSE_JOBS:
@@ -1628,6 +1631,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
                         'engine_result': engine_result,
                         'callback_url': callback_url,
                         'callback_method': callback_method,
+                        'callback_detailed': callback_detailed,
                     }
                     # if VERBOSE_JOBS:
                     print(
