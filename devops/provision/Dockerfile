@@ -216,6 +216,7 @@ RUN set -ex \
         'torch==1.7.1' \
         'torchvision==0.8.2' \
         'torchaudio==0.7.2' \
+        'Pillow==8.2.0' \
  && /virtualenv/env3/bin/pip install --upgrade \
         numpy
 
