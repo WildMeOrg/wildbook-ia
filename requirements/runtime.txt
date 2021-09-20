@@ -28,9 +28,9 @@ matplotlib>=3.3.0
 networkx>=2.1
 numpy>=1.14.2
 
-pandas>=0.19.2
+pandas==1.3.2
 parse>=1.6.6
-Pillow>=7.1.0
+Pillow==8.2.0
 pyasn1>=0.1.7
 
 pyfiglet
