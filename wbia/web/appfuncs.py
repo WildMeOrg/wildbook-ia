@@ -23,8 +23,8 @@ TARGET_WIDTH = 1200.0
 TARGET_HEIGHT = 800.0
 PAGE_SIZE = 500
 VALID_REVIEW_MODES = [
-    ('review_annotation', 'Annotation'),
-    ('review_viewpoint', 'Viewpoint'),
+    ('review_viewpoint2', 'Annotation'),
+    ('review_viewpoint3', 'Viewpoint'),
     ('review_quality', 'Quality'),
     ('review_demographics', 'Demographics'),
 ]
