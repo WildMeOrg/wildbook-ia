@@ -449,6 +449,8 @@ SPECIES_WITH_DETECTORS = (
     'grey_seal_pup',
     'harbour_seal',
     'hawaiian_monk_seal',
+    'whale_sperm',
+    'whale_sperm+fluke',
     # Latin (Flukebook)
     'chelonioidea',
     'chelonioidea+head',
@@ -496,6 +498,8 @@ SPECIES_WITH_DETECTORS = (
     'phoca_vitulina',
     'halichoerus_grypus',
     'monachus_schauinslandi',
+    'physeter_macrocephalus',
+    'physeter_macrocephalus+fluke',
 )
 
 

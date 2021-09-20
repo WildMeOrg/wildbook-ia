@@ -50,6 +50,7 @@ CONFIG_URL_DICT = {
     'hendrik_dorsal': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.dorsal.py',
     'humpback_dorsal': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_humpback.dorsal.v0.py',
     'orca_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_orca.v0.py',
+    'whale_sperm_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_sperm.v0.py',
     'fins_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v0.py',
     'fins_v1_fluke': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.py',
     'fins_v1_dorsal': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py',

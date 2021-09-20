@@ -45,6 +45,7 @@ ARCHIVE_URL_DICT = {
     'spotted_skunk_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v0.zip',
     'humpback_dorsal': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_humpback.dorsal.v0.zip',
     'orca_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_orca.v0.zip',
+    'whale_sperm_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_sperm.v0.zip',
     'fins_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v0.zip',
     'fins_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.1.zip',
     'wilddog_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v0.zip',
