@@ -1718,7 +1718,7 @@ def view_jobs(**kwargs):
     ibs = current_app.ibs
 
     response = ibs.get_job_status()
-    assert response['status'] == 'ok'
+    assert response['status'] in ['ok', None]
 
     jobs = response['json_result']
     job_list = []

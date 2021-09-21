@@ -214,7 +214,7 @@ def initialize_job_manager(ibs):
     while 0 and True:
         result = ibs.get_job_status(-1)
         print('result = %r' % (result,))
-        if result['status'] == 'ok':
+        if result['status'] in ['ok', None]:
             break
 
     ibs.job_manager.jobiface.queue_interrupted_jobs()
