@@ -323,7 +323,12 @@ def start_identify_annots(
     )
     args = (qaid_list, daid_list, pipecfg)
     jobid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_simple_dict', callback_url, callback_method, lane, jobid, *args
+        action='query_chips_simple_dict',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
 
     # if callback_url is not None:
@@ -401,7 +406,12 @@ def start_identify_annots_query_complete(
         k,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_graph_complete', callback_url, callback_method, lane, jobid, *args
+        action='query_chips_graph_complete',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
     return jobid
 
@@ -640,7 +650,12 @@ def start_identify_annots_query(
     )
     args = (qaid_list, daid_list, user_feedback, query_config_dict, echo_query_params)
     jobid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_graph', callback_url, callback_method, lane, jobid, *args
+        action='query_chips_graph',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
     return jobid
 
@@ -678,7 +693,12 @@ def start_wic_image(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'wic_cnn_json', callback_url, callback_method, lane, jobid, *args
+        action='wic_cnn_json',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
 
     # if callback_url is not None:
@@ -721,7 +741,12 @@ def start_detect_image_yolo(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'detect_cnn_yolo_json', callback_url, callback_method, lane, jobid, *args
+        action='detect_cnn_yolo_json',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
 
     # if callback_url is not None:
@@ -756,7 +781,12 @@ def start_labeler_cnn(
         kwargs,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'labeler_cnn', callback_url, callback_method, lane, jobid, *args
+        action='labeler_cnn',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
 
     # if callback_url is not None:
@@ -794,7 +824,12 @@ def start_review_query_chips_best(
         database_imgsetid,
     )
     jobid = ibs.job_manager.jobiface.queue_job(
-        'review_query_chips_best', callback_url, callback_method, lane, jobid, *args
+        action='review_query_chips_best',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
 
     # if callback_url is not None:
@@ -852,13 +887,13 @@ def start_detect_image_lightnet(
             kwargs,
         )
         jobid = ibs.job_manager.jobiface.queue_job(
-            'detect_cnn_lightnet_json',
-            callback_url,
-            callback_method,
-            callback_detailed,
-            lane,
-            jobid,
-            *args
+            action='detect_cnn_lightnet_json',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            callback_detailed=callback_detailed,
+            lane=lane,
+            jobid=jobid,
+            args=args,
         )
     else:
         # image_uuid_list contains urls
@@ -867,13 +902,13 @@ def start_detect_image_lightnet(
             kwargs,
         )
         jobid = ibs.job_manager.jobiface.queue_job(
-            'detect_cnn_lightnet_image_uris_json',
-            callback_url,
-            callback_method,
-            callback_detailed,
-            lane,
-            jobid,
-            *args
+            action='detect_cnn_lightnet_image_uris_json',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            callback_detailed=callback_detailed,
+            lane=lane,
+            jobid=jobid,
+            args=args,
         )
 
     # if callback_url is not None:
@@ -946,7 +981,12 @@ def start_predict_ws_injury_interim_svm(
     annots = ibs.annots(uuids=annot_uuid_list)
     args = (annots.aids,)
     jobid = ibs.job_manager.jobiface.queue_job(
-        'predict_ws_injury_interim_svm', callback_url, callback_method, lane, jobid, *args
+        action='predict_ws_injury_interim_svm',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        lane=lane,
+        jobid=jobid,
+        args=args,
     )
 
     # if callback_url is not None:
@@ -964,7 +1004,9 @@ def start_web_query_all(ibs):
         Method: GET
         URL: /api/engine/query/web/
     """
-    jobid = ibs.job_manager.jobiface.queue_job('load_identification_query_object_worker')
+    jobid = ibs.job_manager.jobiface.queue_job(
+        action='load_identification_query_object_worker'
+    )
     return jobid
 
 
@@ -976,5 +1018,5 @@ def start_wildbook_sync(ibs, **kwargs):
         Method: GET
         URL: /api/engine/wildbook/sync/
     """
-    jobid = ibs.job_manager.jobiface.queue_job('wildbook_sync')
+    jobid = ibs.job_manager.jobiface.queue_job(action='wildbook_sync')
     return jobid

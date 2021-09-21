@@ -1013,7 +1013,11 @@ def microsoft_detect_batch(
 
     if asynchronous:
         taskid = ibs.job_manager.jobiface.queue_job(
-            'microsoft_detect', callback_url, callback_method, *args, **kwargs
+            action='microsoft_detect',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            args=args,
+            kwargs=kwargs,
         )
         response = _task(ibs, taskid)
     else:
@@ -1179,7 +1183,11 @@ def microsoft_identify(
         'n': 5,
     }
     taskid = ibs.job_manager.jobiface.queue_job(
-        'query_chips_graph_microsoft', callback_url, callback_method, *args, **kwargs
+        action='query_chips_graph_microsoft',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        args=args,
+        kwargs=kwargs,
     )
 
     return _task(ibs, taskid)

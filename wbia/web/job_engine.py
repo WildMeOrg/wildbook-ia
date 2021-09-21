@@ -446,14 +446,23 @@ def job_engine_tester():
         callback_url = None
         callback_method = None
         args = (1,)
-        jobid1 = jobiface.queue_job('helloworld', callback_url, callback_method, *args)
+        jobid1 = jobiface.queue_job(
+            action='helloworld',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            args=args,
+        )
         jobiface.wait_for_job_result(jobid1)
         jobid_list = []
 
         args = ([1], [3, 4, 5])
         kwargs = dict(cfgdict={'K': 1})
         identify_jobid = jobiface.queue_job(
-            'query_chips_simple_dict', callback_url, callback_method, *args, **kwargs
+            action='query_chips_simple_dict',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            args=args,
+            kwargs=kwargs,
         )
         for jobid in jobid_list:
             jobiface.wait_for_job_result(jobid)
@@ -1033,8 +1042,8 @@ class JobInterface(object):
         callback_detailed=False,
         lane='slow',
         jobid=None,
-        *args,
-        **kwargs
+        args=None,
+        kwargs=None,
     ):
         r"""
         IBEIS:
@@ -1054,7 +1063,6 @@ class JobInterface(object):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
             if jobiface.verbose >= 1:
                 print('----')
-
             request = {}
             try:
                 if flask.request:
@@ -1065,6 +1073,12 @@ class JobInterface(object):
                     }
             except RuntimeError:
                 pass
+
+            if args is None:
+                args = tuple([])
+
+            if kwargs is None:
+                kwargs = {}
 
             if jobid is not None:
                 assert isinstance(jobid, str)
@@ -1111,7 +1125,7 @@ class JobInterface(object):
                 }
                 ut.save_cPkl(record_filepath, record, verbose=False)
 
-            # Release memor
+            # Release memory
             action = None
             args = None
             kwargs = None
