@@ -288,7 +288,7 @@ def start_identify_annots(
         ...     bgserver.terminate2()
         Waiting for server to be up. count=0
         ...
-        status_response = {'status': '...', 'jobid': '...', 'jobstatus': 'completed'}
+        status_response = {'status': 'ok', 'jobid': '...', 'jobstatus': 'completed'}
         result_response = ...
         Finished test
 
