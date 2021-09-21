@@ -210,11 +210,11 @@ def initialize_job_manager(ibs):
         0, ibs.job_manager.reciever.port_dict, ibs=ibs
     )
     ibs.job_manager.jobiface.initialize_client_thread()
+
     # Wait until the collector becomes live
     while 0 and True:
         result = ibs.get_job_status(-1)
-        print('result = %r' % (result,))
-        if result['status'] in ['ok', None]:
+        if result['status'] is None:
             break
 
     ibs.job_manager.jobiface.queue_interrupted_jobs()
