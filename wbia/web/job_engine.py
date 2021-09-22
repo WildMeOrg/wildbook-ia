@@ -680,6 +680,8 @@ def wait_for_shelve_lock_file(shelve_filepath, timeout=600):
 
 
 def get_shelve_value(shelve_filepath, key):
+    if shelve_filepath in [None, 'None', 'None.lock']:
+        return None
     wait_for_shelve_lock_file(shelve_filepath)
     with GLOBAL_SHELVE_LOCK:
         wait_for_shelve_lock_file(shelve_filepath)
@@ -695,6 +697,8 @@ def get_shelve_value(shelve_filepath, key):
 
 
 def set_shelve_value(shelve_filepath, key, value):
+    if shelve_filepath in [None, 'None', 'None.lock']:
+        return False
     wait_for_shelve_lock_file(shelve_filepath)
     with GLOBAL_SHELVE_LOCK:
         wait_for_shelve_lock_file(shelve_filepath)
