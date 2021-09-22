@@ -873,7 +873,15 @@ def start_detect_image_lightnet(
         image_uuid_list (list) : list of image uuids or urls to detect on.
         callback_url (url) : url that will be called when detection succeeds or fails
     """
-    if image_uuid_list and '://' not in image_uuid_list[0]:
+    assert len(image_uuid_list) > 0, 'Cannot send a list of image_uuid_list that is empty'
+
+    image_uuid_types = list(set(list(map(type, image_uuid_list))))
+    if len(image_uuid_types) > 1:
+        raise ValueError('Cannot send a list of UUIDs mixed with URLs')
+    assert len(image_uuid_types) == 1
+    image_uuid_type = image_uuid_types[0]
+
+    if image_uuid_type == uuid.UUID:
         # Check UUIDs
         ibs.web_check_uuids(image_uuid_list=image_uuid_list)
 
