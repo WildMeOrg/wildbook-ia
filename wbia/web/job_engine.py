@@ -1374,7 +1374,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                     kwargs = engine_request['kwargs']
                     callback_url = engine_request['callback_url']
                     callback_method = engine_request['callback_method']
-                    callback_detailed = engine_request['callback_detailed']
+                    callback_detailed = engine_request.get('callback_detailed', False)
                     request = engine_request['request']
                     restart_jobid = engine_request.get('restart_jobid', None)
                     restart_jobcounter = engine_request.get('restart_jobcounter', None)
@@ -1609,7 +1609,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
                     kwargs = engine_request['kwargs']
                     callback_url = engine_request['callback_url']
                     callback_method = engine_request['callback_method']
-                    callback_detailed = engine_request['callback_detailed']
+                    callback_detailed = engine_request.get('callback_detailed', False)
                     lane_ = engine_request['lane']
 
                     if VERBOSE_JOBS:
@@ -2102,11 +2102,13 @@ def on_collect_request(
 
             try:
                 data_dict = {'jobid': jobid}
+
                 if callback_detailed:
                     shelve_value = get_shelve_value(shelve_output_filepath, 'result')
                     data_dict['status'] = shelve_value['exec_status']
                     data_dict['json_result'] = ut.from_json(shelve_value['json_result'])
                     shelve_value = None  # Release memory
+
                 args = (
                     callback_url,
                     callback_method,
