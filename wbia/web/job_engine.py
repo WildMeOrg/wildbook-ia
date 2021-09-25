@@ -730,7 +730,7 @@ def initialize_process_record(
     jobiface_id,
 ):
     MAX_ATTEMPTS = 20
-    ARCHIVE_DAYS = 14
+    ARCHIVE_DAYS = 3
 
     timezone = pytz.timezone(TIMESTAMP_TIMEZONE)
     now = datetime.now(timezone)
