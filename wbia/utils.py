@@ -32,8 +32,15 @@ def call_houston(uri, cached_session=[], method='GET', **kwargs):
         cached_session.append(session)
         update_token()
 
-    try:
+    def get_response():
         return session.request(method, uri, **kwargs)
+
+    try:
+        resp = get_response()
+        if resp.status_code == 401:
+            update_token()
+            resp = get_response()
+        return resp
     except TokenExpiredError:
         update_token()
-        return session.request(method, uri, **kwargs)
+        return get_response()
