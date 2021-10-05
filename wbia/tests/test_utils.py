@@ -87,3 +87,26 @@ def test_call_houston(request):
         mock.call('GET', 'https://houston:5000/'),
         mock.call('GET', 'https://houston:5000/'),
     ]
+    session.reset_mock()
+
+    # Case 4: Token not expired but 401 returned
+    def session_request(*args, **kwargs):
+        if session.request.call_count == 1:
+            response.status_code = 401
+        return response
+
+    session.request.side_effect = session_request
+    result = call_houston('houston+https://houston:5000/')
+    assert not BackendApplicationClient.called
+    assert not OAuth2Session.called
+    assert session.fetch_token.call_count == 1
+    assert session.fetch_token.call_args == mock.call(
+        token_url='https://houston:5000/api/v1/auth/tokens',
+        client_id='houston-client-id',
+        client_secret='houston-client-secret',
+    )
+    assert session.request.call_count == 2
+    assert session.request.call_args_list == [
+        mock.call('GET', 'https://houston:5000/'),
+        mock.call('GET', 'https://houston:5000/'),
+    ]
