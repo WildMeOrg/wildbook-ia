@@ -131,7 +131,7 @@ SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 
 
 class PATH_NAMES(object):  # NOQA
-    """ Path names for internal IBEIS database """
+    """Path names for internal IBEIS database"""
 
     sqldb = '_ibeis_database.sqlite3'
     sqlstaging = '_ibeis_staging.sqlite3'
@@ -158,7 +158,7 @@ class PATH_NAMES(object):  # NOQA
 
 
 class REL_PATHS(object):  # NOQA
-    """ all paths are relative to ibs.dbdir """
+    """all paths are relative to ibs.dbdir"""
 
     _ibsdb = PATH_NAMES._ibsdb
     trashdir = PATH_NAMES.trashdir
@@ -430,6 +430,7 @@ SPECIES_WITH_DETECTORS = (
     'wild_dog_puppy',
     'wild_dog_standard',
     'wild_dog_tan',
+    'dolphin_bottlenose+dorsal',
     'dolphin_bottlenose+fin_dorsal',
     'dolphin_spotted+fin_dorsal',
     'shark_sand_tiger+fin_dorsal_back',
@@ -487,6 +488,8 @@ SPECIES_WITH_DETECTORS = (
     'stenella_frontalis',
     'stenella_frontalis+dorsal',
     'stenella_frontalis+fin_dorsal',
+    'tursiops_truncatus+dorsal',
+    'tursiops_truncatus+fin_dorsal',
     'orcinus_orca',
     'orcinus_orca+fin_dorsal',
     'panthera_pardus',
