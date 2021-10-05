@@ -2,6 +2,7 @@
 
 # import warning
 import logging
+import warnings
 import numpy as np
 import utool as ut
 import pandas as pd
@@ -39,7 +40,11 @@ class StratifiedGroupKFold(_BaseKFold):
     """
 
     def __init__(self, n_splits=3, shuffle=False, random_state=None):
-        super(StratifiedGroupKFold, self).__init__(n_splits, shuffle, random_state)
+        if not shuffle:
+            random_state = None
+        super(StratifiedGroupKFold, self).__init__(
+            n_splits=n_splits, shuffle=shuffle, random_state=random_state
+        )
 
     def _make_test_folds(self, X, y=None, groups=None):
         """
@@ -66,107 +71,74 @@ class StratifiedGroupKFold(_BaseKFold):
             >>> self = StratifiedGroupKFold(random_state=rng)
             >>> skf_list = list(self.split(X=X, y=y, groups=groups))
         """
-        # if self.shuffle:
-        #     rng = check_random_state(self.random_state)
-        # else:
-        #     rng = self.random_state
-        n_splits = self.n_splits
-        y = np.asarray(y)
-        n_samples = y.shape[0]
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', 'invalid value')
+            n_splits = self.n_splits
+            y = np.asarray(y)
+            n_samples = y.shape[0]
 
-        import utool as ut
-
-        # y_counts = bincount(y_inversed)
-        # min_classes_ = np.min(y_counts)
-        # if np.all(self.n_splits > y_counts):
-        #     raise ValueError("All the n_groups for individual classes"
-        #                      " are less than n_splits=%d."
-        #                      % (self.n_splits))
-        # if self.n_splits > min_classes_:
-        #     warnings.warn(("The least populated class in y has only %d"
-        #                    " members, which is too few. The minimum"
-        #                    " number of groups for any class cannot"
-        #                    " be less than n_splits=%d."
-        #                    % (min_classes_, self.n_splits)), Warning)
-
-        unique_y, y_inversed = np.unique(y, return_inverse=True)
-        n_classes = max(unique_y) + 1
-        unique_groups, group_idxs = ut.group_indices(groups)
-        # grouped_ids = list(grouping.keys())
-        grouped_y = ut.apply_grouping(y, group_idxs)
-        grouped_y_counts = np.array(
-            [bincount(y_, minlength=n_classes) for y_ in grouped_y]
-        )
-
-        target_freq = grouped_y_counts.sum(axis=0)
-        target_ratio = target_freq / target_freq.sum()
-
-        # Greedilly choose the split assignment that minimizes the local
-        # * squared differences in target from actual frequencies
-        # * and best equalizes the number of items per fold
-        # Distribute groups with most members first
-        split_freq = np.zeros((n_splits, n_classes))
-        # split_ratios = split_freq / split_freq.sum(axis=1)
-        split_ratios = np.ones(split_freq.shape) / split_freq.shape[1]
-        split_diffs = ((split_freq - target_ratio) ** 2).sum(axis=1)
-        sortx = np.argsort(grouped_y_counts.sum(axis=1))[::-1]
-        grouped_splitx = []
-        for count, group_idx in enumerate(sortx):
-            # logger.info('---------\n')
-            group_freq = grouped_y_counts[group_idx]
-            cand_freq = split_freq + group_freq
-            cand_ratio = cand_freq / cand_freq.sum(axis=1)[:, None]
-            cand_diffs = ((cand_ratio - target_ratio) ** 2).sum(axis=1)
-            # Compute loss
-            losses = []
-            # others = np.nan_to_num(split_diffs)
-            other_diffs = np.array(
-                [
-                    sum(split_diffs[x + 1 :]) + sum(split_diffs[:x])
-                    for x in range(n_splits)
-                ]
+            unique_y, y_inversed = np.unique(y, return_inverse=True)
+            n_classes = max(unique_y) + 1
+            unique_groups, group_idxs = ut.group_indices(groups)
+            grouped_y = ut.apply_grouping(y, group_idxs)
+            grouped_y_counts = np.array(
+                [np.bincount(y_, minlength=n_classes) for y_ in grouped_y]
             )
-            # penalize unbalanced splits
-            ratio_loss = other_diffs + cand_diffs
-            # penalize heavy splits
-            freq_loss = split_freq.sum(axis=1)
-            freq_loss = freq_loss / freq_loss.sum()
-            losses = ratio_loss + freq_loss
-            # logger.info('group_freq = %r' % (group_freq,))
-            # logger.info('freq_loss = %s' % (ut.repr2(freq_loss, precision=2),))
-            # logger.info('ratio_loss = %s' % (ut.repr2(ratio_loss, precision=2),))
-            # -------
-            splitx = np.argmin(losses)
-            # logger.info('losses = %r, splitx=%r' % (losses, splitx))
-            split_freq[splitx] = cand_freq[splitx]
-            split_ratios[splitx] = cand_ratio[splitx]
-            split_diffs[splitx] = cand_diffs[splitx]
-            grouped_splitx.append(splitx)
 
-            # if count > 4:
-            #     break
-            # else:
-            #     logger.info('split_freq = \n' +
-            #           ut.repr2(split_freq, precision=2, suppress_small=True))
-            #     logger.info('target_ratio = \n' +
-            #           ut.repr2(target_ratio, precision=2, suppress_small=True))
-            #     logger.info('split_ratios = \n' +
-            #           ut.repr2(split_ratios, precision=2, suppress_small=True))
-            #     logger.info(ut.dict_hist(grouped_splitx))
+            target_freq = grouped_y_counts.sum(axis=0)
+            target_freq = target_freq.astype(np.float)
+            target_ratio = target_freq / float(target_freq.sum())
 
-        # final_ratio_loss = ((split_ratios - target_ratio) ** 2).sum(axis=1)
-        # logger.info('split_freq = \n' +
-        #       ut.repr2(split_freq, precision=3, suppress_small=True))
-        # logger.info('target_ratio = \n' +
-        #       ut.repr2(target_ratio, precision=3, suppress_small=True))
-        # logger.info('split_ratios = \n' +
-        #       ut.repr2(split_ratios, precision=3, suppress_small=True))
-        # logger.info(ut.dict_hist(grouped_splitx))
+            # Greedilly choose the split assignment that minimizes the local
+            # * squared differences in target from actual frequencies
+            # * and best equalizes the number of items per fold
+            # Distribute groups with most members first
+            split_freq = np.zeros((n_splits, n_classes))
+            # split_ratios = split_freq / split_freq.sum(axis=1)
+            split_ratios = np.ones(split_freq.shape) / split_freq.shape[1]
+            split_diffs = ((split_freq - target_ratio) ** 2).sum(axis=1)
+            sortx = np.argsort(grouped_y_counts.sum(axis=1))[::-1]
+            grouped_splitx = []
 
-        test_folds = np.empty(n_samples, dtype=np.int)
-        for group_idx, splitx in zip(sortx, grouped_splitx):
-            idxs = group_idxs[group_idx]
-            test_folds[idxs] = splitx
+            # import ubelt as ub
+            # print(ub.repr2(grouped_y_counts, nl=-1))
+            # print('target_ratio = {!r}'.format(target_ratio))
+
+            for count, group_idx in enumerate(sortx):
+                # print('---------\n')
+                group_freq = grouped_y_counts[group_idx]
+                cand_freq = split_freq + group_freq
+                cand_freq = cand_freq.astype(np.float)
+                cand_ratio = cand_freq / cand_freq.sum(axis=1)[:, None]
+                cand_diffs = ((cand_ratio - target_ratio) ** 2).sum(axis=1)
+                # Compute loss
+                losses = []
+                # others = np.nan_to_num(split_diffs)
+                other_diffs = np.array(
+                    [
+                        sum(split_diffs[x + 1 :]) + sum(split_diffs[:x])
+                        for x in range(n_splits)
+                    ]
+                )
+                # penalize unbalanced splits
+                ratio_loss = other_diffs + cand_diffs
+                # penalize heavy splits
+                freq_loss = split_freq.sum(axis=1)
+                freq_loss = freq_loss.astype(np.float)
+                freq_loss = freq_loss / freq_loss.sum()
+                losses = ratio_loss + freq_loss
+                # -------
+                splitx = np.argmin(losses)
+                # print('losses = %r, splitx=%r' % (losses, splitx))
+                split_freq[splitx] = cand_freq[splitx]
+                split_ratios[splitx] = cand_ratio[splitx]
+                split_diffs[splitx] = cand_diffs[splitx]
+                grouped_splitx.append(splitx)
+
+            test_folds = np.empty(n_samples, dtype=int)
+            for group_idx, splitx in zip(sortx, grouped_splitx):
+                idxs = group_idxs[group_idx]
+                test_folds[idxs] = splitx
 
         return test_folds
 
@@ -736,7 +708,7 @@ class PrefitEstimatorEnsemble(object):
             pass
 
     def _collect_probas(self, X):
-        """Collect results from clf.predict calls. """
+        """Collect results from clf.predict calls."""
         if self.class_idx_mappers is None:
             probas = np.asarray([clf.predict_proba(X) for clf in self.clf_list])
         else:
@@ -753,7 +725,7 @@ class PrefitEstimatorEnsemble(object):
         return probas
 
     def predict_proba(self, X):
-        """Predict class probabilities for X in 'soft' voting """
+        """Predict class probabilities for X in 'soft' voting"""
         if self.voting == 'hard':
             raise AttributeError(
                 'predict_proba is not available when' ' voting=%r' % self.voting
@@ -787,7 +759,7 @@ class PrefitEstimatorEnsemble(object):
         return maj
 
     def _predict(self, X):
-        """Collect results from clf.predict calls. """
+        """Collect results from clf.predict calls."""
         return np.asarray([clf.predict(X) for clf in self.clf_list]).T
 
 

@@ -47,7 +47,7 @@ pyzmq>=14.7.0
 requests>=2.5.0
 requests-oauthlib
 scikit-image>=0.12.3
-scikit-learn>=0.24.0
+scikit-learn>=0.24.0,<1.0
 scipy>=0.18.0
 
 sentry-sdk>=0.10.2
