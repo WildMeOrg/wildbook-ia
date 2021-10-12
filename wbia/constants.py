@@ -435,7 +435,6 @@ SPECIES_WITH_DETECTORS = (
     'dolphin_spotted+fin_dorsal',
     'shark_sand_tiger+fin_dorsal_back',
     'shark_sand_tiger+fin_dorsal_front',
-    'whale_fin+fin_dorsal',
     'whale_humpback+fin_dorsal',
     'whale_humpback+fin_dorsal_back',
     'whale_humpback+fin_dorsal_front',
