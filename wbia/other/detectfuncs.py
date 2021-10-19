@@ -749,7 +749,7 @@ def localizer_parse_pred(
         if cache_tag not in GLOBAL_PRED_CACHE_DICT:
             dirty_gids.append(gid)
 
-    pred_dict_dirty = localizer_parse_pred_dirty(
+    pred_dict_dirty = ibs.localizer_parse_pred_dirty(
         dirty_gids, species_mapping_=species_mapping_, **kwargs
     )
 
