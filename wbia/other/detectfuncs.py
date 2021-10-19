@@ -65,10 +65,18 @@ def get_species_nice_mapping(ibs, species):
 
 
 def simple_code(label):
-    from wbia.constants import YAWALIAS, SPECIES_MAPPING
+    from wbia.constants import YAWALIAS, SPECIES_MAPPING, PARTS_MAPPING
 
     if label == 'ignore':
         return 'IGNORE'
+
+    for key in PARTS_MAPPING:
+        if key in label:
+            part_code, part_nice = PARTS_MAPPING[key]
+            while part_code is None:
+                part_code, part_nice = PARTS_MAPPING[part_nice]
+            assert part_code is not None
+            label = label.replace(key, part_code)
 
     for key in SPECIES_MAPPING:
         if key in label:

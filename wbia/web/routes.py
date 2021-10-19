@@ -3509,10 +3509,15 @@ def review_part_types(
         len(current_part_types) - current_part_types.count(all_part_type)
         for all_part_type in all_part_types
     ]
-    all_part_nices = [
-        const.PARTS_MAPPING.get(all_part_type, all_part_type)
-        for all_part_type in all_part_types
-    ]
+    all_part_nices = []
+    for all_part_type in all_part_types:
+        value = const.PARTS_MAPPING.get(all_part_type, None)
+        if value is None:
+            all_part_nice = all_part_type
+        else:
+            all_part_nice = value[1]
+        all_part_nices.append(all_part_nice)
+
     combined_list = list(zip(all_part_type_count, all_part_nices, all_part_types))
 
     if refresh:
