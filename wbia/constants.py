@@ -414,6 +414,7 @@ SPECIES_WITH_DETECTORS = (
     'turtle_hawksbill+head',
     'turtle_oliveridley',
     'turtle_oliveridley+head',
+    'turtle_asian',
     'turtle_sea',
     'turtle_sea+head',
     'whale_fluke',

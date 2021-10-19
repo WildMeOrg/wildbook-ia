@@ -86,6 +86,7 @@ CONFIG_URL_DICT = {
     'beluga_whale_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_beluga.v0.py',
     'beluga_whale_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_beluga.v1.py',
     'seals_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.seals.v0.py',
+    'sea_turtle_v4': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.sea_turtle.v4.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
 }
