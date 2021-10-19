@@ -30,6 +30,9 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
     __name__
 )
 
+GLOBAL_GT_CACHE_DICT = {}
+GLOBAL_PRED_CACHE_DICT = {}
+
 
 def _resize(image, t_width=None, t_height=None, verbose=False):
     if verbose:
@@ -549,6 +552,11 @@ def general_parse_gt_annots(
 
 
 def general_parse_gt(ibs, test_gid_list=None, **kwargs):
+    global GLOBAL_GT_CACHE_DICT
+
+    kwargs_str = ut.repr3(kwargs)
+    kwargs_cfgstr = ut.hash_data(kwargs_str)
+
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
@@ -558,10 +566,17 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     species_set = set([])
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
-        aid_list = ibs.get_image_aids(gid)
-        gt_list, species_set = general_parse_gt_annots(ibs, aid_list, **kwargs)
-        species_set = species_set | species_set
-        gt_dict[uuid] = gt_list
+        cache_tag = '%s_%s' % (
+            uuid,
+            kwargs_cfgstr,
+        )
+        if cache_tag not in GLOBAL_GT_CACHE_DICT:
+            aid_list = ibs.get_image_aids(gid)
+            gt_list, species_set = general_parse_gt_annots(ibs, aid_list, **kwargs)
+            species_set = species_set | species_set
+            GLOBAL_GT_CACHE_DICT[cache_tag] = gt_list
+
+        gt_dict[uuid] = GLOBAL_GT_CACHE_DICT[cache_tag]
 
     # logger.info('General Parse GT species_set = %r' % (species_set, ))
     return gt_dict
@@ -570,21 +585,11 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 ##########################################################################################
 
 
-def localizer_parse_pred(
-    ibs, test_gid_list=None, species_mapping={}, pred_species_mapping={}, **kwargs
-):
+def localizer_parse_pred_dirty(ibs, test_gid_list, species_mapping_, **kwargs):
+
     depc = ibs.depc_image
 
-    species_mapping_ = species_mapping.copy()
-    species_mapping_.update(pred_species_mapping)
-
-    if 'feature2_algo' not in kwargs:
-        kwargs['feature2_algo'] = 'resnet'
-
-    if test_gid_list is None:
-        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
-
     size_list = ibs.get_image_sizes(test_gid_list)
 
     # Unsure, but we need to call this multiple times?  Lazy loading bug?
@@ -712,6 +717,58 @@ def localizer_parse_pred(
     pred_dict = {
         uuid_: result_list for uuid_, result_list in zip(uuid_list, results_list)
     }
+    return pred_dict
+
+
+def localizer_parse_pred(
+    ibs, test_gid_list=None, species_mapping={}, pred_species_mapping={}, **kwargs
+):
+    global GLOBAL_PRED_CACHE_DICT
+
+    if 'feature2_algo' not in kwargs:
+        kwargs['feature2_algo'] = 'resnet'
+
+    species_mapping_ = species_mapping.copy()
+    species_mapping_.update(pred_species_mapping)
+
+    kwargs_str = ut.repr3([species_mapping_, kwargs])
+    kwargs_cfgstr = ut.hash_data(kwargs_str)
+
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+
+    uuid_list = ibs.get_image_uuids(test_gid_list)
+    gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+
+    dirty_gids = []
+    for gid, uuid in zip(gid_list, uuid_list):
+        cache_tag = '%s_%s' % (
+            uuid,
+            kwargs_cfgstr,
+        )
+        if cache_tag not in GLOBAL_PRED_CACHE_DICT:
+            dirty_gids.append(gid)
+
+    pred_dict_dirty = localizer_parse_pred_dirty(
+        dirty_gids, species_mapping_=species_mapping_, **kwargs
+    )
+
+    for dirty_uuid in pred_dict_dirty:
+        cache_tag = '%s_%s' % (
+            dirty_uuid,
+            kwargs_cfgstr,
+        )
+        GLOBAL_PRED_CACHE_DICT[cache_tag] = pred_dict_dirty[dirty_uuid]
+
+    pred_dict = {}
+    for gid, uuid in zip(gid_list, uuid_list):
+        cache_tag = '%s_%s' % (
+            uuid,
+            kwargs_cfgstr,
+        )
+        assert cache_tag in GLOBAL_PRED_CACHE_DICT
+        pred_dict[uuid] = GLOBAL_PRED_CACHE_DICT[cache_tag]
+
     return pred_dict
 
 

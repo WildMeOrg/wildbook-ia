@@ -620,7 +620,7 @@ SPECIES_MAPPING = {
 }
 
 PARTS_MAPPING = {
-    'head': ('+H', 'Head'),
+    '+head': ('+H', 'Head'),
     # 'standard': ('Standard Tail'),
     # 'short_black': ('Short Black Tail'),
     # 'long_black': ('Long Black Tail'),
@@ -628,16 +628,16 @@ PARTS_MAPPING = {
     # 'double_black_white': ('Double Black White Tail'),
     # 'triple_black': ('Triple Black Tail'),
     # 'long_white': ('Long White Tail'),
-    'tail_general': ('+GEN', 'Tail General'),
-    'tail_multi_black': ('+MB', 'Tail Multi-Black'),
-    'tail_long_black': ('+LB', 'Tail Long Black'),
-    'tail_long_white': ('+LW', 'Tail Long White'),
-    'tail_long': ('+LONG', 'Tail Long'),
-    'tail_double_black_brown': ('+DBB', 'Tail Double Black Brown'),
-    'tail_double_black_white': ('+DBW', 'Tail Double Black White'),
-    'tail_triple_black': ('+TB', 'Tail Triple Black'),
-    'tail_short_black': ('+SB', 'Tail Short Black'),
-    'tail_standard': ('+STD', 'Tail Standard'),
+    '+tail_general': ('+GEN', 'Tail General'),
+    '+tail_multi_black': ('+MB', 'Tail Multi-Black'),
+    '+tail_long_black': ('+LB', 'Tail Long Black'),
+    '+tail_long_white': ('+LW', 'Tail Long White'),
+    '+tail_long': ('+LONG', 'Tail Long'),
+    '+tail_double_black_brown': ('+DBB', 'Tail Double Black Brown'),
+    '+tail_double_black_white': ('+DBW', 'Tail Double Black White'),
+    '+tail_triple_black': ('+TB', 'Tail Triple Black'),
+    '+tail_short_black': ('+SB', 'Tail Short Black'),
+    '+tail_standard': ('+STD', 'Tail Standard'),
     UNKNOWN: ('+?', 'UNSPECIFIED'),
 }
 
