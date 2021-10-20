@@ -86,7 +86,7 @@ RUN set -ex \
 # Install PyPI packages
 RUN set -ex \
  && /virtualenv/env3/bin/pip install --upgrade \
-        pip \
+        'pip==21.2.4' \
  && /virtualenv/env3/bin/pip install --upgrade \
         # Install build requirements
         'cmake!=3.18.2' \
