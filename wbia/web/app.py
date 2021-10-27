@@ -30,21 +30,6 @@ except ImportError:
     PROMETHEUS = False
 
 
-def tst_html_error():
-    r"""
-    This test will show what our current errors look like
-
-    Example:
-        >>> import wbia
-        >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
-        ...     resp = client.get('/api/image/imagesettext/?__format__=True')
-        >>> print(resp)
-        <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>
-
-    """
-    pass
-
-
 class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
     def _log(self, status_code, request):
         if status_code < 400:
@@ -77,6 +62,10 @@ class TimedWSGIContainer(tornado.wsgi.WSGIContainer):
         )
 
 
+def _init_api_v2():
+    pass
+
+
 def start_tornado(
     ibs, port=None, browser=None, url_suffix=None, start_web_loop=True, fallback=True
 ):
@@ -93,6 +82,9 @@ def start_tornado(
         # Get Flask app
         app = controller_inject.get_flask_app()
 
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_v2.sqlite3'
+        app.config['SECRET_KEY'] = 'secret_key'
+
         app.ibs = ibs_
         # Try to ascertain the socket's domain name
         socket.setdefaulttimeout(0.1)
@@ -106,6 +98,21 @@ def start_tornado(
         app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
         logger.info('[web] Tornado server starting at %s' % (app.server_url,))
         # Launch the web browser to view the web interface and API
+
+        # Initialize all version 2 extensions
+        from wbia.web import extensions
+
+        extensions.init_app(app)
+
+        # Initialize all version 2 modules
+        from wbia.web import modules
+
+        modules.init_app(app)
+
+        logger.info('Using route rules:')
+        for rule in app.url_map.iter_rules():
+            logger.info('\t%r' % (rule,))
+
         if browser:
             url = app.server_url + url_suffix
             import webbrowser

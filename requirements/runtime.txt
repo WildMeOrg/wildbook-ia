@@ -1,5 +1,7 @@
 ansi2html
 
+apispec>=0.20.0,<0.39
+
 blinker
 boto>=2.20.1
 # wbia-brambox  # already included in wbia-lightnet
@@ -12,9 +14,22 @@ delorean
 deprecated
 descartes
 docker
-flask>=0.10.1
+
+Flask>=1.1,<2
+Flask-Caching>=1.8.0
+
 flask-cas
-flask-cors
+
+Flask-Cors>=3.0.8,<4
+Flask-Login>=0.4.0,<0.5
+flask-marshmallow>=0.7,<0.8
+
+Flask-Minify
+Flask-OAuthlib
+Flask-Paranoid
+
+flask-restx>=0.2.0
+Flask-SQLAlchemy>=2.4,<3
 
 gdm
 geopandas
@@ -24,12 +39,18 @@ imgaug
 ipython>=5.0.0
 lockfile>=0.10.2
 mako
+
+marshmallow>=2.13.5,<3
+marshmallow-sqlalchemy>=0.12,<0.13
 matplotlib>=3.3.0
 networkx>=2.1
 numpy>=1.14.2
 
 pandas==1.3.2
 parse>=1.6.6
+passlib>=1.7.1,<2
+
+permission>=0.4.1,<0.5
 Pillow==8.2.0
 pyasn1>=0.1.7
 
@@ -61,6 +82,8 @@ simplejson>=3.6.5
 sip
 six>=1.10.0
 sqlalchemy>=1.4.0b1
+
+SQLAlchemy-Utils>=0.35
 statsmodels>=0.6.1
 
 torch
@@ -78,3 +101,6 @@ wbia-pyrf >= 3.0.0
 
 wbia-utool >= 3.4.0
 wbia-vtool >= 3.2.1
+
+webargs==5.5.3
+werkzeug>=0.15,<0.16
