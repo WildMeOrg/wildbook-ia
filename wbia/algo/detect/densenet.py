@@ -94,10 +94,10 @@ if not ut.get_argflag('--no-pytorch'):
         import torch.optim as optim
         import torchvision
 
-        logger.info('PyTorch Version: ', torch.__version__)
-        logger.info('Torchvision Version: ', torchvision.__version__)
+        logger.info('PyTorch Version: %s' % (torch.__version__,))
+        logger.info('Torchvision Version: %s' % (torchvision.__version__,))
     except ImportError:
-        logger.info('WARNING Failed to import pytorch. ' 'PyTorch is unavailable')
+        logger.info('WARNING Failed to import pytorch.  PyTorch is unavailable')
         if ut.SUPER_STRICT:
             raise
 

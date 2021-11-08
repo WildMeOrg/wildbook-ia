@@ -213,13 +213,14 @@ RUN set -ex \
         'keras==2.2.5' \
         'h5py<3.0.0' \
         'jedi==0.17.2' \
-        'torch==1.7.1' \
-        'torchvision==0.8.2' \
-        'torchaudio==0.7.2' \
         'Pillow==8.2.0' \
         'pandas==1.3.2' \
+        # 'torch==1.7.1' \
+        # 'torchvision==0.8.2' \
+        # 'torchaudio==0.7.2' \
  && /virtualenv/env3/bin/pip install --upgrade \
-        numpy
+        numpy \
+ && /virtualenv/env3/bin/pip install --pre torch torchvision torchaudio -f https://download.pytorch.org/whl/nightly/cu111/torch_nightly.html -U
 
 RUN set -ex \
  && /virtualenv/env3/bin/pip freeze | grep wbia \
