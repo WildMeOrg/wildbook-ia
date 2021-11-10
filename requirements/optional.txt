@@ -16,7 +16,7 @@ pyfiglet
 
 pytesseract
 tensorboard_logger
-tensorflow==1.15.5
+tensorflow==2.5.2
 
 # pygpu
 Theano
