@@ -411,6 +411,7 @@ SPECIES_WITH_DETECTORS = (
     'seadragon_weedy+head',
     'skunk_spotted',
     'snow_leopard',
+    'spotted_eagle_ray',
     'turtle_green',
     'turtle_green+head',
     'turtle_hawksbill',
@@ -456,6 +457,7 @@ SPECIES_WITH_DETECTORS = (
     'whale_sperm',
     'whale_sperm+fluke',
     # Latin (Flukebook)
+    'aetobatus_narinari',
     'chelonioidea',
     'chelonioidea+head',
     'chelonia_mydas',
