@@ -1,3 +1,10 @@
 pygraphviz
 pyqt5
 # PyQt5-sip
+
+wbia-cnn>=3.0.2
+wbia-lightnet
+wbia-pydarknet >= 3.0.1
+wbia-pyflann >= 3.1.0
+wbia-pyhesaff >= 3.0.2
+wbia-pyrf >= 3.0.0

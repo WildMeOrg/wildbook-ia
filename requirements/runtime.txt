@@ -4,7 +4,6 @@ apispec>=0.20.0,<0.39
 
 blinker
 boto>=2.20.1
-# wbia-brambox  # already included in wbia-lightnet
 cachetools>=1.1.6
 click
 colorama>=0.3.2
@@ -89,13 +88,6 @@ torchvision
 tornado>=4.2.1
 tqdm
 ubelt >= 0.8.7
-
-wbia-cnn>=3.0.2
-wbia-lightnet
-wbia-pydarknet >= 3.0.1
-wbia-pyflann >= 3.1.0
-wbia-pyhesaff >= 3.0.2
-wbia-pyrf >= 3.0.0
 
 wbia-utool >= 3.4.0
 wbia-vtool >= 3.2.1
