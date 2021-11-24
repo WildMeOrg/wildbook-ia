@@ -429,7 +429,7 @@ def overlay_icon(
 
 
 def update_figsize():
-    """ updates figsize based on command line """
+    """updates figsize based on command line"""
     figsize = ut.get_argval('--figsize', type_=list, default=None)
     if figsize is not None:
         # Enforce inches and DPI
@@ -1398,7 +1398,7 @@ def add_alpha(colors):
 
 
 def get_axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
-    """ gets geometry of a subplot """
+    """gets geometry of a subplot"""
     if ax is None:
         ax = gca()
     autoAxis = ax.axis()
@@ -1768,7 +1768,8 @@ def adjust_subplots(
         fig = gcf()
     subplotpars = fig.subplotpars
     adjust_dict = subplotpars.__dict__.copy()
-    del adjust_dict['validate']
+    if 'validate' in adjust_dict:
+        del adjust_dict['validate']
     adjust_dict.update(kwargs)
     if use_argv:
         # hack to take args from commandline
@@ -1814,7 +1815,7 @@ def lowerright_text(txt):
 
 
 def absolute_lbl(x_, y_, txt, roffset=(-0.02, -0.02), alpha=0.6, **kwargs):
-    """ alternative to relative text """
+    """alternative to relative text"""
     txtargs = dict(
         horizontalalignment='right',
         verticalalignment='top',
@@ -2767,7 +2768,7 @@ DF2_DIVIDER_KEY = '_df2_divider'
 
 
 def ensure_divider(ax):
-    """ Returns previously constructed divider or creates one """
+    """Returns previously constructed divider or creates one"""
     from wbia.plottool import plot_helpers as ph
 
     divider = ph.get_plotdat(ax, DF2_DIVIDER_KEY, None)
@@ -2779,7 +2780,7 @@ def ensure_divider(ax):
         def df2_append_axes(
             divider, position, size, pad=None, add_to_figure=True, **kwargs
         ):
-            """ override divider add axes to register the divided axes """
+            """override divider add axes to register the divided axes"""
             div_axes = ph.get_plotdat(ax, 'df2_div_axes', [])
             new_ax = orig_append_axes(
                 position, size, pad=pad, add_to_figure=add_to_figure, **kwargs
@@ -4265,7 +4266,7 @@ def plot_fmatch(
 
 
 def draw_boxedX(xywh=None, color=RED, lw=2, alpha=0.5, theta=0, ax=None):
-    """ draws a big red x """
+    """draws a big red x"""
     if ax is None:
         ax = gca()
     if xywh is None:
@@ -4496,7 +4497,7 @@ def make_ori_legend_img():
 
 
 def remove_patches(ax=None):
-    """ deletes patches from axes """
+    """deletes patches from axes"""
     if ax is None:
         ax = gca()
     for patch in ax.patches:
