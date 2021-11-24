@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 as org.wildme.wbia.base
+FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -11,58 +11,63 @@ USER root
 # Install package updates and dependencies
 RUN set -ex \
  && apt update \
+ && apt install -y software-properties-common \
+ && add-apt-repository ppa:deadsnakes/ppa \
+ && apt update \
  # && apt upgrade -y \
  # && apt dist-upgrade -y \
- && apt install -y --no-install-recommends \
+ && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
         # Install build requirements
         ca-certificates \
         build-essential \
         lsb-release \
         pkg-config \
-        # Install Python 3.7 - Pegged to Version 3.7 to support TensorFlow 1.15.3
+        # Install Python 3.7
         python3.7 \
         python3.7-dev \
         python3.7-gdbm \
         python3-pip \
+        python3-pyqt5 \
+        # Install OpenCV
+        libopencv-dev \
         # Install dependencies for NVTOP
         libncurses5-dev \
         libncursesw5-dev \
-        # Install dependencies for OpenCV
+        # Install dependencies for PyHesaff & PyFLANN
+        libboost-all-dev \
+        libomp-dev \
+        libhdf5-mpi-dev \
+        libgdal-dev \
+        libopenmpi-dev \
         libgflags-dev \
         libeigen3-dev \
-        libgtk2.0-dev \
-        # Install dependencies for PyHesaff
-        libhdf5-serial-dev \
-        # Install dependencies for PyFLANN
         liblz4-dev \
-        # Install dependencies for pygraphviz
-        graphviz \
         libgraphviz-dev \
-        # Install dependencies for Theano
-        libopenblas-dev \
         # Install run-time tools
+        graphviz \
         gosu \
         xvfb \
         # Install handy developer tools
         curl \
+        pgloader \
         git \
         gnupg \
         htop \
         locate \
+        rsync \
         tmux \
         unzip \
         vim \
         wget \
- && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
- && sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
- && apt update \
- && apt install -y --no-install-recommends \
-        pgloader \
  && apt clean \
  && apt autoclean \
  && apt autoremove -y \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
+
+RUN unlink /etc/localtime
+
+RUN ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 
 # Install Docker CE
 RUN set -ex \
@@ -81,38 +86,22 @@ RUN set -ex \
 
 # Create virtualenvs for Python3
 RUN set -ex \
- && virtualenv -p $(which python3.7) /virtualenv/env3
+ && virtualenv --system-site-packages -p $(which python3.7) /virtualenv/env3
 
 # Install PyPI packages
 RUN set -ex \
  && /virtualenv/env3/bin/pip install --upgrade \
-        'pip==21.2.4' \
+        pip \
  && /virtualenv/env3/bin/pip install --upgrade \
         # Install build requirements
-        'cmake!=3.18.2' \
+        cmake \
         ninja \
         scikit-build \
-        'setuptools>=42' \
-        'setuptools_scm[toml]>=3.4' \
+        setuptools \
+        setuptools_scm[toml] \
         cython \
-        # Install OpenCV dependencies
-        numpy \
         # Install handy developer tools
         ipython
-
-# Install CNMeM
-RUN set -ex \
- && . /virtualenv/env3/bin/activate \
- && git clone https://github.com/NVIDIA/cnmem.git /tmp/cnmem \
- && cd /tmp/cnmem/ \
- && git checkout v1.0.0 \
- && mkdir -p /tmp/cnmem/build \
- && cd /tmp/cnmem/build \
- && cmake .. \
- && make -j4 \
- && make install \
- && cd .. \
- && rm -rf /tmp/cnmem
 
 # Install NVTOP
 RUN set -ex \
@@ -133,3 +122,7 @@ ENV PATH "/usr/local/cuda/bin:${PATH}"
 ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
 
 ENV CUDA_HOME "/usr/local/cuda"
+
+ENV CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda"
+
+CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]

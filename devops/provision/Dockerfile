@@ -1,6 +1,6 @@
-ARG WBIA_DEPENDENCIES_IMAGE=wildme/wbia-dependencies:latest
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 
-FROM ${WBIA_DEPENDENCIES_IMAGE} as org.wildme.wbia.provision
+FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.provision
 
 # Wildbook IA version
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
@@ -9,11 +9,6 @@ ARG VCS_REF="main"
 
 # Set up xvfb for running gui doctests
 ENV DISPLAY :1
-
-# Make a copy of our build OpenCV
-RUN set -ex \
- && rm -rf /tmp/cv2 \
- && mv /virtualenv/env3/lib/python3.7/site-packages/cv2 /tmp/cv2
 
 # Clone WBIA repository
 RUN set -ex \
@@ -32,7 +27,6 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyhesaff.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyflann.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pydarknet.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyrf.git \
  # Depricated
  && git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
@@ -47,23 +41,13 @@ RUN set -ex \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
 
 RUN set -ex \
  && cd /wbia \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-orientation.git
 
-# git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-2d-orientation.git
-
 # Clone third-party WBIA plug-in repositories
-RUN set -ex \
- && cd /wbia \
- && git clone --recursive --branch develop-curvrank-v1 https://github.com/WildMeOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v1 \
- && cd /wbia/wbia-plugin-curvrank-v1/wbia_curvrank \
- && git fetch origin \
- && git checkout develop
-
 RUN set -ex \
  && cd /wbia \
  && git clone --recursive --branch develop-curvrank-v2 https://github.com/WildMeOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v2 \
@@ -112,10 +96,6 @@ RUN set -ex \
  && cd /wbia/wbia-tpl-pydarknet \
  && /bin/bash run_developer_setup.sh'
 
-RUN set -ex \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-tpl-pyrf \
- && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-brambox \
@@ -134,10 +114,6 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-cnn \
- && /bin/bash run_developer_setup.sh'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-pie \
  && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
@@ -170,11 +146,6 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank-v1 \
- && ./unix_build.sh \
- && pip install -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-curvrank-v2 \
  && ./unix_build.sh \
  && pip install -e .'
@@ -184,53 +155,38 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
-        opencv-python \
-        opencv-python-headless \
- && /virtualenv/env3/bin/pip uninstall -y \
         dtool-ibeis \
         guitool-ibeis \
         plottool-ibeis \
         utool-ibeis \
         vtool-ibeis \
- && /virtualenv/env3/bin/pip uninstall -y \
         dtool \
         guitool \
         plottool \
         utool \
         vtool \
- && /virtualenv/env3/bin/pip uninstall -y \
         lightnet \
         brambox \
  && /virtualenv/env3/bin/pip uninstall -y \
+        opencv-python \
+        opencv-contrib-python \
+        opencv-python-headless \
+        opencv-contrib-python-headless \
         tensorflow \
         tensorflow-gpu \
         tensorflow-estimator \
         tensorboard \
         tensorboard-plugin-wit \
         keras \
+        torch \
+        torchvision \
+        torchaudio \
  && /virtualenv/env3/bin/pip install \
-        'tensorflow-gpu==1.15.5' \
-        'keras==2.2.5' \
-        'h5py<3.0.0' \
-        'jedi==0.17.2' \
-        'Pillow==8.2.0' \
-        'pandas==1.3.2' \
-        # 'torch==1.7.1' \
-        # 'torchvision==0.8.2' \
-        # 'torchaudio==0.7.2' \
- && /virtualenv/env3/bin/pip install --upgrade \
-        numpy \
- && /virtualenv/env3/bin/pip install --pre torch torchvision torchaudio -f https://download.pytorch.org/whl/nightly/cu111/torch_nightly.html -U
-
-RUN set -ex \
- && /virtualenv/env3/bin/pip freeze | grep wbia \
- && /virtualenv/env3/bin/pip freeze | grep wildbook
-
-# Restore copy of our build OpenCV
-# When opencv-python is installed and subsequently un-installed is clobbers our version
-RUN set -ex \
- && rm -rf /virtualenv/env3/lib/python3.7/site-packages/cv2* \
- && mv /tmp/cv2 /virtualenv/env3/lib/python3.7/site-packages/cv2 \
- && rm -rf /tmp/cv2
+        opencv-contrib-python-headless \
+ && /virtualenv/env3/bin/pip install --pre \
+       torch \
+       torchvision \
+       torchaudio \
+       -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]

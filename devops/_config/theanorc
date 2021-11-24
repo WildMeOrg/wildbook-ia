@@ -9,9 +9,6 @@ enable_initial_driver_test = False
 [cuda]
 root = /usr/local/cuda/
 
-[lib]
-cnmem = 0.01
-
 [dnn]
 enabled = False
 

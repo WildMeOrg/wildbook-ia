@@ -2,7 +2,7 @@ ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 
 ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
-FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.build
+FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
 
 # Grab latest code
 RUN set -ex \
@@ -10,9 +10,6 @@ RUN set -ex \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && git reset --hard origin/develop && git pull' \
- && cd /wbia/wbia-plugin-curvrank-v1/wbia_curvrank \
- && git reset --hard origin/develop \
- && git pull \
  && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
  && git reset --hard origin/develop \
  && git pull \
@@ -29,18 +26,13 @@ RUN set -ex \
  && git reset --hard origin/main \
  && git pull
 
-# # Remove all Git histories from code repositories
-# RUN set -ex \
-#  && find /wbia -name '.git' -type d -print0 | xargs -0 rm -rf \
-#  && find /wbia -name '_skbuild' -type d -print0 | xargs -0 rm -rf
-
 ##########################################################################################
 
 FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.install
 
 LABEL autoheal=true
 
-ARG VERSION="3.3.0"
+ARG VERSION="3.7.2"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
@@ -68,9 +60,9 @@ ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
 WORKDIR /wbia
 
-COPY --from=org.wildme.wbia.build /virtualenv /virtualenv
+COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
 
-COPY --from=org.wildme.wbia.build /wbia /wbia
+COPY --from=org.wildme.wbia.latest /wbia /wbia
 
 # Add theano configuration file
 ADD ./_config/theanorc /root/.theanorc
@@ -81,6 +73,9 @@ ADD ./_config/setup.sh /bin/setup
 # Add embed script for python development
 ADD ./_config/embed.sh /bin/embed
 
+# Add embed script for python development
+ADD ./_config/embedpg.sh /bin/embedpg
+
 # Add (non-root) bash shell script for python development
 ADD ./_config/shell.sh /bin/shell
 
@@ -90,24 +85,28 @@ ADD ./_config/entrypoint.sh /bin/entrypoint
 # Add Python health check
 ADD ./_config/healthcheck.py /bin/healthcheck.py
 
+ENV LD_PRELOAD "/usr/lib/aarch64-linux-gnu/libgomp.so.1:${LD_PRELOAD}"
+
+ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0:${LD_PRELOAD}"
+
+ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}"
+
 # Run smoke tests
 RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
  && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
- && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
  && /virtualenv/env3/bin/python -c "import wbia_flukematch;  from wbia_flukematch.plugin   import *" \
- && /virtualenv/env3/bin/python -c "import wbia_curvrank;    from wbia_curvrank._plugin    import *" \
  && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
  && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
- && find /wbia/wbia* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wbia* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.a' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
+ && find /wbia/wbia* -name '*.a' -print      | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wbia* -name '*.so' -print     | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.a' -print  | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
+ && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
 
 # Specify database directory
 RUN set -x \

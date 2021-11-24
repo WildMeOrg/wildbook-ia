@@ -50,65 +50,65 @@ def wic_cnn_json(ibs, gid_list, config={}, **kwargs):
     return wic_cnn(ibs, gid_list, **config)
 
 
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/detect/randomforest/', methods=['PUT', 'GET'])
-def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
-    """Run animal detection in each image. Adds annotations to the database as they are found.
+# @register_ibs_method
+# @accessor_decors.getter_1to1
+# @register_api('/api/detect/randomforest/', methods=['PUT', 'GET'])
+# def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
+#     """Run animal detection in each image. Adds annotations to the database as they are found.
 
-    Args:
-        gid_list (list): list of image ids to run detection on
-        species (str): string text of the species to identify
+#     Args:
+#         gid_list (list): list of image ids to run detection on
+#         species (str): string text of the species to identify
 
-    Returns:
-        aids_list (list): list of lists of annotation ids detected in each
-            image
+#     Returns:
+#         aids_list (list): list of lists of annotation ids detected in each
+#             image
 
-    CommandLine:
-        python -m wbia.web.apis_detect --test-detect_random_forest --show
+#     CommandLine:
+#         python -m wbia.web.apis_detect --test-detect_random_forest --show
 
-    RESTful:
-        Method: PUT, GET
-        URL:    /api/detect/randomforest/
+#     RESTful:
+#         Method: PUT, GET
+#         URL:    /api/detect/randomforest/
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from wbia.web.apis_detect import *  # NOQA
-        >>> import wbia
-        >>> ibs = wbia.opendb('testdb1')
-        >>> gid_list = ibs.get_valid_gids()[0:2]
-        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
-        >>> aids_list = ibs.detect_random_forest(gid_list, species)
-        >>> # Visualize results
-        >>> if ut.show_was_requested():
-        >>>     import wbia.plottool as pt
-        >>>     from wbia.viz import viz_image
-        >>>     for fnum, gid in enumerate(gid_list):
-        >>>         viz_image.show_image(ibs, gid, fnum=fnum)
-        >>>     pt.show_if_requested()
-        >>> # Remove newly detected annotations
-        >>> ibs.delete_annots(ut.flatten(aids_list))
-    """
-    # TODO: Return confidence here as well
-    depc = ibs.depc_image
-    config = {
-        'algo': 'rf',
-        'species': species,
-        'sensitivity': 0.2,
-        'nms': True,
-        'nms_thresh': 0.4,
-    }
-    results_list = depc.get_property('localizations', gid_list, None, config=config)
-    if commit:
-        aids_list = ibs.commit_localization_results(
-            gid_list, results_list, note='pyrfdetect'
-        )
-        return aids_list
+#     Example:
+#         >>> # DISABLE_DOCTEST
+#         >>> from wbia.web.apis_detect import *  # NOQA
+#         >>> import wbia
+#         >>> ibs = wbia.opendb('testdb1')
+#         >>> gid_list = ibs.get_valid_gids()[0:2]
+#         >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+#         >>> aids_list = ibs.detect_random_forest(gid_list, species)
+#         >>> # Visualize results
+#         >>> if ut.show_was_requested():
+#         >>>     import wbia.plottool as pt
+#         >>>     from wbia.viz import viz_image
+#         >>>     for fnum, gid in enumerate(gid_list):
+#         >>>         viz_image.show_image(ibs, gid, fnum=fnum)
+#         >>>     pt.show_if_requested()
+#         >>> # Remove newly detected annotations
+#         >>> ibs.delete_annots(ut.flatten(aids_list))
+#     """
+#     # TODO: Return confidence here as well
+#     depc = ibs.depc_image
+#     config = {
+#         'algo': 'rf',
+#         'species': species,
+#         'sensitivity': 0.2,
+#         'nms': True,
+#         'nms_thresh': 0.4,
+#     }
+#     results_list = depc.get_property('localizations', gid_list, None, config=config)
+#     if commit:
+#         aids_list = ibs.commit_localization_results(
+#             gid_list, results_list, note='pyrfdetect'
+#         )
+#         return aids_list
 
-    # results_list = depc.get_property('detections', gid_list, None, config=config)
-    # if commit:
-    #     aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
-    #     return aids_list
+#     # results_list = depc.get_property('detections', gid_list, None, config=config)
+#     # if commit:
+#     #     aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
+#     #     return aids_list
 
 
 @register_route('/test/review/detect/cnn/yolo/', methods=['GET'])
