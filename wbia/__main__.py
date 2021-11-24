@@ -42,12 +42,13 @@ def smoke_test():  # nocover
     from pyhesaff.__main__ import main as pyhesaff_main
     from pyflann.__main__ import main as pyflann_main
     from pydarknet.__main__ import main as pydarknet_main
-    from pyrf.__main__ import main as pyrf_main
+
+    # from pyrf.__main__ import main as pyrf_main
 
     pyhesaff_main()
     pyflann_main()
     pydarknet_main()
-    pyrf_main()
+    # pyrf_main()
 
     import brambox
 

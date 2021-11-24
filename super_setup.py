@@ -29,7 +29,7 @@ REPOS = [
     ('WildMeOrg/wbia-tpl-pyhesaff', 'wbia-tpl-pyhesaff', 'develop'),
     ('WildMeOrg/wbia-tpl-pyflann', 'wbia-tpl-pyflann', 'develop'),
     ('WildMeOrg/wbia-tpl-pydarknet', 'wbia-tpl-pydarknet', 'develop'),
-    ('WildMeOrg/wbia-tpl-pyrf', 'wbia-tpl-pyrf', 'develop'),
+    # ('WildMeOrg/wbia-tpl-pyrf', 'wbia-tpl-pyrf', 'develop'),
     ('WildMeOrg/wbia-deprecate-tpl-brambox', 'wbia-deprecate-tpl-brambox', 'develop'),
     ('WildMeOrg/wbia-deprecate-tpl-lightnet', 'wbia-deprecate-tpl-lightnet', 'develop'),
     ('WildMeOrg/wbia-plugin-cnn', 'wbia-plugin-cnn', 'develop'),
@@ -340,7 +340,7 @@ class Repo(ub.NiceRepr):
     @property
     # @ub.memoize_property
     def pygit(repo):
-        """ pip install gitpython """
+        """pip install gitpython"""
         import git as gitpython
 
         if repo._pygit is None:
