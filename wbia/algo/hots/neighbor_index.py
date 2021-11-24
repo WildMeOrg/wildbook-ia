@@ -13,7 +13,7 @@ import vtool as vt
 from vtool._pyflann_backend import pyflann as pyflann
 
 # import itertools as it
-# import lockfile
+import lockfile
 from os.path import basename
 from wbia.algo.hots import hstypes
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
@@ -232,9 +232,11 @@ class NeighborIndex(object):
             flann_params['random_seed'] = 42
         nnindexer.flann_params = flann_params
 
-        nprocs = ut.util_parallel.__NUM_PROCS__
-        if nprocs is None:
-            nprocs = 0
+        # nprocs = ut.util_parallel.__NUM_PROCS__
+        # if nprocs is None:
+        #     nprocs = 0
+        nprocs = ut.num_cpus()
+
         nnindexer.cores = flann_params.get('cores', nprocs)
         nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
@@ -531,7 +533,7 @@ class NeighborIndex(object):
         nnindexer.save(cachedir, verbose=verbose)
 
     def reindex(nnindexer, verbose=True, memtrack=None):
-        r""" indexes all vectors with FLANN. """
+        r"""indexes all vectors with FLANN."""
         num_vecs = nnindexer.num_indexed
         notify_num = 1e6
         verbose_ = ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num)
@@ -575,7 +577,8 @@ class NeighborIndex(object):
             logger.info(
                 '[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5)
             )
-        nnindexer.flann.save_index(flann_fpath)
+        with lockfile.LockFile('%s.lock' % (flann_fpath,)):
+            nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir=None, fpath=None, verbose=True):
         r"""
@@ -591,7 +594,8 @@ class NeighborIndex(object):
             idx2_vec = nnindexer.idx2_vec
             # Warning: Loading a FLANN index with old headers may silently fail.
             try:
-                nnindexer.flann.load_index(flann_fpath, idx2_vec)
+                with lockfile.LockFile('%s.lock' % (flann_fpath,)):
+                    nnindexer.flann.load_index(flann_fpath, idx2_vec)
             except (IOError, pyflann.FLANNException) as ex:
                 ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
             except Exception as ex:
@@ -921,11 +925,11 @@ class NeighborIndex(object):
         return invalid_idxs
 
     def get_nn_vecs(nnindexer, qfx2_nnidx):
-        r""" gets matching vectors """
+        r"""gets matching vectors"""
         return nnindexer.idx2_vec.take(qfx2_nnidx, axis=0)
 
     def get_nn_axs(nnindexer, qfx2_nnidx):
-        r""" gets matching internal annotation indices """
+        r"""gets matching internal annotation indices"""
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
     def get_nn_aids(nnindexer, qfx2_nnidx):
@@ -1014,7 +1018,7 @@ class NeighborIndex(object):
         return qfx2_fgw
 
     def get_nn_nids(indexer, qfx2_nnidx, qreq_):
-        """ iccv hack, todo: make faster by direct lookup from idx """
+        """iccv hack, todo: make faster by direct lookup from idx"""
         qfx2_aid = indexer.get_nn_aids(qfx2_nnidx)
         qfx2_nid = qreq_.get_qreq_annot_nids(qfx2_aid)
         return qfx2_nid
