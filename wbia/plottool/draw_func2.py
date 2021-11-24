@@ -1770,6 +1770,8 @@ def adjust_subplots(
     adjust_dict = subplotpars.__dict__.copy()
     if 'validate' in adjust_dict:
         del adjust_dict['validate']
+    if '_validate' in adjust_dict:
+        del adjust_dict['_validate']
     adjust_dict.update(kwargs)
     if use_argv:
         # hack to take args from commandline
