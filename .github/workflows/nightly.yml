@@ -6,16 +6,11 @@ on:
     paths:
       - '.github/workflows/nightly.yml'
       - 'devops/**'
-      - 'Dockerfile'
-      - '.dockerfiles/*'
   pull_request:
     paths:
       - '.github/workflows/nightly.yml'
       # Include any change to the development containers
       - 'devops/**'
-      # Include changes to the runtime container or assets
-      - 'Dockerfile'
-      - '.dockerfiles/*'
 
 jobs:
   devops:
@@ -26,8 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         images:
-          - wildbook-ia
-          # wbia-base wbia-dependencies wbia-provision wbia
+          - wbia-base wbia-provision wbia wbia-develop
 
     steps:
       - uses: actions/checkout@v2

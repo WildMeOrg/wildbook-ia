@@ -16,8 +16,6 @@ cd ${ROOT_LOC}
 while [ $# -ge 1 ]; do
     if [ "$1" == "wbia-base" ]; then
         docker build -t wildme/wbia-base:latest base
-    elif [ "$1" == "wbia-dependencies" ]; then
-        docker build -t wildme/wbia-dependencies:latest dependencies
     elif [ "$1" == "wbia-provision" ]; then
         docker build -t wildme/wbia-provision:latest provision
     elif [ "$1" == "wbia" ]; then

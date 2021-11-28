@@ -28,7 +28,7 @@ jobs:
             --rm \
             --volume $GITHUB_WORKSPACE:/code \
             --env EXEC_PRIVILEGED=1 \
-            wildme/wildbook-ia:latest \
+            wildme/wbia:latest \
             /code/scripts/build-docs.sh
 
       - name: Package up the documenatation
