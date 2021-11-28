@@ -15,14 +15,14 @@ USER root
 
 # Install package updates and dependencies
 RUN set -ex \
- && apt update \
- && DEBIAN_FRONTEND=noninteractive apt install -y \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y \
         software-properties-common \
  && add-apt-repository ppa:deadsnakes/ppa \
- && apt update \
- # && apt upgrade -y \
- # && apt dist-upgrade -y \
- && DEBIAN_FRONTEND=noninteractive apt install -y \
+ && apt-get update \
+ # && apt-get upgrade -y \
+ # && apt-get dist-upgrade -y \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y \
         # Install build requirements
         ca-certificates \
         build-essential \
@@ -70,9 +70,9 @@ RUN set -ex \
         unzip \
         vim \
         wget \
- && apt clean \
- && apt autoclean \
- && apt autoremove -y \
+ && apt-get clean \
+ && apt-get autoclean \
+ && apt-get autoremove -y \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/* \
  && update-alternatives --set hdf5.pc /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5-openmpi.pc
