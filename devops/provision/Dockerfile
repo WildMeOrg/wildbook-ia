@@ -186,18 +186,3 @@ RUN set -ex \
        torchvision \
        torchaudio \
        -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
-
-FROM org.wildme.wbia.provision as org.wildme.wbia.tensorflow
-
-RUN set -ex \
- && cd /wbia \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-pie \
- && git pull \
- && /bin/bash run_developer_setup.sh'
-
-RUN set -ex \
- && /virtualenv/env3/bin/pip install \
-        tensorflow==1.15.5

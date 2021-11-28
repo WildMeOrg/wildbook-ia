@@ -124,6 +124,25 @@ EXPOSE 5000
 ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
 
 ##########################################################################################
-FROM org.wildme.wbia.install as org.wildme.wbia.configure
+FROM org.wildme.wbia.install  as org.wildme.wbia.tensorflow
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-pie \
+ && git pull \
+ && /bin/bash run_developer_setup.sh'
+
+RUN set -ex \
+ && /virtualenv/env3/bin/pip install \
+        tensorflow==1.15.5
+
+RUN set -ex \
+ && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()"
+
+##########################################################################################
+FROM org.wildme.wbia.tensorflow as org.wildme.wbia.configure
 
 CMD []
