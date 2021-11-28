@@ -113,10 +113,10 @@ if ut.get_argflag('--flukematch'):
         (('--no-flukematch', '--noflukematch'), 'wbia_flukematch.plugin'),
     ]
 
-if ut.get_argflag('--curvrank'):
-    AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-curvrank', '--nocurvrank'), 'wbia_curvrank._plugin'),
-    ]
+# if ut.get_argflag('--curvrank'):
+#     AUTOLOAD_PLUGIN_MODNAMES += [
+#         (('--no-curvrank', '--nocurvrank'), 'wbia_curvrank._plugin'),
+#     ]
 
 if ut.get_argflag('--curvrank-v2'):
     AUTOLOAD_PLUGIN_MODNAMES += [
@@ -141,10 +141,10 @@ if ut.get_argflag('--kaggle7') or ut.get_argflag('--kaggleseven'):
         ),
     ]
 
-if ut.get_argflag('--orient2d'):
-    AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-2d-orient', '--no2dorient'), 'wbia_2d_orientation._plugin'),
-    ]
+# if ut.get_argflag('--orient2d'):
+#     AUTOLOAD_PLUGIN_MODNAMES += [
+#         (('--no-2d-orient', '--no2dorient'), 'wbia_2d_orientation._plugin'),
+#     ]
 
 
 if ut.get_argflag('--orient'):
@@ -152,10 +152,10 @@ if ut.get_argflag('--orient'):
         (('--no-orient', '--noorient'), 'wbia_orientation._plugin'),
     ]
 
-if ut.get_argflag('--pie'):
-    AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
-    ]
+# if ut.get_argflag('--pie'):
+#     AUTOLOAD_PLUGIN_MODNAMES += [
+#         (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
+#     ]
 
 
 if ut.get_argflag('--pie-v2'):
@@ -353,7 +353,7 @@ class IBEISController(BASE_CLASS):
         request_stagingversion=None,
         force_serial=None,
     ):
-        """ Creates a new IBEIS Controller associated with one database """
+        """Creates a new IBEIS Controller associated with one database"""
         # if verbose and ut.VERBOSE:
         logger.info('\n[ibs.__init__] new IBEISController')
 
@@ -598,7 +598,7 @@ class IBEISController(BASE_CLASS):
     # ------------
 
     def register_controller(self):
-        """ registers controller with global list """
+        """registers controller with global list"""
         ibs_weakref = weakref.ref(self)
         __ALL_CONTROLLERS__.append(ibs_weakref)
 
@@ -615,7 +615,7 @@ class IBEISController(BASE_CLASS):
     # ------------
 
     def cleanup(self):
-        """ call on del? """
+        """call on del?"""
         logger.info('[self.cleanup] Observers (if any) notified [controller killed]')
         for observer_weakref in self.observer_weakref_list:
             observer_weakref().notify_controller_killed()
@@ -656,7 +656,7 @@ class IBEISController(BASE_CLASS):
 
     @profile
     def _init_sql(self, request_dbversion=None, request_stagingversion=None):
-        """ Load or create sql database """
+        """Load or create sql database"""
         from wbia.other import duct_tape  # NOQA
 
         # LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE
@@ -936,7 +936,7 @@ class IBEISController(BASE_CLASS):
         return self.dbname
 
     def get_db_name(self):
-        """ Alias for self.get_dbname(). """
+        """Alias for self.get_dbname()."""
         return self.get_dbname()
 
     @register_api(CORE_DB_UUID_INIT_API_RULE, methods=['GET'])
@@ -961,7 +961,7 @@ class IBEISController(BASE_CLASS):
             return ut.get_logging_dir(appname='wbia')
 
     def get_dbdir(self):
-        """ database dir with ibs internal directory """
+        """database dir with ibs internal directory"""
         return self.dbdir
 
     def get_db_core_path(self):
@@ -986,7 +986,7 @@ class IBEISController(BASE_CLASS):
         return self.trashdir
 
     def get_ibsdir(self):
-        """ ibs internal directory """
+        """ibs internal directory"""
         return self._ibsdb
 
     def get_chipdir(self):
@@ -996,27 +996,27 @@ class IBEISController(BASE_CLASS):
         return join(self.get_cachedir(), 'prob_chips')
 
     def get_fig_dir(self):
-        """ ibs internal directory """
+        """ibs internal directory"""
         return join(self._ibsdb, 'figures')
 
     def get_imgdir(self):
-        """ ibs internal directory """
+        """ibs internal directory"""
         return self.imgdir
 
     def get_uploadsdir(self):
-        """ ibs internal directory """
+        """ibs internal directory"""
         return self.uploadsdir
 
     def get_thumbdir(self):
-        """ database directory where thumbnails are cached """
+        """database directory where thumbnails are cached"""
         return self.thumb_dpath
 
     def get_workdir(self):
-        """ directory where databases are saved to """
+        """directory where databases are saved to"""
         return self.workdir
 
     def get_cachedir(self):
-        """ database directory of all cached files """
+        """database directory of all cached files"""
         return self.cachedir
 
     def get_match_thumbdir(self):
@@ -1025,7 +1025,7 @@ class IBEISController(BASE_CLASS):
         return match_thumb_dir
 
     def get_wbia_resource_dir(self):
-        """ returns the global resource dir in .config or AppData or whatever """
+        """returns the global resource dir in .config or AppData or whatever"""
         resource_dir = sysres.get_wbia_resource_dir()
         return resource_dir
 
