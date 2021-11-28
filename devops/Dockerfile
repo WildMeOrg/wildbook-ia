@@ -85,11 +85,11 @@ ADD ./_config/entrypoint.sh /bin/entrypoint
 # Add Python health check
 ADD ./_config/healthcheck.py /bin/healthcheck.py
 
-ENV LD_PRELOAD "/usr/lib/aarch64-linux-gnu/libgomp.so.1:${LD_PRELOAD}"
+# ENV LD_PRELOAD "/usr/lib/aarch64-linux-gnu/libgomp.so.1:${LD_PRELOAD}"
 
-ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0:${LD_PRELOAD}"
+# ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0:${LD_PRELOAD}"
 
-ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}"
+# ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}"
 
 # Run smoke tests
 RUN set -ex \

@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04 as org.wildme.wbia.base
+FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04 as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
@@ -11,12 +11,13 @@ USER root
 # Install package updates and dependencies
 RUN set -ex \
  && apt update \
- && apt install -y software-properties-common \
+ && DEBIAN_FRONTEND=noninteractive apt install -y \
+        software-properties-common \
  && add-apt-repository ppa:deadsnakes/ppa \
  && apt update \
  # && apt upgrade -y \
  # && apt dist-upgrade -y \
- && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+ && DEBIAN_FRONTEND=noninteractive apt install -y \
         # Install build requirements
         ca-certificates \
         build-essential \
@@ -35,8 +36,9 @@ RUN set -ex \
         libncursesw5-dev \
         # Install dependencies for PyHesaff & PyFLANN
         libboost-all-dev \
+        libopenmpi-dev \
         libomp-dev \
-        libhdf5-mpi-dev \
+        libhdf5-openmpi-dev \
         libgdal-dev \
         libopenmpi-dev \
         libgflags-dev \
