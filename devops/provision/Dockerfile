@@ -200,4 +200,4 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN set -ex \
  && /virtualenv/env3/bin/pip install \
-        tensorflow==1.15
+        tensorflow==1.15.5
