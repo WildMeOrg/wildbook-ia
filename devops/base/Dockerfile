@@ -70,7 +70,8 @@ RUN set -ex \
  && apt autoclean \
  && apt autoremove -y \
  && rm -rf /var/cache/apt \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && update-alternatives --set hdf5.pc /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5-openmpi.pc
 
 RUN unlink /etc/localtime
 
