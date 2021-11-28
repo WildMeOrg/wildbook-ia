@@ -152,10 +152,10 @@ if ut.get_argflag('--orient'):
         (('--no-orient', '--noorient'), 'wbia_orientation._plugin'),
     ]
 
-# if ut.get_argflag('--pie'):
-#     AUTOLOAD_PLUGIN_MODNAMES += [
-#         (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
-#     ]
+if ut.get_argflag('--pie'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-pie', '--nopie'), 'wbia_pie._plugin'),
+    ]
 
 
 if ut.get_argflag('--pie-v2'):

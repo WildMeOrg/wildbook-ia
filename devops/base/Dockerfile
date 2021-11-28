@@ -1,10 +1,15 @@
-FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04 as org.wildme.wbia.base
+ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
+
+FROM ${WBIA_UBUNTU_IMAGE} as org.wildme.wbia.base
 
 MAINTAINER Wild Me <dev@wildme.org>
 
 ENV LC_ALL C.UTF-8
 
 ENV LANG C.UTF-8
+
+# Set up xvfb for running gui doctests
+ENV DISPLAY :1
 
 USER root
 
