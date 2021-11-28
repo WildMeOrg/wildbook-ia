@@ -22,10 +22,9 @@ while [ $# -ge 1 ]; do
         docker build -t wildme/wbia-provision:latest provision
     elif [ "$1" == "wbia" ]; then
         docker build --no-cache -t wildme/wbia:latest .
-    elif [ "$1" == "wildbook-ia" ]; then
+    elif [ "$1" == "wbia-develop" ]; then
         cd ../
-        # Build the runtime container
-        docker build -t wildme/wildbook-ia:latest .
+        docker build -t wildme/wbia:develop devops/local
         cd devops/
     else
         echo "Image $1 not found"

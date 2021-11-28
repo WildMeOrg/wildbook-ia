@@ -34,6 +34,8 @@ RUN set -ex \
         python3.7-gdbm \
         python3-pip \
         python3-pyqt5 \
+        python3-setuptools \
+        python3-venv \
         # Install OpenCV
         libopencv-dev \
         # Install dependencies for NVTOP
@@ -49,6 +51,7 @@ RUN set -ex \
         libgflags-dev \
         libeigen3-dev \
         liblz4-dev \
+        libssl1.0.0 \
         libgraphviz-dev \
         # Install run-time tools
         graphviz \
@@ -61,6 +64,7 @@ RUN set -ex \
         gnupg \
         htop \
         locate \
+        netcat \
         rsync \
         tmux \
         unzip \
@@ -123,6 +127,13 @@ RUN set -ex \
  && make install \
  && cd .. \
  && rm -rf /tmp/nvtop
+
+ # Install wait-for
+RUN set -ex \
+    && curl -s https://raw.githubusercontent.com/eficode/wait-for/v2.0.0/wait-for > /usr/local/bin/wait-for \
+    && chmod a+x /usr/local/bin/wait-for \
+    # test it works
+    && wait-for google.com:80 -- echo "success"
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"

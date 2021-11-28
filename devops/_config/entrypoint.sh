@@ -4,4 +4,9 @@ set -ex
 
 setup
 
-exec gosu ${HOST_USER}:${HOST_USER} $@
+# Supply EXEC_PRIVILEGED=1 to run your given command as the privileged user.
+if [ $EXEC_PRIVILEGED ]; then
+    exec "$@"
+else
+    exec gosu ${HOST_USER}:${HOST_USER} "$@"
+fi

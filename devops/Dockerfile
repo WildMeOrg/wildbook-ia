@@ -58,32 +58,32 @@ ENV AWS_ACCESS_KEY_ID ACCESS_KEY
 
 ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
-WORKDIR /wbia
+WORKDIR /data/db
 
 COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.latest /wbia /wbia
 
-# Add theano configuration file
-ADD ./_config/theanorc /root/.theanorc
+# theano configuration file
+COPY ./_config/theanorc /root/.theanorc
 
-# Add setup script for python development
-ADD ./_config/setup.sh /bin/setup
+# setup script for python development
+COPY ./_config/setup.sh /bin/setup
 
-# Add embed script for python development
-ADD ./_config/embed.sh /bin/embed
+# embed script for python development
+COPY ./_config/embed.sh /bin/embed
 
-# Add embed script for python development
-ADD ./_config/embedpg.sh /bin/embedpg
+# embed script for python development
+COPY ./_config/embedpg.sh /bin/embedpg
 
-# Add (non-root) bash shell script for python development
-ADD ./_config/shell.sh /bin/shell
+# (non-root) bash shell script for python development
+COPY ./_config/shell.sh /bin/shell
 
-# Add entrypoint
-ADD ./_config/entrypoint.sh /bin/entrypoint
+# entrypoint
+COPY ./_config/entrypoint.sh /bin/entrypoint
 
-# Add Python health check
-ADD ./_config/healthcheck.py /bin/healthcheck.py
+# Python health check
+COPY ./_config/healthcheck.py /bin/healthcheck.py
 
 # ENV LD_PRELOAD "/usr/lib/aarch64-linux-gnu/libgomp.so.1:${LD_PRELOAD}"
 
@@ -111,7 +111,7 @@ RUN set -ex \
 # Specify database directory
 RUN set -x \
  && mkdir -p /data \
- && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data
+ && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit
 
 HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
