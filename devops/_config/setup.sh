@@ -5,6 +5,9 @@
 if [ "${HOST_USER}" != "root" ]; then
     # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
     adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
+   export HOME_FOLDER=$(eval echo ~${HOST_USER})
+else
+   export HOME_FOLDER=${HOME}
 fi
 
 # if [ -S ${DOCKER_SOCKET} ]; then
@@ -29,15 +32,14 @@ if [ ! -d "/cache" ]; then
    chmod 750 /cache
 fi
 
-rm -rf ${HOME}/.cache
+rm -rf ${HOME_FOLDER}/.cache
 
-ln -s -T /cache ${HOME}/.cache
+ln -s -T /cache ${HOME_FOLDER}/.cache
 
-chown ${HOST_USER}:${HOST_USER} ${HOME}/.cache/
+chown ${HOST_USER}:${HOST_USER} ${HOME_FOLDER}/.cache/
 
-cp /root/.theanorc ${HOME}/.theanorc
-chown ${HOST_USER}:${HOST_USER} ${HOME}/.theanorc
-
+cp /root/.theanorc ${HOME_FOLDER}/.theanorc
+chown ${HOST_USER}:${HOST_USER} ${HOME_FOLDER}/.theanorc
 # Hotfixes!
 
 # PermissionError: [Errno 13] Permission denied: '/wbia/wbia-plugin-pie/wbia_pie/examples/manta-demo/db_localised'

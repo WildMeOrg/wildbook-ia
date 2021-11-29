@@ -1,6 +1,6 @@
 [global]
 floatX = float32
-device = cpu
+device = cuda0
 openmp = True
 allow_gc = True
 optimizer = fast_run
@@ -10,7 +10,7 @@ enable_initial_driver_test = False
 root = /usr/local/cuda/
 
 [dnn]
-enabled = False
+enabled = True
 
 [dnn.conv]
 algo_fwd = time_once

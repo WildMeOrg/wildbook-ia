@@ -124,8 +124,28 @@ EXPOSE 5000
 ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
 
 ##########################################################################################
-FROM org.wildme.wbia.install  as org.wildme.wbia.tensorflow
+FROM org.wildme.wbia.install  as org.wildme.wbia.depricated
 
+ # Install libgpuarray (pygpu)
+RUN set -ex \
+ && . /virtualenv/env3/bin/activate \
+ && git clone https://github.com/Theano/libgpuarray.git /wbia/libgpuarray \
+ && cd /wbia/libgpuarray \
+ && git checkout 04c2892 \
+ && mkdir -p /wbia/libgpuarray/build \
+ && cd /wbia/libgpuarray/build \
+ && cmake \
+        -D CMAKE_BUILD_TYPE=Release \
+        -D CMAKE_INSTALL_PREFIX=/virtualenv/env3 \
+        .. \
+ && make -j4 \
+ && make install \
+ && cd .. \
+ && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/env3/lib -I /virtualenv/env3/include \
+ && /virtualenv/env3/bin/pip install -e . \
+ && rm -rf /wbia/libgpuarray/build
+
+# Install Tensorflow
 RUN set -ex \
  && cd /wbia \
  && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
@@ -144,6 +164,6 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()"
 
 ##########################################################################################
-FROM org.wildme.wbia.tensorflow as org.wildme.wbia.configure
+FROM org.wildme.wbia.depricated as org.wildme.wbia.configure
 
 CMD []
