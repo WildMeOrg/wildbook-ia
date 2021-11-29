@@ -28,14 +28,14 @@ def gitcmd(repo, command):
 
 
 def gg_command(command):
-    """ Runs a command on all of your PROJECT_REPOS """
+    """Runs a command on all of your PROJECT_REPOS"""
     for repo in PROJECT_REPOS:
         if exists(repo):
             gitcmd(repo, command)
 
 
 def checkout_repos(repo_urls, repo_dirs=None, checkout_dir=None):
-    """ Checkout every repo in repo_urls into checkout_dir """
+    """Checkout every repo in repo_urls into checkout_dir"""
     # Check out any repo you dont have
     if checkout_dir is not None:
         repo_dirs = mu.get_repo_dirs(checkout_dir)
@@ -48,7 +48,7 @@ def checkout_repos(repo_urls, repo_dirs=None, checkout_dir=None):
 
 
 def setup_develop_repos(repo_dirs):
-    """ Run python installs """
+    """Run python installs"""
     for repodir in repo_dirs:
         print('Installing: ' + repodir)
         mu.cd(repodir)

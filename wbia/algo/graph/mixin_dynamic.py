@@ -525,7 +525,7 @@ class DynamicUpdate(object):
 
 
 class Recovery(object):
-    """ recovery funcs """
+    """recovery funcs"""
 
     def is_recovering(infr, edge=None):
         """
@@ -1065,7 +1065,7 @@ class _RedundancyComputers(object):  # NOQA
                 yield cc1, cc2
 
     def find_pos_redun_nids(infr):
-        """ recomputes infr.pos_redun_nids """
+        """recomputes infr.pos_redun_nids"""
         for cc in infr.find_pos_redundant_pccs():
             try:
                 node = next(iter(cc))
@@ -1075,7 +1075,7 @@ class _RedundancyComputers(object):  # NOQA
             yield nid
 
     def find_neg_redun_nids(infr):
-        """ recomputes edges in infr.neg_redun_metagraph """
+        """recomputes edges in infr.neg_redun_metagraph"""
         for cc in infr.consistent_components():
             try:
                 node = next(iter(cc))
@@ -1090,7 +1090,7 @@ class _RedundancyComputers(object):  # NOQA
 @ut.reloadable_class
 class Redundancy(_RedundancyComputers):
 
-    """ methods for dynamic redundancy book-keeping """
+    """methods for dynamic redundancy book-keeping"""
 
     # def pos_redun_edge_flag(infr, edge):
     #     """ Quickly check if edge is flagged as pos redundant """

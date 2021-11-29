@@ -22,7 +22,7 @@ MODEL_URLS = {
 
 
 def _expand_modeldir(modeldir='default'):
-    """ returns default unless another path is specified """
+    """returns default unless another path is specified"""
     if modeldir == 'default':
         modeldir = DEFAULT_DETECTMODELS_DIR
     return modeldir

@@ -103,7 +103,7 @@ def show_aids(ibs, qaid_list):
 
 @devcmd()
 def change_names(ibs, qaid_list):
-    """ Test to changes names """
+    """Test to changes names"""
     # next_name = utool.get_argval('--name', str, default='<name>_the_<species>')
     next_name = utool.get_argval('--name', str, default='glob')
     for aid in qaid_list:

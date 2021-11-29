@@ -18,7 +18,7 @@ logger = logging.getLogger('wbia')
 
 
 def parse_exif(pil_img):
-    """ Image EXIF helper """
+    """Image EXIF helper"""
     exif_dict = vtexif.get_exif_dict(pil_img)
     # TODO: More tags
     # (mainly the orientation tag)
@@ -29,7 +29,7 @@ def parse_exif(pil_img):
 
 
 def get_standard_ext(gpath):
-    """ Returns standardized image extension """
+    """Returns standardized image extension"""
     ext = splitext(gpath)[1].lower()
     return '.jpg' if ext == '.jpeg' else ext
 

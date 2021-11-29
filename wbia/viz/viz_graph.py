@@ -226,7 +226,7 @@ def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
 
 
 def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
-    """ Colors edges and nodes by nid """
+    """Colors edges and nodes by nid"""
     # TODO use ut.color_nodes
     import wbia.plottool as pt
 
@@ -427,7 +427,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         nx.set_node_attributes(self.infr.graph, name='label', values=node2_label)
 
     def make_hud(self):
-        """ Creates heads up display """
+        """Creates heads up display"""
         import wbia.plottool as pt
 
         hl_slot, hr_slot = pt.make_bbox_positioners(

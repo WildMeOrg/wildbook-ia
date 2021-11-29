@@ -13,13 +13,13 @@ logger = logging.getLogger('wbia')
 
 
 def get_nTruePositive(atrank, was_retrieved, gt_ranks):
-    """ the number of documents we got right """
+    """the number of documents we got right"""
     TP = (np.logical_and(was_retrieved, gt_ranks <= atrank)).sum()
     return TP
 
 
 def get_nFalseNegative(TP, atrank, nGroundTruth):
-    """ the number of documents we should have retrieved but didn't """
+    """the number of documents we should have retrieved but didn't"""
     # FN = min((atrank + 1) - TP, nGroundTruth - TP)
     # nRetreived = (atrank + 1)
     FN = nGroundTruth - TP
@@ -28,7 +28,7 @@ def get_nFalseNegative(TP, atrank, nGroundTruth):
 
 
 def get_nFalsePositive(TP, atrank):
-    """ the number of documents we should not have retrieved """
+    """the number of documents we should not have retrieved"""
     # FP = min((atrank + 1) - TP, nGroundTruth)
     nRetreived = atrank + 1
     FP = nRetreived - TP
@@ -36,13 +36,13 @@ def get_nFalsePositive(TP, atrank):
 
 
 def get_precision(TP, FP):
-    """ precision positive predictive value """
+    """precision positive predictive value"""
     precision = TP / (TP + FP)
     return precision
 
 
 def get_recall(TP, FN):
-    """ recall, true positive rate, sensitivity, hit rate """
+    """recall, true positive rate, sensitivity, hit rate"""
     recall = TP / (TP + FN)
     return recall
 

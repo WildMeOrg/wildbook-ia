@@ -216,7 +216,7 @@ def figure(
 
 
 def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
-    """ so bad """
+    """so bad"""
     if fig is not None:
         # HACK; doesnt set DPI this might cause issues
         if dpi is not None:
@@ -246,7 +246,7 @@ def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
 
 
 def sanitize_img_fname(fname):
-    """ Removes bad characters from images fnames """
+    """Removes bad characters from images fnames"""
     # Replace bad chars
     fname_clean = fname.replace('/', 'slash')
     search_replace_list = [(' ', '_'), ('\n', '--'), ('\\', ''), ('/', '')]

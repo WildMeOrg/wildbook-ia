@@ -525,7 +525,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
     web_ibs.post = post
 
     def wait_until_started():
-        """ waits until the web server responds to a request """
+        """waits until the web server responds to a request"""
         import requests
 
         for count in ut.delayed_retry_gen([1], timeout=15):
@@ -614,12 +614,12 @@ def opendb(
 
 
 def start(*args, **kwargs):
-    """ alias for main() """  # + main.__doc__
+    """alias for main()"""  # + main.__doc__
     return main(*args, **kwargs)
 
 
 def opendb_test(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None):
-    """ alias for main() """  # + main.__doc__
+    """alias for main()"""  # + main.__doc__
     from wbia.init import sysres
 
     _preload()
@@ -631,7 +631,7 @@ def opendb_test(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=
 
 
 def _preload(mpl=True, par=True, logging=True):
-    """ Sets up python environment """
+    """Sets up python environment"""
     import utool as ut
 
     # from wbia.init import main_helpers

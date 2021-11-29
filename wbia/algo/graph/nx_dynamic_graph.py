@@ -232,7 +232,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
     # -----
 
     def _cut(self, u, v):
-        """ Decremental connectivity (slow) """
+        """Decremental connectivity (slow)"""
         old_nid1 = self._union_find[u]
         old_nid2 = self._union_find[v]
         if old_nid1 != old_nid2:
@@ -250,7 +250,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
             self._union(*edge)
 
     def _union(self, u, v):
-        """ Incremental connectivity (fast) """
+        """Incremental connectivity (fast)"""
         # logger.info('Union ({})'.format((u, v)))
         self._add_node(u)
         self._add_node(v)

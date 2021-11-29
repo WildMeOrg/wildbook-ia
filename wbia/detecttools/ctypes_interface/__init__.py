@@ -53,7 +53,7 @@ def get_lib_dpath_list(root_dir):
 
 
 def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
-    """ Search for the library """
+    """Search for the library"""
     lib_fname_list = get_lib_fname_list(libname)
     tried_fpaths = []
     while root_dir is not None:
@@ -109,7 +109,7 @@ def load_clib(libname, root_dir):
         clib = C.cdll[lib_fpath]
 
         def def_cfunc(return_type, func_name, arg_type_list):
-            """ Function to define the types that python needs to talk to c """
+            """Function to define the types that python needs to talk to c"""
             cfunc = getattr(clib, func_name)
             cfunc.restype = return_type
             cfunc.argtypes = arg_type_list

@@ -120,7 +120,7 @@ def resize_via_web_parameters(image):
 
 
 def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEIGHT):
-    """ Creates an image embedded in HTML base64 format. """
+    """Creates an image embedded in HTML base64 format."""
     import cv2
     from PIL import Image
 

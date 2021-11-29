@@ -587,7 +587,7 @@ class TestResult(ut.NiceRepr):
         return groupxs
 
     def get_rank_histogram_bins(testres):
-        """ easy to see histogram bins """
+        """easy to see histogram bins"""
         worst_possible_rank = testres.get_worst_possible_rank()
         if worst_possible_rank > 50:
             bins = [0, 1, 5, 50, worst_possible_rank, worst_possible_rank + 1]
@@ -598,7 +598,7 @@ class TestResult(ut.NiceRepr):
         return bins
 
     def get_X_LIST(testres):
-        """ DEPRICATE or refactor """
+        """DEPRICATE or refactor"""
         # X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
         X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1, 5])
         return X_LIST
@@ -773,13 +773,13 @@ class TestResult(ut.NiceRepr):
         return flagstr
 
     def get_full_cfgstr(testres, cfgx):
-        """ both qannots and dannots included """
+        """both qannots and dannots included"""
         full_cfgstr = testres.cfgx2_qreq_[cfgx].get_full_cfgstr()
         return full_cfgstr
 
     @ut.memoize
     def get_cfgstr(testres, cfgx):
-        """ just dannots and config_str """
+        """just dannots and config_str"""
         cfgstr = testres.cfgx2_qreq_[cfgx].get_cfgstr()
         return cfgstr
 

@@ -25,7 +25,7 @@ def get_repo_dirs(repo_urls, checkout_dir):
 
 
 def get_repo_dname(repo_url):
-    """ Break url into a dirname """
+    """Break url into a dirname"""
     slashpos = repo_url.rfind('/')
     colonpos = repo_url.rfind(':')
     if slashpos != -1 and slashpos > colonpos:
@@ -61,7 +61,7 @@ def cd(dir_):
 
 
 def fix_repo_url(repo_url, in_type='https', out_type='ssh', format_dict=format_dict):
-    """ Changes the repo_url format """
+    """Changes the repo_url format"""
     for old, new in izip(format_dict[in_type], format_dict[out_type]):
         repo_url = repo_url.replace(old, new)
     return repo_url

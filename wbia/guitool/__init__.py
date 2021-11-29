@@ -45,7 +45,7 @@ logger = logging.getLogger('wbia')
 
 
 def reload_subs():
-    """Reloads utool and submodules """
+    """Reloads utool and submodules"""
     rrr()
     if hasattr(guitool_tables, 'rrr'):
         guitool_tables.rrr()
@@ -326,14 +326,14 @@ if DOELSE:
                 setattr(guitool, attr, getattr(submod, attr))
 
     def reload_subs(verbose=1):
-        """ Reloads guitool and submodules """
+        """Reloads guitool and submodules"""
         if verbose:
             print('Reloading guitool submodules')
         rrr(verbose > 1)
 
         def wrap_fbrrr(mod):
             def fbrrr(*args, **kwargs):
-                """ fallback reload """
+                """fallback reload"""
                 if verbose > 0:
                     print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
 

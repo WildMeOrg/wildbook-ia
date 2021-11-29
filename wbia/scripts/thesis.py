@@ -2467,7 +2467,7 @@ class Chap4(DBInputs):
         cfms.plot_vs('fpr', 'thresholds')
 
     def _draw_score_hist(self, freqs, xlabel, fnum):
-        """ helper """
+        """helper"""
         bins, freq0, freq1 = ut.take(freqs, ['bins', 'neg_freq', 'pos_freq'])
         width = np.diff(bins)[0]
         xlim = (bins[0] - (width / 2), bins[-1] + (width / 2))
@@ -2519,7 +2519,7 @@ class Chap4(DBInputs):
         return fpath
 
     def draw_class_score_hist(self):
-        """ Plots distribution of positive and negative scores """
+        """Plots distribution of positive and negative scores"""
         task_key = 'match_state'
 
         results = self.ensure_results('all')
@@ -3951,7 +3951,7 @@ class Sampler(object):
         return qaids, dname_encs, confusor_pool
 
     def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
-        """ This can be used for cross validation """
+        """This can be used for cross validation"""
         # Find a split of query/database encounters and confusors
         from wbia.init.filter_annots import encounter_crossval
 

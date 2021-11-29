@@ -347,7 +347,7 @@ def eigenvector_actors(invVR_aff2Ds):
 
 
 def orientation_actors(kpts, H=None):
-    """ creates orientation actors w.r.t. the gravity vector """
+    """creates orientation actors w.r.t. the gravity vector"""
     import vtool.keypoint as ktool
 
     try:

@@ -1145,7 +1145,7 @@ def vsone_(
         return C
 
     def quick_mcc(C):
-        """ assumes y_true and y_pred are in index/encoded format """
+        """assumes y_true and y_pred are in index/encoded format"""
         t_sum = C.sum(axis=1)
         p_sum = C.sum(axis=0)
         n_correct = np.diag(C).sum()

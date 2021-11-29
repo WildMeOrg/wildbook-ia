@@ -346,7 +346,7 @@ def partial_imap_1to1(func, si_func):
 
 
 def _tupstr(tuple_):
-    """ maps each item in tuple to a string and doesnt include parens """
+    """maps each item in tuple to a string and doesnt include parens"""
     return ', '.join(list(map(str, tuple_)))
 
 

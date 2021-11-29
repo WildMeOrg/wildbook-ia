@@ -102,27 +102,27 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
 
 
 def get_plotdat(ax, key, default=None):
-    """ returns internal property from a matplotlib axis """
+    """returns internal property from a matplotlib axis"""
     _plotdat = get_plotdat_dict(ax)
     val = _plotdat.get(key, default)
     return val
 
 
 def set_plotdat(ax, key, val):
-    """ sets internal property to a matplotlib axis """
+    """sets internal property to a matplotlib axis"""
     _plotdat = get_plotdat_dict(ax)
     _plotdat[key] = val
 
 
 def del_plotdat(ax, key):
-    """ sets internal property to a matplotlib axis """
+    """sets internal property to a matplotlib axis"""
     _plotdat = get_plotdat_dict(ax)
     if key in _plotdat:
         del _plotdat[key]
 
 
 def get_plotdat_dict(ax):
-    """ sets internal property to a matplotlib axis """
+    """sets internal property to a matplotlib axis"""
     if '_plotdat' not in ax.__dict__:
         ax.__dict__['_plotdat'] = {}
     plotdat_dict = ax.__dict__['_plotdat']

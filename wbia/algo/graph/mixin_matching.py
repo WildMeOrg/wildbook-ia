@@ -885,7 +885,7 @@ class _RedundancyAugmentation(object):
 
 
 class CandidateSearch(_RedundancyAugmentation):
-    """ Search for candidate edges """
+    """Search for candidate edges"""
 
     @profile
     def find_lnbnn_candidate_edges(

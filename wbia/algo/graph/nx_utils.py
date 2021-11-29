@@ -29,7 +29,7 @@ def _dz(a, b):
 
 
 def diag_product(s1, s2):
-    """ Does product, but iterates over the diagonal first """
+    """Does product, but iterates over the diagonal first"""
     s1 = list(s1)
     s2 = list(s2)
     if len(s1) > len(s2):
@@ -205,7 +205,7 @@ def _edges_between_dense(graph, nodes1, nodes2=None, assume_disjoint=False):
 
 
 def _edges_inside_lower(graph, both_adj):
-    """ finds lower triangular edges inside the nodes """
+    """finds lower triangular edges inside the nodes"""
     both_lower = set([])
     for u, neighbs in both_adj.items():
         neighbsBB_lower = neighbs.intersection(both_lower)
@@ -215,7 +215,7 @@ def _edges_inside_lower(graph, both_adj):
 
 
 def _edges_inside_upper(graph, both_adj):
-    """ finds upper triangular edges inside the nodes """
+    """finds upper triangular edges inside the nodes"""
     both_upper = set(both_adj.keys())
     for u, neighbs in both_adj.items():
         neighbsBB_upper = neighbs.intersection(both_upper)
@@ -225,7 +225,7 @@ def _edges_inside_upper(graph, both_adj):
 
 
 def _edges_between_disjoint(graph, only1_adj, only2):
-    """ finds edges between disjoint nodes """
+    """finds edges between disjoint nodes"""
     for u, neighbs in only1_adj.items():
         # Find the neighbors of u in only1 that are also in only2
         neighbs12 = neighbs.intersection(only2)

@@ -63,7 +63,7 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         super(ExpandableInteraction, self).__init__(autostart=autostart, **kwargs)
 
     def __iadd__(self, func):
-        """ inplace apppend a plot function """
+        """inplace apppend a plot function"""
         self.append_plot(func)
         return self
 

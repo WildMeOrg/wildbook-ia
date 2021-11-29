@@ -113,7 +113,7 @@ class QueryParams(collections.Mapping):
     # Dictionary like interface
 
     def get(qparams, key, *d):
-        """ get a paramater value by string """
+        """get a paramater value by string"""
         ERROR_ON_DEFAULT = True
         if ERROR_ON_DEFAULT:
             return getattr(qparams, key)

@@ -177,7 +177,7 @@ def export_wbia_to_hotspotter(ibs):
 
 
 def dump_hots_tables(ibs):
-    """ Dumps hotspotter like tables to disk """
+    """Dumps hotspotter like tables to disk"""
     ibsdir = ibs.get_ibsdir()
     gtbl_name = join(ibsdir, 'IBEIS_DUMP_images_table.csv')
     ntbl_name = join(ibsdir, 'IBEIS_DUMP_names_table.csv')

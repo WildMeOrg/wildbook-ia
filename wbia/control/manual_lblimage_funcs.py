@@ -41,7 +41,7 @@ def get_glr_confidence(ibs, glrid_list):
 @register_ibs_method
 @getter_1to1
 def get_glr_lblimage_rowids(ibs, glrid_list):
-    """ get the lblimage_rowid belonging to each relationship """
+    """get the lblimage_rowid belonging to each relationship"""
     lblimage_rowids_list = ibs.db.get(
         const.GL_RELATION_TABLE, ('lblimage_rowid',), glrid_list
     )
@@ -51,7 +51,7 @@ def get_glr_lblimage_rowids(ibs, glrid_list):
 @register_ibs_method
 @getter_1to1
 def get_glr_image_rowids(ibs, glrid_list):
-    """ get the image_rowid belonging to each relationship """
+    """get the image_rowid belonging to each relationship"""
     image_rowids_list = ibs.db.get(const.GL_RELATION_TABLE, ('image_rowid',), glrid_list)
     return image_rowids_list
 

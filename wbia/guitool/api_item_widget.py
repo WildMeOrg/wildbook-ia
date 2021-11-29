@@ -359,7 +359,7 @@ class CustomAPI(object):
 
     @staticmethod
     def _general_get(getter, index, **kwargs):
-        """ Works with getter funcs or indexable read/write arrays """
+        """Works with getter funcs or indexable read/write arrays"""
         if hasattr(getter, '__getitem__'):
             try:
                 val = getter[index]
@@ -374,7 +374,7 @@ class CustomAPI(object):
 
     @staticmethod
     def _general_set(setter, index, val, **kwargs):
-        """ Works with setter funcs or indexable read/write arrays """
+        """Works with setter funcs or indexable read/write arrays"""
         if hasattr(setter, '__setitem__'):
             setter[index] = val
         else:

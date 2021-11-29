@@ -373,7 +373,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
-        """ helper for show_qres """
+        """helper for show_qres"""
         plotx = plotx_shift + 1
         pnum = (rowcols[0], rowcols[1], plotx)
         # logger.info('[viz] Plotting Query: pnum=%r' % (pnum,))
@@ -386,7 +386,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         viz_chip.show_chip(ibs, cm.qaid, annote=False, qreq_=qreq_, **_kwshow)
 
     def _plot_matches_aids(aid_list, plotx_shift, rowcols):
-        """ helper for show_qres to draw many aids """
+        """helper for show_qres to draw many aids"""
         _kwshow = dict(
             draw_ell=annot_mode,
             draw_pts=False,
@@ -411,7 +411,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             _kwshow['show_query'] = False
 
         def _show_matches_fn(aid, orank, pnum):
-            """ Helper function for drawing matches to one aid """
+            """Helper function for drawing matches to one aid"""
             aug = 'rank=%r\n' % orank
             _kwshow['pnum'] = pnum
             _kwshow['title_aug'] = aug

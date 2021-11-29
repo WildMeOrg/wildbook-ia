@@ -55,7 +55,7 @@ def is_hsinternal(dbdir):
 
 
 def is_succesful_convert(dbdir):
-    """ the sucess flag is only written if the _ibsdb was properly generated """
+    """the sucess flag is only written if the _ibsdb was properly generated"""
     return exists(join(dbdir, const.PATH_NAMES._ibsdb, SUCCESS_FLAG_FNAME))
 
 

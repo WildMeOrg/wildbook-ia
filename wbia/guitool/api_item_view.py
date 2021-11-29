@@ -140,7 +140,7 @@ def _init_itemview_behavior(view):
 
 @register_view_method
 def infer_delegates(view, **headers):
-    """ Infers which columns should be given item delegates """
+    """Infers which columns should be given item delegates"""
     get_thumb_size = headers.get('get_thumb_size', None)
     col_type_list = headers.get('col_type_list', [])
     num_cols = view.model().columnCount()
@@ -176,7 +176,7 @@ def infer_delegates(view, **headers):
 
 @register_view_method
 def set_column_persistant_editor(view, column):
-    """ Set each row in a column as persistant """
+    """Set each row in a column as persistant"""
     num_rows = view.model.rowCount()
     print('view.set_persistant: %r rows' % num_rows)
     for row in range(num_rows):
@@ -186,7 +186,7 @@ def set_column_persistant_editor(view, column):
 
 @register_view_method
 def _update_headers(view, **headers):
-    """ Mirrors _update_headers in api_item_model """
+    """Mirrors _update_headers in api_item_model"""
     # Use headers from model #model = view.model #headers = model.headers
     # Get header info
     col_sort_index = headers.get('col_sort_index', None)
@@ -242,7 +242,7 @@ def hide_cols(view):
 
 @register_view_method
 def get_row_and_qtindex_from_id(view, _id):
-    """ uses an sqlrowid (from iders) to get a qtindex """
+    """uses an sqlrowid (from iders) to get a qtindex"""
     model = view.model()
     qtindex, row = model.get_row_and_qtindex_from_id(_id)
     return qtindex, row
@@ -396,13 +396,13 @@ def keyPressEvent(view, event):
 
 # @register_view_method
 def itemDelegate(view, qindex):
-    """ QtOverride: Returns item delegate for this index """
+    """QtOverride: Returns item delegate for this index"""
     # Does this even work? TODO: testme
     return API_VIEW_BASE.itemDelegate(view, qindex)
 
 
 def setModel(view, model):
-    """ QtOverride: Returns item delegate for this index """
+    """QtOverride: Returns item delegate for this index"""
     assert isinstance(model, VALID_API_MODELS), (
         'APIItemViews only accepts APIItemModels (or one of its proxys),'
         'received a %r' % type(model)
@@ -423,7 +423,7 @@ def setModel(view, model):
 
 @register_view_method
 def copy_selection_to_clipboard(view):
-    """ Copys selected grid to clipboard """
+    """Copys selected grid to clipboard"""
     if VERBOSE:
         print('[guitool] Copying selection to clipboard')
     copy_str = guitool_misc.get_view_selection_as_str(view)

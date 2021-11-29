@@ -13,7 +13,7 @@ logger = logging.getLogger('wbia')
 
 
 class ColumnListTableView(QtWidgets.QTableView):
-    """ Table View for an AbstractItemModel """
+    """Table View for an AbstractItemModel"""
 
     def __init__(view, *args, **kwargs):
         super(ColumnListTableView, view).__init__(*args, **kwargs)
@@ -30,7 +30,7 @@ class ColumnListTableView(QtWidgets.QTableView):
 
 
 class ColumnListItemModel(QtCore.QAbstractTableModel):
-    """ Item model for displaying a list of columns """
+    """Item model for displaying a list of columns"""
 
     #
     # Non-Qt Init Functions
@@ -103,7 +103,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         # print('[model] new column_editable = %r' % (model.column_editable,))
 
     def _change_headers(model, col_name_list, niceheader_list=None):
-        """ Internal header names """
+        """Internal header names"""
         model.col_name_list = col_name_list
         # Set user readable "nice" headers, default to internal ones
         if niceheader_list is None:
@@ -121,7 +121,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         # print('[model] new col_type_list = %r' % (model.col_type_list,))
 
     def _change_row_indices(model):
-        """  Non-Qt Helper """
+        """Non-Qt Helper"""
         if model.sortcolumn is not None:
             print('using: sortcolumn=%r' % model.sortcolumn)
             column_data = model.col_data_list[model.sortcolumn]
@@ -146,7 +146,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
     # Non-Qt Helper function
 
     def get_data(model, index):
-        """ Non-Qt Helper """
+        """Non-Qt Helper"""
         row = index.row()
         column = index.column()
         row_data = model.col_data_list[column]
@@ -166,18 +166,18 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             print('sortcolumn: %r' % model.sortcolumn)
 
     def set_data(model, index, data):
-        """ Non-Qt Helper """
+        """Non-Qt Helper"""
         row = index.row()
         column = index.column()
         row_data = model.col_data_list[column]
         row_data[model.row_sortx[row]] = data
 
     def get_header(model, column):
-        """ Non-Qt Helper """
+        """Non-Qt Helper"""
         return model.col_name_list[column]
 
     def get_header_data(model, header, row):
-        """ Non-Qt Helper """
+        """Non-Qt Helper"""
         column = model.col_name_list.index(header)
         index = model.index(row, column)
         data = model.get_data(index)
@@ -191,7 +191,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         return model.column_editable[column]
 
     def get_niceheader(model, column):
-        """ Non-Qt Helper """
+        """Non-Qt Helper"""
         return model.niceheader_list[column]
 
     def get_column_alignment(model, column):
@@ -206,19 +206,19 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
     # Qt AbstractItemTable Overrides
 
     def rowCount(model, parent=QtCore.QModelIndex()):
-        """ Qt Override """
+        """Qt Override"""
         return len(model.row_sortx)
 
     def columnCount(model, parent=QtCore.QModelIndex()):
-        """ Qt Override """
+        """Qt Override"""
         return len(model.col_name_list)
 
     def index(model, row, column, parent=QtCore.QModelIndex()):
-        """ Qt Override """
+        """Qt Override"""
         return model.createIndex(row, column)
 
     def data(model, index, role=Qt.DisplayRole):
-        """ Returns the data to display """
+        """Returns the data to display"""
         if not index.isValid():
             return None
         flags = model.flags(index)
@@ -269,21 +269,21 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             return False
 
     def headerData(model, section, orientation, role=Qt.DisplayRole):
-        """ Qt Override """
+        """Qt Override"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             return model.get_niceheader(section)
         else:
             return QtCore.QVariant()
 
     def sort(model, column, order):
-        """ Qt Override """
+        """Qt Override"""
         model.layoutAboutToBeChanged.emit()
         model.set_sorting(column, order)
         model._change_row_indices()
         model.layoutChanged.emit()
 
     def flags(model, index):
-        """ Qt Override """
+        """Qt Override"""
         # return Qt.ItemFlag(0)
         column = index.column()
         if not model.get_editable(column):
@@ -295,7 +295,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
 
 
 class ColumnListTableWidget(QtWidgets.QWidget):
-    """ ColumnList Table Main Widget """
+    """ColumnList Table Main Widget"""
 
     def __init__(
         cltw,

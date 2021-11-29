@@ -1717,7 +1717,7 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
 def on_engine_request(
     ibs, jobid, action, args, kwargs, attempts=3, retry_delay_min=1, retry_delay_max=60
 ):
-    """ Run whenever the engine recieves a message """
+    """Run whenever the engine recieves a message"""
     assert attempts > 0
     attempts = int(attempts)
 
@@ -1904,7 +1904,7 @@ def calculate_timedelta(start, end):
 def on_collect_request(
     ibs, collect_request, collector_data, shelve_path, containerized=False
 ):
-    """ Run whenever the collector recieves a message """
+    """Run whenever the collector recieves a message"""
     import requests
 
     action = collect_request.get('action', None)
@@ -2282,7 +2282,7 @@ def on_collect_request(
 
 
 def send_multipart_json(sock, idents, reply):
-    """ helper """
+    """helper"""
     reply_json = ut.to_json(reply).encode('utf-8')
     reply = None
     multi_reply = idents + [reply_json]
@@ -2290,7 +2290,7 @@ def send_multipart_json(sock, idents, reply):
 
 
 def rcv_multipart_json(sock, num=2, print=print):
-    """ helper """
+    """helper"""
     # note that the first two parts will be ['Controller.ROUTER', 'Client.<id_>']
     # these are needed for the reply to propagate up to the right client
     multi_msg = sock.recv_multipart()

@@ -40,14 +40,14 @@ def reassign_submodule_attributes(verbose=1):
 
 
 def reload_subs(verbose=1):
-    """ Reloads wbia.algo.graph and submodules """
+    """Reloads wbia.algo.graph and submodules"""
     if verbose:
         print('Reloading wbia.algo.graph submodules')
     rrr(verbose > 1)
 
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
-            """ fallback reload """
+            """fallback reload"""
             if verbose > 0:
                 print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
 

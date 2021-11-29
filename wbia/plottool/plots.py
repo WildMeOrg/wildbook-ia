@@ -137,7 +137,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     transpose = kwargs.get('transpose', False)
 
     def parsekw_list(key, kwargs, num_lines=num_lines):
-        """ copies relevant plot commands into plot_list_kw """
+        """copies relevant plot commands into plot_list_kw"""
         if key in kwargs:
             val_list = [kwargs[key]] * num_lines
         elif key + '_list' in kwargs:
@@ -2106,7 +2106,7 @@ def plot_search_surface(
 
     # Convert our non-uniform grid into a uniform grid using gcd
     def compute_interpolation_grid(known_nd_data, pad_steps=0):
-        """ use gcd to get the number of steps to take in each dimension """
+        """use gcd to get the number of steps to take in each dimension"""
         import fractions
 
         ug_steps = [

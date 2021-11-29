@@ -632,7 +632,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
 
 # @ut.reloadable_class
 class ClfProblem(object):
-    """ Harness for researching a classification problem """
+    """Harness for researching a classification problem"""
 
     def __init__(problem, ds):
         problem.ds = ds

@@ -75,7 +75,7 @@ def setup_menus(mainwin, back=None):
 
 
 def setup_file_menu(mainwin, back):
-    """ FILE MENU """
+    """FILE MENU"""
     mainwin.menuFile = mainwin.menubar.newMenu('File')
     menu = mainwin.menuFile
     menu.newAction(
@@ -179,7 +179,7 @@ def setup_view_menu(mainwin, back):
 
 
 def setup_actions_menu(mainwin, back):
-    """ ACTIONS MENU """
+    """ACTIONS MENU"""
     mainwin.menuActions = mainwin.menubar.newMenu('Actions')
     menu = mainwin.menuActions
     menu.newAction(
@@ -296,14 +296,14 @@ def setup_actions_menu(mainwin, back):
 
 
 def setup_batch_menu(mainwin, back):
-    """ BATCH MENU """
+    """BATCH MENU"""
     mainwin.menuBatch = mainwin.menubar.newMenu('Batch')
     menu = mainwin.menuBatch
     menu
 
 
 def setup_option_menu(mainwin, back):
-    """ OPTIONS MENU """
+    """OPTIONS MENU"""
     mainwin.menuOptions = mainwin.menubar.newMenu('Options')
     menu = mainwin.menuOptions
     mainwin.actionToggleQueryMode = menu.newAction(
@@ -328,7 +328,7 @@ def setup_checks_menu(mainwin, back):
 
 
 def setup_help_menu(mainwin, back):
-    """ HELP MENU """
+    """HELP MENU"""
     mainwin.menuHelp = mainwin.menubar.newMenu('Help')
     menu = mainwin.menuHelp
     # from wbia.control import DB_SCHEMA_CURRENT
@@ -390,7 +390,7 @@ def setup_web_menu(mainwin, back):
 
 
 def setup_developer_menu(mainwin, back):
-    """ DEV MENU """
+    """DEV MENU"""
     mainwin.menuDev = mainwin.menubar.newMenu('Dev')
     menu = mainwin.menuDev
     menu.newAction(text='Download Demo Data', triggered=back.ensure_demodata)

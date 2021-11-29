@@ -101,7 +101,7 @@ class APITreeView(API_VIEW_BASE):
     # ---------------
 
     def setModel(view, model):
-        """ QtOverride: Returns item delegate for this index """
+        """QtOverride: Returns item delegate for this index"""
         api_item_view.setModel(view, model)
 
     def keyPressEvent(view, event):

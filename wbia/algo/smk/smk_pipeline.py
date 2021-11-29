@@ -39,7 +39,7 @@ class MatchHeuristicsConfig(dtool.Config):
 
 
 class SMKRequestConfig(dtool.Config):
-    """ Figure out how to do this """
+    """Figure out how to do this"""
 
     _param_info_list = [
         ut.ParamInfo('proot', 'smk'),

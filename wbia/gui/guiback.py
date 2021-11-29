@@ -549,7 +549,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             ctx.set_progress(5)
 
     def log_query(self, qreq_=None, test=True):
-        """ DEPRICATE """
+        """DEPRICATE"""
         expt_query_dir = self.expt_query_dir()
         # ut.vd(expt_query_dir)
         ibs = self.ibs
@@ -878,7 +878,7 @@ class MainWindowBackend(GUIBACK_BASE):
     # Constructor
     # ------------------------
     def __init__(back, ibs=None):
-        """ Creates GUIBackend object """
+        """Creates GUIBackend object"""
         # GUIBACK_BASE.__init__(back)
         super(MainWindowBackend, back).__init__()
         if ut.VERBOSE:
@@ -943,12 +943,12 @@ class MainWindowBackend(GUIBACK_BASE):
 
     # @ut.indent_func
     def notify(back):
-        """ Observer's notify function. """
+        """Observer's notify function."""
         back.refresh_state()
 
     # @ut.indent_func
     def notify_controller_killed(back):
-        """ Observer's notify function that the wbia controller has been killed. """
+        """Observer's notify function that the wbia controller has been killed."""
         back.ibs = None
 
     def register_self(back):
@@ -1153,7 +1153,7 @@ class MainWindowBackend(GUIBACK_BASE):
     # ----------------------
 
     def refresh_state(back):
-        """ Blanket refresh function. Try not to call this """
+        """Blanket refresh function. Try not to call this"""
         back.front.update_tables()
         back.ibswgt.update_species_available(reselect=True)
 
@@ -1178,7 +1178,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def default_config(back):
-        """ Button Click -> Preferences Defaults """
+        """Button Click -> Preferences Defaults"""
         logger.info('[back] default preferences')
         back.ibs._default_config()
         back.edit_prefs_wgt.refresh_layout()
@@ -1190,7 +1190,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @ut.indent_func
     def get_selected_gid(back):
-        """ selected image id """
+        """selected image id"""
         if len(back.sel_gids) == 0:
             if len(back.sel_aids) == 0:
                 sel_gids = back.ibs.get_annot_gids(back.sel_aids)
@@ -1204,7 +1204,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @ut.indent_func
     def get_selected_aids(back):
-        """ selected annotation id """
+        """selected annotation id"""
         if len(back.sel_aids) == 0:
             raise guiexcept.InvalidRequest('There are no selected ANNOTATIONs')
         # aid = back.sel_aids[0]
@@ -1212,7 +1212,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @ut.indent_func
     def get_selected_imgsetid(back):
-        """ selected imageset id """
+        """selected imageset id"""
         if len(back.sel_imgsetids) == 0:
             raise guiexcept.InvalidRequest('There are no selected ImageSets')
         imgsetid = back.sel_imgsetids[0]
@@ -1365,7 +1365,7 @@ class MainWindowBackend(GUIBACK_BASE):
             back.sel_sel_qres = sel_cm
 
     def select_imgsetid(back, imgsetid=None, **kwargs):
-        """ Table Click -> Result Table """
+        """Table Click -> Result Table"""
         imgsetid = cast_from_qt(imgsetid)
         if False:
             prefix = ut.get_caller_name(range(1, 8))
@@ -1437,7 +1437,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def select_aid(
         back, aid, imgsetid=None, show=True, show_annotation=True, web=False, **kwargs
     ):
-        """ Table Click -> Chip Table """
+        """Table Click -> Chip Table"""
         logger.info('[back] select aid=%r, imgsetid=%r' % (aid, imgsetid))
         gid = back.ibs.get_annot_gids(aid)
         nid = back.ibs.get_annot_name_rowids(aid)
@@ -1449,7 +1449,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @backblock
     def select_nid(back, nid, imgsetid=None, show=True, show_name=True, **kwargs):
-        """ Table Click -> Name Table """
+        """Table Click -> Name Table"""
         nid = cast_from_qt(nid)
         logger.info('[back] select nid=%r, imgsetid=%r' % (nid, imgsetid))
         back._set_selection(sel_nids=nid, sel_imgsetids=imgsetid, **kwargs)
@@ -1462,7 +1462,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def add_annotation_from_image(back, gid_list, refresh=True):
-        """ Context -> Add Annotation from Image"""
+        """Context -> Add Annotation from Image"""
         logger.info('[back] add_annotation_from_image')
         assert isinstance(gid_list, list), 'must pass in list here'
         size_list = back.ibs.get_image_sizes(gid_list)
@@ -1563,7 +1563,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @QtCore.pyqtSlot()
     @QtCore.pyqtSlot(int)
     def delete_image(back, gid_list=None):
-        """ Action -> Delete Images"""
+        """Action -> Delete Images"""
         logger.info('[back] delete_image, gid_list = %r' % (gid_list,))
         if gid_list is None or gid_list is False:
             gid_list = [back.get_selected_gid()]
@@ -1754,7 +1754,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def change_detection_species(back, index, species_text):
-        """ callback for combo box """
+        """callback for combo box"""
         logger.info('[back] change_detection_species(%r, %r)' % (index, species_text))
         ibs = back.ibs
         # Load full blown configs for each species
@@ -3077,7 +3077,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def layout_figures(back):
-        """ Options -> Layout Figures"""
+        """Options -> Layout Figures"""
         logger.info('[back] layout_figures')
         fig_presenter.all_figures_tile()
         pass
@@ -3085,7 +3085,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def edit_preferences(back):
-        """ Options -> Edit Preferences"""
+        """Options -> Edit Preferences"""
         logger.info('[back] edit_preferences')
         assert back.ibs is not None, 'No database is loaded. Open a database to continue'
         epw = back.ibs.cfg.createQWidget()
@@ -3104,7 +3104,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def view_docs(back):
-        """ Help -> View Documentation"""
+        """Help -> View Documentation"""
         logger.info('[back] view_docs')
         raise NotImplementedError()
         pass
@@ -3112,7 +3112,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def view_database_dir(back):
-        """ Help -> View Directory Slots"""
+        """Help -> View Directory Slots"""
         logger.info('[back] view_database_dir')
         ut.view_directory(back.ibs.get_dbdir())
         pass
@@ -3159,7 +3159,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def delete_cache(back):
-        """ Help -> Delete Directory Slots"""
+        """Help -> Delete Directory Slots"""
         logger.info('[back] delete_cache')
         if not back.are_you_sure('[back] delete_cache'):
             return
@@ -3169,7 +3169,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def delete_thumbnails(back):
-        """ Help -> Delete Thumbnails """
+        """Help -> Delete Thumbnails"""
         msg = '[back] delete_thumbnails'
         logger.info(msg)
         if not back.are_you_sure(msg):
@@ -3201,7 +3201,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def dev_reload(back):
-        """ Help -> Developer Reload"""
+        """Help -> Developer Reload"""
         logger.info('[back] dev_reload')
         back.ibs.rrr()
         # back.rrr()
@@ -3209,7 +3209,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def dev_mode(back):
-        """ Help -> Developer Mode"""
+        """Help -> Developer Mode"""
         logger.info('[back] dev_mode')
         ibs = back.ibs  # NOQA
         front = back.front  # NOQA
@@ -3219,7 +3219,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def dev_cls(back):
-        """ Help -> Developer Mode"""
+        """Help -> Developer Mode"""
         logger.info('[back] dev_cls')
         logger.info('\n'.join([''] * 100))
         if back.ibs is not None:
@@ -3260,7 +3260,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def fix_and_clean_database(back):
-        """ Help -> Fix/Clean Database """
+        """Help -> Fix/Clean Database"""
         logger.info('[back] Fix/Clean Database')
         back.ibs.fix_and_clean_database()
         back.front.update_tables()
@@ -3393,7 +3393,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def export_database_as_csv(back):
-        """ File -> Export Database """
+        """File -> Export Database"""
         logger.info('[back] export_database_as_csv')
         dump_dir = join(back.ibs.get_dbdir(), 'CSV_DUMP')
         ut.ensuredir(dump_dir)
@@ -3402,13 +3402,13 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def backup_database(back):
-        """ File -> Backup Database"""
+        """File -> Backup Database"""
         logger.info('[back] backup_database')
         back.ibs.backup_database()
 
     @blocking_slot()
     def make_database_duplicate(back):
-        """ File -> Copy Database"""
+        """File -> Copy Database"""
         logger.info('[back] make_database_duplicate')
 
         def on_chosen(new_dbdir):
@@ -3508,7 +3508,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return_dir=False,
         defaultdir=None,
     ):
-        """ File -> Import Images From Directory"""
+        """File -> Import Images From Directory"""
         logger.info('[back] import_images_from_dir')
         if dir_ is None:
             dir_ = gt.select_directory(
@@ -3833,13 +3833,13 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def localize_images(back):
-        """ File -> Localize Images """
+        """File -> Localize Images"""
         logger.info('[back] localize_images')
         back.ibs.localize_images()
 
     @slot_()
     def quit(back):
-        """ File -> Quit"""
+        """File -> Quit"""
         logger.info('[back] ')
         # back.cleanup()
         gt.exit_application()
@@ -3877,7 +3877,7 @@ class MainWindowBackend(GUIBACK_BASE):
         action=None,
         detailed_msg=None,
     ):
-        """ Prompt user for conformation before changing something """
+        """Prompt user for conformation before changing something"""
         if action is None:
             default_msg = 'Are you sure?'
         else:
@@ -4070,7 +4070,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def take_screenshot(back):
-        """ dev command only """
+        """dev command only"""
         logger.info('[back] TAKING SCREENSHOT')
         from wbia.guitool.__PYQT__.QtGui import QPixmap
 

@@ -187,7 +187,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
             ax.draw_artist(poly.metadata_tag)
 
     def _make_lines(poly, line_color, line_width):
-        """ verts - list of (x, y) tuples """
+        """verts - list of (x, y) tuples"""
         _xs, _ys = list(zip(*poly.xy))
         color = np.array(line_color)
         marker_face_color = line_color
@@ -545,7 +545,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         )
 
     def disconnect_mpl_callbacks(self, canvas):
-        """ disconnects all connected matplotlib callbacks """
+        """disconnects all connected matplotlib callbacks"""
         for name, callbackid in self.mpl_callback_ids.items():
             canvas.mpl_disconnect(callbackid)
         self.mpl_callback_ids = {}
@@ -705,7 +705,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         is_orig=False,
         metadata=None,
     ):
-        """ verts - list of (x, y) tuples """
+        """verts - list of (x, y) tuples"""
         # create new polygon from verts
         num = next(self._autoinc_polynum)
         poly = AnnotPoly(
@@ -726,7 +726,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         return poly
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list, metadata_list):
-        """ Maintain original input """
+        """Maintain original input"""
         assert bbox_list is not None
         if theta_list is None:
             theta_list = [0.0 for _ in range(len(bbox_list))]
@@ -773,7 +773,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     # --- Actions
 
     def add_new_poly(self, event=None, full=False):
-        """ Adds a new annotation to the image """
+        """Adds a new annotation to the image"""
         if full:
             (h, w) = self.img.shape[0:2]
             x1, y1 = 1, 1
@@ -989,7 +989,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         return hit, props
 
     def on_pick(self, event):
-        """ Makes selected polygon translucent """
+        """Makes selected polygon translucent"""
         if self.debug > 0 or True:
             logger.info('[interact_annot] on_pick')
         if not self._poly_held:

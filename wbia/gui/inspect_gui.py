@@ -32,7 +32,7 @@ USE_FILTER_PROXY = False
 
 
 def launch_review_matches_interface(ibs, cm_list, dodraw=False, filter_reviewed=False):
-    """ TODO: move to a more general function """
+    """TODO: move to a more general function"""
     from wbia.gui import inspect_gui
 
     gt.ensure_qapp()
@@ -70,7 +70,7 @@ class CustomFilterModel(gt.FilterProxyModel):
         model.sourcemodel._update_headers(**headers)
 
     def _ider(model):
-        """ Overrides the API model ider to give only selected imageset ids """
+        """Overrides the API model ider to give only selected imageset ids"""
         return model.original_iders[0]()
 
     def _change_imageset(model, imgsetid):

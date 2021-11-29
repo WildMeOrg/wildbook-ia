@@ -353,7 +353,7 @@ logger = logging.getLogger('wbia')
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia and submodules """
+    """Reloads wbia and submodules"""
     import_subs()
     rrr(verbose=verbose)
     getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)

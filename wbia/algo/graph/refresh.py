@@ -57,7 +57,7 @@ class RefreshCriteria(object):
             return np.exp(-lam) * (lam ** k) / sp.math.factorial(k)
 
         def poisson_prob_at_most_k_events(k, lam):
-            """ this is the cdf """
+            """this is the cdf"""
             k_ = int(np.floor(k))
             return np.exp(-lam) * sum(
                 (lam ** i) / sp.math.factorial(i) for i in range(k_ + 1)
@@ -322,7 +322,7 @@ def _dev_iters_until_threshold():
     }
 
     def subs(expr, d=available_subs):
-        """ recursive expression substitution """
+        """recursive expression substitution"""
         expr1 = expr.subs(d)
         if expr == expr1:
             return expr1

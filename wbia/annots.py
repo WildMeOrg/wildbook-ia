@@ -17,7 +17,7 @@ BASE_TYPE = type
 
 @register_ibs_method
 def annots(ibs, aids=None, uuids=None, **kwargs):
-    """ Makes an Annots object """
+    """Makes an Annots object"""
     if uuids is not None:
         assert aids is None, 'specify one primary key'
         aids = ibs.get_annot_aids_from_uuid(uuids)
@@ -31,7 +31,7 @@ def annots(ibs, aids=None, uuids=None, **kwargs):
 
 @register_ibs_method
 def matches(ibs, ams=None, edges=None, uuid_edges=None, **kwargs):
-    """ Makes an Annots object """
+    """Makes an Annots object"""
     if uuid_edges is not None:
         assert ams is None, 'specify one primary key'
         assert edges is None, 'specify one primary key'
@@ -466,7 +466,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 @ut.reloadable_class
 @six.add_metaclass(_AnnotGroupPropInjector)
 class AnnotGroups(ut.NiceRepr):
-    """ Effciently handle operations on multiple groups of annotations """
+    """Effciently handle operations on multiple groups of annotations"""
 
     def __init__(self, annots_list, ibs):
         self._ibs = ibs
@@ -502,7 +502,7 @@ class AnnotGroups(ut.NiceRepr):
 
     @property
     def match_tags(self):
-        """ returns pairwise tags within the annotation group """
+        """returns pairwise tags within the annotation group"""
         ams_list = self._ibs.get_unflat_am_rowids(self.aids)
         tags = self._ibs.unflat_map(self._ibs.get_annotmatch_case_tags, ams_list)
         return tags

@@ -16,7 +16,7 @@ ALT_KEY = 16777251
 
 
 def make_option_dict(options, shortcuts=True):
-    """ helper for popup menu callbacks """
+    """helper for popup menu callbacks"""
     keys = ut.take_column(options, 0)
     values = ut.take_column(options, 1)
     if shortcuts:
@@ -48,7 +48,7 @@ def make_option_dict(options, shortcuts=True):
 
 
 def find_used_chars(name_list):
-    """ Move to guitool """
+    """Move to guitool"""
     used_chars = []
     for name in name_list:
         index = name.find('&')
@@ -218,7 +218,7 @@ def get_view_selection_as_str(view):
     previous = qindex_list[0]
 
     def astext(data):
-        """ Helper which casts model data to a string """
+        """Helper which casts model data to a string"""
         if not isinstance(data, str):
             text = repr(data)
         else:

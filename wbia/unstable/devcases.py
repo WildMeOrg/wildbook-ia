@@ -176,7 +176,7 @@ def myquery():
     qres_orig = qres  # NOQA
 
     def try_config(qreq_, qres_orig, cfgdict):
-        """ function to grid search over """
+        """function to grid search over"""
         qres_copy = copy.deepcopy(qres_orig)
         qreq_vsone_ = qreq_
         qres_vsone = qres_copy

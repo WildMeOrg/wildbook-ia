@@ -21,7 +21,7 @@ logger = logging.getLogger('wbia')
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia.control and submodules """
+    """Reloads wbia.control and submodules"""
     rrr(verbose=verbose)
     getattr(DB_SCHEMA, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(IBEISControl, 'rrr', lambda verbose: None)(verbose=verbose)

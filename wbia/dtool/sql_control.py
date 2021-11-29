@@ -134,7 +134,7 @@ def compare_coldef_lists(coldef_list1, coldef_list2):
 
 
 def _unpacker(results):
-    """ HELPER: Unpacks results if unpack_scalars is True. """
+    """HELPER: Unpacks results if unpack_scalars is True."""
     if not results:  # Check for None or empty list
         results = None
     else:
@@ -144,13 +144,13 @@ def _unpacker(results):
 
 
 def tuplize(list_):
-    """ Converts each scalar item in a list to a dimension-1 tuple """
+    """Converts each scalar item in a list to a dimension-1 tuple"""
     tup_list = [item if ut.isiterable(item) else (item,) for item in list_]
     return tup_list
 
 
 def sanitize_sql(db, tablename_, columns=None):
-    """ Sanatizes an sql tablename and column. Use sparingly """
+    """Sanatizes an sql tablename and column. Use sparingly"""
     tablename = re.sub('[^a-zA-Z_0-9]', '', tablename_)
     valid_tables = db.get_table_names()
     if tablename not in valid_tables:
@@ -771,12 +771,12 @@ class SQLDatabaseController(object):
         return count
 
     def get_all_rowids(self, tblname, **kwargs):
-        """ returns a list of all rowids from a table in ascending order """
+        """returns a list of all rowids from a table in ascending order"""
         operation = text(f'SELECT rowid FROM {tblname} ORDER BY rowid ASC')
         return self.executeone(operation, **kwargs)
 
     def get_all_col_rows(self, tblname, colname):
-        """ returns a list of all rowids from a table in ascending order """
+        """returns a list of all rowids from a table in ascending order"""
         fmtdict = {
             'colname': colname,
             'tblname': tblname,
@@ -820,7 +820,7 @@ class SQLDatabaseController(object):
         return exists_list
 
     def _add(self, tblname, colnames, params_iter, unpack_scalars=True, **kwargs):
-        """ ADDER NOTE: use add_cleanly """
+        """ADDER NOTE: use add_cleanly"""
         parameterized_values = [
             {col: val for col, val in zip(colnames, params)} for params in params_iter
         ]
@@ -1239,7 +1239,7 @@ class SQLDatabaseController(object):
         eager=True,
         **kwargs,
     ):
-        """ hacked in function for nicer templates """
+        """hacked in function for nicer templates"""
         andwhere_clauses = [colname + '=?' for colname in where_colnames]
         where_clause = (' %s ' % (op,)).join(andwhere_clauses)
         fmtdict = {
@@ -1268,7 +1268,7 @@ class SQLDatabaseController(object):
     def get_rowid_from_superkey(
         self, tblname, params_iter=None, superkey_colnames=None, **kwargs
     ):
-        """ getter which uses the constrained superkeys instead of rowids """
+        """getter which uses the constrained superkeys instead of rowids"""
         # ??? Why can this be called with params_iter=None & superkey_colnames=None?
         table = self._reflect_table(tblname)
         columns = tuple(c.name for c in table.primary_key.columns)
@@ -1593,7 +1593,7 @@ class SQLDatabaseController(object):
                     conn.execute(stmt, {id_param_name: id})
 
     def delete_rowids(self, tblname, rowid_list, **kwargs):
-        """ deletes the the rows in rowid_list """
+        """deletes the the rows in rowid_list"""
         self.delete(tblname, rowid_list, id_colname='rowid', **kwargs)
 
     # ==============
@@ -2229,7 +2229,7 @@ class SQLDatabaseController(object):
     # ==============
 
     def dump_tables_to_csv(self, dump_dir=None):
-        """ Convenience: Dumps all csv database files to disk """
+        """Convenience: Dumps all csv database files to disk"""
         if dump_dir is None:
             dump_dir = join(self.dir_, 'CSV_DUMP')
         ut.ensuredir(dump_dir)
@@ -2479,7 +2479,7 @@ class SQLDatabaseController(object):
         self.get_table_names()
 
     def get_table_names(self, lazy=False):
-        """ Conveinience: """
+        """Conveinience:"""
         if not lazy or self._tablenames is None:
             dialect = self._engine.dialect.name
             if dialect == 'sqlite':
@@ -2506,7 +2506,7 @@ class SQLDatabaseController(object):
         return self.get_table_names()
 
     def has_table(self, tablename, colnames=None, lazy=True):
-        """ checks if a table exists """
+        """checks if a table exists"""
         # if not lazy or self._tablenames is None:
         return tablename in self.get_table_names(lazy=lazy)
 
@@ -2655,7 +2655,7 @@ class SQLDatabaseController(object):
         return colrichinfo_list
 
     def get_column_names(self, tablename):
-        """ Conveinience: Returns the sql tablename columns """
+        """Conveinience: Returns the sql tablename columns"""
         column_list = self.get_columns(tablename)
         column_names = ut.lmap(str, ut.take_column(column_list, 1))
         return column_names
@@ -3398,7 +3398,7 @@ class SQLDatabaseController(object):
         self.metadata.database.version = version
 
     def get_sql_version(self):
-        """ Conveinience """
+        """Conveinience"""
         self.connection.execute('SELECT sqlite_version()')
         sql_version = self.connection.fetchone()
         logger.info('[sql] SELECT sqlite_version = %r' % (sql_version,))

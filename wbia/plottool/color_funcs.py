@@ -28,14 +28,14 @@ def _test_base255(channels):
 
 
 def is_base01(channels):
-    """ check if a color is in base 01 """
+    """check if a color is in base 01"""
     if isinstance(channels, str):
         return False
     return all(_test_base01(channels).values())
 
 
 def is_base255(channels):
-    """ check if a color is in base 01 """
+    """check if a color is in base 01"""
     if isinstance(channels, str):
         return False
     return all(_test_base255(channels).values())
@@ -61,13 +61,13 @@ def assert_base255(channels):
 
 
 def to_base01(color255):
-    """ converts base 255 color to base 01 color """
+    """converts base 255 color to base 01 color"""
     color01 = [channel / 255.0 for channel in color255]
     return color01
 
 
 def to_base255(color01, assume01=False):
-    """ converts base 01 color to base 255 color """
+    """converts base 01 color to base 255 color"""
     if not assume01:
         assert_base01(color01)
     color255 = list(map(int, [round(channel * 255.0) for channel in color01]))

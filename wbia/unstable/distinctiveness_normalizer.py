@@ -71,7 +71,7 @@ class DistinctivnessNormalizer(ut.Cachable):
     prefix = 'distinctivness'
 
     def __init__(dstcnvs_normer, species, cachedir=None):
-        """ cfgstring should be the species trained on """
+        """cfgstring should be the species trained on"""
         dstcnvs_normer.vecs = None
         dstcnvs_normer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
         dstcnvs_normer.max_distance_sqrd = dstcnvs_normer.max_distance ** 2

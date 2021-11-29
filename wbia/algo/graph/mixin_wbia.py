@@ -191,7 +191,7 @@ class IBEISIO(object):
 
     @profile
     def reset_labels_to_wbia(infr):
-        """ Sets to IBEIS de-facto labels if available """
+        """Sets to IBEIS de-facto labels if available"""
         nids = infr.ibs.get_annot_nids(infr.aids)
         infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 

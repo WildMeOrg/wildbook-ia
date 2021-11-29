@@ -9,7 +9,7 @@ logger = logging.getLogger('wbia')
 
 
 def have_gpu(min_memory=8000):
-    """ Determine if we are on a machine with a good GPU """
+    """Determine if we are on a machine with a good GPU"""
     # FIXME: HACK
     gpus = gpu_info()
     if not gpus:

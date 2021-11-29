@@ -726,12 +726,12 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
 
 
 def _parse_tags(note):
-    """ convert a note into tags """
+    """convert a note into tags"""
     return [tag.strip() for tag in note.split(';') if len(tag) > 0]
 
 
 def _remove_tag(tags, prop):
-    """ convert a note into tags """
+    """convert a note into tags"""
     try:
         tags.remove(prop)
     except ValueError:
@@ -757,7 +757,7 @@ def set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags):
 
 @profile
 def get_textformat_tag_flags(prop, text_list):
-    """ general text tag getter hack """
+    """general text tag getter hack"""
     tags_list = [None if note is None else _parse_tags(note) for note in text_list]
     if ut.isiterable(prop):
         props_ = [p.lower() for p in prop]
@@ -773,7 +773,7 @@ def get_textformat_tag_flags(prop, text_list):
 
 
 def set_textformat_tag_flags(prop, text_list, flags):
-    """ general text tag setter hack """
+    """general text tag setter hack"""
     prop = prop.lower()
     ensured_text = ['' if note is None else note for note in text_list]
     tags_list = [_parse_tags(note) for note in ensured_text]

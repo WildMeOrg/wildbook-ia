@@ -74,7 +74,7 @@ class ChangeLayoutContext(object):
 
 
 def default_method_decorator(func):
-    """ Dummy decorator """
+    """Dummy decorator"""
     # return profile(func)
     # return checks_qt_error(profile(func))
     return func
@@ -180,7 +180,7 @@ class APIItemModel(API_MODEL_BASE):
             model._update_headers(**headers)
 
     def set_ider_filters(model, ider_filters):
-        """  Used to induce a filter on the rows, needs call of udpate rows after """
+        """Used to induce a filter on the rows, needs call of udpate rows after"""
         model.ider_filters = ider_filters
 
     def get_iders(model):
@@ -460,7 +460,7 @@ class APIItemModel(API_MODEL_BASE):
             return level_ider(parent_ids)
 
     def get_row_and_qtindex_from_id(model, _id):
-        """ uses an sqlrowid (from iders) to get a qtindex """
+        """uses an sqlrowid (from iders) to get a qtindex"""
         row = model.root_node.find_row_from_id(_id)
         qtindex = model.index(row, 0) if row is not None else None
         return qtindex, row
@@ -471,7 +471,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def get_header_data(model, colname, qtindex):
-        """ Use _get_data if the column number is known """
+        """Use _get_data if the column number is known"""
         if not qtindex.isValid():
             return None
         # row = qtindex.row()
@@ -579,7 +579,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_bgrole_value(model, qtindex):
-        """ Gets the background role if specified """
+        """Gets the background role if specified"""
         col = qtindex.column()
         bgrole_getter = model.col_bgrole_getter_list[col]
         if bgrole_getter is None:
@@ -770,7 +770,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
-        """ Qt Override """
+        """Qt Override"""
         # model.lazy_checks()
         if not parent.isValid():
             # Root row count
@@ -788,7 +788,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def columnCount(model, parent=QtCore.QModelIndex()):
-        """ Qt Override """
+        """Qt Override"""
         # FOR NOW THE COLUMN COUNT IS CONSTANT
         # model.lazy_checks()
         return len(model.col_name_list)
@@ -1039,7 +1039,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @updater
     def sort(model, column, order):
-        """ Qt Override """
+        """Qt Override"""
         # model.lazy_checks()
         reverse = order == QtCore.Qt.DescendingOrder
         model._set_sort(column, reverse)
@@ -1105,7 +1105,7 @@ def simple_thumbnail_widget():
     }
 
     def thumb_getter(id_, thumbsize=128):
-        """ Thumb getters must conform to thumbtup structure """
+        """Thumb getters must conform to thumbtup structure"""
         # logger.info(id_)
         return ut.grab_test_imgpath(id_)
         # return None

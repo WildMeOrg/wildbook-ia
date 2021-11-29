@@ -20,7 +20,7 @@ from . import QtWidgets  # just a clone of QtGui in PyQt4
 
 
 def QVariantHack(*args):
-    """ Hack when sip.setapi('QVariant') is 2 """
+    """Hack when sip.setapi('QVariant') is 2"""
     if len(args) == 0:
         return None
     elif len(args) == 1:

@@ -47,7 +47,7 @@ class Groundtruth(object):
         infr.edge_truth.update(edge_truth)
 
     def match_state_df(infr, index):
-        """ Returns groundtruth state based on wbia controller """
+        """Returns groundtruth state based on wbia controller"""
         index = ensure_multi_index(index, ('aid1', 'aid2'))
         aid_pairs = np.asarray(index.tolist())
         aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
@@ -87,7 +87,7 @@ class Groundtruth(object):
         return truth
 
     def edge_attr_df(infr, key, edges=None, default=ut.NoParam):
-        """ constructs DataFrame using current predictions """
+        """constructs DataFrame using current predictions"""
         edge_states = infr.gen_edge_attrs(key, edges=edges, default=default)
         edge_states = list(edge_states)
         if isinstance(edges, pd.MultiIndex):

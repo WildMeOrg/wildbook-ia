@@ -368,12 +368,12 @@ class Feedback(object):
 
     @ut.classproperty
     def feedback_keys(Infr):
-        """ edge attribute keys used for feedback """
+        """edge attribute keys used for feedback"""
         return Infr.feedback_data_keys + ['num_reviews', 'review_id']
 
     @ut.classproperty
     def feedback_data_keys(Infr):
-        """ edge attribute keys used for feedback """
+        """edge attribute keys used for feedback"""
         return [
             'evidence_decision',
             'tags',
@@ -464,7 +464,7 @@ class Feedback(object):
         }
 
     def _rectify_feedback_item(infr, vals):
-        """ uses most recently use strategy """
+        """uses most recently use strategy"""
         return vals[-1]
 
     def all_feedback_items(infr):
@@ -477,7 +477,7 @@ class Feedback(object):
         return all_feedback
 
     def clear_feedback(infr, edges=None):
-        """ Delete all edges properties related to feedback """
+        """Delete all edges properties related to feedback"""
         if edges is None:
             edges = infr.graph.edges()
         edges = list(edges)
@@ -515,7 +515,7 @@ class Feedback(object):
         infr.nid_to_errors.clear()
 
     def reset_feedback(infr, mode='annotmatch', apply=True):
-        """ Resets feedback edges to state of the SQL annotmatch table """
+        """Resets feedback edges to state of the SQL annotmatch table"""
         infr.print('reset_feedback mode=%r' % (mode,), 1)
         infr.clear_feedback()
         if mode == 'annotmatch':
@@ -552,13 +552,13 @@ class Feedback(object):
             raise ValueError('Unknown state=%r' % (state,))
 
     def reset_name_labels(infr):
-        """ Resets all annotation node name labels to their initial values """
+        """Resets all annotation node name labels to their initial values"""
         infr.print('reset_name_labels', 1)
         orig_names = infr.get_node_attrs('orig_name_label')
         infr.set_node_attrs('name_label', orig_names)
 
     def clear_name_labels(infr):
-        """ Sets all annotation node name labels to be unknown """
+        """Sets all annotation node name labels to be unknown"""
         infr.print('clear_name_labels()', 1)
         # make distinct names for all nodes
         distinct_names = {node: -aid for node, aid in infr.get_node_attrs('aid').items()}

@@ -76,11 +76,11 @@ def reassign_submodule_attributes(verbose=True):
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia.viz and submodules """
+    """Reloads wbia.viz and submodules"""
     rrr(verbose=verbose)
 
     def fbrrr(*args, **kwargs):
-        """ fallback reload """
+        """fallback reload"""
         pass
 
     getattr(viz_chip, 'rrr', fbrrr)(verbose=verbose)

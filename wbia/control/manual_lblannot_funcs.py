@@ -113,7 +113,7 @@ def get_lblannot_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
 @register_ibs_method
 @deleter
 def delete_annot_relations(ibs, aid_list):
-    """ Deletes the relationship between an annotation and a label """
+    """Deletes the relationship between an annotation and a label"""
     alrids_list = ibs.get_annot_alrids(aid_list)
     alrid_list = ut.flatten(alrids_list)
     ibs.db.delete_rowids(const.AL_RELATION_TABLE, alrid_list)
@@ -122,7 +122,7 @@ def delete_annot_relations(ibs, aid_list):
 @register_ibs_method
 @deleter
 def delete_annot_relations_oftype(ibs, aid_list, _lbltype):
-    """ Deletes the relationship between an annotation and a label """
+    """Deletes the relationship between an annotation and a label"""
     alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
     alrid_list = ut.flatten(alrids_list)
     ibs.db.delete_rowids(const.AL_RELATION_TABLE, alrid_list)
@@ -131,7 +131,7 @@ def delete_annot_relations_oftype(ibs, aid_list, _lbltype):
 @register_ibs_method
 @deleter
 def delete_lblannots(ibs, lblannot_rowid_list):
-    """ deletes lblannots from the database """
+    """deletes lblannots from the database"""
     if ut.VERBOSE:
         logger.info('[ibs] deleting %d lblannots' % len(lblannot_rowid_list))
     ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowid_list)
@@ -312,7 +312,7 @@ def get_lblannot_values(ibs, lblannot_rowid_list, _lbltype=None):
 @register_ibs_method
 @setter
 def set_alr_confidence(ibs, alrid_list, confidence_list):
-    """ sets annotation-lblannot-relationship confidence """
+    """sets annotation-lblannot-relationship confidence"""
     id_iter = ((alrid,) for alrid in alrid_list)
     val_iter = ((confidence,) for confidence in confidence_list)
     colnames = ('alr_confidence',)
@@ -335,7 +335,7 @@ def set_alr_lblannot_rowids(ibs, alrid_list, lblannot_rowid_list):
 @register_ibs_method
 @setter
 def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
-    """ Sets items/lblannot_rowids of a list of annotations."""
+    """Sets items/lblannot_rowids of a list of annotations."""
     # Get the alrids_list for the aids, using the lbltype as a filter
     alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
     # Find the aids which already have relationships (of _lbltype)

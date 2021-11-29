@@ -45,11 +45,11 @@ def reassign_submodule_attributes(verbose=True):
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia.expt and submodules """
+    """Reloads wbia.expt and submodules"""
     rrr(verbose=verbose)
 
     def fbrrr(*args, **kwargs):
-        """ fallback reload """
+        """fallback reload"""
         pass
 
     getattr(experiment_configs, 'rrr', fbrrr)(verbose=verbose)

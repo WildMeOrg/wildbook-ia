@@ -127,7 +127,7 @@ class MultiImageInteraction(BASE_CLASS):
         pt.plt.close(fig)
 
     def make_hud(self):
-        """ Creates heads up display """
+        """Creates heads up display"""
         # Button positioning
         hl_slot, hr_slot = df2.make_bbox_positioners(
             y=0.02, w=0.08, h=0.04, xpad=0.05, startx=0, stopx=1
@@ -148,7 +148,7 @@ class MultiImageInteraction(BASE_CLASS):
         self.show_page(self.current_pagenum - 1)
 
     def prepare_page(self, pagenum):
-        """ Gets indexes for the pagenum ready to be displayed """
+        """Gets indexes for the pagenum ready to be displayed"""
         # Set the start index
         self.start_index = pagenum * self.nPerPage
         # Clip based on nImgs
@@ -167,7 +167,7 @@ class MultiImageInteraction(BASE_CLASS):
         ih.connect_callback(self.fig, 'button_press_event', self.on_click)
 
     def show_page(self, pagenum=None):
-        """ Displays a page of matches """
+        """Displays a page of matches"""
         if pagenum is None:
             pagenum = self.current_pagenum
         # print('[iqr2] show page: %r' % pagenum)

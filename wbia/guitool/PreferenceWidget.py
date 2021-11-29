@@ -18,7 +18,7 @@ VERBOSE_PREF = ut.get_argflag('--verbpref')
 
 
 def report_thread_error(fn):
-    """ Decorator to help catch errors that QT wont report """
+    """Decorator to help catch errors that QT wont report"""
 
     def report_thread_error_wrapper(*args, **kwargs):
         try:
@@ -35,7 +35,7 @@ def report_thread_error(fn):
 
 
 def _qt_set_leaf_data(self, qvar):
-    """ Sets backend data using QVariants """
+    """Sets backend data using QVariants"""
     if VERBOSE_PREF:
         print('')
         print('+--- [pref.qt_set_leaf_data]')
@@ -123,7 +123,7 @@ def _qt_set_leaf_data(self, qvar):
 
 
 class QPreferenceModel(QtCore.QAbstractItemModel):
-    """ Convention states only items with column index 0 can have children """
+    """Convention states only items with column index 0 can have children"""
 
     @report_thread_error
     def __init__(self, pref_struct, parent=None):
@@ -132,7 +132,7 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
 
     @report_thread_error
     def index2Pref(self, index=QtCore.QModelIndex()):
-        """ Internal helper method """
+        """Internal helper method"""
         if index.isValid():
             item = index.internalPointer()
             if item:

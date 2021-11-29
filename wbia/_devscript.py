@@ -146,7 +146,7 @@ DEVPRECMD_FUNCTIONS = []
 
 
 def devcmd(*args):
-    """ Decorator which registers a function as a developer command """
+    """Decorator which registers a function as a developer command"""
     noargs = len(args) == 1 and not isinstance(args[0], str)
     if noargs:
         # Function is only argument
@@ -174,7 +174,7 @@ def devcmd(*args):
 
 
 def devprecmd(*args):
-    """ Decorator which registers a function as a developer precommand """
+    """Decorator which registers a function as a developer precommand"""
     noargs = len(args) == 1 and not isinstance(args[0], str)
     if noargs:
         # Function is only argument

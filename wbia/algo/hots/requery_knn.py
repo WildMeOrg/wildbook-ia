@@ -29,7 +29,7 @@ class FinalResults(ut.NiceRepr):
 
 
 class TempQuery(ut.NiceRepr):
-    """ queries that are incomplete """
+    """queries that are incomplete"""
 
     def __init__(query, vecs, invalid_axs, get_neighbors, get_axs):
         # Static attributes

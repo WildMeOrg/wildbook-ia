@@ -13,7 +13,7 @@ class IndividualResultsCopyTaskQueue(object):
         self.cp_task_list = []
 
     def append_copy_task(self, fpath_orig, dstdir=None):
-        """ helper which copies a summary figure to root dir """
+        """helper which copies a summary figure to root dir"""
         fname_orig, ext = splitext(basename(fpath_orig))
         outdir = dirname(fpath_orig)
         fdir_clean, cfgdir = split(outdir)

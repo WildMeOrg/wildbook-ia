@@ -50,7 +50,7 @@ class ResultMetadata(object):
         metadata.dictstore[cfgstr][qaid][key] = val
 
     def sync_test_results(metadata, testres):
-        """ store all test results in the shelf """
+        """store all test results in the shelf"""
         for cfgx in range(len(testres.cfgx2_qreq_)):
             cfgstr = testres.get_cfgstr(cfgx)
             qaids = testres.qaids

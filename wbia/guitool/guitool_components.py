@@ -234,7 +234,7 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
 
 
 def newToolbar(widget):
-    """ Defines the menubar on top of the main widget """
+    """Defines the menubar on top of the main widget"""
     toolbar = QtWidgets.QToolBar(widget)
     # toolbar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
     toolbar.setContextMenuPolicy(Qt.DefaultContextMenu)
@@ -247,7 +247,7 @@ def newToolbar(widget):
 
 
 def newMenubar(widget):
-    """ Defines the menubar on top of the main widget """
+    """Defines the menubar on top of the main widget"""
     menubar = QtWidgets.QMenuBar(widget)
     # menubar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
     menubar.setContextMenuPolicy(Qt.DefaultContextMenu)
@@ -269,7 +269,7 @@ def newQPoint(x, y):
 
 
 def newMenu(parent, text, name=None):
-    """ Defines each menu category in the menubar/toolbar/menu """
+    """Defines each menu category in the menubar/toolbar/menu"""
     menu = QtWidgets.QMenu(parent)
     if name is not None:
         menu.setObjectName(name)
@@ -672,14 +672,14 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         hook.set_progress(count, length, lbl)
 
     def local_progress(hook):
-        """ percent done of this subhook """
+        """percent done of this subhook"""
         length = hook.length
         count = hook.count
         local_fraction = (count) / length
         return local_fraction
 
     def global_progress(hook):
-        """ percent done of entire process """
+        """percent done of entire process"""
         local_fraction = hook.local_progress()
         extent = hook.global_extent()
         global_min = hook.global_min
@@ -1028,7 +1028,7 @@ def newTextEdit(
     fit_to_text=False,
     rich=False,
 ):
-    """ This is a text area """
+    """This is a text area"""
     # if fit_to_text:
     # outputEdit = ResizableTextEdit(parent)
     # else:
@@ -1208,7 +1208,7 @@ def _inject_new_widget_methods(self):
         return new_widget_maker
 
     def _addnew_factory(self, newfunc):
-        """ helper for addNew guitool widgets """
+        """helper for addNew guitool widgets"""
 
         def _addnew(self, *args, **kwargs):
             name = kwargs.pop('name', None)
@@ -2178,7 +2178,7 @@ class CustomComboBox(QtWidgets.QComboBox):
         combo.setCurrentIndex(index)
 
     def findValueIndex(combo, value):
-        """ finds index of backend value and sets the current index """
+        """finds index of backend value and sets the current index"""
         for index, (text, val) in enumerate(combo.options):
             if value == val:
                 return index
@@ -2298,7 +2298,7 @@ class CustomCheckBox(QtWidgets.QCheckBox):
 
 
 def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
-    """ wrapper around QtGui.QFont """
+    """wrapper around QtGui.QFont"""
     # fontname = 'Courier New'
     # pointSize = 8
     # weight = -1
@@ -2369,7 +2369,7 @@ def layoutSplitter(splitter):
 
 
 def msg_event(title, msg):
-    """ Returns a message event slot """
+    """Returns a message event slot"""
     return lambda: guitool_dialogs.msgbox(msg=msg, title=title)
 
 

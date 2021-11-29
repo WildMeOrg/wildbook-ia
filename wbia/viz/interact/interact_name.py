@@ -460,7 +460,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         # self.update()
 
     def plot_chip(self, aid, nRows, nCols, px, fulldraw=True, **kwargs):
-        """ Plots an individual chip in a subaxis """
+        """Plots an individual chip in a subaxis"""
         ibs = self.ibs
         if aid in [self.aid1, self.aid2]:
             # Bold color for the matching chips
@@ -697,7 +697,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def merge_all_into_nid(self, nid, event=None):
-        """ All the annotations are given nid """
+        """All the annotations are given nid"""
         aid_list = self.all_aid_list
         self.ibs.set_annot_name_rowids(aid_list, [nid] * len(aid_list))
         self.update_callback()
@@ -705,7 +705,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def merge_nonjunk_into_new_name(self, event=None):
-        """ All nonjunk annotations are given the SAME new name """
+        """All nonjunk annotations are given the SAME new name"""
         # Delete all original names
         aid_list = self.all_aid_list
         aid_list_filtered = ut.filterfalse_items(
@@ -718,7 +718,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def dismiss_all(self, event=None):
-        """ All unknown annotations are given DIFFERENT new names """
+        """All unknown annotations are given DIFFERENT new names"""
         # Delete all original names
         ibs = self.ibs
         aid_list = self.all_aid_list

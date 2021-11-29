@@ -139,7 +139,7 @@ def show_top_featmatches(qreq_, cm_list):
     patch_size = 64
 
     def extract_patches(annots, aid, fxs):
-        """ custom_func(lazydict, key, subkeys) for multigroup_lookup """
+        """custom_func(lazydict, key, subkeys) for multigroup_lookup"""
         annot = annots[aid]
         kpts = annot['kpts']
         rchip = annot['rchip']

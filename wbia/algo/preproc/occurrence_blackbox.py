@@ -220,7 +220,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
     """
 
     def atleast_nd(arr, n, tofront=False):
-        r""" ut.static_func_source(vt.atleast_nd) """
+        r"""ut.static_func_source(vt.atleast_nd)"""
         arr_ = np.asanyarray(arr)
         ndims = len(arr_.shape)
         if n is not None and ndims < n:
@@ -233,7 +233,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         return arr_
 
     def ensure_column_shape(arr, num_cols):
-        r""" ut.static_func_source(vt.ensure_shape) """
+        r"""ut.static_func_source(vt.ensure_shape)"""
         arr_ = np.asanyarray(arr)
         if len(arr_.shape) == 0:
             pass

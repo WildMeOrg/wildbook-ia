@@ -126,7 +126,7 @@ def get_feat_kpts_distinctiveness(
 
 @register_ibs_method
 def show_annot(ibs, aid, *args, **kwargs):
-    """ viz helper see wbia.viz.viz_chip.show_chip """
+    """viz helper see wbia.viz.viz_chip.show_chip"""
     from wbia.viz import viz_chip
 
     return viz_chip.show_chip(ibs, aid, *args, **kwargs)
@@ -134,7 +134,7 @@ def show_annot(ibs, aid, *args, **kwargs):
 
 @register_ibs_method
 def show_annot_image(ibs, aid, *args, **kwargs):
-    """ viz helper see wbia.viz.viz_chip.show_chip """
+    """viz helper see wbia.viz.viz_chip.show_chip"""
     from wbia.viz import viz_image
 
     gid = ibs.get_annot_gids(aid)

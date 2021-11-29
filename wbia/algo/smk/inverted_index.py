@@ -519,7 +519,7 @@ class SingleAnnot(ut.NiceRepr):
         return maws
 
     def phis_flags_list(X, idxs):
-        """ get subset of non-aggregated residual vectors """
+        """get subset of non-aggregated residual vectors"""
         phis_list = ut.take(X.rvecs_list, idxs)
         flags_list = ut.take(X.flags_list, idxs)
         if X.int_rvec:
@@ -527,7 +527,7 @@ class SingleAnnot(ut.NiceRepr):
         return phis_list, flags_list
 
     def Phis_flags(X, idxs):
-        """ get subset of aggregated residual vectors """
+        """get subset of aggregated residual vectors"""
         Phis = X.agg_rvecs.take(idxs, axis=0)
         flags = X.agg_flags.take(idxs, axis=0)
         if X.int_rvec:

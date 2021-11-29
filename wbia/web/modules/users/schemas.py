@@ -26,7 +26,7 @@ class BaseUserSchema(ModelSchema):
 
 
 class DetailedUserSchema(BaseUserSchema):
-    """ Detailed user schema exposes all fields used to render a normal user profile. """
+    """Detailed user schema exposes all fields used to render a normal user profile."""
 
     class Meta(BaseUserSchema.Meta):
         fields = BaseUserSchema.Meta.fields + (

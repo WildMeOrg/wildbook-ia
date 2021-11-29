@@ -382,7 +382,7 @@ def post_1_2_0(db, ibs=None):
         def get_annot_speciesid_from_lblannot_relation(
             aid_list, distinguish_unknowns=True
         ):
-            """ function for getting speciesid the old way """
+            """function for getting speciesid the old way"""
             species_lbltype_rowid = ibs.db.get(
                 'keys', ('lbltype_rowid',), ('SPECIES_KEY',), id_colname='lbltype_text'
             )[0]
@@ -397,7 +397,7 @@ def post_1_2_0(db, ibs=None):
             return speciesid_list
 
         def get_annot_name_rowids_from_lblannot_relation(aid_list):
-            """ function for getting nids the old way """
+            """function for getting nids the old way"""
             individual_lbltype_rowid = ibs.db.get(
                 'keys',
                 ('lbltype_rowid',),
@@ -1083,7 +1083,7 @@ def update_1_3_4(db, ibs=None):
 
 
 def update_1_3_5(db, ibs=None):
-    """ expand datasets to use new quality measures """
+    """expand datasets to use new quality measures"""
     if ibs is not None:
         # Adds a few different degrees of quality
         aid_list = ibs.get_valid_aids(is_staged=None)

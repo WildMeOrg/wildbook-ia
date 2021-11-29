@@ -76,7 +76,7 @@ def get_image_gsgrids(ibs, gid_list):
     const.IMAGESET_TABLE, ['percent_annotmatch_reviewed_str']
 )
 def delete_gsgr_imageset_relations(ibs, imgsetid_list):
-    """ Removes relationship between input imagesets and all images """
+    """Removes relationship between input imagesets and all images"""
     ibs.db.delete(const.GSG_RELATION_TABLE, imgsetid_list, id_colname='imageset_rowid')
 
 
@@ -90,7 +90,7 @@ def delete_gsgr_imageset_relations(ibs, imgsetid_list):
     const.IMAGESET_TABLE, ['percent_annotmatch_reviewed_str']
 )
 def delete_gsgr_image_relations(ibs, gid_list):
-    """ Removes relationship between input images and all imagesets """
+    """Removes relationship between input images and all imagesets"""
     ibs.db.delete(const.GSG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
 
@@ -196,7 +196,7 @@ def get_gsgr_rowid_from_superkey(ibs, gid_list, imgsetid_list):
     const.IMAGESET_TABLE, ['percent_annotmatch_reviewed_str'], rowidx=1
 )
 def add_image_relationship(ibs, gid_list, imgsetid_list):
-    """ Adds a relationship between an image and and imageset """
+    """Adds a relationship between an image and and imageset"""
     colnames = (
         'image_rowid',
         'imageset_rowid',

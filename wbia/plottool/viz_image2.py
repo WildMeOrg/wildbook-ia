@@ -8,7 +8,7 @@ utool.noinject(__name__, '[viz_img2]')
 
 
 def draw_chip_overlay(ax, bbox, theta, text, is_sel):
-    """ Draw an annotation around a chip in the image """
+    """Draw an annotation around a chip in the image"""
     lbl_alpha = 0.75 if is_sel else 0.6
     bbox_alpha = 0.95 if is_sel else 0.6
     lbl_color = custom_constants.BLACK * lbl_alpha
@@ -48,7 +48,7 @@ def show_image(
     annote=True,
     **kwargs,
 ):
-    """ Driver function to show images """
+    """Driver function to show images"""
     # Shows an image with annotations
     if fnum is None:
         fnum = df2.next_fnum()

@@ -44,7 +44,7 @@ class FilterProxyModel(BASE_CLASS):
         return r2, c2, p2
 
     def mapToSource(self, proxyIndex):
-        """ returns index into original model """
+        """returns index into original model"""
         if proxyIndex is None:
             return None
         if proxyIndex.isValid():
@@ -57,7 +57,7 @@ class FilterProxyModel(BASE_CLASS):
         return sourceIndex
 
     def mapFromSource(self, sourceIndex):
-        """ returns index into proxy model """
+        """returns index into proxy model"""
         if sourceIndex is None:
             return None
         if sourceIndex.isValid():

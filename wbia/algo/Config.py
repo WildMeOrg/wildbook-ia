@@ -98,7 +98,7 @@ def make_config_metaclass():
 
     @_register
     def get_cfgstr_list(cfg, ignore_keys=None, **kwargs):
-        """ default get_cfgstr_list, can be overrided by a config object """
+        """default get_cfgstr_list, can be overrided by a config object"""
         if hasattr(cfg, 'get_param_info_list'):
             if ignore_keys is not None:
                 itemstr_list = [
@@ -134,7 +134,7 @@ def make_config_metaclass():
     @_register
     @profile
     def initialize_params(cfg):
-        """ Initializes config class attributes based on params info list """
+        """Initializes config class attributes based on params info list"""
         for pi in cfg.get_param_info_list():
             setattr(cfg, pi.varname, pi.default)
 
@@ -148,7 +148,7 @@ def make_config_metaclass():
 
     @_register
     def get_config_name(cfg, **kwargs):
-        """ the user might want to overwrite this function """
+        """the user might want to overwrite this function"""
         class_str = str(cfg.__class__)
         full_class_str = class_str.replace("<class '", '').replace("'>", '')
         config_name = splitext(full_class_str)[1][1:].replace('Config', '')
@@ -156,7 +156,7 @@ def make_config_metaclass():
 
     @_register
     def __hash__(cfg):
-        """ Needed for comparison operators """
+        """Needed for comparison operators"""
         return hash(cfg.get_cfgstr())
 
     @_register
@@ -781,7 +781,7 @@ class FeatureConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class ChipConfig(ConfigBase):
-    """ ChipConfig """
+    """ChipConfig"""
 
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
@@ -884,7 +884,7 @@ class OccurrenceConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class DisplayConfig(ConfigBase):
-    """ DisplayConfig """
+    """DisplayConfig"""
 
     def __init__(display_cfg, **kwargs):
         super(DisplayConfig, display_cfg).__init__(name='display_cfg')
@@ -956,7 +956,7 @@ def default_vsone_cfg(ibs, **kwargs):
 
 
 def set_query_cfg(cfg, query_cfg):
-    """ hack 12-30-2014 """
+    """hack 12-30-2014"""
     cfg.query_cfg = query_cfg
     cfg.featweight_cfg = cfg.query_cfg._featweight_cfg
     cfg.feat_cfg = cfg.query_cfg._featweight_cfg._feat_cfg
@@ -964,7 +964,7 @@ def set_query_cfg(cfg, query_cfg):
 
 
 def update_query_config(cfg, **kwargs):
-    """ hack 12-30-2014 """
+    """hack 12-30-2014"""
     cfg.query_cfg.update_query_cfg(**kwargs)
     cfg.featweight_cfg = cfg.query_cfg._featweight_cfg
     cfg.feat_cfg = cfg.query_cfg._featweight_cfg._feat_cfg
@@ -1069,7 +1069,7 @@ def load_named_config(
 
 @profile
 def _default_config(cfg, cfgname=None, new=True):
-    """ hack 12-30-2014 """
+    """hack 12-30-2014"""
     if ut.VERBOSE:
         logger.info('[Config] building default config')
     if cfgname is None:

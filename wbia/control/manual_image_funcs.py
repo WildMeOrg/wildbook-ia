@@ -1285,7 +1285,7 @@ def get_images(ibs, gid_list, ignore_orient=False, **kwargs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def get_image_imgdata(ibs, gid_list, ignore_orient=False, **kwargs):
-    """ alias for get_images with standardized name """
+    """alias for get_images with standardized name"""
     return get_images(ibs, gid_list, ignore_orient=ignore_orient, **kwargs)
 
 
@@ -1891,7 +1891,7 @@ def get_image_unixtime_asfloat(ibs, gid_list, **kwargs):
 @accessor_decors.getter_1to1
 @register_api('/api/image/unixtime2/', methods=['GET'])
 def get_image_unixtime2(ibs, gid_list, **kwargs):
-    """ alias for get_image_unixtime_asfloat """
+    """alias for get_image_unixtime_asfloat"""
     return ibs.get_image_unixtime_asfloat(gid_list, **kwargs)
 
 

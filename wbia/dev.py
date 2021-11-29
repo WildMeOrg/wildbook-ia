@@ -474,7 +474,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
 
 
 def dev_snippets(main_locals):
-    """ Common variables for convineince when interacting with IPython """
+    """Common variables for convineince when interacting with IPython"""
     print('[dev] dev_snippets')
     species = 'zebra_grevys'
     quick = True

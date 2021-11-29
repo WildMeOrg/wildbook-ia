@@ -59,11 +59,11 @@ def reassign_submodule_attributes(verbose=True):
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia.viz.interact and submodules """
+    """Reloads wbia.viz.interact and submodules"""
     rrr(verbose=verbose)
 
     def fbrrr(*args, **kwargs):
-        """ fallback reload """
+        """fallback reload"""
         pass
 
     getattr(interact_annotations2, 'rrr', fbrrr)(verbose=verbose)

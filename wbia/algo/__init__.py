@@ -44,14 +44,14 @@ def reassign_submodule_attributes(verbose=True):
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia.algo and submodules """
+    """Reloads wbia.algo and submodules"""
     if verbose:
         print('Reloading submodules')
     rrr(verbose=verbose)
 
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
-            """ fallback reload """
+            """fallback reload"""
             if verbose:
                 print('Trying fallback relaod for mod=%r' % (mod,))
             import imp

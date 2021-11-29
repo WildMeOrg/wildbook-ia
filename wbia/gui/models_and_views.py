@@ -61,7 +61,7 @@ IBEISITEMMODEL_BASE = APIItemModel
 
 
 class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
-    """ Used for the image grid """
+    """Used for the image grid"""
 
     def __init__(model, headers=None, parent=None, *args):
         # IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
@@ -89,7 +89,7 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
         # return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
-        """ Overrides the API model ider to give only selected imageset ids """
+        """Overrides the API model ider to give only selected imageset ids"""
         return model.original_iders[0](imgsetid=model.imgsetid)
 
     def _change_imageset(model, imgsetid):

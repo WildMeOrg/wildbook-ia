@@ -194,7 +194,7 @@ class Optimizers(NetMathParams):
 class Metrics(NetMathParams):
     @staticmethod
     def tpr(output, label):
-        """ true positive rate """
+        """true positive rate"""
         pred = output.data.max(dim=1)[1].cpu().numpy()
         true = label.data.cpu().numpy()
 

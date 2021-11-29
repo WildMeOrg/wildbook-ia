@@ -16,17 +16,17 @@ wbia_repo_dirs = __REPOS__.CODE_REPOS
 
 
 def checkout_wbia_repos():
-    """ Checkout IBEIS repos out if they don't exist """
+    """Checkout IBEIS repos out if they don't exist"""
     util_git.checkout_repos(wbia_repo_urls, wbia_repo_dirs)
 
 
 def pull_wbia_repos():
-    """ Pull IBEIS repos """
+    """Pull IBEIS repos"""
     util_git.pull_repos(wbia_repo_dirs)
 
 
 def setup_develop_wbia_repos():
-    """ Install with setuptools using the develop flag """
+    """Install with setuptools using the develop flag"""
     util_git.setup_develop_repos(wbia_repo_dirs)
 
 

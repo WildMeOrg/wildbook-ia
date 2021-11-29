@@ -9,7 +9,7 @@ logger = logging.getLogger('wbia')
 
 
 def fix_compname_configs(ibs):
-    """ duct tape to keep version in check """
+    """duct tape to keep version in check"""
     # ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_'  #+ ut.get_computer_name()
     # ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
     # We need to fix the manual config suffix to not use computer names anymore

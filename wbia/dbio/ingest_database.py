@@ -173,7 +173,7 @@ class Ingestable2(object):
             return gpath_list
 
         def list_images(img_dir):
-            """ lists images that are not in an internal cache """
+            """lists images that are not in an internal cache"""
             import utool as ut  # NOQA
 
             ignore_list = [
@@ -347,7 +347,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         return gpath_list
 
     def list_images(img_dir):
-        """ lists images that are not in an internal cache """
+        """lists images that are not in an internal cache"""
         import utool as ut  # NOQA
 
         ignore_list = [
@@ -495,7 +495,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
 
 def normalize_name(name):
-    """ Maps unknonwn names to the standard ____ """
+    """Maps unknonwn names to the standard ____"""
     if name in const.ACCEPTED_UNKNOWN_NAMES:
         name = const.INDIVIDUAL_KEY
     return name
@@ -680,7 +680,7 @@ STANDARD_INGEST_FUNCS = {}
 
 
 def __standard(dbname):
-    """  Decorates a function as a standard ingestable database """
+    """Decorates a function as a standard ingestable database"""
 
     def __registerdb(func):
         STANDARD_INGEST_FUNCS[dbname] = func
@@ -1024,7 +1024,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     logger.info('Loading Oxford Style Images from: ' + dbdir)
 
     def _parse_oxsty_gtfname(gt_fname):
-        """ parse gtfname for: (gt_name, quality_lbl, num) """
+        """parse gtfname for: (gt_name, quality_lbl, num)"""
         # num is an id, not a number of annots
         gt_format = '{}_{:d}_{:D}.txt'
         name, num, quality = parse.parse(gt_format, gt_fname)

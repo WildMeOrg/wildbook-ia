@@ -329,7 +329,7 @@ class AbstractInteraction(object):
         gt.popup_menu(qwin, qpoint, options)
 
     def clear_parent_axes(self, ax):
-        """ for clearing axes that we appended anything to """
+        """for clearing axes that we appended anything to"""
         child_axes = ph.get_plotdat(ax, 'child_axes', [])
         ph.set_plotdat(ax, 'child_axes', [])
         for subax in child_axes:
@@ -351,7 +351,7 @@ class AbstractInteraction(object):
     #    self.clean_scope()
 
     def clean_scope(self):
-        """ Removes any widgets saved in the interaction scope """
+        """Removes any widgets saved in the interaction scope"""
         self.scope = []
 
     def append_button(
@@ -365,7 +365,7 @@ class AbstractInteraction(object):
         ax=None,
         **kwargs,
     ):
-        """ Adds a button to the current page """
+        """Adds a button to the current page"""
         if rect is not None:
             new_ax = df2.plt.axes(rect)
         if rect is None and divider is None:
@@ -440,7 +440,7 @@ class AbstractPagedInteraction(AbstractInteraction):
         pass
 
     def make_hud(self):
-        """ Creates heads up display """
+        """Creates heads up display"""
         import wbia.plottool as pt
 
         if not self.draw_hud:

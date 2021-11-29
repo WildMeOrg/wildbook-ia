@@ -574,7 +574,7 @@ class InfrReviewers(object):
         return feedback
 
     def _make_review_tuple(infr, edge, priority=None):
-        """ Makes tuple to be sent back to the user """
+        """Makes tuple to be sent back to the user"""
         edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default')
         # Extra information
         edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)

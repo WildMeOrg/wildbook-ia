@@ -362,7 +362,7 @@ def get_node_viz_attrs(
             post_tas.append(dict(text=post_text, pos=pos, color=None, **_takw1))
 
     def trnps_(dict_list):
-        """ tranpose dict list """
+        """tranpose dict list"""
         list_dict = ut.ddict(list)
         for dict_ in dict_list:
             for key, val in dict_.items():

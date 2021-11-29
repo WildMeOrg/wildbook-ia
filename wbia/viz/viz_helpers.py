@@ -38,7 +38,7 @@ set_ibsdat = ph.set_plotdat
 
 @getter_vector_output
 def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
-    """ Transforms keypoints so they are plotable in imagespace """
+    """Transforms keypoints so they are plotable in imagespace"""
     bbox_list = ibs.get_annot_bboxes(aid_list)
     theta_list = ibs.get_annot_thetas(aid_list)
     try:

@@ -42,14 +42,14 @@ def reassign_submodule_attributes(verbose=True):
 
 
 def reload_subs(verbose=True):
-    """ Reloads wbia.algo.smk and submodules """
+    """Reloads wbia.algo.smk and submodules"""
     if verbose:
         print('Reloading submodules')
     rrr(verbose=verbose)
 
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
-            """ fallback reload """
+            """fallback reload"""
             if verbose:
                 print('No fallback relaod for mod=%r' % (mod,))
             # Breaks ut.Pref (which should be depricated anyway)

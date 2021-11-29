@@ -496,7 +496,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
 
 
 def get_match_status(ibs, aid_pair):
-    """ Data role for status column """
+    """Data role for status column"""
     aid1, aid2 = aid_pair
     assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
     assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
@@ -507,7 +507,7 @@ def get_match_status(ibs, aid_pair):
 
 
 def get_reviewed_status(ibs, aid_pair):
-    """ Data role for status column """
+    """Data role for status column"""
     aid1, aid2 = aid_pair
     assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
     assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
@@ -524,7 +524,7 @@ def get_reviewed_status(ibs, aid_pair):
 
 
 def get_match_status_bgrole(ibs, aid_pair):
-    """ Background role for status column """
+    """Background role for status column"""
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
     # logger.info('get status bgrole: %r truth=%r' % (aid_pair, truth))
@@ -533,7 +533,7 @@ def get_match_status_bgrole(ibs, aid_pair):
 
 
 def get_reviewed_status_bgrole(ibs, aid_pair):
-    """ Background role for status column """
+    """Background role for status column"""
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]

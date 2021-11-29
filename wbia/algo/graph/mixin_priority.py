@@ -32,12 +32,12 @@ class Priority(object):
         return len(infr.queue)
 
     def _pop(infr, *args):
-        """ Wraps queue so ordering is determenistic """
+        """Wraps queue so ordering is determenistic"""
         (e, (p, _)) = infr.queue.pop(*args)
         return (e, -p)
 
     def _push(infr, edge, priority):
-        """ Wraps queue so ordering is determenistic """
+        """Wraps queue so ordering is determenistic"""
         PSEUDO_RANDOM_TIEBREAKER = False
         if PSEUDO_RANDOM_TIEBREAKER:
             # Make it so tiebreakers have a pseudo-random order
@@ -60,7 +60,7 @@ class Priority(object):
         infr.queue[edge] = (-priority, tiebreaker)
 
     def _peek_many(infr, n):
-        """ Wraps queue so ordering is determenistic """
+        """Wraps queue so ordering is determenistic"""
         return [(k, -p) for (k, (p, _)) in infr.queue.peek_many(n)]
 
     def _remove_edge_priority(infr, edges):

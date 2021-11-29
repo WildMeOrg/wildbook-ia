@@ -826,7 +826,7 @@ class _ChipMatchScorers(object):
 
     @profile
     def evaluate_nsum_name_score(cm, qreq_):
-        """ Calls name scoring logic """
+        """Calls name scoring logic"""
         cm.evaluate_dnids(qreq_)
         fmech_scores = name_scoring.compute_fmech_score(cm, qreq_=qreq_)
         try:
@@ -1267,7 +1267,7 @@ class _AnnotMatchConvenienceGetter(object):
         return top_aids
 
     def get_top_truth_aids(cm, ibs, truth, ntop=None, invert=False):
-        """ top scoring aids of a certain truth value """
+        """top scoring aids of a certain truth value"""
         sortx = cm.score_list.argsort()[::-1]
         _top_aids = vt.list_take_(cm.daid_list, sortx)
         _top_nids = vt.list_take_(cm.dnid_list, sortx)
@@ -2751,7 +2751,7 @@ class ChipMatch(
         cm.fs_list = None
 
     def sortself(cm):
-        """ reorders the internal data using cm.score_list """
+        """reorders the internal data using cm.score_list"""
         logger.info('Warning using sortself')
         sortx = cm.argsort()
         cm.daid_list = vt.trytake(cm.daid_list, sortx)

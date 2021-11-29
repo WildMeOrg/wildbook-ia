@@ -30,7 +30,7 @@ def vdd(ibs):
 
 
 def vwd():
-    """ view work dir """
+    """view work dir"""
     ut.util_cplat.view_directory(sysres.get_workdir())
 
 
@@ -41,7 +41,7 @@ def vwd():
 
 
 def preload_commands(dbdir, **kwargs):
-    """ Preload commands work with command line arguments and global caches """
+    """Preload commands work with command line arguments and global caches"""
     # logger.info('[main_cmd] preload_commands')
     params.parse_args()
     if params.args.dump_argv:

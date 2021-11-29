@@ -121,7 +121,7 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
 
 @register_ibs_method
 def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwargs):
-    """ filter + sampling """
+    """filter + sampling"""
     # hack
     from wbia.expt import annotation_configs
 
@@ -2221,7 +2221,7 @@ def ensure_flatlistlike(input_):
 
 
 def verb_context(filtertype, aidcfg, verbose):
-    """ closure helper """
+    """closure helper"""
 
     class VerbosityContext(object):
         """

@@ -644,7 +644,7 @@ class QueryRequest(ut.NiceRepr):
         return custom_str
 
     def get_shortinfo_parts(qreq_):
-        """ Rename to get_nice_parts """
+        """Rename to get_nice_parts"""
         parts = []
         parts.append(qreq_.ibs.get_dbname())
         parts.append('nQ=%d' % len(qreq_.qaids))
@@ -917,22 +917,22 @@ class QueryRequest(ut.NiceRepr):
 
     @property
     def qannots(qreq_):
-        """ internal query annotation objects """
+        """internal query annotation objects"""
         return qreq_.internal_qannots
 
     @property
     def dannots(qreq_):
-        """ external query annotation objects """
+        """external query annotation objects"""
         return qreq_._internal_dannots
 
     @property
     def daids(qreq_):
-        """ These are the users daids in vsone mode """
+        """These are the users daids in vsone mode"""
         return qreq_.get_internal_daids()
 
     @property
     def qaids(qreq_):
-        """ These are the users qaids in vsone mode """
+        """These are the users qaids in vsone mode"""
         return qreq_.get_internal_qaids()
 
     @ut.accepts_numpy
@@ -961,12 +961,12 @@ class QueryRequest(ut.NiceRepr):
 
     @property
     def dnids(qreq_):
-        """ TODO: save dnids in qreq_ state """
+        """TODO: save dnids in qreq_ state"""
         return qreq_.get_qreq_annot_nids(qreq_.daids)
 
     @property
     def qnids(qreq_):
-        """ TODO: save qnids in qreq_ state """
+        """TODO: save qnids in qreq_ state"""
         return qreq_.get_qreq_annot_nids(qreq_.qaids)
 
     @property
@@ -978,7 +978,7 @@ class QueryRequest(ut.NiceRepr):
         return qreq_.query_config2_
 
     def get_external_query_groundtruth(qreq_, qaids):
-        """ gets groundtruth that are accessible via this query """
+        """gets groundtruth that are accessible via this query"""
         external_daids = qreq_.daids
         gt_aids = qreq_.ibs.get_annot_groundtruth(qaids, daid_list=external_daids)
         return gt_aids
@@ -1212,7 +1212,7 @@ class QueryRequest(ut.NiceRepr):
 
     @profile
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):
-        """ ensure feature weights are computed """
+        """ensure feature weights are computed"""
         if verbose:
             logger.info('[qreq] ensure_featweights')
         qreq_.qannots.preload('fgweights')

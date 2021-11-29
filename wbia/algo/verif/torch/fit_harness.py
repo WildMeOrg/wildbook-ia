@@ -70,7 +70,7 @@ class FitHarness(object):
             tensorboard_logger.log_value(key, value, n_iter)
 
     def _to_xpu(harn, *args):
-        """ Puts data on the GPU if available """
+        """Puts data on the GPU if available"""
         if harn.use_cuda:
             args = [Variable(item.cuda(harn.gpu_num)) for item in args]
             # input_batch = [Variable(item.cuda()) for item in input_batch]

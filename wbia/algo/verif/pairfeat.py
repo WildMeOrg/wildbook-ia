@@ -61,7 +61,7 @@ class VsOneMatchConfig(dt.Config):
 
 
 class VsOneFeatConfig(dt.Config):
-    """ keypoint params """
+    """keypoint params"""
 
     _param_info_list = vt.matching.VSONE_FEAT_CONFIG
 
@@ -126,7 +126,7 @@ class PairwiseFeatureExtractor(object):
         vars_ = vars()
 
         def _popconfig(key, default):
-            """ ensures param is either specified in func args xor config """
+            """ensures param is either specified in func args xor config"""
             if key in config:
                 if vars_.get(key, None) is not None:
                     raise ValueError('{} specified twice'.format(key))

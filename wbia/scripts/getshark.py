@@ -1522,7 +1522,7 @@ def postprocess_uuids(parsed_dl):
 
 
 def postprocess_rectify_duplicates(unmerged):
-    """ Rectify duplicate uuid information """
+    """Rectify duplicate uuid information"""
     logger.info('Checking for duplicate information')
     # Find rows that have unique uuids
     singles = unmerged.get_singles('uuid')

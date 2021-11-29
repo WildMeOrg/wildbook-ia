@@ -90,7 +90,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         self.show_page(bring_to_front=True)
 
     def infer_data(self):
-        """ Initialize data related to the input aids """
+        """Initialize data related to the input aids"""
         ibs = self.ibs
 
         self.query_nid = ibs.get_annot_name_rowids(self.query_aid)
@@ -121,7 +121,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         # ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
 
     def show_page(self, bring_to_front=False):
-        """ Plots all subaxes on a page """
+        """Plots all subaxes on a page"""
         print('[querydec] show_page()')
         self.prepare_page()
         # Variables we will work with to paint a pretty picture
@@ -159,7 +159,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             self.bring_to_front()
 
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
-        """ Plots an individual chip in a subaxis """
+        """Plots an individual chip in a subaxis"""
         ibs = self.ibs
         enable_chip_title_prefix = ut.is_developer()
         # enable_chip_title_prefix = False
@@ -277,7 +277,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         self.close()
 
     def show_hud(self):
-        """ Creates heads up display """
+        """Creates heads up display"""
         # Button positioners
         hl_slot, hr_slot = pt.make_bbox_positioners(
             y=0.02, w=0.16, h=3 * ut.PHI_B ** 4, xpad=0.05, startx=0, stopx=1

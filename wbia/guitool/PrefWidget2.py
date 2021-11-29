@@ -86,7 +86,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
             return super(NoneSpinBox, self).keyPressEvent(event)
 
     def setMinimum(self, min_):
-        """ hack to get around None being invalid """
+        """hack to get around None being invalid"""
         self._hack_min = min_
         # super(NoneSpinBox, self).setMinimum(-2 ** 29)
 
@@ -431,7 +431,7 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def index2Pref(self, index=QModelIndex()):
-        """ Internal helper method """
+        """Internal helper method"""
         if index.isValid():
             item = index.internalPointer()
             if item:

@@ -144,13 +144,13 @@ class EstimatorRequest(ut.NiceRepr):
 
     @property
     def dnids(qreq_):
-        """ TODO: save dnids in qreq_ state """
+        """TODO: save dnids in qreq_ state"""
         # return qreq_.dannots.nids
         return qreq_.get_qreq_annot_nids(qreq_.daids)
 
     @property
     def qnids(qreq_):
-        """ TODO: save qnids in qreq_ state """
+        """TODO: save qnids in qreq_ state"""
         # return qreq_.qannots.nids
         return qreq_.get_qreq_annot_nids(qreq_.qaids)
 

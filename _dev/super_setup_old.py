@@ -180,7 +180,7 @@ Register these packages with the python enviroment.
 
 
 def define_argparse():
-    """ todo, find a way to use this effectively """
+    """todo, find a way to use this effectively"""
     import argparse
 
     parser = argparse.ArgumentParser(description='IBEIS super setup')
@@ -247,7 +247,7 @@ def get_plat_specifier():
 
 
 def import_module_from_fpath(module_fpath):
-    """ imports module from a file path """
+    """imports module from a file path"""
     import platform
     from os.path import basename, splitext
 

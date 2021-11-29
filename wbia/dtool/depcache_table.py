@@ -101,14 +101,14 @@ class ExternType(ub.NiceRepr):
 
 
 class ExternalStorageException(Exception):
-    """ Indicates a missing external file """
+    """Indicates a missing external file"""
 
     def __init__(self, *args, **kwargs):
         super(ExternalStorageException, self).__init__(*args, **kwargs)
 
 
 def predrop_grace_period(tablename, seconds=None):
-    """ Hack that gives the user some time to abort deleting everything """
+    """Hack that gives the user some time to abort deleting everything"""
     global GRACE_PERIOD
     warnmsg_fmt = ut.codeblock(
         """
@@ -132,7 +132,7 @@ def predrop_grace_period(tablename, seconds=None):
 
 
 def make_extern_io_funcs(table, cls):
-    """ Hack in read/write defaults for pickleable classes """
+    """Hack in read/write defaults for pickleable classes"""
 
     def _read_func(fpath, verbose=ut.VERBOSE):
         state_dict = ut.load_data(fpath, verbose=verbose)
@@ -154,7 +154,7 @@ def make_extern_io_funcs(table, cls):
 
 @profile
 def ensure_config_table(db):
-    """ SQL definition of configuration table. """
+    """SQL definition of configuration table."""
     config_addtable_kw = ut.odict(
         [
             ('tablename', CONFIG_TABLE),
@@ -192,7 +192,7 @@ def ensure_config_table(db):
 
 @ut.reloadable_class
 class _TableConfigHelper(object):
-    """ helper for configuration table """
+    """helper for configuration table"""
 
     def get_parent_rowids(self, rowid_list):
         """
@@ -520,7 +520,7 @@ class _TableDebugHelper(object):
         #    self.print_model_manifests()
 
     def print_info(self, with_colattrs=True, with_graphattrs=True):
-        """ debug function """
+        """debug function"""
         logger.info('TABLE ATTRIBUTES')
         logger.info('self.tablename = %r' % (self.tablename,))
         logger.info('self.rm_extern_on_delete = %r' % (self.rm_extern_on_delete,))
@@ -647,7 +647,7 @@ class _TableDebugHelper(object):
 
 @ut.reloadable_class
 class _TableInternalSetup(ub.NiceRepr):
-    """ helper that sets up column information """
+    """helper that sets up column information"""
 
     @profile
     def _infer_datacol(self):
@@ -1000,7 +1000,7 @@ class _TableInternalSetup(ub.NiceRepr):
 
 @ut.reloadable_class
 class _TableGeneralHelper(ub.NiceRepr):
-    """ helper """
+    """helper"""
 
     def __nice__(self):
         num_parents = len(self.parent_tablenames)
@@ -1112,7 +1112,7 @@ class _TableGeneralHelper(ub.NiceRepr):
 
     @property
     def rowid_colname(self):
-        """ rowid of this table used by other dependant tables """
+        """rowid of this table used by other dependant tables"""
         return self.tablename + '_rowid'
 
     @property
@@ -1333,7 +1333,7 @@ class _TableGeneralHelper(ub.NiceRepr):
 
 @ut.reloadable_class
 class _TableComputeHelper(object):
-    """ helper for computing functions """
+    """helper for computing functions"""
 
     # @profile
     def prepare_storage(

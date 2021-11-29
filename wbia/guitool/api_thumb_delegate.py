@@ -568,7 +568,7 @@ class ThumbnailCreationThread2(RUNNABLE_BASE):
         return view_would_not_be_visible(thread.view, thread.offset)
 
     def _run(thread):
-        """ Compute thumbnail in a different thread """
+        """Compute thumbnail in a different thread"""
         if thread.thumb_would_not_be_visible():
             return
         # func = thread.thumbdat['func']
@@ -622,7 +622,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         return view_would_not_be_visible(thread.view, thread.offset)
 
     def _run(thread):
-        """ Compute thumbnail in a different thread """
+        """Compute thumbnail in a different thread"""
         import vtool as vt
 
         # time.sleep(.005)  # Wait a in case the user is just scrolling
@@ -714,7 +714,7 @@ def simple_thumbnail_widget():
         get_text_test_img(id_)
 
     def thumb_getter(id_, thumbsize=128):
-        """ Thumb getters must conform to thumbtup structure """
+        """Thumb getters must conform to thumbtup structure"""
         if id_ not in imgname_list:
             return {
                 'fpath': id_ + '.jpg',

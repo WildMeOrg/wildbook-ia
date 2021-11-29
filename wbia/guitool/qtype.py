@@ -151,7 +151,7 @@ def cast_into_qt(data):
 
 @checks_qt_error
 def cast_from_qt(var, type_=None):
-    """ Casts a QVariant to data """
+    """Casts a QVariant to data"""
     if SIMPLE_CASTING:
         if var is None:
             return None
@@ -163,7 +163,7 @@ def cast_from_qt(var, type_=None):
 
 
 def infer_coltype(column_list):
-    """ Infer Column datatypes """
+    """Infer Column datatypes"""
     try:
         coltype_list = [type(column_data[0]) for column_data in column_list]
     except Exception:

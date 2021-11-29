@@ -467,26 +467,26 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         return unique_labels, groupxs
 
     def group_items(self, labels):
-        """ group as dict """
+        """group as dict"""
         unique_labels, groups = self.group(labels)
         label_to_group = ut.odict(zip(unique_labels, groups))
         return label_to_group
 
     def group(self, labels):
-        """ group as list """
+        """group as list"""
         unique_labels, groupxs = self.group_indicies(labels)
         groups = [self.take(idxs) for idxs in groupxs]
         return unique_labels, groups
 
     def lookup_idxs(self, rowids):
-        """ Lookup subset indicies by rowids """
+        """Lookup subset indicies by rowids"""
         if self._rowid_to_idx is None:
             self._rowid_to_idx = ut.make_index_lookup(self._rowids)
         idx_list = ut.take(self._rowid_to_idx, rowids)
         return idx_list
 
     def loc(self, rowids):
-        """ Lookup subset by rowids """
+        """Lookup subset by rowids"""
         idxs = self.lookup_idxs(rowids)
         return self.take(idxs)
 

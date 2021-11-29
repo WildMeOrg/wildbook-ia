@@ -29,7 +29,7 @@ except ImportError:
 
 @register_ibs_method
 def images(ibs, gids=None, uuids=None, **kwargs):
-    """ Makes an Images object """
+    """Makes an Images object"""
     if uuids is not None:
         assert gids is None, 'specify one primary key'
         gids = ibs.get_image_gids_from_uuid(uuids)

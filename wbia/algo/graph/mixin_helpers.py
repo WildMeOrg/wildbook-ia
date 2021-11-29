@@ -20,7 +20,7 @@ DEBUG_INCON = True
 
 
 class AttrAccess(object):
-    """ Contains non-core helper functions """
+    """Contains non-core helper functions"""
 
     def gen_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         return ut.util_graph.nx_gen_node_attrs(
@@ -28,7 +28,7 @@ class AttrAccess(object):
         )
 
     def gen_edge_attrs(infr, key, edges=None, default=ut.NoParam, on_missing=None):
-        """ maybe change to gen edge items """
+        """maybe change to gen edge items"""
         return ut.util_graph.nx_gen_edge_attrs(
             infr.graph, key, edges=edges, default=default, on_missing=on_missing
         )
@@ -49,11 +49,11 @@ class AttrAccess(object):
         )
 
     def get_node_attrs(infr, key, nodes=None, default=ut.NoParam):
-        """ Networkx node getter helper """
+        """Networkx node getter helper"""
         return dict(infr.gen_node_attrs(key, nodes=nodes, default=default))
 
     def get_edge_attrs(infr, key, edges=None, default=ut.NoParam, on_missing=None):
-        """ Networkx edge getter helper """
+        """Networkx edge getter helper"""
         return dict(
             infr.gen_edge_attrs(key, edges=edges, default=default, on_missing=on_missing)
         )
@@ -81,26 +81,26 @@ class AttrAccess(object):
         )
 
     def set_node_attrs(infr, key, node_to_prop):
-        """ Networkx node setter helper """
+        """Networkx node setter helper"""
         return nx.set_node_attributes(infr.graph, name=key, values=node_to_prop)
 
     def set_edge_attrs(infr, key, edge_to_prop):
-        """ Networkx edge setter helper """
+        """Networkx edge setter helper"""
         return nx.set_edge_attributes(infr.graph, name=key, values=edge_to_prop)
 
     def get_edge_attr(infr, edge, key, default=ut.NoParam, on_missing='error'):
-        """ single edge getter helper """
+        """single edge getter helper"""
         return infr.get_edge_attrs(key, [edge], default=default, on_missing=on_missing)[
             edge
         ]
 
     def set_edge_attr(infr, edge, attr):
-        """ single edge setter helper """
+        """single edge setter helper"""
         for key, value in attr.items():
             infr.set_edge_attrs(key, {edge: value})
 
     def get_annot_attrs(infr, key, aids):
-        """ Wrapper around get_node_attrs specific to annotation nodes """
+        """Wrapper around get_node_attrs specific to annotation nodes"""
         attr_list = list(infr.get_node_attrs(key, aids).values())
         return attr_list
 

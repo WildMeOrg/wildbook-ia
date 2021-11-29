@@ -460,7 +460,7 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
 
 @register_ibs_method
 def set_annot_pair_as_reviewed(ibs, aid1, aid2):
-    """ denote that this match was reviewed and keep whatever status it is given """
+    """denote that this match was reviewed and keep whatever status it is given"""
     isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
     if isunknown1 or isunknown2:
         truth = ibs.const.EVIDENCE_DECISION.UNKNOWN

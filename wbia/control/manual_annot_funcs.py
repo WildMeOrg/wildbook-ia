@@ -3606,7 +3606,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
 
 @register_ibs_method
 def get_annot_quality_int(ibs, aid_list, eager=True):
-    """ new alias """
+    """new alias"""
     return ibs.get_annot_qualities(aid_list, eager=eager)
 
 

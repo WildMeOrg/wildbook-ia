@@ -44,7 +44,7 @@ def _wbia_cache_write(key, val):
 
 
 def _wbia_cache_read(key, **kwargs):
-    """ Reads from global IBEIS cache """
+    """Reads from global IBEIS cache"""
     return ut.global_cache_read(key, appname=__APPNAME__, **kwargs)
 
 
@@ -168,14 +168,14 @@ def get_logdir_global():
 
 
 def get_rawdir():
-    """ Returns the standard raw data directory """
+    """Returns the standard raw data directory"""
     workdir = get_workdir()
     rawdir = ut.truepath(join(workdir, '../raw'))
     return rawdir
 
 
 def guiselect_workdir():
-    """ Prompts the user to specify a work directory """
+    """Prompts the user to specify a work directory"""
     from wbia import guitool
 
     guitool.ensure_qtapp()
@@ -376,7 +376,7 @@ lookup_dbdir = db_to_dbdir
 
 
 def is_wbiadb(path):
-    """ Checks to see if path contains the IBEIS internal dir """
+    """Checks to see if path contains the IBEIS internal dir"""
     return exists(join(path, const.PATH_NAMES._ibsdb))
 
 
@@ -858,12 +858,12 @@ def ensure_pz_mtest_mergesplit_test():
 
 
 def ensure_wilddogs():
-    """ Ensures that you have the NAUT_test dataset """
+    """Ensures that you have the NAUT_test dataset"""
     return ensure_db_from_url(const.ZIPPED_URLS.WDS)
 
 
 def ensure_nauts():
-    """ Ensures that you have the NAUT_test dataset """
+    """Ensures that you have the NAUT_test dataset"""
     return ensure_db_from_url(const.ZIPPED_URLS.NAUTS)
 
 
@@ -894,7 +894,7 @@ def ensure_testdb_kaggle7():
 
 
 def ensure_db_from_url(zipped_db_url):
-    """ SeeAlso wbia.init.sysres """
+    """SeeAlso wbia.init.sysres"""
     from wbia import sysres
 
     workdir = sysres.get_workdir()

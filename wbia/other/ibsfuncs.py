@@ -160,7 +160,7 @@ def filter_junk_annotations(ibs, aid_list):
 
 @register_ibs_method
 def compute_all_chips(ibs, aid_list=None, **kwargs):
-    """ Executes lazy evaluation of all chips """
+    """Executes lazy evaluation of all chips"""
     logger.info('[ibs] compute_all_chips')
     if aid_list is None:
         aid_list = ibs.get_valid_aids(**kwargs)
@@ -180,7 +180,7 @@ def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=Fa
 
 @register_ibs_method
 def convert_empty_images_to_annotations(ibs):
-    """ images without chips are given an ANNOTATION over the entire image """
+    """images without chips are given an ANNOTATION over the entire image"""
     gid_list = ibs.get_empty_gids()
     aid_list = ibs.use_images_as_annotations(gid_list)
     return aid_list
@@ -515,7 +515,7 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
 
 
 def assert_valid_names(name_list):
-    """ Asserts that user specified names do not conflict with the standard unknown name """
+    """Asserts that user specified names do not conflict with the standard unknown name"""
     if ut.NO_ASSERTS:
         return
 
@@ -967,7 +967,7 @@ def check_name_consistency(ibs, nid_list):
 
 @register_ibs_method
 def check_name_mapping_consistency(ibs, nx2_aids):
-    """ checks that all the aids grouped in a name ahave the same name """
+    """checks that all the aids grouped in a name ahave the same name"""
     # DEBUGGING CODE
     try:
         _nids_list = unflat_map(ibs.get_annot_name_rowids, nx2_aids)
@@ -1007,7 +1007,7 @@ def check_annot_size(ibs):
 
 
 def check_exif_data(ibs, gid_list):
-    """ TODO CALL SCRIPT """
+    """TODO CALL SCRIPT"""
     import vtool.exif as exif
     from PIL import Image  # NOQA
 
@@ -1049,7 +1049,7 @@ def check_exif_data(ibs, gid_list):
 
 @register_ibs_method
 def run_integrity_checks(ibs):
-    """ Function to run all database consistency checks """
+    """Function to run all database consistency checks"""
     logger.info('[ibsfuncs] Checking consistency')
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
@@ -1091,7 +1091,7 @@ else:
 
 @my_cache_decorator
 def get_dir_size(start_path='.'):
-    """ REF: https://stackoverflow.com/a/34580363 """
+    """REF: https://stackoverflow.com/a/34580363"""
     if os.path.isfile(start_path):
         return os.path.getsize(start_path)
 
@@ -1873,7 +1873,7 @@ def fix_unknown_exemplars(ibs):
 
 @register_ibs_method
 def delete_all_recomputable_data(ibs):
-    """ Delete all cached data including chips and imagesets """
+    """Delete all cached data including chips and imagesets"""
     logger.info('[ibs] delete_all_recomputable_data')
     ibs.delete_cachedir()
     ibs.delete_all_chips()
@@ -2000,7 +2000,7 @@ def delete_all_imagesets(ibs):
 
 @register_ibs_method
 def delete_all_annotations(ibs):
-    """ Carefull with this function. Annotations are not recomputable """
+    """Carefull with this function. Annotations are not recomputable"""
     logger.info('[ibs] delete_all_annotations')
     ans = input('Are you sure you want to delete all annotations?')
     if ans != 'yes':
@@ -2073,7 +2073,7 @@ def _overwrite_annot_species_to_giraffe(ibs, aid_list):
 
 @register_ibs_method
 def _overwrite_all_annot_species_to(ibs, species):
-    """ THIS OVERWRITES A LOT OF INFO """
+    """THIS OVERWRITES A LOT OF INFO"""
     valid_species = ibs.get_all_species_texts()
     assert species in valid_species, repr(species) + 'is not in ' + repr(valid_species)
     aid_list = ibs.get_valid_aids()
@@ -2135,7 +2135,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
 
 
 def _make_unflat_getter_func(flat_getter):
-    """ makes an unflat version of an wbia getter """
+    """makes an unflat version of an wbia getter"""
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
         func = ut.get_method_func(flat_getter)
@@ -2296,7 +2296,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
 
 
 def aidstr(aid, ibs=None, notes=False):
-    """ Helper to make a string from an aid """
+    """Helper to make a string from an aid"""
     if not notes:
         return 'aid%d' % (aid,)
     else:
@@ -2693,14 +2693,14 @@ def print_annotmatch_table(ibs):
 
 @register_ibs_method
 def print_chip_table(ibs):
-    """ Dumps chip table to stdout """
+    """Dumps chip table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.CHIP_TABLE))
 
 
 @register_ibs_method
 def print_feat_table(ibs):
-    """ Dumps chip table to stdout """
+    """Dumps chip table to stdout"""
     logger.info('\n')
     logger.info(
         ibs.db.get_table_csv(
@@ -2711,7 +2711,7 @@ def print_feat_table(ibs):
 
 @register_ibs_method
 def print_image_table(ibs, **kwargs):
-    """ Dumps chip table to stdout """
+    """Dumps chip table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.IMAGE_TABLE, **kwargs))
     # , exclude_columns=['image_rowid']))
@@ -2719,7 +2719,7 @@ def print_image_table(ibs, **kwargs):
 
 @register_ibs_method
 def print_party_table(ibs, **kwargs):
-    """ Dumps chip table to stdout """
+    """Dumps chip table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.PARTY_TABLE, **kwargs))
     # , exclude_columns=['image_rowid']))
@@ -2727,35 +2727,35 @@ def print_party_table(ibs, **kwargs):
 
 @register_ibs_method
 def print_lblannot_table(ibs, **kwargs):
-    """ Dumps lblannot table to stdout """
+    """Dumps lblannot table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.LBLANNOT_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_name_table(ibs, **kwargs):
-    """ Dumps name table to stdout """
+    """Dumps name table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.NAME_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_species_table(ibs, **kwargs):
-    """ Dumps species table to stdout """
+    """Dumps species table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.SPECIES_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_alr_table(ibs, **kwargs):
-    """ Dumps alr table to stdout """
+    """Dumps alr table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.AL_RELATION_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_config_table(ibs, **kwargs):
-    """ Dumps config table to stdout """
+    """Dumps config table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.CONFIG_TABLE, **kwargs))
 
@@ -2773,7 +2773,7 @@ def print_imageset_table(ibs, **kwargs):
 
 @register_ibs_method
 def print_egpairs_table(ibs, **kwargs):
-    """ Dumps egpairs table to stdout """
+    """Dumps egpairs table to stdout"""
     logger.info('\n')
     logger.info(ibs.db.get_table_csv(const.GSG_RELATION_TABLE, **kwargs))
 
@@ -2839,7 +2839,7 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
 
 @register_ibs_method
 def is_aid_unknown(ibs, aid_list):
-    """ Returns if an annotation has been given a name (even if that name is temporary) """
+    """Returns if an annotation has been given a name (even if that name is temporary)"""
     nid_list = ibs.get_annot_name_rowids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
@@ -3448,7 +3448,7 @@ def get_annots_per_name_stats(ibs, aid_list, **kwargs):
 
 @register_ibs_method
 def get_aids_with_groundtruth(ibs):
-    """ returns aids with valid groundtruth """
+    """returns aids with valid groundtruth"""
     valid_aids = ibs.get_valid_aids()
     has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
     hasgt_aids = ut.compress(valid_aids, has_gt_list)
@@ -3758,7 +3758,7 @@ def get_infostr(ibs):
 
 @register_ibs_method
 def get_dbnotes(ibs):
-    """ sets notes for an entire database """
+    """sets notes for an entire database"""
     notes = ut.read_from(ibs.get_dbnotes_fpath(), strict=False)
     if notes is None:
         ibs.set_dbnotes('None')
@@ -3768,7 +3768,7 @@ def get_dbnotes(ibs):
 
 @register_ibs_method
 def set_dbnotes(ibs, notes):
-    """ sets notes for an entire database """
+    """sets notes for an entire database"""
     import wbia
 
     assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
@@ -3817,7 +3817,7 @@ def merge_names(ibs, merge_name, other_names):
 
 
 def inspect_nonzero_yaws(ibs):
-    """ python dev.py --dbdir /raid/work2/PZ_Master --cmd --show """
+    """python dev.py --dbdir /raid/work2/PZ_Master --cmd --show"""
     from wbia.viz import viz_chip
     import wbia.plottool as pt
 
@@ -4662,7 +4662,7 @@ def get_unflat_am_rowids(ibs, aids_list):
 @register_ibs_method
 @profile
 def get_unflat_am_aidpairs(ibs, aids_list):
-    """ Gets only aid pairs that have some reviewed/matched status """
+    """Gets only aid pairs that have some reviewed/matched status"""
     ams_list = ibs.get_unflat_am_rowids(aids_list)
     flat_ams, cumsum = ut.invertible_flatten2(ams_list)
     flat_aids1 = ibs.get_annotmatch_aid1(flat_ams)
@@ -4675,7 +4675,7 @@ def get_unflat_am_aidpairs(ibs, aids_list):
 @register_ibs_method
 @profile
 def get_unflat_case_tags(ibs, aids_list):
-    """ Gets only aid pairs that have some reviewed/matched status """
+    """Gets only aid pairs that have some reviewed/matched status"""
     ams_list = ibs.get_unflat_am_rowids(aids_list)
     tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, ams_list)
     return tags
@@ -4684,7 +4684,7 @@ def get_unflat_case_tags(ibs, aids_list):
 @register_ibs_method
 @profile
 def get_unflat_annots_speeds_list(ibs, aids_list):
-    """ DEPRICATE. SLOWER """
+    """DEPRICATE. SLOWER"""
     km_dists_list = ibs.get_unflat_annots_kmdists_list(aids_list)
     hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
 
@@ -4762,7 +4762,7 @@ def make_next_imageset_text(ibs):
 
 @register_ibs_method
 def add_next_imageset(ibs):
-    """ Adds a new imageset to the database """
+    """Adds a new imageset to the database"""
     new_imagesettext = ibs.make_next_imageset_text()
     (new_imgsetid,) = ibs.add_imagesets([new_imagesettext])
     return new_imgsetid
@@ -4878,7 +4878,7 @@ def prepare_annotgroup_review(ibs, aid_list):
 
 @register_ibs_method
 def remove_groundtrue_aids(ibs, aid_list, ref_aid_list):
-    """ removes any aids that are known to match """
+    """removes any aids that are known to match"""
     ref_nids = set(ibs.get_annot_name_rowids(ref_aid_list))
     nid_list = ibs.get_annot_name_rowids(aid_list)
     flag_list = [nid not in ref_nids for nid in nid_list]
@@ -5188,7 +5188,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
 
 @register_ibs_method
 def partition_annots_into_singleton_multiton(ibs, aid_list):
-    """ aid_list = aid_list_ """
+    """aid_list = aid_list_"""
     aids_list = ibs.group_annots_by_name(aid_list)[0]
     singletons = [aids for aids in aids_list if len(aids) == 1]
     multitons = [aids for aids in aids_list if len(aids) > 1]
@@ -5888,7 +5888,7 @@ def compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func):
 
 
 def viewpoint_diff(ori1, ori2):
-    """ convert distance in radians to distance in viewpoint category """
+    """convert distance in radians to distance in viewpoint category"""
     # TODO: lookup distance
     TAU = np.pi * 2
     ori_diff = vt.ori_distance(ori1, ori2)
@@ -6142,7 +6142,7 @@ def get_annotconfig_stats(
 
 @register_ibs_method
 def get_dbname_alias(ibs):
-    """ convinience for plots """
+    """convinience for plots"""
     dbname = ibs.get_dbname()
 
     return const.DBNAME_ALIAS.get(dbname, dbname)
@@ -6483,7 +6483,7 @@ def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, annots=None, config2_
     #    annot.eager_eval('vecs')
 
     def extract_vecs(annots, aid, fxs):
-        """ custom_func(lazydict, key, subkeys) for multigroup_lookup """
+        """custom_func(lazydict, key, subkeys) for multigroup_lookup"""
         vecs = annots[aid]['vecs'].take(fxs, axis=0)
         return vecs
 
@@ -6571,7 +6571,7 @@ def _clean_species(ibs):
 
 @register_ibs_method
 def get_annot_encounter_text(ibs, aids):
-    """ Encounter identifier for annotations """
+    """Encounter identifier for annotations"""
     occur_texts = ibs.get_annot_occurrence_text(aids)
     name_texts = ibs.get_annot_names(aids)
     enc_texts = [
@@ -6748,7 +6748,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
 
 @register_ibs_method
 def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
-    """ Function to load and process a SMART patrol XML file """
+    """Function to load and process a SMART patrol XML file"""
     # Get file and copy to wbia database folder
     xml_dir, xml_name = split(smart_xml_fpath)
     dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)

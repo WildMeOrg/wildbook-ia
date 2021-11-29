@@ -231,7 +231,7 @@ class DependencyCache:
         return register_preproc_wrapper
 
     def _register_subprop(self, tablename, propname=None, preproc_func=None):
-        """ subproperties are always recomputeed on the fly """
+        """subproperties are always recomputeed on the fly"""
         table = self.cachetable_dict[tablename]
         table.subproperties[propname] = preproc_func
 
@@ -1023,7 +1023,7 @@ class DependencyCache:
         return ancestor_rowids
 
     def new_request(self, tablename, qaids, daids, cfgdict=None):
-        """ creates a request for data that can be executed later """
+        """creates a request for data that can be executed later"""
         logger.info('[depc] NEW %s request' % (tablename,))
         requestclass = self.requestclass_dict[tablename]
         request = requestclass.new(self, qaids, daids, cfgdict, tablename=tablename)
@@ -1400,7 +1400,7 @@ class DependencyCache:
         return self.make_graph(reduced=True)
 
     def show_graph(self, reduced=False, **kwargs):
-        """ Helper "fluff" function """
+        """Helper "fluff" function"""
         import wbia.plottool as pt
 
         graph = self.make_graph(reduced=reduced)

@@ -50,11 +50,11 @@ class TreeNode(TREE_NODE_BASE):
         return self.get_child(index)
 
     def set_children(self, child_nodes):
-        """ <CYTH returns="void"> """
+        """<CYTH returns="void">"""
         self.child_nodes = child_nodes
 
     def get_children(self):
-        """ </CYTH returns="list"> """
+        """</CYTH returns="list">"""
         self.lazy_checks()
         return self.child_nodes
 
@@ -76,7 +76,7 @@ class TreeNode(TREE_NODE_BASE):
         return self.child_nodes[index]
 
     def get_parent(self):
-        """ <CYTH returns="TreeNode"> """
+        """<CYTH returns="TreeNode">"""
         try:
             return self.parent_node
         except AttributeError as ex:
@@ -112,7 +112,7 @@ class TreeNode(TREE_NODE_BASE):
         return row
 
     def get_level(self):
-        """ <CYTH returns="long"> """
+        """<CYTH returns="long">"""
         return self.level
 
     def find_row_from_id(self, _id):

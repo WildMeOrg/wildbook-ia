@@ -375,7 +375,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
 
 
 def dev_cache_getter(tblname, colname, *args, **kwargs):
-    """ cache getter for when the database is gaurenteed not to change """
+    """cache getter for when the database is gaurenteed not to change"""
 
     def closure_dev_getter_cacher(getter_func):
         if not DEV_CACHE:
@@ -532,6 +532,6 @@ def getter_numpy_vector_output(func):
 
 
 def ider(func):
-    """ This function takes returns ids subject to conditions """
+    """This function takes returns ids subject to conditions"""
     ider_func = ut.preserve_sig(func, func)
     return ider_func

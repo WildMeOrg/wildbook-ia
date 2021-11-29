@@ -1291,7 +1291,7 @@ class MultiTaskSamples(ut.NiceRepr):
         return encoded_2d
 
     def class_name_basis(samples):
-        """ corresponds with indexes returned from encoded1d """
+        """corresponds with indexes returned from encoded1d"""
         class_name_basis = [
             t[::-1]
             for t in ut.product(*[v.class_names for k, v in samples.items()][::-1])
@@ -1301,7 +1301,7 @@ class MultiTaskSamples(ut.NiceRepr):
         return class_name_basis
 
     def class_idx_basis_2d(samples):
-        """ 2d-index version of class_name_basis """
+        """2d-index version of class_name_basis"""
         class_idx_basis_2d = [
             (b, a)
             for a, b in ut.product(
@@ -1311,14 +1311,14 @@ class MultiTaskSamples(ut.NiceRepr):
         return class_idx_basis_2d
 
     def class_idx_basis_1d(samples):
-        """ 1d-index version of class_name_basis """
+        """1d-index version of class_name_basis"""
         n_states = np.prod([v.n_classes for k, v in samples.items()])
         class_idx_basis_1d = np.arange(n_states, dtype=np.int)
         return class_idx_basis_1d
 
     # @ut.memoize
     def encoded_1d(samples):
-        """ Returns a unique label for each combination of samples """
+        """Returns a unique label for each combination of samples"""
         # from sklearn.preprocessing import MultiLabelBinarizer
         encoded_2d = samples.encoded_2d()
         class_space = [v.n_classes for k, v in samples.items()]
@@ -1350,7 +1350,7 @@ class MultiTaskSamples(ut.NiceRepr):
         logger.info('len(all) = %s' % (len(samples)))
 
     def make_histogram(samples):
-        """ label histogram """
+        """label histogram"""
         class_name_basis = samples.class_name_basis()
         class_idx_basis_1d = samples.class_idx_basis_1d()
         # logger.info('class_idx_basis_1d = %r' % (class_idx_basis_1d,))
@@ -1397,7 +1397,7 @@ class MultiTaskSamples(ut.NiceRepr):
         return skf_list
 
     def subsplit_indices(samples, subset_idx, **xval_kw):
-        """ split an existing set """
+        """split an existing set"""
         from sklearn import model_selection
 
         X = np.empty((len(subset_idx), 0))

@@ -45,7 +45,7 @@ class StackedConfig(ut.DictLike, ut.HashComparable):
         return ut.take_column(self._items, 0)
 
     def __hash__(cfg):
-        """ Needed for comparison operators """
+        """Needed for comparison operators"""
         return hash(cfg.get_cfgstr())
 
     def getitem(self, key):
@@ -93,19 +93,19 @@ class Config(ut.NiceRepr, ut.DictLike):
         return cfg.get_cfgstr(with_name=False)
 
     def __lt__(self, other):
-        """ hash comparable broke in python3 """
+        """hash comparable broke in python3"""
         return ut.compare_instance(op.lt, self, other)
 
     def __eq__(self, other):
-        """ hash comparable broke in python3 """
+        """hash comparable broke in python3"""
         return ut.compare_instance(op.eq, self, other)
 
     def __hash__(cfg):
-        """ Needed for comparison operators """
+        """Needed for comparison operators"""
         return hash(cfg.get_cfgstr())
 
     def get_config_name(cfg, **kwargs):
-        """ the user might want to overwrite this function """
+        """the user might want to overwrite this function"""
         # VERY HACKY
         config_name = cfg.__class__.__name__.replace('Config', '')
         config_name = re.sub('_$', '', config_name)
@@ -262,7 +262,7 @@ class Config(ut.NiceRepr, ut.DictLike):
                 yield key, val
 
     def initialize_params(cfg, **kwargs):
-        """ Initializes config class attributes based on params info list """
+        """Initializes config class attributes based on params info list"""
         # logger.info("INIT PARAMS")
         for pi in cfg.get_param_info_list():
             setattr(cfg, pi.varname, pi.default)
@@ -363,7 +363,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         return param_list
 
     def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
-        """ default get_cfgstr_list, can be overrided by a config object """
+        """default get_cfgstr_list, can be overrided by a config object"""
         if ignore_keys is not None:
             itemstr_list = [
                 pi.get_itemstr(cfg)
@@ -411,18 +411,18 @@ class Config(ut.NiceRepr, ut.DictLike):
         return ut.hashstr27(cfg.get_cfgstr())
 
     def keys(cfg):
-        """ Required for DictLike interface """
+        """Required for DictLike interface"""
         return cfg.get_varnames()
 
     def getitem(cfg, key):
-        """ Required for DictLike interface """
+        """Required for DictLike interface"""
         try:
             return getattr(cfg, key)
         except AttributeError as ex:
             raise KeyError(ex)
 
     def get(qparams, key, *d):
-        """ get a paramater value by string """
+        """get a paramater value by string"""
         ERROR_ON_DEFAULT = False
         if ERROR_ON_DEFAULT:
             return getattr(qparams, key)
@@ -430,7 +430,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             return getattr(qparams, key, *d)
 
     def setitem(cfg, key, value):
-        """ Required for DictLike interface """
+        """Required for DictLike interface"""
         # TODO; check for valid config setting
         pi_dict = cfg.get_param_info_dict()
         pi = pi_dict[key]
@@ -596,7 +596,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
 
 def make_configclass(dict_, tablename):
-    """ Creates a custom config class from a dict """
+    """Creates a custom config class from a dict"""
 
     def rectify_item(key, val):
         if val is None:
@@ -639,7 +639,7 @@ class IBEISRequestHacks(object):
 
     @property
     def ibs(request):
-        """ HACK specific to wbia """
+        """HACK specific to wbia"""
         if request.depc is None:
             return None
         return request.depc.controller
@@ -703,7 +703,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
 
     @staticmethod
     def static_new(cls, depc, parent_rowids, cfgdict=None, tablename=None):
-        """ hack for autoreload """
+        """hack for autoreload"""
         request = cls()
         if tablename is None:
             try:
@@ -941,7 +941,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         return ut.list_transpose(request.parent_rowids)
 
     def execute(request, parent_rowids=None, use_cache=None, postprocess=True, **kwargs):
-        """ HACKY REIMPLEMENTATION """
+        """HACKY REIMPLEMENTATION"""
         ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
         table = request.depc[request.tablename]
         if use_cache is None:
@@ -1080,7 +1080,7 @@ class ClassVsClassSimilarityRequest(BaseRequest):
 
 
 class AlgoResult(object):
-    """ Base class for algo result objects """
+    """Base class for algo result objects"""
 
     @classmethod
     def load_from_fpath(cls, fpath, verbose=ut.VERBOSE):

@@ -15,21 +15,21 @@ SELDIR_CACHEID = 'guitool_selected_directory'
 
 
 def _guitool_cache_write(key, val):
-    """ Writes to global IBEIS cache """
+    """Writes to global IBEIS cache"""
     util_cache.global_cache_write(
         key, val, appname='wbia'
     )  # HACK, user should specify appname
 
 
 def _guitool_cache_read(key, **kwargs):
-    """ Reads from global IBEIS cache """
+    """Reads from global IBEIS cache"""
     return util_cache.global_cache_read(
         key, appname='wbia', **kwargs
     )  # HACK, user should specify appname
 
 
 def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
-    """ Prompt user for conformation before changing something """
+    """Prompt user for conformation before changing something"""
     msg = 'Are you sure?' if msg is None else msg
     print('[gt] Asking User if sure')
     print('[gt] title = %s' % (title,))
@@ -487,7 +487,7 @@ __MESSAGE_BOXES__ = []
 
 
 def _register_msgbox(msgbox):
-    """ Dont let the message box lose scope """
+    """Dont let the message box lose scope"""
     global __MESSAGE_BOXES__
     __MESSAGE_BOXES__.append(msgbox)
 
@@ -740,19 +740,19 @@ def connect_context_menu(widget, context_options):
 
 
 def _get_scope(qobj, scope_title='_scope_list'):
-    """ Helper for ensuring qt objects are not garbage collected """
+    """Helper for ensuring qt objects are not garbage collected"""
     if not hasattr(qobj, scope_title):
         setattr(qobj, scope_title, [])
     return getattr(qobj, scope_title)
 
 
 def _clear_scope(qobj, scope_title='_scope_list'):
-    """ Helper for ensuring qt objects are not garbage collected """
+    """Helper for ensuring qt objects are not garbage collected"""
     setattr(qobj, scope_title, [])
 
 
 def _enforce_scope(qobj, scoped_obj, scope_title='_scope_list'):
-    """ Helper for ensuring qt objects are not garbage collected """
+    """Helper for ensuring qt objects are not garbage collected"""
     _get_scope(qobj, scope_title).append(scoped_obj)
 
 

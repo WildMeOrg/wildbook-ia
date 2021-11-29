@@ -14,7 +14,7 @@ logger = logging.getLogger('wbia')
 
 @ut.reloadable_class
 class GraphVisualization(object):
-    """ contains plotting related code """
+    """contains plotting related code"""
 
     def _get_truth_colors(infr):
         import wbia.plottool as pt
@@ -193,12 +193,12 @@ class GraphVisualization(object):
 
     @property
     def visual_edge_attrs(infr):
-        """ all edge visual attrs """
+        """all edge visual attrs"""
         return infr.visual_edge_attrs_appearance + infr.visual_edge_attrs_space
 
     @property
     def visual_edge_attrs_appearance(infr):
-        """ attrs that pertain to edge color and style """
+        """attrs that pertain to edge color and style"""
         # picker doesnt really belong here
         return [
             'alpha',
@@ -220,7 +220,7 @@ class GraphVisualization(object):
 
     @property
     def visual_edge_attrs_space(infr):
-        """ attrs that pertain to edge positioning in a plot """
+        """attrs that pertain to edge positioning in a plot"""
         return [
             'ctrl_pts',
             'end_pt',

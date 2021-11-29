@@ -119,7 +119,7 @@ class UUIDMapHyrbridCache(object):
 
     @profile
     def read_uuid_map_dict(self, uuid_map_fpath, min_reindex_thresh):
-        """ uses in memory dictionary instead of disk """
+        """uses in memory dictionary instead of disk"""
         uuid_map = self.uuid_maps[uuid_map_fpath]
         candidate_uuids = {
             key: val for key, val in uuid_map.items() if len(val) >= min_reindex_thresh
@@ -665,7 +665,7 @@ def group_daids_by_cached_nnindexer(
 
 
 def get_data_cfgstr(ibs, daid_list):
-    """ part 2 data hash id """
+    """part 2 data hash id"""
     daids_hashid = ibs.get_annot_hashid_visual_uuid(daid_list)
     return daids_hashid
 
@@ -877,7 +877,7 @@ def background_flann_func(
     visual_uuid_list,
     min_reindex_thresh,
 ):
-    r""" FIXME: Duplicate code """
+    r"""FIXME: Duplicate code"""
     logger.info('[BG] Starting Background FLANN')
     # FIXME. dont use flann cache
     nnindexer = NeighborIndex(flann_params, cfgstr)

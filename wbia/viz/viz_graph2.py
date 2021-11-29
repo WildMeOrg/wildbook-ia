@@ -2151,7 +2151,7 @@ class EdgeAPIHelper(object):
         return text
 
     def get_inference_bgrole(self, edge):
-        """ Background role for status column """
+        """Background role for status column"""
         state, text, maybe_error = self._get_inference_info(edge)
         if state == 'disagree':
             color = pt.WHITE
@@ -2178,7 +2178,7 @@ class EdgeAPIHelper(object):
         return color
 
     def get_review_bgrole(self, edge):
-        """ Background role for status column """
+        """Background role for status column"""
         data = self.graph.get_edge_data(*edge)
         state = data.get('evidence_decision', UNREV)
         truth_colors = self.infr._get_truth_colors()

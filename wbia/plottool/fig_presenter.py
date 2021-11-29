@@ -134,7 +134,7 @@ def get_main_win_base():
 
 
 def get_all_windows():
-    """ Returns all mpl figures and registered qt windows """
+    """Returns all mpl figures and registered qt windows"""
     try:
         all_figures = get_all_figures()
         all_qt4wins = get_all_qt4_wins()

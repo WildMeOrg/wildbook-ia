@@ -85,7 +85,7 @@ class APITabWidget(QtWidgets.QTabWidget):
 
     @slot_(int)
     def _on_tabletab_change(tabwgt, index):
-        """ Switch to the current imageset tab """
+        """Switch to the current imageset tab"""
         if VERBOSE_GUI:
             logger.info('[apitab] _onchange(index=%r)' % (index,))
         tblname = tabwgt.ibswgt.tblname_list[index]
@@ -127,7 +127,7 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
 
     @slot_(int)
     def _on_imagesettab_change(imageset_tabwgt, index):
-        """ Switch to the current imageset tab """
+        """Switch to the current imageset tab"""
         if VERBOSE_GUI:
             logger.info('[imageset_tab_widget] _onchange(index=%r)' % (index,))
         if 0 <= index and index < len(imageset_tabwgt.imgsetid_list):
@@ -361,7 +361,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #    ibswgt.tt = None
 
     def _init_components(ibswgt):
-        """ Defines gui components and inits layout """
+        """Defines gui components and inits layout"""
         # Layout
         ibswgt.vlayout = QtWidgets.QVBoxLayout(ibswgt)
         ibswgt.setLayout(ibswgt.vlayout)
@@ -708,7 +708,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 yield tblname
 
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
-        """ forces changing models """
+        """forces changing models"""
         logger.info('[newgui] update_tables(%r)' % (tblnames,))
         hack_selections = []
         # logger.info('[new_gui.UPDATE_TABLES]')
@@ -724,7 +724,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             clearSelection()
 
     def connect_wbia_control(ibswgt, ibs):
-        """ Connects a new ibscontroler to the models """
+        """Connects a new ibscontroler to the models"""
         if VERBOSE_GUI:
             logger.info('[newgui] connect_wbia_control(ibs=%r)' % (ibs,))
         ibswgt.imageset_tabwgt._close_all_tabs()
