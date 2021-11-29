@@ -29,11 +29,14 @@ if [ ! -d "/cache" ]; then
    chmod 750 /cache
 fi
 
-rm -rf ~/.cache
+rm -rf ${HOME}/.cache
 
-ln -s -T /cache ~/.cache
+ln -s -T /cache ${HOME}/.cache
 
-chown ${HOST_USER}:${HOST_USER} ~/.cache/
+chown ${HOST_USER}:${HOST_USER} ${HOME}/.cache/
+
+cp /root/.theanorc ${HOME}/.theanorc
+chown ${HOST_USER}:${HOST_USER} ${HOME}/.theanorc
 
 # Hotfixes!
 
