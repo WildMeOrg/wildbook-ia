@@ -137,7 +137,8 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN set -ex \
  && /virtualenv/env3/bin/pip install \
-        tensorflow==1.15.5
+        'tensorflow-gpu==1.15.5' \
+        'keras==2.2.5'
 
 RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()"

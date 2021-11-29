@@ -51,7 +51,7 @@ RUN set -ex \
         libgflags-dev \
         libeigen3-dev \
         liblz4-dev \
-        libssl1.0.0 \
+        libssl-dev \
         libgraphviz-dev \
         # Install run-time tools
         graphviz \
