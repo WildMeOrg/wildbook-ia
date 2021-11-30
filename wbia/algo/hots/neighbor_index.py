@@ -577,7 +577,7 @@ class NeighborIndex(object):
             logger.info(
                 '[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5)
             )
-        with lockfile.LockFile('%s.lock' % (flann_fpath,)):
+        with lockfile.LockFile(flann_fpath):
             nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir=None, fpath=None, verbose=True):
@@ -593,15 +593,15 @@ class NeighborIndex(object):
         if ut.checkpath(flann_fpath, verbose=verbose):
             idx2_vec = nnindexer.idx2_vec
             # Warning: Loading a FLANN index with old headers may silently fail.
-            try:
-                with lockfile.LockFile('%s.lock' % (flann_fpath,)):
+            with lockfile.LockFile(flann_fpath):
+                try:
                     nnindexer.flann.load_index(flann_fpath, idx2_vec)
-            except (IOError, pyflann.FLANNException) as ex:
-                ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
-            except Exception as ex:
-                ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
-            else:
-                load_success = True
+                except (IOError, pyflann.FLANNException) as ex:
+                    ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
+                except Exception as ex:
+                    ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
+                else:
+                    load_success = True
         return load_success
 
     def get_prefix(nnindexer):
