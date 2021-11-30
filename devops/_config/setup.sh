@@ -2,7 +2,7 @@
 
 # Fix for Arm64 LD_PRELOAD on libgomp
 if [ "$(uname -m)" == "aarch64" ]; then
-   export LD_PRELOAD="$(locate libgomp | grep ".so" | xargs | sed -e 's/ /:/g')"
+    export LD_PRELOAD="$(locate libgomp | grep ".so" | xargs | sed -e 's/ /:/g')"
 fi
 
 # DOCKER_SOCKET=/var/run/docker.sock
@@ -10,9 +10,9 @@ fi
 if [ "${HOST_USER}" != "root" ]; then
     # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
     adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
-   export HOME_FOLDER=$(eval echo ~${HOST_USER})
+    export HOME_FOLDER=$(eval echo ~${HOST_USER})
 else
-   export HOME_FOLDER=${HOME}
+    export HOME_FOLDER=${HOME}
 fi
 
 # if [ -S ${DOCKER_SOCKET} ]; then
@@ -26,15 +26,15 @@ fi
 # fi
 
 if [ ! -d "/data/db" ]; then
-   mkdir -p /data/db/
-   chown ${HOST_USER}:${HOST_USER} /data/db/
-   chmod 750 /data/db/
+    mkdir -p /data/db/
+    chown ${HOST_USER}:${HOST_USER} /data/db/
+    chmod 750 /data/db/
 fi
 
 if [ ! -d "/cache" ]; then
-   mkdir -p /cache
-   chown ${HOST_USER}:${HOST_USER} /cache
-   chmod 750 /cache
+    mkdir -p /cache
+    chown ${HOST_USER}:${HOST_USER} /cache
+    chmod 750 /cache
 fi
 
 rm -rf ${HOME_FOLDER}/.cache
@@ -43,12 +43,17 @@ ln -s -T /cache ${HOME_FOLDER}/.cache
 
 chown ${HOST_USER}:${HOST_USER} ${HOME_FOLDER}/.cache/
 
-cp /root/.theanorc ${HOME_FOLDER}/.theanorc
+if [ "${HOST_USER}" != "root" ]; then
+    cp /root/.theanorc ${HOME_FOLDER}/.theanorc
+fi
+
 chown ${HOST_USER}:${HOST_USER} ${HOME_FOLDER}/.theanorc
 # Hotfixes!
 
 # PermissionError: [Errno 13] Permission denied: '/wbia/wbia-plugin-pie/wbia_pie/examples/manta-demo/db_localised'
-chown -R ${HOST_USER}:${HOST_USER} /wbia/wbia-plugin-pie/
+if [ -d "/wbia/wbia-plugin-pie" ]; then
+    chown -R ${HOST_USER}:${HOST_USER} /wbia/wbia-plugin-pie
+fi
 
 # Web error wbia.control.controller_inject.WebMatchThumbException, old symlinks expecting /data/docker to exist
 if [ ! -d "/data/docker" ]; then

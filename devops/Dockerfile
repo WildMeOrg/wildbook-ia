@@ -131,19 +131,6 @@ CMD []
 ##########################################################################################
 FROM org.wildme.wbia.configure as org.wildme.wbia.depricated
 
-# Install Tensorflow
-RUN set -ex \
- && cd /wbia \
- && git clone https://github.com/WildMeOrg/wbia-plugin-pie.git
+COPY ./_config/deprecated.sh /bin/deprecated
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-pie \
- && /bin/bash run_developer_setup.sh'
-
-RUN set -ex \
- && /virtualenv/env3/bin/pip install \
-        'tensorflow-gpu==1.15.5' \
-        'keras==2.2.5'
-
-RUN set -ex \
- && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()"
+RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
