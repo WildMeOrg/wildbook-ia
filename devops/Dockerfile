@@ -9,18 +9,18 @@ RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
-    'cd {} && cd .. && echo $(pwd) && git reset --hard origin/develop && git pull' \
- && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
- && git reset --hard origin/develop \
+    'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
+ && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
+ && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
- && git reset --hard origin/develop \
+ && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wbia-plugin-lca/wbia_lca \
- && git reset --hard origin/develop \
+ && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wbia-plugin-orientation/ \
- && git reset --hard origin/develop \
+ && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wildbook-ia/ \
  && git reset --hard origin/main \
@@ -85,11 +85,8 @@ COPY ./_config/entrypoint.sh /bin/entrypoint
 # Python health check
 COPY ./_config/healthcheck.py /bin/healthcheck.py
 
-# ENV LD_PRELOAD "/usr/lib/aarch64-linux-gnu/libgomp.so.1:${LD_PRELOAD}"
-
-# ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0:${LD_PRELOAD}"
-
-# ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}"
+# Build temporary fix
+ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}"
 
 # Run smoke tests
 RUN set -ex \
@@ -113,6 +110,9 @@ RUN set -x \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit
 
+# Update locate database
+RUN updatedb
+
 HEALTHCHECK --interval=2m --timeout=2m --retries=10 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
 
@@ -124,35 +124,20 @@ EXPOSE 5000
 ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
 
 ##########################################################################################
-FROM org.wildme.wbia.install  as org.wildme.wbia.depricated
+FROM org.wildme.wbia.install as org.wildme.wbia.configure
 
- # Install libgpuarray (pygpu)
-RUN set -ex \
- && . /virtualenv/env3/bin/activate \
- && git clone https://github.com/Theano/libgpuarray.git /wbia/libgpuarray \
- && cd /wbia/libgpuarray \
- && git checkout 04c2892 \
- && mkdir -p /wbia/libgpuarray/build \
- && cd /wbia/libgpuarray/build \
- && cmake \
-        -D CMAKE_BUILD_TYPE=Release \
-        -D CMAKE_INSTALL_PREFIX=/virtualenv/env3 \
-        .. \
- && make -j4 \
- && make install \
- && cd .. \
- && /virtualenv/env3/bin/python setup.py build_ext -L /virtualenv/env3/lib -I /virtualenv/env3/include \
- && /virtualenv/env3/bin/pip install -e . \
- && rm -rf /wbia/libgpuarray/build
+CMD []
+
+##########################################################################################
+FROM org.wildme.wbia.configure as org.wildme.wbia.depricated
 
 # Install Tensorflow
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
+ && git clone https://github.com/WildMeOrg/wbia-plugin-pie.git
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-pie \
- && git pull \
  && /bin/bash run_developer_setup.sh'
 
 RUN set -ex \
@@ -162,8 +147,3 @@ RUN set -ex \
 
 RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_pie;         from wbia_pie.__main__ import main;         main()"
-
-##########################################################################################
-FROM org.wildme.wbia.depricated as org.wildme.wbia.configure
-
-CMD []

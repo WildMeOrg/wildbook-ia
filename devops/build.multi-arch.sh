@@ -12,21 +12,23 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 # Change to the script's root directory location
 cd ${ROOT_LOC}
 
+docker buildx create --name multi-arch-builder --use
+
 # Build the images in dependence order
 while [ $# -ge 1 ]; do
     if [ "$1" == "wbia-base" ]; then
-        docker build -t wildme/wbia-base:latest base
+        docker buildx build -t wildme/wbia-base:latest --platform linux/amd64,linux/arm64 base
     elif [ "$1" == "wbia-provision" ]; then
-        docker build -t wildme/wbia-provision:latest provision
+        docker buildx build -t wildme/wbia-provision:latest --platform linux/amd64,linux/arm64 provision
     elif [ "$1" == "wbia" ]; then
         if [ "$(uname -m)" == "aarch64" ]; then
-            docker build --target org.wildme.wbia.install --no-cache -t wildme/wbia:latest .
+            docker buildx build --target org.wildme.wbia.install --no-cache -t wildme/wbia:latest --platform linux/amd64,linux/arm64 .
         else
-            docker build --no-cache -t wildme/wbia:latest .
+            docker buildx build --no-cache -t wildme/wbia:latest --platform linux/amd64,linux/arm64 .
         fi
     elif [ "$1" == "wbia-develop" ]; then
         cd ../
-        docker build -t wildme/wbia:develop devops/develop
+        docker buildx build -t wildme/wbia:develop --platform linux/amd64,linux/arm64 devops/develop
         cd devops/
     else
         echo "Image $1 not found"

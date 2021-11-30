@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Fix for Arm64 LD_PRELOAD on libgomp
+if [ "$(uname -m)" == "aarch64" ]; then
+   export LD_PRELOAD="$(locate libgomp | grep ".so" | xargs | sed -e 's/ /:/g')"
+fi
+
 # DOCKER_SOCKET=/var/run/docker.sock
 
 if [ "${HOST_USER}" != "root" ]; then

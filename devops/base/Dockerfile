@@ -1,4 +1,4 @@
-ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
+ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
 
 FROM ${WBIA_UBUNTU_IMAGE} as org.wildme.wbia.base
 
@@ -47,7 +47,6 @@ RUN set -ex \
         libomp-dev \
         libhdf5-openmpi-dev \
         libgdal-dev \
-        libopenmpi-dev \
         libgflags-dev \
         libeigen3-dev \
         liblz4-dev \
@@ -74,8 +73,10 @@ RUN set -ex \
  && apt-get autoclean \
  && apt-get autoremove -y \
  && rm -rf /var/cache/apt \
- && rm -rf /var/lib/apt/lists/* \
- && update-alternatives --set hdf5.pc /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5-openmpi.pc
+ && rm -rf /var/lib/apt/lists/*
+
+RUN set -ex \
+ update-alternatives --set hdf5.pc /usr/lib/*-linux-gnu/pkgconfig/hdf5-openmpi.pc
 
 RUN unlink /etc/localtime
 

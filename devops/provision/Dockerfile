@@ -15,56 +15,53 @@ RUN set -ex \
 # Clone WBIA toolkit repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-utool.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-vtool.git
+ && git clone https://github.com/WildMeOrg/wbia-utool.git \
+ && git clone https://github.com/WildMeOrg/wbia-vtool.git
 
 # Clone WBIA third-party toolkit repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyhesaff.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyflann.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pydarknet.git \
+ && git clone https://github.com/WildMeOrg/wbia-tpl-pyhesaff.git \
+ && git clone https://github.com/WildMeOrg/wbia-tpl-pyflann.git \
+ && git clone https://github.com/WildMeOrg/wbia-tpl-pydarknet.git \
  # Depricated
- && git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
+ && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox \
+ && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
 
 # Clone first-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-cnn.git
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-cnn.git
 
 RUN set -ex \
  && cd /wbia \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
-
-RUN set -ex \
- && cd /wbia \
- && git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-orientation.git
+ && git clone https://github.com/WildMeOrg/wbia-plugin-orientation.git \
+ && git clone https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
+ && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
+ && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
+ && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
 
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop-curvrank-v2 https://github.com/WildMeOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank-v2 \
- && cd /wbia/wbia-plugin-curvrank-v2/wbia_curvrank_v2 \
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank \
+ && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
  && git fetch origin \
- && git checkout develop
+ && git checkout main
 
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-kaggle7.git \
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-kaggle7.git \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git fetch origin \
- && git checkout develop
+ && git checkout main
 
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-lca.git \
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-lca.git \
  && cd /wbia/wbia-plugin-lca/wbia_lca \
  && git fetch origin \
- && git checkout develop
+ && git checkout main
 
 # WBIA Toolkits
 RUN set -ex \
@@ -143,7 +140,7 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank-v2 \
+ && cd /wbia/wbia-plugin-curvrank \
  && ./unix_build.sh \
  && pip install -e .'
 
