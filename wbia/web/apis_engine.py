@@ -93,6 +93,44 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
 
 
 @register_ibs_method
+@register_api('/api/engine/image/json/', methods=['POST', 'GET'])
+def start_add_images(
+    ibs,
+    image_uri_list,
+    callback_url=None,
+    callback_method=None,
+    callback_detailed=False,
+    lane='fast',
+    jobid=None,
+    **kwargs
+):
+    """
+    REST:
+        Method: GET/api/engine/image/json/
+        URL:
+
+    Args:
+        image_uri_list (list) : list of image urls to import.
+        callback_url (url) : url that will be called when detection succeeds or fails
+    """
+    assert len(image_uri_list) > 0, 'Cannot send a list of image_uri_list that is empty'
+
+    args = (image_uri_list,)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        action='add_images_json',
+        callback_url=callback_url,
+        callback_method=callback_method,
+        callback_detailed=callback_detailed,
+        lane=lane,
+        jobid=jobid,
+        args=args,
+        kwargs=kwargs,
+    )
+
+    return jobid
+
+
+@register_ibs_method
 @register_api('/api/engine/uuid/check/', methods=['GET', 'POST'])
 def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_list=[]):
     r"""
@@ -195,6 +233,7 @@ def start_identify_annots(
     pipecfg={},
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='slow',
     jobid=None,
 ):
@@ -326,6 +365,7 @@ def start_identify_annots(
         action='query_chips_simple_dict',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -350,6 +390,7 @@ def start_identify_annots_query_complete(
     echo_query_params=True,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='slow',
     jobid=None,
 ):
@@ -409,6 +450,7 @@ def start_identify_annots_query_complete(
         action='query_chips_graph_complete',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -433,6 +475,7 @@ def start_identify_annots_query(
     include_qaid_in_daids=True,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='slow',
     jobid=None,
 ):
@@ -653,6 +696,7 @@ def start_identify_annots_query(
         action='query_chips_graph',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -667,6 +711,7 @@ def start_wic_image(
     image_uuid_list,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='fast',
     jobid=None,
     **kwargs
@@ -696,6 +741,7 @@ def start_wic_image(
         action='wic_cnn_json',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -715,6 +761,7 @@ def start_detect_image_yolo(
     image_uuid_list,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='fast',
     jobid=None,
     **kwargs
@@ -744,6 +791,7 @@ def start_detect_image_yolo(
         action='detect_cnn_yolo_json',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -763,6 +811,7 @@ def start_labeler_cnn(
     annot_uuid_list,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='fast',
     jobid=None,
     **kwargs
@@ -784,6 +833,7 @@ def start_labeler_cnn(
         action='labeler_cnn',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -804,6 +854,7 @@ def start_review_query_chips_best(
     database_imgsetid=None,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='slow',
     jobid=None,
     **kwargs
@@ -827,6 +878,7 @@ def start_review_query_chips_best(
         action='review_query_chips_best',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,
@@ -946,6 +998,7 @@ def start_predict_ws_injury_interim_svm(
     annot_uuid_list,
     callback_url=None,
     callback_method=None,
+    callback_detailed=False,
     lane='fast',
     jobid=None,
     **kwargs
@@ -992,6 +1045,7 @@ def start_predict_ws_injury_interim_svm(
         action='predict_ws_injury_interim_svm',
         callback_url=callback_url,
         callback_method=callback_method,
+        callback_detailed=callback_detailed,
         lane=lane,
         jobid=jobid,
         args=args,

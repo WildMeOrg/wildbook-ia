@@ -44,3 +44,8 @@ class RunDetectionParameters(Parameters):
     callback_method = base_fields.String(
         description='Callback HTTP method', required=False, default='POST'
     )
+    callback_detailed = base_fields.String(
+        description='Return a detailed callback with results ',
+        required=False,
+        default=False,
+    )

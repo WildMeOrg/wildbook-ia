@@ -456,8 +456,10 @@ SPECIES_WITH_DETECTORS = (
     'hawaiian_monk_seal',
     'whale_sperm',
     'whale_sperm+fluke',
+    'yellow_bellied_toad',
     # Latin (Flukebook)
     'aetobatus_narinari',
+    'bombina_variegata',
     'chelonioidea',
     'chelonioidea+head',
     'chelonia_mydas',

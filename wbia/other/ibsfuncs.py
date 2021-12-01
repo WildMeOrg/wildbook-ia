@@ -662,6 +662,52 @@ def check_image_uuid_consistency(ibs, gid_list=None):
 
 
 @register_ibs_method
+def check_image_bit_depth(ibs, gid_list=None):
+    logger.info('checking image depth')
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    gpath_list = ibs.get_image_paths(gid_list)
+
+    arg_iter = list(zip(gpath_list))
+    flag_list = ut.util_parallel.generate2(
+        check_image_bit_depth_worker, arg_iter, futures_threaded=True
+    )
+    flag_list = list(flag_list)
+
+    update_gid_list = ut.compress(gid_list, flag_list)
+
+    args = (len(update_gid_list),)
+    logger.info('[check_image_bit_depth] Updated %d images' % args)
+
+    update_uuid_list = ibs.compute_image_uuids(update_gid_list)
+
+    return update_gid_list, update_uuid_list
+
+
+def check_image_bit_depth_worker(gpath):
+    flag = None
+    try:
+        img = Image.open(gpath, 'r')
+        assert img is not None
+
+        # Convert 16-bit RGBA images on disk to 8-bit RGB
+        if img.mode == 'RGBA':
+            img.load()
+
+            canvas = Image.new('RGB', img.size, (255, 255, 255))
+            canvas.paste(img, mask=img.split()[3])  # 3 is the alpha channel
+            canvas.save(gpath)
+            canvas = None
+            flag = True
+
+        img.close()
+    except Exception:
+        flag = False
+    return flag
+
+
+@register_ibs_method
 def check_image_loadable(ibs, gid_list=None):
     logger.info('checking image loadable')
     if gid_list is None:

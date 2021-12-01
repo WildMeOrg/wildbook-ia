@@ -167,6 +167,15 @@ def parse_imageinfo(gpath):
     try:
         # Open image with EXIF support to get time, GPS, and the original orientation
         pil_img = Image.open(gpath_, 'r')
+
+        # Convert 16-bit RGBA images on disk to 8-bit RGB
+        if pil_img.mode == 'RGBA':
+            pil_img.load()
+            canvas = Image.new('RGB', pil_img.size, (255, 255, 255))
+            canvas.paste(pil_img, mask=pil_img.split()[3])  # 3 is the alpha channel
+            canvas.save(gpath_)
+            pil_img = Image.open(gpath_, 'r')
+
         time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
         pil_img.close()
 

@@ -117,6 +117,7 @@ def review_detection_test(
     result_list=None,
     callback_url=None,
     callback_method='POST',
+    callback_detailed=False,
     **kwargs,
 ):
     ibs = current_app.ibs

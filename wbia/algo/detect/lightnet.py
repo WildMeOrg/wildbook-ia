@@ -88,6 +88,7 @@ CONFIG_URL_DICT = {
     'seals_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.seals.v0.py',
     'sea_turtle_v4': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.sea_turtle.v4.py',
     'spotted_eagle_ray_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.spotted_eagle_ray.v0.py',
+    'yellow_bellied_toad_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.yellow_bellied_toad.v0.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
 }

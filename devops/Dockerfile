@@ -85,11 +85,9 @@ COPY ./_config/entrypoint.sh /bin/entrypoint
 # Python health check
 COPY ./_config/healthcheck.py /bin/healthcheck.py
 
-# Build temporary fix
-ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}"
-
 # Run smoke tests
 RUN set -ex \
+ && export LD_PRELOAD="/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1:${LD_PRELOAD}" \
  && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
  && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
