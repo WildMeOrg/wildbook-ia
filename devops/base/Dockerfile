@@ -33,7 +33,6 @@ RUN set -ex \
         python3.7-dev \
         python3.7-gdbm \
         python3-pip \
-        python3-pyqt5 \
         python3-setuptools \
         python3-venv \
         # Install OpenCV

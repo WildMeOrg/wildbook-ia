@@ -149,37 +149,39 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
-        dtool-ibeis \
-        guitool-ibeis \
-        plottool-ibeis \
-        utool-ibeis \
-        vtool-ibeis \
-        dtool \
-        guitool \
-        plottool \
-        utool \
-        vtool \
-        lightnet \
-        brambox \
+     dtool-ibeis \
+     guitool-ibeis \
+     plottool-ibeis \
+     utool-ibeis \
+     vtool-ibeis \
+     dtool \
+     guitool \
+     plottool \
+     utool \
+     vtool \
+     lightnet \
+     brambox \
  && /virtualenv/env3/bin/pip uninstall -y \
-        opencv-python \
-        opencv-contrib-python \
-        opencv-python-headless \
-        opencv-contrib-python-headless \
-        tensorflow \
-        tensorflow-gpu \
-        tensorflow-estimator \
-        tensorboard \
-        tensorboard-plugin-wit \
-        keras \
-        torch \
-        torchvision \
-        torchaudio \
-        pynvml \
+     opencv-python \
+     opencv-contrib-python \
+     opencv-python-headless \
+     opencv-contrib-python-headless \
+     tensorflow \
+     tensorflow-gpu \
+     tensorflow-estimator \
+     tensorboard \
+     tensorboard-plugin-wit \
+     keras \
+     torch \
+     torchvision \
+     torchaudio \
+     pyqt5 \
  && /virtualenv/env3/bin/pip install \
-        opencv-contrib-python-headless \
+     opencv-contrib-python-headless \
+     pynvml \
+     pyqt5 \
  && /virtualenv/env3/bin/pip install --pre \
-       torch \
-       torchvision \
-       torchaudio \
-       -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
+     torch \
+     torchvision \
+     torchaudio \
+     -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
