@@ -1049,9 +1049,10 @@ def query_chips_graph(
                             draw_matches=True,
                             draw_heatmask=False,
                         )
-                    except Exception:
+                    except Exception as ex:
                         filepath_matches = None
                         extern_flag = 'error'
+                        ut.printex(ex, iswarning=True)
                     log_render_status(
                         ibs,
                         cm.qaid,
@@ -1076,9 +1077,10 @@ def query_chips_graph(
                             draw_matches=False,
                             draw_heatmask=True,
                         )
-                    except Exception:
+                    except Exception as ex:
                         filepath_heatmask = None
                         extern_flag = 'error'
+                        ut.printex(ex, iswarning=True)
                     log_render_status(
                         ibs,
                         cm.qaid,
@@ -1103,9 +1105,10 @@ def query_chips_graph(
                             draw_matches=False,
                             draw_heatmask=False,
                         )
-                    except Exception:
+                    except Exception as ex:
                         filepath_clean = None
                         extern_flag = 'error'
+                        ut.printex(ex, iswarning=True)
                     log_render_status(
                         ibs,
                         cm.qaid,

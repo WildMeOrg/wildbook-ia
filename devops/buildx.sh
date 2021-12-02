@@ -17,16 +17,39 @@ cd ${ROOT_LOC}
 # Build the images in dependence order
 while [ $# -ge 1 ]; do
     if [ "$1" == "wbia-base" ]; then
-        docker buildx build -t wildme/wbia-base:latest --platform linux/amd64,linux/arm64 base --push
+        docker buildx build \
+            -t wildme/wbia-base:latest \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
+            --platform linux/amd64,linux/arm64 \
+            --push \
+            base
     elif [ "$1" == "wbia-provision" ]; then
-        docker buildx build -t wildme/wbia-provision:latest --platform linux/amd64,linux/arm64 provision --push
-    elif [ "$1" == "wbia" ]; then
-        docker buildx build --no-cache -t wildme/wbia:latest --platform linux/amd64,linux/arm64 . --push
-    elif [ "$1" == "wildbook-ia" ]; then
-        docker buildx build --no-cache -t wildme/wildbook-ia:latest --platform linux/amd64,linux/arm64 . --push
+        docker buildx build \
+            -t wildme/wbia-provision:latest \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
+            --platform linux/amd64,linux/arm64 \
+            --push \
+            provision
+    elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
+        docker buildx build \
+            -t wildme/wbia:latest \
+            -t wildme/wildbook-ia:latest \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
+            --platform linux/amd64,linux/arm64 \
+            --push \
+            .
     elif [ "$1" == "wbia-develop" ]; then
         cd ../
-        docker buildx build -t wildme/wbia:develop --platform linux/amd64,linux/arm64 devops/develop --push
+        docker buildx build \
+            -t wildme/wbia:develop \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
+            --platform linux/amd64,linux/arm64 \
+            --push \
+            devops/develop
         cd devops/
     else
         echo "Image $1 not found"
