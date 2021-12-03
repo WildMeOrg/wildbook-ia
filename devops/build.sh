@@ -15,18 +15,24 @@ cd ${ROOT_LOC}
 # Build the images in dependence order
 while [ $# -ge 1 ]; do
     if [ "$1" == "wbia-base" ]; then
-        docker build -t wildme/wbia-base:latest base
+        docker build \
+            -t wildme/wbia-base:latest \
+            base
     elif [ "$1" == "wbia-provision" ]; then
-        docker build -t wildme/wbia-provision:latest provision
-    elif [ "$1" == "wbia" ]; then
-        if [ "$(uname -m)" == "aarch64" ]; then
-            docker build --target org.wildme.wbia.install --no-cache -t wildme/wbia:latest .
-        else
-            docker build --no-cache -t wildme/wbia:latest .
-        fi
+        docker build \
+            -t wildme/wbia-provision:latest \
+            provision
+    elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
+        docker build \
+            -t wildme/wbia:latest \
+            -t wildme/wildbook-ia:latest \
+            --no-cache \
+            .
     elif [ "$1" == "wbia-develop" ]; then
         cd ../
-        docker build -t wildme/wbia:develop devops/develop
+        docker build \
+            -t wildme/wbia:develop \
+            devops/develop
         cd devops/
     else
         echo "Image $1 not found"

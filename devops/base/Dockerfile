@@ -37,24 +37,26 @@ RUN set -ex \
         python3-venv \
         # Install OpenCV
         libopencv-dev \
-        # Install dependencies for NVTOP
-        libncurses5-dev \
-        libncursesw5-dev \
-        # Install dependencies for PyHesaff & PyFLANN
+        # Install dependencies for PyFLANN
         libboost-all-dev \
         libopenmpi-dev \
         libomp-dev \
         libhdf5-openmpi-dev \
-        libgdal-dev \
-        libgflags-dev \
-        libeigen3-dev \
         liblz4-dev \
+        # Install dependencies for PyHesaff
+        libgdal-dev \
+        # Install dependencies for vtool
+        libeigen3-dev \
+        # Install dependencies for pgloader
         libssl-dev \
+        # Install run-time dependencies
         libgraphviz-dev \
-        # Install run-time tools
         graphviz \
         gosu \
         xvfb \
+        # Install dependencies for NVTOP
+        libncurses5-dev \
+        libncursesw5-dev \
         # Install handy developer tools
         curl \
         pgloader \

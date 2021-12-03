@@ -175,13 +175,20 @@ RUN set -ex \
      torch \
      torchvision \
      torchaudio \
-     pyqt5 \
  && /virtualenv/env3/bin/pip install \
      opencv-contrib-python-headless \
      pynvml \
-     pyqt5 \
  && /virtualenv/env3/bin/pip install --pre \
      torch \
      torchvision \
      torchaudio \
      -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
+
+# Fix PyQt5
+RUN set -ex \
+ && /virtualenv/env3/bin/pip uninstall -y \
+    pyqt5
+ && /virtualenv/env3/bin/pip uninstall -y \
+    pyqt5
+ && /virtualenv/env3/bin/pip install
+     pyqt5

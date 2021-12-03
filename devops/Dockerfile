@@ -110,6 +110,14 @@ RUN set -ex \
  && find /wbia/wildbook* -name '*.a' -print  | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
 
+# Last minute bug fixes
+RUN set -ex \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && /virtualenv/env3/bin/pip uninstall -y \
+    pyqt5 \
+ && /virtualenv/env3/bin/pip install \
+    pyqt5'
+
 # Undo Fix
 ENV LD_PRELOAD ""
 
