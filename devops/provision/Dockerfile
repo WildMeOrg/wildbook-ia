@@ -187,8 +187,8 @@ RUN set -ex \
 # Fix PyQt5
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
-    pyqt5
+     pyqt5 \
  && /virtualenv/env3/bin/pip uninstall -y \
-    pyqt5
- && /virtualenv/env3/bin/pip install
+     pyqt5 \
+ && /virtualenv/env3/bin/pip install \
      pyqt5
