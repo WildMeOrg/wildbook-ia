@@ -1,6 +1,6 @@
-cmake!=3.18.2
+cmake
 ninja
 scikit-build
-setuptools>=42
-setuptools_scm[toml]>=3.4
+setuptools
+setuptools_scm[toml]
 wheel

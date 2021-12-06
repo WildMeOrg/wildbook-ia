@@ -1,6 +1,6 @@
 brunette
-codecov >= 2.0.15
-coverage >= 4.3.4
-pytest >= 3.3.1
+codecov
+coverage
+pytest
 pytest-cov
-xdoctest >= 0.3.0
+xdoctest
