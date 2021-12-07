@@ -1,24 +1,35 @@
-name: Docker
-
+name: Build and upload Docker
 on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
   push:
+    paths:
+      - '.github/workflows/docker-publish.yml'
+      - 'devops/**'
     tags:
       - v*
+  pull_request:
+    paths:
+      - '.github/workflows/docker-publish.yml'
+      - 'devops/**'
 
 jobs:
-  # Push container image to GitHub Packages and Docker Hub.
-  # See also https://docs.docker.com/docker-hub/builds/
-  deploy:
+  devops:
+    name: Docker image build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
     strategy:
       matrix:
         images:
-          - wbia-base wbia-provision wbia
+          - wbia-base wbia-provision wbia wildbook-ia
 
     steps:
       - uses: actions/checkout@v2
+        if: github.event_name == 'schedule'
+        with:
+          ref: main
+
+      - uses: actions/checkout@v2
+        if: github.event_name != 'schedule'
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -28,6 +39,7 @@ jobs:
       # Build images
       - name: Build images
         run: |
+          # Build Image
           cd devops/
           bash build.sh ${{ matrix.images }}
 
@@ -45,7 +57,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Push to Docker Hub
+      - name: Push to Docker Hub (Nightly)
+        if: github.event_name == 'schedule'
+        run: bash devops/publish.sh -t nightly ${{ matrix.images }}
+
+      - name: Push to GitHub Packages (Nightly)
+        if: github.event_name == 'schedule'
+        run: bash devops/publish.sh -t nightly -r ghcr.io/wildmeorg/wildbook-ia ${{ matrix.images }}
+
+      - name: Push to Docker Hub (Latest)
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
         run: |
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
@@ -53,21 +73,33 @@ jobs:
           bash devops/publish.sh -t latest ${{ matrix.images }}
 
       # Push containers out to container registries
-      - name: Push to GitHub Packages
+      - name: Push to GitHub Packages (Latest)
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
         run: |
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
-          bash devops/publish.sh -t ${VERSION} -r ghcr.io/wildmeorg ${{ matrix.images }}
-          bash devops/publish.sh -t latest -r ghcr.io/wildmeorg ${{ matrix.images }}
+          bash devops/publish.sh -t ${VERSION} -r ghcr.io/wildmeorg/wildbook-ia ${{ matrix.images }}
+          bash devops/publish.sh -t latest -r ghcr.io/wildmeorg/wildbook-ia ${{ matrix.images }}
 
       # Notify status in Slack
       - name: Slack Notification
-        if: ${{ failure() }}
+        if: ${{ failure() && github.event_name == 'schedule' }}
         uses: rtCamp/action-slack-notify@master
         env:
           SLACK_CHANNEL: ia-development
           SLACK_COLOR: '#FF0000'
           SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
-          SLACK_MESSAGE: 'Latest (tagged) build failed :sob:'
+          SLACK_MESSAGE: 'Nightly Docker build failed :sob:'
+          SLACK_USERNAME: "Nightly"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      # Notify status in Slack
+      - name: Slack Notification
+        if: ${{ failure() && github.event_name != 'schedule' }}
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: ia-development
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
+          SLACK_MESSAGE: 'Latest Docker build failed :sob:'
           SLACK_USERNAME: "Latest"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

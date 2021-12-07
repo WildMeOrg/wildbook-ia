@@ -30,8 +30,6 @@ RUN set -ex \
 
 FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.install
 
-LABEL autoheal=true
-
 ARG VERSION="3.7.2"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
@@ -39,6 +37,10 @@ ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 ARG VCS_REF="main"
 
 ARG BUILD_DATE="2020"
+
+LABEL autoheal=true
+
+LABEL org.opencontainers.image.source https://github.com/WildMeOrg/wildbook-ia
 
 LABEL org.wildme.vendor="Wild Me" \
       org.wildme.url="https://wildme.org" \
