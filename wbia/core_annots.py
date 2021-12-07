@@ -819,14 +819,14 @@ def compute_probchip(depc, aid_list, config=None):
 
 @derived_attribute(
     tablename='blended_probchip',
-    parents=['probchip'],
+    parents=['chip', 'probchip'],
     colnames=['img'],
     coltypes=[ProbchipImgType],
     configclass=ProbchipConfig,
     fname='blended_probchip',
     # isinteractive=True,
 )
-def blended_probchip(depc, aid_list, config=None):
+def blended_probchip(depc, cid_list, pcid_list, config=None):
     """Computes probability chips using pyrf
 
     CommandLine:
@@ -865,8 +865,8 @@ def blended_probchip(depc, aid_list, config=None):
     ut.ensuredir(probchip_dir)
 
     #TODO: where do we get config2_ ?
-    chip_fpaths = ibs.get_annot_chip_fpath(aid_list, config2_=config)
-    probchip_fpaths = ibs.get_annot_probchip_fpath(aid_list, config2_=config)
+    chips = depc.get_native('chip', cid_list, 'img')
+    probchips = depc.get_native('probchip', pcid_list, 'img')
     target_fpaths = [os.path.join(probchip_dir, f'{aid}.blended.probchip.png') for aid in aid_list]
 
     for chip_fp, probchip_fp, fpath in zip(chip_fpaths, probchip_fpaths, target_fpaths):
