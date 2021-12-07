@@ -76,7 +76,7 @@ def get_hots_table_strings(ibs):
               4,  ../_ibsdb/images/0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg,    0#
               5,  ../_ibsdb/images/0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg,    0#
               6,  ../_ibsdb/images/2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg,    0#
-              7,  ../_ibsdb/images/a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png,    0#
+              7,  ../_ibsdb/images/68ca272d-26f7-1dbb-76e9-08d192c1a4a7.png,    0#
               8,  ../_ibsdb/images/42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg,    0#
               9,  ../_ibsdb/images/c459d381-fd74-1d99-6215-e42e3f432ea9.jpg,    0#
              10,  ../_ibsdb/images/33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg,    0#

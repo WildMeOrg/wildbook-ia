@@ -3057,7 +3057,7 @@ def colorbar(
         >>> pt.show_if_requested()
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> from wbia.plottool import draw_func2 as df2
         >>> from wbia.plottool.draw_func2 import *  # NOQA

@@ -159,6 +159,7 @@ def background_src_api(rowid=None, fresh=False, **kwargs):
     Example:
         >>> # xdoctest: +REQUIRES(--slow)
         >>> # xdoctest: +REQUIRES(--web-tests)
+        >>> # xdoctest: +REQUIRES(module:wbia_cnn)
         >>> from wbia.web.app import *  # NOQA
         >>> import wbia
         >>> with wbia.opendb_with_web('testdb1') as (ibs, client):
