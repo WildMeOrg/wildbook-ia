@@ -1,0 +1,5 @@
+psycopg2-binary
+pygraphviz
+pyqt5
+statsmodels
+tensorflow==1.15.5
