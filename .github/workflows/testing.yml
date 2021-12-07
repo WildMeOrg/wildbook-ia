@@ -125,8 +125,7 @@ jobs:
       # Install and test
       - name: Install project
         run: |
-          pip install -e .[tests,problematic]
-          pip install psycopg2-binary
+          pip install -e .[tests,problematic,postgres]
           mkdir -p /tmp/work
           python -m wbia --set-workdir /tmp/work --preload-exit
 

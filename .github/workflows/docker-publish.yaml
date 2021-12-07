@@ -1,25 +1,18 @@
 name: Build and upload Docker
+
 on:
-  schedule:
-    - cron: '0 0 * * *' # Every day at midnight
   push:
-    paths:
-      - '.github/workflows/docker-publish.yml'
-      - 'devops/**'
-    tags:
-      - v*
     branches:
       - main
-  pull_request:
-    paths:
-      - '.github/workflows/docker-publish.yml'
-      - 'devops/**'
+    tags:
+      - v*
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
 
 jobs:
   devops:
     name: Docker image build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
 
     strategy:
       matrix:

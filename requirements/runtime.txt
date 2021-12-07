@@ -120,7 +120,7 @@ visdom
 wbia-lightnet
 wbia-pydarknet
 wbia-pyflann
-wbia-pyhesaff
+wbia-pyhesaff==3.3.0
 
 wbia-utool
 wbia-vtool
