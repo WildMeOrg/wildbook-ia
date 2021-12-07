@@ -8,6 +8,8 @@ on:
       - 'devops/**'
     tags:
       - v*
+    branches:
+      - main
   pull_request:
     paths:
       - '.github/workflows/docker-publish.yml'
