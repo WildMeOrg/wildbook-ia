@@ -3038,7 +3038,7 @@ def colorbar(
         python -m wbia.plottool.draw_func2 --exec-colorbar:1 --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> from wbia.plottool import draw_func2 as df2
         >>> from wbia.plottool.draw_func2 import *  # NOQA
@@ -3057,7 +3057,7 @@ def colorbar(
         >>> pt.show_if_requested()
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> from wbia.plottool import draw_func2 as df2
         >>> from wbia.plottool.draw_func2 import *  # NOQA
