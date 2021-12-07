@@ -6616,6 +6616,27 @@ def _clean_species(ibs):
 
 
 @register_ibs_method
+def _clean_flann(ibs):
+    if ut.VERBOSE:
+        logger.info('[_clean_flann] Cleaning...')
+
+    if ibs.readonly:
+        # SUPER HACK
+        return
+
+    flann_cachedir = ibs.get_flann_cachedir()
+    flann_locks = ut.glob('%s/*.lock' % (flann_cachedir,))
+
+    flann_delete = []
+    for flann_lock in flann_locks:
+        flann_base = flann_lock.replace('.lock', '*')
+        flann_delete += ut.glob(flann_base)
+
+    for path in flann_delete:
+        ut.delete(path)
+
+
+@register_ibs_method
 def get_annot_encounter_text(ibs, aids):
     """Encounter identifier for annotations"""
     occur_texts = ibs.get_annot_occurrence_text(aids)

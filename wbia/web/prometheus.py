@@ -2,6 +2,7 @@
 import logging
 from prometheus_client import Info, Gauge, Counter, Enum, Histogram  # NOQA
 from wbia.control import controller_inject
+from wbia.web.apis_query import RENDER_STATUS  # NOQA
 import wbia.constants as const
 import utool as ut
 
@@ -58,10 +59,15 @@ PROMETHEUS_DATA = {
         'Number of species in WBIA database',
         ['name'],
     ),
+    'renders': Gauge(
+        'wbia_assets_renders',
+        'Number of rendered images in WBIA database',
+        ['name', 'status'],
+    ),
     'engine': Gauge(
         'wbia_engine_jobs',
         'Job engine status',
-        ['status', 'name', 'endpoint'],
+        ['name', 'status', 'endpoint'],
     ),
     'process': Gauge(
         'wbia_engine_dead_process',
@@ -158,6 +164,11 @@ def prometheus_update(ibs, *args, **kwargs):
                 container_name = ibs.dbname
 
             global PROMETHEUS_COUNTER
+
+            global RENDER_STATUS
+
+            if RENDER_STATUS is None:
+                RENDER_STATUS = ibs._init_render_status()
 
             PROMETHEUS_COUNTER = PROMETHEUS_COUNTER + 1  # NOQA
             # logger.info('PROMETHEUS LIMIT %d / %d' % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))
@@ -360,6 +371,15 @@ def prometheus_update(ibs, *args, **kwargs):
                             PROMETHEUS_DATA['engine'].labels(
                                 status=status, name=container_name, endpoint=endpoint
                             ).set(number)
+                except Exception:
+                    pass
+
+                try:
+                    for status in RENDER_STATUS:
+                        number = RENDER_STATUS[status]
+                        PROMETHEUS_DATA['renders'].labels(
+                            status=status, name=container_name
+                        ).set(number)
                 except Exception:
                     pass
 

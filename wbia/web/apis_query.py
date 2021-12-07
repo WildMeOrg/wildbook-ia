@@ -19,7 +19,7 @@ import traceback
 import requests
 from datetime import datetime
 
-(print, rrr, profile) = ut.inject2(__name__)
+# (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -30,6 +30,9 @@ register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 GRAPH_CLIENT_PEEK = 100
+
+
+RENDER_STATUS = None
 
 
 @register_ibs_method
@@ -278,8 +281,10 @@ def ensure_review_image(
 
         if hasattr(qreq_, 'render_single_result'):
             image = qreq_.render_single_result(cm, aid, **render_config)
-        else:
+        elif hasattr(cm, 'render_single_annotmatch'):
             image = cm.render_single_annotmatch(qreq_, aid, **render_config)
+        else:
+            image = ibs.get_annot_chips(aid)
         # image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
         cv2.imwrite(match_thumb_filepath, image)
     return image, match_thumb_filepath
@@ -837,10 +842,21 @@ def query_chips_graph_complete(ibs, aid_list, query_config_dict={}, k=5, **kwarg
 def log_render_status(ibs, *args):
     import os
 
+    global RENDER_STATUS
+
+    if RENDER_STATUS is None:
+        RENDER_STATUS = ibs._init_render_status()
+    assert RENDER_STATUS is not None
+
     json_log_path = ibs.get_logdir_local()
     json_log_filename = 'render.log'
     json_log_filepath = os.path.join(json_log_path, json_log_filename)
     logger.info('Logging renders added to: %r' % (json_log_filepath,))
+
+    status = '%s' % (args[-1],)
+    if status not in RENDER_STATUS:
+        RENDER_STATUS[status] = 0
+    RENDER_STATUS[status] += 1
 
     try:
         with open(json_log_filepath, 'a') as json_log_file:
@@ -849,6 +865,32 @@ def log_render_status(ibs, *args):
             json_log_file.write(line)
     except Exception:
         logger.info('WRITE RENDER.LOG FAILED')
+
+
+@register_ibs_method
+def _init_render_status(ibs):
+    import os
+
+    json_log_path = ibs.get_logdir_local()
+    json_log_filename = 'render.log'
+    json_log_filepath = os.path.join(json_log_path, json_log_filename)
+
+    status_dict = {}
+    try:
+        with open(json_log_filepath, 'r') as json_log_file:
+            for line in json_log_file.readlines():
+                try:
+                    line = line.strip().split(',')
+                    status = line[-1]
+                    if status not in status_dict:
+                        status_dict[status] = 0
+                    status_dict[status] += 1
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    return status_dict
 
 
 @register_ibs_method
@@ -1055,6 +1097,7 @@ def query_chips_graph(
                         ut.printex(ex, iswarning=True)
                     log_render_status(
                         ibs,
+                        ut.timestamp(),
                         cm.qaid,
                         daid,
                         quuid,
@@ -1083,6 +1126,7 @@ def query_chips_graph(
                         ut.printex(ex, iswarning=True)
                     log_render_status(
                         ibs,
+                        ut.timestamp(),
                         cm.qaid,
                         daid,
                         quuid,
@@ -1111,6 +1155,7 @@ def query_chips_graph(
                         ut.printex(ex, iswarning=True)
                     log_render_status(
                         ibs,
+                        ut.timestamp(),
                         cm.qaid,
                         daid,
                         quuid,

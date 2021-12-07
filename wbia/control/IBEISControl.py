@@ -396,6 +396,7 @@ class IBEISController(BASE_CLASS):
         if not ut.get_argflag('--noclean') and not self.readonly:
             # self._init_burned_in_species()
             self._clean_species()
+            self._clean_flann()
         self.job_manager = None
 
         # Hack for changing the way chips compute

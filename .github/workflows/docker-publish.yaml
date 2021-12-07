@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         images:
-          - wbia-base wbia-provision wbia wildbook-ia
+          - wbia-base wbia-provision wbia
 
     steps:
       - uses: actions/checkout@v2

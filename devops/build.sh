@@ -16,14 +16,17 @@ cd ${ROOT_LOC}
 while [ $# -ge 1 ]; do
     if [ "$1" == "wbia-base" ]; then
         docker build \
+            --compress \
             -t wildme/wbia-base:latest \
             base
     elif [ "$1" == "wbia-provision" ]; then
         docker build \
+            --compress \
             -t wildme/wbia-provision:latest \
             provision
     elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
         docker build \
+            --compress \
             -t wildme/wbia:latest \
             -t wildme/wildbook-ia:latest \
             --no-cache \
@@ -31,6 +34,7 @@ while [ $# -ge 1 ]; do
     elif [ "$1" == "wbia-develop" ]; then
         cd ../
         docker build \
+            --compress \
             -t wildme/wbia:develop \
             devops/develop
         cd devops/
