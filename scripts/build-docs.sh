@@ -6,6 +6,6 @@ set -ex
 PROJECT_ROOT=$(python3 -c "from pathlib import Path; print(Path('$0').parent.parent.resolve())")
 
 cd $PROJECT_ROOT
-pip install -r requirements/docs.txt
+pip install sphinx
 cd docs
 make html

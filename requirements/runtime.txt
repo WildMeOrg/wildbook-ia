@@ -59,6 +59,8 @@ matplotlib
 networkx
 numpy
 
+opencv-contrib-python-headless
+
 pandas
 parse
 passlib
@@ -68,7 +70,6 @@ Pillow
 
 prometheus-client
 
-psycopg2-binary
 pyasn1
 pydot
 pydot-ng
@@ -77,11 +78,8 @@ pyfiglet
 pyfiglet
 pygments
 
-pygraphviz
-
 pynmea2
 pyparsing
-pyqt5
 
 pyshp
 
@@ -108,9 +106,7 @@ sphinx
 sqlalchemy
 
 SQLAlchemy-Utils
-statsmodels
 tensorboard_logger
-tensorflow==1.15.5
 
 Theano
 
@@ -121,12 +117,10 @@ tqdm
 ubelt
 ubelt
 visdom
-wbia-cnn
 wbia-lightnet
 wbia-pydarknet
 wbia-pyflann
 wbia-pyhesaff
-wbia-pyrf
 
 wbia-utool
 wbia-vtool

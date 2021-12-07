@@ -26,10 +26,10 @@ jobs:
         run: |
           docker run \
             --rm \
-            --volume $GITHUB_WORKSPACE:/code \
+            --volume $GITHUB_WORKSPACE:/wbia/wildbook-ia \
             --env EXEC_PRIVILEGED=1 \
             wildme/wbia:latest \
-            /code/scripts/build-docs.sh
+            /wbia/wildbook-ia/scripts/build-docs.sh
 
       - name: Package up the documenatation
         run: |
