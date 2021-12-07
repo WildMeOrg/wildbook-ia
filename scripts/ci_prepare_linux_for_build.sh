@@ -8,9 +8,21 @@ pip install -r requirements/build.txt
 
 if command -v yum &> /dev/null
 then
-	echo "No-op"
+    yum install -y \
+        geos-devel \
+        gdal-devel \
+        proj-devel \
+        graphviz \
+        graphviz-devel \
+        wget
 else
-    apt-get install \
+    apt-get install -y \
         pgloader \
-        graphviz
+        libgeos-dev \
+        libgdal-dev \
+        libproj-dev \
+        graphviz \
+        graphviz-dev
 fi
+
+pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
