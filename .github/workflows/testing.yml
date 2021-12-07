@@ -39,7 +39,50 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9]
-        postgres-uri: ['', 'postgresql://postgres:wbia@localhost:5432/postgres']
+
+    steps:
+      # Checkout and env setup
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo apt-get update
+          sudo bash scripts/ci_prepare_linux_for_build.sh
+
+      - name: Install dependencies (macOS)
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          bash scripts/ci_prepare_macos_for_build.sh
+
+      - name: Build project
+        run: |
+          bash run_developer_setup.sh
+
+      # Install and test
+      - name: Install project
+        run: |
+          pip install -e .[tests,problematic]
+          mkdir -p /tmp/work
+          python -m wbia --set-workdir /tmp/work --preload-exit
+
+      - name: Test project
+        run: |
+          pytest --slow --web-tests
+
+  test_postgres:
+    name: Test on ${{ matrix.os }} (PostGRES)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 2
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7, 3.8, 3.9]
 
     services:
       db:
@@ -87,6 +130,4 @@ jobs:
 
       - name: Test project
         run: |
-          pytest --slow --web-tests --with-postgres-uri=$POSTGRES_URI
-        env:
-          POSTGRES_URI: ${{ matrix.postgres-uri }}
+          pytest --slow --web-tests --with-postgres-uri='postgresql://postgres:wbia@localhost:5432/postgres'
