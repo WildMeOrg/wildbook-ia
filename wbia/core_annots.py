@@ -817,12 +817,18 @@ def compute_probchip(depc, aid_list, config=None):
         yield (probchip,)
 
 
+class BlendedProbchipConfig(dtool.Config):
+    # TODO: incorporate into base
+    _param_info_list = [
+    ]
+
+
 @derived_attribute(
     tablename='blended_probchip',
     parents=['chip', 'probchip'],
     colnames=['img'],
-    coltypes=[ProbchipImgType],
-    configclass=ProbchipConfig,
+    coltypes=[ChipImgType],
+    configclass=BlendedProbchipConfig,
     fname='blended_probchip',
     # isinteractive=True,
 )
@@ -869,11 +875,9 @@ def blended_probchip(depc, cid_list, pcid_list, config=None):
     probchips = depc.get_native('probchip', pcid_list, 'img')
     target_fpaths = [os.path.join(probchip_dir, f'{aid}.blended.probchip.png') for aid in aid_list]
 
-    for chip_fp, probchip_fp, fpath in zip(chip_fpaths, probchip_fpaths, target_fpaths):
-        _image = vt.imread(chip_fp)
-        _probchip = vt.imread(probchip_fp)
+    for chip, probchip, fpath in zip(chips, probchips, target_fpaths):
         # no need to resize bc we passed same config to both probchip and chip
-        blended = vt.blend_images_multiply(_image, _probchip)
+        blended = vt.blend_images_multiply(chip, probchip)
         blended *= 255.0
         blended = np.around(blended)
         blended[blended < 0] = 0
