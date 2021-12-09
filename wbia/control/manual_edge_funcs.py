@@ -782,7 +782,7 @@ def set_edge_weight_metadata(ibs, weight_rowid_list, metadata_dict_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/edge/weight/metadata/', methods=['PUT'])
+@register_api('/api/edge/weight/metadata/', methods=['POST'])
 def check_edge_weights(
     ibs, weight_rowid_list=None, edges=None, max_auto=np.inf, max_human=np.inf
 ):

@@ -864,7 +864,7 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
     >>> values = output_path, X_file, y_file
     >>> print(values)
     >>> output_path, X_file, y_file = values
-    >>> from ibeis_cnn.models.background import train_background
+    >>> from wbia_cnn.models.background import train_background
     >>> values = (
     >>>     '/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/training/background',
     >>>     '/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/extracted/background/raw/X.npy',
