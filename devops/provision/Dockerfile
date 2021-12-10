@@ -44,7 +44,7 @@ RUN set -ex \
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \
- && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-curvrank.git /wbia/wbia-plugin-curvrank \
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-curvrank.git \
  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
  && git fetch origin \
  && git checkout main

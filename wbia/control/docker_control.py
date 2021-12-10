@@ -20,7 +20,10 @@ _, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
 DOCKER_CONFIG_REGISTRY = {}
-DOCKER_IMAGE_PREFIX = 'wildme.azurecr.io'
+DOCKER_IMAGE_PREFIX = [
+    'wildme.azurecr.io',
+    'wildme',
+]
 DOCKER_DEFAULT_RUN_ARGS = {'detach': True, 'restart_policy': {'Name': 'on-failure'}}
 
 
@@ -56,9 +59,14 @@ def docker_register_config(
                 'Warning: docker_register_config called on an existing config. Already have container named %s'
                 % (container_name,)
             )
-    if DOCKER_IMAGE_PREFIX is not None and not image_name.startswith(DOCKER_IMAGE_PREFIX):
+    valid = False
+    for prefix in DOCKER_IMAGE_PREFIX:
+        if image_name.startswith(prefix):
+            valid = True
+            break
+    if not valid:
         raise RuntimeError(
-            'Cannot register an image name that does not have the prefix = %r'
+            'Cannot register an image name that does not have a prefix in %r'
             % (DOCKER_IMAGE_PREFIX,)
         )
     DOCKER_CONFIG_REGISTRY[container_name] = {
