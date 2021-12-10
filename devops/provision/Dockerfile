@@ -103,7 +103,9 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
- && /bin/bash run_developer_setup.sh'
+ && /bin/bash run_developer_setup.sh \
+ && pip install -r requirements/postgres.txt \
+ && pip install -r requirements/problematic.txt'
 
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \

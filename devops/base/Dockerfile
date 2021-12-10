@@ -40,36 +40,43 @@ RUN set -ex \
         # Install dependencies for PyFLANN
         libboost-all-dev \
         libopenmpi-dev \
+        libomp \
         libomp-dev \
         libhdf5-openmpi-dev \
         liblz4-dev \
         # Install dependencies for PyHesaff
         libgdal-dev \
+        # Install dependencies for PyDarknet
+        libtbb-dev \
         # Install dependencies for vtool
         libeigen3-dev \
+        # Install dependencies for Python packages
+        libgeos-dev \
+        libgdal-dev \
+        libproj-dev \
+        graphviz \
+        graphviz-dev \
         # Install dependencies for pgloader
         libssl-dev \
-        # Install run-time dependencies
-        libgraphviz-dev \
-        graphviz \
-        gosu \
-        xvfb \
         # Install dependencies for NVTOP
         libncurses5-dev \
         libncursesw5-dev \
         # Install handy developer tools
         curl \
-        pgloader \
         git \
         gnupg \
+        gosu \
         htop \
         locate \
         netcat \
+        pgloader \
+        postgresql \
         rsync \
         tmux \
         unzip \
         vim \
         wget \
+        xvfb \
  && apt-get clean \
  && apt-get autoclean \
  && apt-get autoremove -y \
