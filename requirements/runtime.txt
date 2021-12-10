@@ -1,5 +1,5 @@
 ansi2html
-apispec
+# apispec
 autopep8
 blinker
 boto
@@ -12,17 +12,17 @@ delorean
 deprecated
 descartes
 docker
-Flask
+# Flask
 Flask-Caching
 Flask-CAS
 Flask-Cors
 Flask-Login
-flask-marshmallow
+# flask-marshmallow
 Flask-Minify
 Flask-OAuthlib
 Flask-Paranoid
 flask-restx
-Flask-SQLAlchemy
+# Flask-SQLAlchemy
 flask-swagger
 gdm
 geopandas
@@ -34,8 +34,8 @@ keras
 line-profiler
 lockfile
 mako
-marshmallow
-marshmallow-sqlalchemy
+# marshmallow
+# marshmallow-sqlalchemy
 matplotlib
 networkx
 numpy
@@ -69,8 +69,8 @@ simplejson
 sip
 six
 sphinx
-sqlalchemy
-SQLAlchemy-Utils
+# sqlalchemy
+# SQLAlchemy-Utils
 tensorboard_logger
 Theano
 torch
@@ -85,5 +85,5 @@ wbia-pyflann
 wbia-pyhesaff
 wbia-utool
 wbia-vtool
-webargs
-werkzeug
+# webargs
+# werkzeug
