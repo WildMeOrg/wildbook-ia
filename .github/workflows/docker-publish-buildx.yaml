@@ -39,4 +39,4 @@ jobs:
         run: |
           # Build Image
           cd devops/
-          bash build.sh ${{ matrix.images }}
+          bash buildx.sh ${{ matrix.images }}
