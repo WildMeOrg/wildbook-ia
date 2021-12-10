@@ -339,7 +339,8 @@ def ensure_correct_version(
         update_schema_version(
             ibs, db, schema_spec, version, version_expected, dobackup=dobackup
         )
-        db.set_db_version(version_expected)
+        # db.set_db_version(version_expected)
+        db.metadata.database.version = version_expected
         logger.info(
             '[_SQL] Database version updated (incrementally) to %r' % (version_expected)
         )

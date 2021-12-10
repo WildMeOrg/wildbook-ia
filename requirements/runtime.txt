@@ -69,8 +69,8 @@ simplejson
 sip
 six
 sphinx
-# sqlalchemy
-# SQLAlchemy-Utils
+sqlalchemy
+SQLAlchemy-Utils
 tensorboard_logger
 Theano
 torch
