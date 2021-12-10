@@ -40,7 +40,7 @@ RUN set -ex \
         # Install dependencies for PyFLANN
         libboost-all-dev \
         libopenmpi-dev \
-        libomp \
+        libomp5 \
         libomp-dev \
         libhdf5-openmpi-dev \
         liblz4-dev \

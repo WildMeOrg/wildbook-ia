@@ -43,6 +43,7 @@ class JSONCodeableType(UserDefinedType):
     base_py_type = None
     col_spec = None
     postgresql_base_type = 'json'
+    cache_ok = True
 
     def get_col_spec(self, **kw):
         return self.col_spec
@@ -75,6 +76,7 @@ class NumPyPicklableType(UserDefinedType):
     base_py_types = None
     col_spec = None
     postgresql_base_type = 'bytea'
+    cache_ok = True
 
     def get_col_spec(self, **kw):
         return self.col_spec
@@ -115,6 +117,8 @@ class Dict(JSONCodeableType):
     base_py_type = dict
     col_spec = 'DICT'
 
+    cache_ok = True
+
 
 class Integer(TypeDecorator):
     impl = SAInteger
@@ -130,10 +134,14 @@ class List(JSONCodeableType):
     base_py_type = list
     col_spec = 'LIST'
 
+    cache_ok = True
+
 
 class NDArray(NumPyPicklableType):
     base_py_types = (np.ndarray,)
     col_spec = 'NDARRAY'
+
+    cache_ok = True
 
 
 NP_NUMBER_TYPES = (
@@ -153,9 +161,12 @@ NP_NUMBER_TYPES = (
 class Number(NumPyPicklableType):
     base_py_types = NP_NUMBER_TYPES
     col_spec = 'NUMPY'
+    cache_ok = True
 
 
 class UUID(UserDefinedType):
+    cache_ok = True
+
     def get_col_spec(self, **kw):
         return 'UUID'
 

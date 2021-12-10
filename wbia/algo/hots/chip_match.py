@@ -1777,7 +1777,7 @@ class _ChipMatchDebugger(object):
 
         top_stack = np.vstack(top_list)
         # top_stack = np.array(top_stack, dtype=object)
-        top_stack = np.array(top_stack, dtype=np.float)
+        top_stack = np.array(top_stack, dtype=np.float64)
         # np.int32)
         top_str = np.array_str(
             top_stack, precision=3, suppress_small=True, max_line_width=200
@@ -2405,7 +2405,7 @@ class ChipMatch(
     # Modification / Evaluation Functions
     # ------------------
 
-    def _cast_scores(cm, dtype=np.float):
+    def _cast_scores(cm, dtype=np.float64):
         cm.fsv_list = [fsv.astype(dtype) for fsv in cm.fsv_list]
 
     def compress_results(cm, inplace=False):

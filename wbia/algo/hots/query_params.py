@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
-import collections
 import utool as ut
 from wbia.algo.hots import hstypes
 from wbia.algo import Config
+from collections.abc import Mapping
+
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
 
 # This object will behave like a dictionary with ** capability
-class QueryParams(collections.Mapping):
+class QueryParams(Mapping):
     @profile
     def __init__(qparams, query_cfg=None, cfgdict=None):
         """
