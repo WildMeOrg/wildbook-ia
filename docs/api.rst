@@ -2,7 +2,7 @@ API
 ===
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 5
    :caption: Wildbook IA Packages
 
    wbia.algo

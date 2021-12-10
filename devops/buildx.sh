@@ -21,6 +21,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wbia-base:latest \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --platform linux/amd64,linux/arm64 \
             --push \
             base
@@ -29,6 +30,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wbia-provision:latest \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --platform linux/amd64,linux/arm64 \
             --push \
             provision
@@ -38,6 +40,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wildbook-ia:latest \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --platform linux/amd64,linux/arm64 \
             --push \
             .
@@ -47,6 +50,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wbia:develop \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --platform linux/amd64,linux/arm64 \
             --push \
             devops/develop

@@ -104,8 +104,7 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && /bin/bash run_developer_setup.sh \
- && pip install -r requirements/postgres.txt \
- && pip install -r requirements/problematic.txt'
+ && pip install -r requirements/postgres.txt'
 
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
@@ -194,3 +193,8 @@ RUN set -ex \
      pyqt5 \
  && /virtualenv/env3/bin/pip install \
      pyqt5
+
+# Wildbook IA problematic dependencies
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \
+ && pip install -r requirements/problematic.txt'

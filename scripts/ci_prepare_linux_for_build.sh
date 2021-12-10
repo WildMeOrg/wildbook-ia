@@ -22,7 +22,8 @@ then
         graphviz-devel \
         wget \
         postgresql12-server \
-        postgresql12
+        postgresql12 \
+        PyQt5
 else
     apt-get install -y \
         pgloader \
@@ -31,7 +32,8 @@ else
         libproj-dev \
         graphviz \
         graphviz-dev \
-        postgresql
+        postgresql \
+        python3-pyqt5
 fi
 
 pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz

@@ -56,6 +56,7 @@ RUN set -ex \
         libproj-dev \
         graphviz \
         graphviz-dev \
+        python3-pyqt5 \
         # Install dependencies for pgloader
         libssl-dev \
         # Install dependencies for NVTOP
