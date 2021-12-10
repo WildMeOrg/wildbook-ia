@@ -132,3 +132,8 @@ jobs:
       - name: Test project
         run: |
           pytest --slow --web-tests --with-postgres-uri='postgresql://postgres:wbia@localhost:5432/postgres'
+
+      - name: Start site
+        run: |
+          mkdir db
+          python -m wbia.dev --dbdir db/ --web
