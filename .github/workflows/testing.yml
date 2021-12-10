@@ -75,6 +75,10 @@ jobs:
         run: |
           pytest --slow --web-tests
 
+      - name: Ensure web loads
+        run: |
+          timeout 30 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+
   test_postgres:
     name: Test on ${{ matrix.os }} (PostGRES)
     runs-on: ${{ matrix.os }}
@@ -132,3 +136,7 @@ jobs:
       - name: Test project
         run: |
           pytest --slow --web-tests --with-postgres-uri='postgresql://postgres:wbia@localhost:5432/postgres'
+
+      - name: Ensure web loads
+        run: |
+          timeout 30 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi

@@ -19,7 +19,11 @@ from os.path import join, exists
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
-from sqlalchemy.engine import LegacyRow
+
+try:
+    from sqlalchemy.engine import LegacyRow
+except ImportError:
+    LegacyRow = None
 from sqlalchemy.schema import Table
 from sqlalchemy.sql import bindparam, text, ClauseElement
 
@@ -1223,7 +1227,7 @@ class SQLDatabaseController(object):
 
         result = []
         for val in val_list:
-            if isinstance(val, LegacyRow):
+            if LegacyRow is not None and isinstance(val, LegacyRow):
                 result.append(tuple(val[returned_columns.index(c)] for c in colnames))
             else:
                 result.append(val)

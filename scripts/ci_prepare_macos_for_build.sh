@@ -12,7 +12,8 @@ brew install \
     proj \
     graphviz \
     postgresql \
-    pyqt@5
+    pyqt@5 \
+    coreutils
 
 pip install --global-option=build_ext --global-option="-I$(echo $(brew --prefix graphviz)/include/)" --global-option="-L$(echo $(brew --prefix graphviz)/lib/)" pygraphviz
 

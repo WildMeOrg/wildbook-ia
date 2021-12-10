@@ -63,6 +63,7 @@ RUN set -ex \
         libncurses5-dev \
         libncursesw5-dev \
         # Install handy developer tools
+        coreutils \
         curl \
         git \
         gnupg \

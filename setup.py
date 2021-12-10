@@ -225,7 +225,8 @@ KWARGS = OrderedDict(
     keywords=', '.join(KEYWORDS),
     url=URL,
     license=LICENSE,
-    install_requires=parse_requirements('requirements/runtime.txt'),
+    install_requires=parse_requirements('requirements/runtime.txt')
+    + parse_requirements('requirements/pinned.txt'),
     extras_require={
         'all': parse_requirements('requirements.txt'),
         'tests': parse_requirements('requirements/tests.txt'),
